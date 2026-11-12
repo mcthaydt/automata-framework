@@ -3,9 +3,10 @@
  * views standing, its walk's poses, and its lookbook hero in a library stand (motion/library/poses.json), each as an
  * RGBA cell.
  */
-import { Figure } from './figure'
-import { memberOf, standOf, type CastMember, type CharacterDef } from './cast'
+
 import { evaluate } from '../motion/motion'
+import { type CastMember, type CharacterDef, memberOf, standOf } from './cast'
+import { Figure } from './figure'
 
 export type Frame = Uint8ClampedArray
 /** The pitch the review sheets and `npm run render` paint at (18°), and so the pitch the stage paints every figure at,

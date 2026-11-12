@@ -8,15 +8,15 @@
  */
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
-import { createCanvas, type Canvas } from '@napi-rs/canvas'
+import { type Canvas, createCanvas } from '@napi-rs/canvas'
 import {
   ACTIONS,
-  actionOf,
-  lengthOf,
-  Troupe,
-  view as sheetView,
   type ActionCue,
   type ActorScript,
+  actionOf,
+  lengthOf,
+  view as sheetView,
+  Troupe,
 } from '../src'
 
 const out = resolve(process.argv[2] ?? 'out/actors')

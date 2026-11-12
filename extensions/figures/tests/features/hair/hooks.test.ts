@@ -1,18 +1,18 @@
 import { describe, expect, it } from 'vitest'
 import { BASE } from '../../../base/base'
 import { measure } from '../../../src/features/body/genes'
+import { type Material, superquadric } from '../../../src/features/body/parts'
 import { skeleton } from '../../../src/features/body/rig'
-import { superquadric, type Material } from '../../../src/features/body/parts'
-import { SWATCHES } from '../../../src/features/outfit/garments'
 import {
   CROWN,
   HAIR_SEAM,
   HAIR_STYLES,
+  type HairStyle,
   hairParts,
   registerFinish,
   registerHairPiece,
-  type HairStyle,
 } from '../../../src/features/hair/hair'
+import { SWATCHES } from '../../../src/features/outfit/garments'
 
 /**
  * The hair hooks (hair.ts H3 and H4): a fork registers hair pieces and finishes, and hairParts builds them with the

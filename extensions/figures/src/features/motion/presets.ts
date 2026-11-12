@@ -1,7 +1,7 @@
-import type { Gait, Seat, Stand } from './motion'
 import gaitLibrary from './library/gaits.json'
 import poseLibrary from './library/poses.json'
 import seatLibrary from './library/seats.json'
+import type { Gait, Seat, Stand } from './motion'
 /**
  * The motion presets a character names (library/*.json): its gait (GAITS: how it walks, stands and breathes, which a
  * character file picks by name and may adjust) and the lookbook stands (POSES: a pose held standing, its hands placed

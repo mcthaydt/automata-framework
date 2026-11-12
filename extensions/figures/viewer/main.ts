@@ -21,7 +21,7 @@
 import '@pixi/3d'
 import { CubeGeometry, FlatMaterial, Mesh3D, PlaneGeometry, View3D } from '@pixi/3d'
 import { Application, BufferImageSource, Texture } from 'pixi.js'
-import { BASE, ScriptedActor, gameplay, member, stageFrame, type ActorScript, type V3 } from '../src'
+import { type ActorScript, BASE, gameplay, member, ScriptedActor, stageFrame, type V3 } from '../src'
 import { FigureSprite, StageView } from '../src/view'
 import { CASES } from './cases'
 

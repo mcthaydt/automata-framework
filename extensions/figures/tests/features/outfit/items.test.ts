@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { J } from '../../../src/features/body/rig'
-import { itemOf, type ItemDef } from '../../../src/features/outfit/items'
+import { type ItemDef, itemOf } from '../../../src/features/outfit/items'
 
 /**
  * Items built from data (items.ts itemOf, which a fork builds its own into ITEMS with): a part's `taper` narrows it from

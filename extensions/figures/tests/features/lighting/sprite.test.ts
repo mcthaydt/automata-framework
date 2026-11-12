@@ -2,20 +2,20 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { BASE } from '../../../base/base'
 import { Figure } from '../../../src/features/figure/figure'
 import { member, view } from '../../../src/features/figure/frames'
-import { RAMPS, RAMP_OUTLINE } from '../../../src/features/paint/duel-ramps'
-import { depthAt } from '../../../src/features/paint/fabric'
-import { onRow, tiled } from '../../../src/features/paint/row'
+import { viewToWorld } from '../../../src/features/lighting/lamps'
 import {
   flatSteps,
   lightSprite,
   SPRITE_STYLE,
   type SpriteLighting,
 } from '../../../src/features/lighting/sprite'
-import { viewToWorld } from '../../../src/features/lighting/lamps'
-import { dressed } from '../draw'
-import { type Garment } from '../../../src/features/outfit/garments'
-import { registerFixtures } from '../paint/fabric-fixtures'
+import type { Garment } from '../../../src/features/outfit/garments'
+import { RAMP_OUTLINE, RAMPS } from '../../../src/features/paint/duel-ramps'
+import { depthAt } from '../../../src/features/paint/fabric'
+import { onRow, tiled } from '../../../src/features/paint/row'
 import type { V3 } from '../../../src/lib/math'
+import { dressed } from '../draw'
+import { registerFixtures } from '../paint/fabric-fixtures'
 
 /**
  * `lightSprite` (c8-lit, spec section 5a): a painted cell lit by the room as a sprite. Drawn on the base woman at

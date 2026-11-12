@@ -1,3 +1,4 @@
+// biome-ignore-all assist/source/organizeImports: the exports are grouped by subject under their own comments; a sort would detach the comments
 /**
  * FigureBuilder's public surface. A character is data — a CharacterDef of sliders, a gait and outfits as lists of
  * library garments, starting from a base figure (BASE) — and `member` makes it a cast member at a density. The review

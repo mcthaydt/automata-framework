@@ -1,17 +1,17 @@
 import { describe, expect, it, vi } from 'vitest'
 import { BASE } from '../../../base/base'
 import { measure } from '../../../src/features/body/genes'
-import { J, skeleton } from '../../../src/features/body/rig'
 import { GROUP, type Part } from '../../../src/features/body/parts'
+import { J, skeleton } from '../../../src/features/body/rig'
+import { type HairStyle, registerHairPiece } from '../../../src/features/hair/hair'
 import type { Anchor } from '../../../src/features/motion/motion'
-import { registerHairPiece, type HairStyle } from '../../../src/features/hair/hair'
 import {
   box,
   dress,
-  registerGarment,
-  registerOutfitHooks,
   type Garment,
   type Look,
+  registerGarment,
+  registerOutfitHooks,
 } from '../../../src/features/outfit/garments'
 
 /**

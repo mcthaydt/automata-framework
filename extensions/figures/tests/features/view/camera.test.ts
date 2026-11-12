@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { BASE } from '../../../base/base'
 import { member } from '../../../src/features/figure/frames'
+import { gameplay, lookAt } from '../../../src/features/stage/pose'
 import {
   anchorOf,
   checkCentred,
@@ -10,7 +11,6 @@ import {
   texelOf,
   viewFrom,
 } from '../../../src/features/view/camera'
-import { gameplay, lookAt } from '../../../src/features/stage/pose'
 
 /** Turns v by the unit quaternion q. */
 const rotate = (q: { x: number; y: number; z: number; w: number }, v: [number, number, number]) => {

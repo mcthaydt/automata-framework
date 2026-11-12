@@ -1,3 +1,4 @@
+// biome-ignore-all assist/source/organizeImports: the exports are grouped by subject under their own comments; a sort would detach the comments
 /**
  * The painter's toolkit: a second public entry, beside `src/index.ts`, for a host that paints its own geometry in
  * FigureBuilder's look (EnvironmentBuilder paints its walls with this rasteriser and palette). These are the internals

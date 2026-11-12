@@ -1,4 +1,4 @@
-import { Figure, evaluate, type CastMember } from '../src'
+import { type CastMember, evaluate, Figure } from '../src'
 import { standOf } from '../src/features/figure/cast'
 import { view } from '../src/features/figure/frames'
 

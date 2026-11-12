@@ -24,11 +24,11 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { gzipSync } from 'node:zlib'
-import { goldenFrames, GOLDEN_DENSITIES } from '../tests/golden/base'
-import { litFrames } from '../tests/golden/lit'
 import { ACTOR_WHO, actorFrames } from '../tests/golden/actors'
-import { spriteFrames } from '../tests/golden/sprites'
+import { GOLDEN_DENSITIES, goldenFrames } from '../tests/golden/base'
+import { litFrames } from '../tests/golden/lit'
 import { spriteLitFrames } from '../tests/golden/sprite'
+import { spriteFrames } from '../tests/golden/sprites'
 
 const which = process.argv[2] ?? 'all',
   KINDS = ['all', 'base', 'lit', 'actors', 'sprites', 'sprite']

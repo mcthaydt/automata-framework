@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { BASE } from '../../../base/base'
-import { skeleton } from '../../../src/features/body/rig'
-import { headForm } from '../../../src/features/body/head'
 import { measure } from '../../../src/features/body/genes'
+import { headForm } from '../../../src/features/body/head'
+import { skeleton } from '../../../src/features/body/rig'
+import type { CharacterDef } from '../../../src/features/figure/cast'
 import { Figure } from '../../../src/features/figure/figure'
 import { member, standing, walking } from '../../../src/features/figure/frames'
-import type { CharacterDef } from '../../../src/features/figure/cast'
 
 /**
  * Fat reaches the limbs, the neck and the jaw's underside (c4 stage 1): each limb fuller and smoother, not a scaled

@@ -3,8 +3,9 @@
  * into one RGBA buffer, named `<id>-<turn|walk|hero>-d<density>`. Shared by the recorder (scripts/golden.ts) and the
  * test (tests/golden/base.test.ts), so both draw exactly the same frames.
  */
-import { hero, member, standing, walking, type Frame } from '../../src/features/figure/frames'
+
 import { BASE } from '../../base/base'
+import { type Frame, hero, member, standing, walking } from '../../src/features/figure/frames'
 
 /** The densities the goldens are kept at: the kit's own and the sprites' ×2. */
 export const GOLDEN_DENSITIES = [1, 2] as const

@@ -1,8 +1,8 @@
 import { BASE } from '../../base/base'
-import type { CharacterDef } from '../../src/features/figure/cast'
-import { member, standing, type Frame } from '../../src/features/figure/frames'
-import type { Garment } from '../../src/features/outfit/garments'
 import type { Material } from '../../src/features/body/parts'
+import type { CharacterDef } from '../../src/features/figure/cast'
+import { type Frame, member, standing } from '../../src/features/figure/frames'
+import type { Garment } from '../../src/features/outfit/garments'
 
 /**
  * What the feature tests of the generic machinery share (tests/features/*): a base figure in a test outfit, drawn from

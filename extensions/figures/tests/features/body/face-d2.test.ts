@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { BASE } from '../../../base/base'
 import type { HeadShape } from '../../../src/features/body/genes'
-import type { CharacterDef } from '../../../src/features/figure/cast'
 import { measure } from '../../../src/features/body/genes'
-import { skeleton } from '../../../src/features/body/rig'
 import { headForm } from '../../../src/features/body/head'
+import { skeleton } from '../../../src/features/body/rig'
+import type { CharacterDef } from '../../../src/features/figure/cast'
 import { member, standing } from '../../../src/features/figure/frames'
 
 /**

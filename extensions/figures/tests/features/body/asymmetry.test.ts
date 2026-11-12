@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { BASE } from '../../../base/base'
 import { measure } from '../../../src/features/body/genes'
-import { J, fk, skeleton } from '../../../src/features/body/rig'
 import { headForm } from '../../../src/features/body/head'
+import { fk, J, skeleton } from '../../../src/features/body/rig'
+import { type CharacterDef, fromDef } from '../../../src/features/figure/cast'
 import { Figure } from '../../../src/features/figure/figure'
 import {
   member,
@@ -10,7 +11,6 @@ import {
   view,
   walking as walkingOf,
 } from '../../../src/features/figure/frames'
-import { fromDef, type CharacterDef } from '../../../src/features/figure/cast'
 import { evaluate } from '../../../src/features/motion/motion'
 
 /**

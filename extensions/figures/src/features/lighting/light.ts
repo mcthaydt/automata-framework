@@ -3,7 +3,7 @@ import { RAMPS } from '../paint/duel-ramps'
 import { depthAt, type Weave } from '../paint/fabric'
 import { tiled } from '../paint/row'
 import { grade, onRow, stepBy, toward } from './grade'
-import { lampSteps, strength, viewToWorld, type Lamp, type TimeOfDay } from './lamps'
+import { type Lamp, lampSteps, strength, type TimeOfDay, viewToWorld } from './lamps'
 /**
  * Real character lighting: a painted figure (figure.ts: its DUEL colours and its normal map) lit with no environment.
  * Each texel moves whole steps along its own DUEL row: the time's exposure and the cast's lift, then the lamps' steps on

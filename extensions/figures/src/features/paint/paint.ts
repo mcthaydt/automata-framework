@@ -1,10 +1,11 @@
-import { RAMPS, RAMP_OUTLINE } from './duel-ramps'
-import { noise3, type GBuffer } from './raster'
 import { smooth } from '../../lib/math'
-import { depthAt, depthOf, fabricOf, labelAt, newWeave, type Fabric, type Weave } from './fabric'
-import { tiled } from './row'
-import { GROUP, type Material } from '../body/parts'
 import type { HeadShape } from '../body/genes'
+import { GROUP, type Material } from '../body/parts'
+import { RAMP_OUTLINE, RAMPS } from './duel-ramps'
+import { depthAt, depthOf, type Fabric, fabricOf, labelAt, newWeave, type Weave } from './fabric'
+import { type GBuffer, noise3 } from './raster'
+import { tiled } from './row'
+
 /**
  * The painter: a figure's colours as pixel-art sprites are made, so a procedural figure is a sprite cell drawn live,
  * which the lighting feature (src/features/lighting) then lights from its normal map.

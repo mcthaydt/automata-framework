@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { J } from '../../../src/features/body/rig'
-import { GROUP } from '../../../src/features/body/parts'
 import type { Decal } from '../../../src/features/body/parts'
-import { box, registerGarment, type Garment } from '../../../src/features/outfit/garments'
-import { dressed, differs, turned } from '../draw'
+import { GROUP } from '../../../src/features/body/parts'
+import { J } from '../../../src/features/body/rig'
+import { box, type Garment, registerGarment } from '../../../src/features/outfit/garments'
+import { differs, dressed, turned } from '../draw'
 
 /**
  * Prints (parts.ts Print, raster.ts stampPrint): a bitmap laid flat in the cell, as a brand mark or a nameplate is, and

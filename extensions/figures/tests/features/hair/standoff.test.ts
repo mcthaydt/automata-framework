@@ -1,18 +1,18 @@
 import { describe, expect, it } from 'vitest'
 import { BASE } from '../../../base/base'
-import { reach, GROUP, type Part } from '../../../src/features/body/parts'
 import { measure, type Sliders } from '../../../src/features/body/genes'
+import { GROUP, type Part, reach } from '../../../src/features/body/parts'
 import { skeleton } from '../../../src/features/body/rig'
+import type { CharacterDef } from '../../../src/features/figure/cast'
 import { standOf } from '../../../src/features/figure/cast'
 import { Figure } from '../../../src/features/figure/figure'
 import { member, SPRITE_PITCH, view } from '../../../src/features/figure/frames'
+import type { HairStyle } from '../../../src/features/hair/hair'
 import { evaluate, type Stand } from '../../../src/features/motion/motion'
 import { POSES } from '../../../src/features/motion/presets'
-import { FALL_PLAIN } from '../../support/pins'
-import { dressed, differs } from '../draw'
 import type { Garment } from '../../../src/features/outfit/garments'
-import type { HairStyle } from '../../../src/features/hair/hair'
-import type { CharacterDef } from '../../../src/features/figure/cast'
+import { FALL_PLAIN } from '../../support/pins'
+import { differs, dressed } from '../draw'
 
 /**
  * The stand-off model (hair.ts, `Fall.rest`): long hair that lies on the trunk stays put when the head pitches or cocks.

@@ -6,10 +6,10 @@ import { member, view } from '../../src/features/figure/frames'
 import type { HairStyle } from '../../src/features/hair/hair'
 import {
   EXPRESSIONS,
-  registerGarment,
   type Expression,
   type Garment,
   type Regions,
+  registerGarment,
 } from '../../src/features/outfit/garments'
 import { dressed, turned } from '../features/draw'
 

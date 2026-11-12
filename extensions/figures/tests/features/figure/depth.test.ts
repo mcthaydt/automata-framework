@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import { BASE } from '../../../base/base'
 import { Figure } from '../../../src/features/figure/figure'
 import { member, view } from '../../../src/features/figure/frames'
-import { BASE } from '../../../base/base'
 
 /**
  * The cell's depth (Figure.depth): metres toward the camera per texel, for every opaque texel, in every drawing, fresh or

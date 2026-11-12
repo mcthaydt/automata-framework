@@ -1,4 +1,4 @@
-import { fabricOf, registerFabric, type Fabric } from '../../../src/features/paint/fabric'
+import { type Fabric, fabricOf, registerFabric } from '../../../src/features/paint/fabric'
 
 /**
  * The fabrics the c3-cloth tests draw with. Fixtures live in tests only: base registers none (H5), so with none named

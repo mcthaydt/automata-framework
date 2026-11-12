@@ -10,8 +10,8 @@
  * the same frames. The set is frozen: it is not the demo's contact sheet (scripts/actors-demo.ts), which may change.
  */
 import { createHash } from 'node:crypto'
-import { Troupe, type ActionCue, type ActorScript } from '../../src/features/actors/actor'
 import { ACTIONS, actionOf, lengthOf } from '../../src/features/actors/actions'
+import { type ActionCue, type ActorScript, Troupe } from '../../src/features/actors/actor'
 import { view } from '../../src/features/figure/frames'
 
 /** The characters the actors are recorded on: the base pair, by id. */

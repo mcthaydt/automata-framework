@@ -45,7 +45,7 @@ describe('the depth-writing template', () => {
         'fn mainFragment(input: FragmentInput) -> @location(0) vec4<f32> {',
       )
       .replace('  var cellDepth: f32 = 1.0;\n', '')
-      .replace(/\n  \/\/ Nearest sampling, by hand[\s\S]*?material\.texSize\.xy;\n/, '')
+      .replace(/\n {2}\/\/ Nearest sampling, by hand[\s\S]*?material\.texSize\.xy;\n/, '')
       .replace(
         '  return CellFragment(vec4<f32>(finalColor * alpha, alpha), cellDepth);',
         '  return vec4<f32>(finalColor * alpha, alpha);',

@@ -1,44 +1,44 @@
-import { J, fk, skeleton, type Pose, type Side, type Skeleton } from '../body/rig'
-import { evaluate, type ActionId, type MotionState } from '../motion/motion'
-import { apply, applyDir, wrapAngle, type M, type V3 } from '../../lib/math'
-import type { CastMember } from './cast'
+import { apply, applyDir, type M, type V3, wrapAngle } from '../../lib/math'
+import { DEFAULT_HEAD } from '../body/genes'
+import { boneGroups, type Decal, GROUP, type Material, type Part } from '../body/parts'
+import { fk, J, type Pose, type Side, type Skeleton, skeleton } from '../body/rig'
+import { type ActionId, evaluate, type MotionState } from '../motion/motion'
+import { type Expression, type FaceLook, NECK } from '../outfit/garments'
 import { ITEMS } from '../outfit/items'
+import { fabricOf, newWeave, type Weave } from '../paint/fabric'
+import {
+  type Bends,
+  densityOf,
+  duel,
+  eyeWhite,
+  type FaceStamp,
+  familyTones,
+  type HandStamp,
+  PAINT,
+  type PaintStyle,
+  paint,
+  tonesOf,
+} from '../paint/paint'
 import {
   blendJoins,
   cleanup,
+  type GBuffer,
   gbuffer,
   neckline,
   rasterize,
   resolve,
+  type Soup,
+  STYLE,
+  type Style,
   smoothContour,
   stamp,
   stampPrint,
-  STYLE,
   TRI,
   VERT,
-  type GBuffer,
-  type Soup,
-  type Style,
   type ViewDecal,
 } from '../paint/raster'
-import { boneGroups, GROUP, type Decal, type Material, type Part } from '../body/parts'
-import { NECK, type Expression, type FaceLook } from '../outfit/garments'
-import { DEFAULT_HEAD } from '../body/genes'
-import { fabricOf, newWeave, type Weave } from '../paint/fabric'
-import { clothFrame, clothSlots, clothU, type ClothFrame } from './cloth'
-import {
-  densityOf,
-  paint,
-  PAINT,
-  duel,
-  eyeWhite,
-  familyTones,
-  tonesOf,
-  type Bends,
-  type FaceStamp,
-  type HandStamp,
-  type PaintStyle,
-} from '../paint/paint'
+import type { CastMember } from './cast'
+import { type ClothFrame, clothFrame, clothSlots, clothU } from './cloth'
 /**
  * A procedural figure at run time: the stepped pose clock, the snap to 8 directions, the hair's spring, the triangle
  * soup, the G-buffer and the painter's cell with its normal map (which the lighting feature lights), each pose's cell

@@ -1,7 +1,7 @@
-import { fill, mix, type Filled, type Spec } from './pose-spec'
 import { smooth } from '../../lib/math'
 import type { Gait } from '../motion/motion'
 import library from './library/actions.json'
+import { type Filled, fill, mix, type Spec } from './pose-spec'
 /**
  * The action set (library/actions.json): each action is pose specs (pose-spec.ts) keyed over its envelope, read here
  * into the spec at any moment and how much of it shows. Data plus this one generator: an action is a new entry in the
@@ -45,7 +45,7 @@ const lib = library as unknown as {
 export const ACTIONS = lib.actions
 /** The action an id plays, alias and target resolved. */
 export function actionOf(id: string, item: boolean, target: boolean): { id: string; def: ActionDef } {
-  let a = ACTIONS[id]
+  const a = ACTIONS[id]
   if (!a) throw new Error(`no action ${id} (the library's: ${Object.keys(ACTIONS).join(', ')})`)
   if ('alias' in a) return actionOf(item ? a.alias.item : a.alias.bare, item, target)
   if (a.targeted && !target && a.untargeted) return actionOf(a.untargeted, item, target)

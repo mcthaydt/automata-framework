@@ -1,15 +1,15 @@
 import { createHash } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
 import { BASE } from '../../../base/base'
+import type { Material } from '../../../src/features/body/parts'
 import { Figure } from '../../../src/features/figure/figure'
 import { member } from '../../../src/features/figure/frames'
 import { TIMES } from '../../../src/features/lighting/lamps'
-import { lightFigure, type Lighting } from '../../../src/features/lighting/light'
+import { type Lighting, lightFigure } from '../../../src/features/lighting/light'
 import type { Garment } from '../../../src/features/outfit/garments'
 import { SWATCHES } from '../../../src/features/outfit/garments'
-import type { Material } from '../../../src/features/body/parts'
-import { dressed, turned } from '../draw'
 import { PIN_NAMES, pinCell, pinned } from '../../support/pins'
+import { dressed, turned } from '../draw'
 
 /**
  * c5-finish's pins, recorded before any painter change: the drawings the tile-last pass, the handed reading and the dark

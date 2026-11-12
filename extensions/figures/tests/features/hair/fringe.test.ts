@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import { BASE } from '../../../base/base'
 import { measure, type Sliders } from '../../../src/features/body/genes'
-import { insideHead, headForm } from '../../../src/features/body/head'
-import { GROUP, reach, type Part } from '../../../src/features/body/parts'
+import { headForm, insideHead } from '../../../src/features/body/head'
+import { GROUP, type Part, reach } from '../../../src/features/body/parts'
 import { J, skeleton } from '../../../src/features/body/rig'
 import { Figure } from '../../../src/features/figure/figure'
 import { member, view } from '../../../src/features/figure/frames'
-import { HAIR_STYLES, registerHairPiece, type HairStyle, type Piece } from '../../../src/features/hair/hair'
-import { SWATCHES, dress, type Garment } from '../../../src/features/outfit/garments'
+import { HAIR_STYLES, type HairStyle, type Piece, registerHairPiece } from '../../../src/features/hair/hair'
+import { dress, type Garment, SWATCHES } from '../../../src/features/outfit/garments'
 import { BODY, endsOf } from '../body/ends'
-import { dressed, differs } from '../draw'
+import { differs, dressed } from '../draw'
 
 /**
  * The fringe piece (hair.ts `Fringe`) and the styles built on it (library/hair.json: `bob`, `bobFringe`, `longFront`): clumps

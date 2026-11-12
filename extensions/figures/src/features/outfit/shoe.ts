@@ -1,17 +1,17 @@
-import { J, type Side, type Skeleton } from '../body/rig'
 import { axisAngle, lerp } from '../../lib/math'
+import type { Measure } from '../body/genes'
 import {
-  limb,
-  placed,
-  profileAt,
-  superquadric,
-  weights,
   type Limb,
+  limb,
   type Mesh,
   type Part,
+  placed,
+  profileAt,
   type Ring,
+  superquadric,
+  weights,
 } from '../body/parts'
-import type { Measure } from '../body/genes'
+import { J, type Side, type Skeleton } from '../body/rig'
 
 /**
  * The shod foot: the upper's profile (what `garments.ts shoe()` sweeps), and, when a garment kind asks (`Fit.shoe`, a

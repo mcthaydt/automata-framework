@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import { dot, wrapAngle, type V3 } from '../../../src/lib/math'
 import {
   checkPose,
   densityFor,
@@ -10,6 +9,7 @@ import {
   zoomOf,
 } from '../../../src/features/stage/pose'
 import { viewFrom } from '../../../src/features/view/camera'
+import { dot, type V3, wrapAngle } from '../../../src/lib/math'
 
 /** The camera pose the host passes in (src/features/stage/pose.ts): its axes, its projection, the zoom it gives a figure. */
 const deg = Math.PI / 180,

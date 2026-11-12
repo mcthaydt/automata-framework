@@ -10,7 +10,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { createCanvas } from '@napi-rs/canvas'
-import { BASE, SPRITE_PITCH, hero, member, standing, walking, type Frame } from '../src'
+import { BASE, type Frame, hero, member, SPRITE_PITCH, standing, walking } from '../src'
 
 const out = resolve(process.argv[2] ?? resolve(import.meta.dirname, '../out'))
 const pitch = process.argv[3] === undefined ? SPRITE_PITCH : (Number(process.argv[3]) * Math.PI) / 180

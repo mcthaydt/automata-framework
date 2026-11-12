@@ -1,6 +1,6 @@
-import type { Side, Skeleton } from '../body/rig'
 import { GROUP, type Part, type Ring } from '../body/parts'
-import { ringAt, type Profiles, type Region } from '../outfit/fit'
+import type { Side, Skeleton } from '../body/rig'
+import { type Profiles, type Region, ringAt } from '../outfit/fit'
 
 /**
  * Cloth coordinates for the fabric registry (paint/fabric.ts): where on its cloth each vertex of a figure lies, so a tile

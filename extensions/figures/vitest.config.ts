@@ -1,4 +1,4 @@
-import { defineConfig, configDefaults } from 'vitest/config'
+import { configDefaults, defineConfig } from 'vitest/config'
 
 // The workflow worktrees under .claude/ hold whole copies of the repo; their tests are theirs. A test that paints a
 // figure in every view and its walk takes a second or two alone, and several times that with the suite's files run side

@@ -1,21 +1,21 @@
-import { J, clonePose, fk, restPose, twoBoneIK, type Pose, type Side, type Skeleton } from '../body/rig'
-import { placeHems, type Evaluated } from '../motion/motion'
 import {
   add,
   apply,
   applyDir,
   euler,
   lerp,
+  type M,
   normalize,
   position,
+  type Q,
   qmat,
   qmul,
   scale,
   sub,
-  type M,
-  type Q,
   type V3,
 } from '../../lib/math'
+import { clonePose, fk, J, type Pose, restPose, type Side, type Skeleton, twoBoneIK } from '../body/rig'
+import { type Evaluated, placeHems } from '../motion/motion'
 /**
  * The pose spec: a small set of numbers that says what a body does, turned into a Pose on any skeleton by IK. The
  * actions (actions.ts) are made of these, keyed over time.

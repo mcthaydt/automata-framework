@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { BASE } from '../../../base/base'
-import { J, skeleton } from '../../../src/features/body/rig'
 import { measure } from '../../../src/features/body/genes'
-import { apply, applyDir, invertRigid, position } from '../../../src/lib/math'
+import { J, skeleton } from '../../../src/features/body/rig'
 import { evaluate } from '../../../src/features/motion/motion'
 import { GAITS } from '../../../src/features/motion/presets'
-import { registerGarment, type Garment } from '../../../src/features/outfit/garments'
-import { dressed, differs, turned } from '../draw'
+import { type Garment, registerGarment } from '../../../src/features/outfit/garments'
+import { apply, applyDir, invertRigid, position } from '../../../src/lib/math'
+import { differs, dressed, turned } from '../draw'
 
 /**
  * Two things the body has for a fork's garments and no base figure uses: the shoe region (garments.ts Regions.shoe and

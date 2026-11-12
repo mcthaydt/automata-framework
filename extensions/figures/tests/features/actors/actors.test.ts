@@ -1,12 +1,12 @@
-import { describe, expect, it } from 'vitest'
 import { createHash } from 'node:crypto'
+import { describe, expect, it } from 'vitest'
 import { BASE } from '../../../base/base'
-import { ScriptedActor, Troupe, scriptOf, type ActorScript } from '../../../src/features/actors/actor'
 import { ACTIONS, actionOf, lengthOf, specAt, weightAt } from '../../../src/features/actors/actions'
+import { type ActorScript, ScriptedActor, scriptOf, Troupe } from '../../../src/features/actors/actor'
 import { lowest } from '../../../src/features/actors/pose-spec'
 import { fk } from '../../../src/features/body/rig'
-import golden from '../../golden/sprites.json'
 import { SPRITE_SETS, spriteSet } from '../../golden/sprites'
+import golden from '../../golden/sprites.json'
 
 const view = { azimuth: 0, pitch: (18 * Math.PI) / 180 }
 const md5 = (px: Uint8ClampedArray) => createHash('md5').update(px).digest('hex')

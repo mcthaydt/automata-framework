@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { BASE } from '../../../base/base'
 import { measure } from '../../../src/features/body/genes'
 import { J, skeleton } from '../../../src/features/body/rig'
-import { apply, invertRigid, position } from '../../../src/lib/math'
 import { SIT, seated } from '../../../src/features/motion/motion'
 import { GAITS, SEATS } from '../../../src/features/motion/presets'
+import { apply, invertRigid, position } from '../../../src/lib/math'
 
 /**
  * The seated stands (motion.ts seated, library/seats.json): no base figure sits, so this is what keeps them from being

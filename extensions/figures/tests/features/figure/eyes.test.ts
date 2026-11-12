@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { BASE } from '../../../base/base'
+import { type CharacterDef, standOf } from '../../../src/features/figure/cast'
 import { eyeWidth, Figure } from '../../../src/features/figure/figure'
 import { member, view } from '../../../src/features/figure/frames'
-import { standOf, type CharacterDef } from '../../../src/features/figure/cast'
 import { evaluate } from '../../../src/features/motion/motion'
 
 /**

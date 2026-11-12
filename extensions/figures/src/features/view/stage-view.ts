@@ -2,7 +2,7 @@ import { Matrix4, View3D } from '@pixi/3d'
 import { RendererType } from 'pixi.js'
 import type { V3 } from '../../lib/math'
 import { checkPose } from '../stage/pose'
-import { TIE_BIAS, texelDepths, type StageFrame } from '../stage/stage'
+import { type StageFrame, TIE_BIAS, texelDepths } from '../stage/stage'
 import { checkCentred, perTexelDepthWarning, poseQuaternion } from './camera'
 import { CellSprite } from './cell-sprite'
 

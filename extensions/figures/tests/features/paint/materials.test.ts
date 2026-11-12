@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { J } from '../../../src/features/body/rig'
 import { GROUP, type Material } from '../../../src/features/body/parts'
-import { box, registerGarment, type Garment } from '../../../src/features/outfit/garments'
+import { J } from '../../../src/features/body/rig'
 import { Figure } from '../../../src/features/figure/figure'
 import { member } from '../../../src/features/figure/frames'
-import { oklab, GLOSS_SHEEN, SHEEN_MAX, SHEEN_MIN, sheenScale } from '../../../src/features/paint/paint'
-import { registerFabric, fabricOf } from '../../../src/features/paint/fabric'
-import { dressed, differs, turned } from '../draw'
+import { box, type Garment, registerGarment } from '../../../src/features/outfit/garments'
+import { fabricOf, registerFabric } from '../../../src/features/paint/fabric'
+import { GLOSS_SHEEN, oklab, SHEEN_MAX, SHEEN_MIN, sheenScale } from '../../../src/features/paint/paint'
+import { differs, dressed, turned } from '../draw'
 
 /**
  * The painter's material features (paint.ts), restored as generic machinery that no base material sets: a holo and a

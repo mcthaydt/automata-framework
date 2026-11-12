@@ -5,12 +5,12 @@ import {
   compose,
   cross,
   dot,
+  IDENTITY_Q,
   lerp,
   normalize,
+  type Q,
   scale,
   sub,
-  IDENTITY_Q,
-  type Q,
   type V3,
 } from '../../lib/math'
 /**

@@ -3,8 +3,8 @@ import type { V3 } from '../../lib/math'
 import type { CastMember } from '../figure/cast'
 import { Figure, type FigureInput } from '../figure/figure'
 import { cellOf } from '../stage/cell'
-import { CellSprite } from './cell-sprite'
 import { facing, texelOf, viewFrom } from './camera'
+import { CellSprite } from './cell-sprite'
 
 /**
  * A figure in a Pixi 3D scene: the painter's own cell, drawn by `Figure` exactly as the sheets draw it (8 directions,

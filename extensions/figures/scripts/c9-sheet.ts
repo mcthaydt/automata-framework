@@ -15,24 +15,25 @@ import { join, resolve } from 'node:path'
 import { createCanvas } from '@napi-rs/canvas'
 import {
   BASE,
+  type CharacterDef,
   Figure,
-  SPRITE_PITCH,
+  type FigureInput,
+  type Frame,
   member,
+  SPRITE_PITCH,
   view,
   walking,
-  type CharacterDef,
-  type Frame,
-  type FigureInput,
 } from '../src'
-import { GROUP } from '../src/features/body/parts'
 import { measure } from '../src/features/body/genes'
+import { GROUP } from '../src/features/body/parts'
 import { J, skeleton } from '../src/features/body/rig'
 import { bodyOf } from '../src/features/outfit/fit'
 import type { Garment } from '../src/features/outfit/garments'
 import '../tests/support/pins' // registers the `fxPaint` kind: a row repaints body regions with it
-import { FALL_PLAIN, sheerTest } from '../tests/support/pins'
 import { HAIR_STYLES, type HairStyle } from '../src/features/hair/hair'
 import { shod, useFixtures } from '../tests/features/outfit/wardrobe-fixtures'
+import { FALL_PLAIN, sheerTest } from '../tests/support/pins'
+
 useFixtures()
 
 /** One row of a sheet: a character, what the figure is told (an expression, mood tags), and its own density if not the sheet's. */

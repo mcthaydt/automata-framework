@@ -1,28 +1,28 @@
-import { J, type Side, type Skeleton } from '../body/rig'
+import { hexOf } from '../../lib/colour'
 import { apply, axisAngle, compose, lerp, smooth, sub, type V3 } from '../../lib/math'
+import type { HeadShape, Measure } from '../body/genes'
+import { ear, headForm, headMesh } from '../body/head'
 import {
-  GROUP,
-  limb,
-  profileAt,
-  placed,
-  superquadric,
-  weights,
   type Decal,
+  GROUP,
   type Limb,
+  limb,
   type Material,
   type Part,
+  placed,
+  profileAt,
   type Ring,
   type Superquadric,
+  superquadric,
+  weights,
 } from '../body/parts'
-import type { HeadShape, Measure } from '../body/genes'
-import { FACE_SEAM, tonesOf } from '../paint/paint'
-import swatchLibrary from './library/swatches.json'
+import { J, type Side, type Skeleton } from '../body/rig'
+import { HAIR_STYLES, type HairStyle, hairParts, PPM, sweep, texels } from '../hair/hair'
 import type { Anchor } from '../motion/motion'
-import { ear, headForm, headMesh } from '../body/head'
-import { hexOf } from '../../lib/colour'
-import { bodyOf, girth, profiles, type Body, type Profiles } from './fit'
-import { shodSeam, shoeExtras, sole, upperMesh, type ShoeForm } from './shoe'
-import { hairParts, sweep, texels, HAIR_STYLES, PPM, type HairStyle } from '../hair/hair'
+import { FACE_SEAM, tonesOf } from '../paint/paint'
+import { type Body, bodyOf, girth, type Profiles, profiles } from './fit'
+import swatchLibrary from './library/swatches.json'
+import { type ShoeForm, shodSeam, shoeExtras, sole, upperMesh } from './shoe'
 /**
  * The body and what the base pair wears. A character is sliders (genes.ts) plus a list of garments, each fitted to the
  * body the sliders make: a top painted on the torso and as much of the arms as its sleeves cover, shorts painted on the

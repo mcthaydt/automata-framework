@@ -1,22 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import { BASE } from '../../../base/base'
 import { measure } from '../../../src/features/body/genes'
-import { GROUP, reach, type Material, type Part } from '../../../src/features/body/parts'
+import { headForm, insideHead } from '../../../src/features/body/head'
+import { GROUP, type Material, type Part, reach } from '../../../src/features/body/parts'
 import { J, skeleton } from '../../../src/features/body/rig'
-import { headForm } from '../../../src/features/body/head'
 import type { CharacterDef } from '../../../src/features/figure/cast'
 import { Figure } from '../../../src/features/figure/figure'
 import { member, view, walking } from '../../../src/features/figure/frames'
 import {
+  type HairStyle,
   hairParts,
+  type Piece,
   registerFinish,
   registerHairPiece,
   skull,
   toHead,
-  type HairStyle,
-  type Piece,
 } from '../../../src/features/hair/hair'
-import { insideHead } from '../../../src/features/body/head'
 import { NECK, SWATCHES } from '../../../src/features/outfit/garments'
 
 /**

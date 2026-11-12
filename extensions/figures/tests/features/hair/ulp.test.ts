@@ -1,11 +1,11 @@
-import { describe, expect, it, vi } from 'vitest'
 import { createHash } from 'node:crypto'
+import { describe, expect, it, vi } from 'vitest'
 import { BASE } from '../../../base/base'
+import type { HeadForm } from '../../../src/features/body/head'
 import { member, standing } from '../../../src/features/figure/frames'
 import { grid } from '../../../src/features/hair/hair'
 import type { V3 } from '../../../src/lib/math'
 import { nudged, step } from '../../support/ulp'
-import type { HeadForm } from '../../../src/features/body/head'
 
 /** How the head's form is read in this file: left as it is (0), or each of its numbers a last bit up (1) or down (-1). */
 const form = vi.hoisted(() => ({ dir: 0 as -1 | 0 | 1, calls: 0, size: 0 }))

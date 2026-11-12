@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import {
+  type FigureLight,
   lightFigure,
   lightSprite,
   ScriptedActor,
   SPRITE_PITCH,
-  TIMES,
-  type FigureLight,
   type SpriteLighting,
+  TIMES,
   type V3,
 } from '../../../src'
 import { lookAt, viewOf } from '../../../src/features/stage/pose'

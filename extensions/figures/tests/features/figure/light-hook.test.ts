@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
+import { BASE } from '../../../base/base'
 import { Figure, type FigureLight } from '../../../src/features/figure/figure'
 import { member } from '../../../src/features/figure/frames'
 import { RAMPS } from '../../../src/features/paint/duel-ramps'
-import { BASE } from '../../../base/base'
 
 const cast = member(BASE[0].def, 2)
 const input = { facing: 0, moving: false, view: { azimuth: 0, pitch: (18 * Math.PI) / 180 } }

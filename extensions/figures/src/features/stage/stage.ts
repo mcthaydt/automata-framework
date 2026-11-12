@@ -1,11 +1,11 @@
 import type { V3 } from '../../lib/math'
 import type { ScriptedActor } from '../actors/actor'
 import type { FigureLight } from '../figure/figure'
-import { lightFigure, type Lighting } from '../lighting/light'
-import { lightSprite, type SpriteLighting } from '../lighting/sprite'
 import { SPRITE_PITCH } from '../figure/frames'
-import { cellOf, type Cell } from './cell'
-import { checkPose, densityFor, project, viewOf, zoomOf, type CameraPose } from './pose'
+import { type Lighting, lightFigure } from '../lighting/light'
+import { lightSprite, type SpriteLighting } from '../lighting/sprite'
+import { type Cell, cellOf } from './cell'
+import { type CameraPose, checkPose, densityFor, project, viewOf, zoomOf } from './pose'
 
 /**
  * The stage frame: scripted actors at a time under a passed-in camera pose, as the painted cells a scene draws and

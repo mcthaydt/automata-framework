@@ -1,15 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { ScriptedActor } from '../../../src'
-import { SPRITE_PITCH } from '../../../src'
+import { ScriptedActor, SPRITE_PITCH } from '../../../src'
 import { densityFor, gameplay, lookAt, project, zoomOf } from '../../../src/features/stage/pose'
 import {
-  TIE_BIAS,
-  compose,
-  stageFrame,
-  texelDepths,
   type Backdrop,
+  compose,
   type StageFrame,
   type StageSprite,
+  stageFrame,
+  TIE_BIAS,
+  texelDepths,
 } from '../../../src/features/stage/stage'
 import { coloursOf, md5, ortho } from './fixtures'
 

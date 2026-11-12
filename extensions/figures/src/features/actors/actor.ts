@@ -1,13 +1,13 @@
-import { J, fk, type Pose, type Side, type Skeleton } from '../body/rig'
-import { evaluate, type ActionId, type Gait, type Hold, type MotionState, type Stand } from '../motion/motion'
-import { euler, qmul, smooth, wrapAngle, type V3 } from '../../lib/math'
-import { memberOf, standOf, type CastMember, type CharacterDef } from '../figure/cast'
+import { BASE } from '../../../base/base'
+import { euler, qmul, smooth, type V3, wrapAngle } from '../../lib/math'
+import { fk, J, type Pose, type Side, type Skeleton } from '../body/rig'
+import { type CastMember, type CharacterDef, memberOf, standOf } from '../figure/cast'
+import { Figure, type FigureLight, type View } from '../figure/figure'
+import { type ActionId, evaluate, type Gait, type Hold, type MotionState, type Stand } from '../motion/motion'
 import { GAITS } from '../motion/presets'
 import type { Expression } from '../outfit/garments'
-import { Figure, type FigureLight, type View } from '../figure/figure'
-import { actionOf, lengthOf, modeGait, specAt, weightAt, type ActionDef } from './actions'
-import { aim, blend, eyesOf, layer, lift, lowest, specPose, type Aims } from './pose-spec'
-import { BASE } from '../../../base/base'
+import { type ActionDef, actionOf, lengthOf, modeGait, specAt, weightAt } from './actions'
+import { type Aims, aim, blend, eyesOf, layer, lift, lowest, specPose } from './pose-spec'
 /**
  * Scriptable actors: a character on a timeline. An actor is a script (data, JSON as well as TS): who it is, a path of
  * waypoints (each with a speed or a gait, a wait, stepping in place, a run, a strafe), facing keys, look-at targets (a
@@ -103,6 +103,7 @@ export function characterOf(who: string | CharacterDef): { def: CharacterDef; po
   return { def: b.def, pose: b.pose }
 }
 export { memberOf } from '../figure/cast'
+
 const deg = (d: number) => (d * Math.PI) / 180
 /** Turn speeds (rad/s): to a new way of walking at a corner, and to a face key. */
 const CORNER = 9,

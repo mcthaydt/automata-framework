@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { BASE } from '../../../base/base'
 import { measure } from '../../../src/features/body/genes'
-import { NECK } from '../../../src/features/outfit/garments'
+import type { CharacterDef } from '../../../src/features/figure/cast'
 import { Figure } from '../../../src/features/figure/figure'
 import { member, view } from '../../../src/features/figure/frames'
-import type { CharacterDef } from '../../../src/features/figure/cast'
+import { NECK } from '../../../src/features/outfit/garments'
 import type { GBuffer } from '../../../src/features/paint/raster'
 
 /**

@@ -9,7 +9,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { createCanvas } from '@napi-rs/canvas'
-import { BASE, Figure, lightFigure, lightSprite, member, TIMES, view, type Lighting } from '../src'
+import { BASE, Figure, type Lighting, lightFigure, lightSprite, member, TIMES, view } from '../src'
 import { SPRITE_LIGHTS } from '../tests/golden/sprite'
 
 const out = resolve(process.argv[2] ?? 'out/lit')

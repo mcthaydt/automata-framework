@@ -1,4 +1,5 @@
 import { RAMPS } from './duel-ramps'
+
 /**
  * Where a DUEL colour sits on the rows, and a fabric's tile laid on it: a colour moved whole steps along its own row.
  * The painter lays a tile after its tone bands, its colour budget and the light hook, and the lighting after the lamps,

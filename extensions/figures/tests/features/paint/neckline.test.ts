@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { BASE } from '../../../base/base'
-import { NECK } from '../../../src/features/outfit/garments'
 import { Figure } from '../../../src/features/figure/figure'
 import { member, view } from '../../../src/features/figure/frames'
-import { gbuffer, neckline, type GBuffer } from '../../../src/features/paint/raster'
+import { NECK } from '../../../src/features/outfit/garments'
+import { type GBuffer, gbuffer, neckline } from '../../../src/features/paint/raster'
 
 /**
  * The neckline rule (raster.ts neckline): where the neck meets a top, a run of one or two texels (2·D at density D, at most 4) of the

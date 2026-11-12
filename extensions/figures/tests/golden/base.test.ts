@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { gunzipSync } from 'node:zlib'
 import { describe, expect, it } from 'vitest'
-import { goldenFrames, GOLDEN_DENSITIES } from './base'
+import { GOLDEN_DENSITIES, goldenFrames } from './base'
 
 /** The base pair must render pixel-identical to its goldens (recorded by scripts/golden.ts): every channel of every
  * pixel of every frame, standing, walking and hero, at each density. */

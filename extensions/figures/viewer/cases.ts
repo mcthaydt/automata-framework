@@ -1,24 +1,24 @@
 import {
-  BASE,
-  SPRITE_PITCH,
-  ScriptedActor,
-  TIMES,
-  cellOf,
-  gameplay,
-  lookAt,
-  member,
-  stageFrame,
-  STAGE_VERSION,
-  project,
   type ActorScript,
+  BASE,
   type Backdrop,
   type CameraPose,
+  cellOf,
+  gameplay,
   type Lighting,
+  lookAt,
+  member,
+  project,
+  ScriptedActor,
+  SPRITE_PITCH,
   type SpriteLighting,
+  STAGE_VERSION,
   type StageFrame,
+  stageFrame,
+  TIMES,
   type V3,
 } from '../src'
-import { sheetFigures, type SheetKind } from './sheets'
+import { type SheetKind, sheetFigures } from './sheets'
 
 /**
  * The named check frames, shared by the viewer's `?case=` page (which draws one through `StageView`) and by

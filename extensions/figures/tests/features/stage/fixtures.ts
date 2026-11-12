@@ -8,8 +8,9 @@ import { dressed } from '../draw'
 export const DENIM_DEF = dressed([{ top: 'fxtwill', sleeves: 'long' }, { shorts: 'fxtwill' }], {
   fxtwill: { ramp: 26, base: 3, fabric: 'fx-twill' },
 })
+
 import { createHash } from 'node:crypto'
-import { lookAt, type CameraPose } from '../../../src/features/stage/pose'
+import { type CameraPose, lookAt } from '../../../src/features/stage/pose'
 
 /** An orthographic pose at the sheets' 18°, `zoom` pixels per D1 texel, round `look` (20 m back along the view). */
 export const ortho = (

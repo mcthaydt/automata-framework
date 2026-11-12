@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { BASE } from '../../../base/base'
-import { measure } from '../../../src/features/body/genes'
-import { J, skeleton } from '../../../src/features/body/rig'
-import { clearance, girth, profiles, ringAt, bodyOf } from '../../../src/features/outfit/fit'
-import { profileAt, limb, weights, GROUP, type Part } from '../../../src/features/body/parts'
-import { axisAngle } from '../../../src/lib/math'
-import { box, dress, registerGarment, type Garment } from '../../../src/features/outfit/garments'
 import type { Sliders } from '../../../src/features/body/genes'
+import { measure } from '../../../src/features/body/genes'
+import { GROUP, limb, type Part, profileAt, weights } from '../../../src/features/body/parts'
+import { J, skeleton } from '../../../src/features/body/rig'
+import { bodyOf, clearance, girth, profiles, ringAt } from '../../../src/features/outfit/fit'
+import { box, dress, type Garment, registerGarment } from '../../../src/features/outfit/garments'
+import { axisAngle } from '../../../src/lib/math'
 import { BODY, endsOf } from '../body/ends'
 
 const rig = (sliders: object = BASE[0].def.sliders) => {
@@ -85,7 +85,9 @@ const worn = (sliders: Partial<Sliders>, sleeves: 'long' | 'short', ppm?: number
   )
   return { m, s, look, p: profiles(m, s) }
 }
+
 import { SWATCHES } from '../../../src/features/outfit/garments'
+
 const SWATCHES_ALL = SWATCHES
 const verts = (p: Part) => {
   const o: number[][] = []

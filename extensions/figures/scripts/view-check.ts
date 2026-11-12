@@ -20,7 +20,7 @@ import { join, resolve } from 'node:path'
 import { createCanvas } from '@napi-rs/canvas'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
-import { BASE, SPRITE_PITCH, compose, member, standing, type StageFrame } from '../src'
+import { BASE, compose, member, SPRITE_PITCH, type StageFrame, standing } from '../src'
 import { CASES, wallBackdrop } from '../viewer/cases'
 
 type Renderer = 'webgl' | 'webgpu'

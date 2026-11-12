@@ -1,7 +1,8 @@
-import type { Skeleton } from './rig'
 import { cross, dot, lerp, normalize, smooth, sub, type V3 } from '../../lib/math'
-import type { Mesh } from './parts'
 import type { Measure } from './genes'
+import type { Mesh } from './parts'
+import type { Skeleton } from './rig'
+
 /**
  * The head's form: a skull and a face as one surface of revolution in the head's space, its width, front and back
  * profiles keyed along its height (curve), from the measure's head structure (genes.ts HeadShape); and the ears on it.

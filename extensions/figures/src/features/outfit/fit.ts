@@ -1,9 +1,9 @@
-import { J, type Side, type Skeleton } from '../body/rig'
 import { lerp } from '../../lib/math'
-import { profileAt, type Limb, type Ring } from '../body/parts'
 import type { Measure } from '../body/genes'
+import { type Limb, profileAt, type Ring } from '../body/parts'
+import { J, type Side, type Skeleton } from '../body/rig'
 import { PPM } from '../hair/hair'
-import { footOf, type Foot } from './shoe'
+import { type Foot, footOf } from './shoe'
 
 /**
  * The body under the clothes, as a query. The profiles are the very ring lists `garments.ts body()` sweeps into the

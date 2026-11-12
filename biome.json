@@ -26,8 +26,7 @@
   "overrides": [
     {
       "includes": ["extensions/figures/**"],
-      "linter": { "enabled": false },
-      "assist": { "enabled": false }
+      "linter": { "enabled": false }
     },
     {
       "includes": ["packages/sim/**"],

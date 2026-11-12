@@ -1,19 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import { BASE } from '../../../base/base'
 import { measure } from '../../../src/features/body/genes'
-import { skeleton } from '../../../src/features/body/rig'
 import type { Material } from '../../../src/features/body/parts'
-import { SWATCHES } from '../../../src/features/outfit/garments'
+import { skeleton } from '../../../src/features/body/rig'
 import {
   HAIR_STYLES,
-  hairParts,
-  registerFinish,
   type HairInput,
   type HairStyle,
+  hairParts,
   type Piece,
   type Rope,
+  registerFinish,
 } from '../../../src/features/hair/hair'
-import { dressed, differs, turned } from '../draw'
+import { SWATCHES } from '../../../src/features/outfit/garments'
+import { differs, dressed, turned } from '../draw'
 
 /**
  * The hair options restored for a fork's styles, which no base style sets: the sheen band of a glossy finish, cornrows

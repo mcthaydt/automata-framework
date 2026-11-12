@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Garment } from '../../../src/features/outfit/garments'
-import { dressed, differs, turned } from '../draw'
+import { differs, dressed, turned } from '../draw'
 
 /**
  * The garment options restored for a fork's wardrobe, which the base pair's blocks never set: a top's cuffs and collar and
