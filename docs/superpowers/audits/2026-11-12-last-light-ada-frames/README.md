@@ -133,3 +133,24 @@ project; reworded. `knip` then found the density-2 study (`72ba4462`) unused: it
 views' fields (`a162c8f9d`) and listed `pnpm api-report --update` as not run; the brief gives the API reports to the camera session.
 `check:changesets`: 0 problems. No published package changed here (the kit and the game are private): no changeset. The character kit's and
 the game's own unit suites pass inside that run; the kit's browser suite, the journeys and the build did not run.
+
+## Session 2, item 1: the mesh on texel borders (`s2-item1-panel-strengths-heads-x2.5.png`, `s2-item1-gameplay-frame-1024x768.png`, `s2-item1-head-from-that-frame-x2.5.png`)
+
+Done as item 3(a) scoped it, tests first, generic and opt-in: `postFilter(..., { at: 'screen' })` and the stage's `screenFilters` slot on the
+composite's upscaled sprite, told `uScreenScale` and `uScreenOrigin` each frame (`@automata/framework`, changeset); `lcdPanelScreenFilter(profile,
+{ cellPixels })`, GLSL and WGSL, a line on the last device pixel of each cell, as dark as the field mesh's trough (`@automata/lcd-panel`); `grid:
+true` in the kit's `place()` and `paintedFigure` (a 1 mm sweep: on the lattice, a texel at a time, never back, still under a following camera).
+Browser: the panel's lines read back at 3 mod 4 from the field's origin, and a figure at 2x under a 4-pixel mesh keeps every 4-by-4 block one
+texel, WebGL2 and WebGPU (software). The game: `[lcd]`'s mesh, stripes, scanlines and gain off on the field; `[lcdScreen]` 4 pixels a cell;
+`PLAY_FIGURE.grid`. The HUD is DOM and is not under the mesh.
+
+Shot in play at the hall's south wall, her head x2.5 nearest from each frame: no screen mesh; full (.3) with the stripes at .3; full without
+stripes; a third; and the one kept. Measured on her face (the same box in each frame, 1024 by 768): no mesh (150, 114, 96); full, stripes .3, gain 1
+(115, 88, 75); full, no stripes, gain 1 (124, 94, 79); a third, gain 1 (128, 98, 84). The gain that gives back what the screen mesh takes is
+(150 / 124)^2 = 1.46 for the kept mesh (the field's 1.55 does not carry over); at 1.46 her face is (147, 111, 94).
+
+Looked at: with the stripes at .3 every texel has a red, a green and a blue column, a woven face, so the stripes are off. Without them each
+texel is one flat colour and every line falls between texels (crispness inside a texel: met). Kept: full strength, stripes 0, gain 1.46, as the
+brief asked when the face stays clean. But honestly: at full strength a dark line every 4 pixels reads as a grid laid over her face, and the
+head with no screen mesh is plainly the closest to the reference. The coordinator may prefer a third on the room, or no mesh over figures.
+`content.hash` moved (look.toml is in the content build). No other recorded picture or hash moved.
