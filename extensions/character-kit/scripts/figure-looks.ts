@@ -521,8 +521,35 @@ const round7ada = (() => {
   return { ada: variants }
 })()
 
+/** Round 7: the night nurse brought to the old game's proportions: her height, her legs and her trunk. */
+const round7nurse = (() => {
+  const nurse = (sliders: Record<string, number>): CharacterDef => ({
+    ...NIGHT_NURSE,
+    sliders: { ...NIGHT_NURSE.sliders, ...sliders },
+  })
+  const variants: Variant[] = [
+    {
+      label: 'BEFORE',
+      note: 'round 6: 210 cm, legs .9, hips -.29, neck .93: 78 rows, legs 43, trunk 20',
+      def: nurse({ height: 210, legs: 0.9, hips: -0.29, neckLength: 0.93 }),
+    },
+    {
+      label: 'A (ADOPTED)',
+      note: '200 cm, legs .2, hips 0, neck .5: 75 rows (old atlas 75, procedural 71), trunk 25 and legs 37 (old 25 / 26 and 35 / 37)',
+      def: NIGHT_NURSE,
+    },
+    {
+      label: 'B',
+      note: 'A at 210 cm: 78 rows, 3 taller than the old atlas',
+      def: nurse({ height: 210 }),
+    },
+  ]
+  return { nurse: variants }
+})()
+
 export const LOOKS: Readonly<Record<string, readonly Variant[]>> = {
   'round7-ada': round7ada.ada,
+  'round7-nurse': round7nurse.nurse,
   'round4-ada': round4ada.ada,
   'round5-nurse': round5nurse.nurse,
   'round6-nurse': round6nurse.nurse,

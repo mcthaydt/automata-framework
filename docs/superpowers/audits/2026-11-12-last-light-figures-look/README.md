@@ -486,6 +486,14 @@ on the page, her legs 5 rows long and her hips 3 texels wide.
 - Sheet: [`round7-ada-variants-play.png`](round7-ada-variants-play.png), [`-detail`](round7-ada-variants-detail.png), numbers
   [`round7-ada-variants-numbers.txt`](round7-ada-variants-numbers.txt); the variants are `round7-ada` in `figure-looks.ts`.
 
+**The night nurse, to the old numbers (data only; `cast.test.ts` first, watched failing at 78 rows and 210 cm).** Before: 78 rows, legs 43 (55 % hip joint), trunk 20,
+shoulder, waist, hip 18, 18, 22. The old procedural and the atlas: 71 and 75 rows, legs 35 and 37, trunk 25 and 26, 18, 18, 22 and 21, 21, 26. Adopted:
+height 200 cm, `legs` .2, `neckLength` .5, `hips` 0 (the old -.29 drew a hip row of 20 once her legs were shorter): **75 rows, legs 37, trunk 25, hip joint 49 %,
+shoulder, waist, hip 18, 18, 22**, a head with hair of 10 rows (7.5 heads; the old head cannot be read, it is under the curtain). Variant B keeps 210 cm
+(78 rows). Sheet: [`round7-nurse-variants-play.png`](round7-nurse-variants-play.png), [`-detail`](round7-nurse-variants-detail.png), numbers
+[`round7-nurse-variants-numbers.txt`](round7-nurse-variants-numbers.txt), table [`round7-proportions.txt`](round7-proportions.txt). Her stoop, her curtain and her
+folds are still the painter's (list below).
+
 **The face (what data cannot do).** Tried, over the adopted data, on a head crop at x10 beside the old two: the drawn face (`face.drawn`) with `eyeSize` and
 `eyeSpacing` at 1, `hood` 0, `camera` 1 and `turn` 0; the skin swatch's `tones` from +.05 to -3; the `headWidth` gene; the skin ramp lightened.
 None moves the eyes: the drawn face at play size is a lid line and a brow (worse than two dots under a fringe), `eyeSize`/`eyeSpacing` act only

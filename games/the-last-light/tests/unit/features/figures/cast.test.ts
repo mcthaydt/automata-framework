@@ -215,9 +215,19 @@ describe('Ada', () => {
 })
 
 describe('the night nurse', () => {
-  it('is the old figure: 2.1 m, tall, thin and long-armed, her head cocked', () => {
+  it('has the old nurse’s proportions on the page: her height, a trunk longer than her legs’ share, her hips (the Owner prefers the old look)', () => {
+    // From the old game's review sheets (round0-proportions.txt): 71 and 75 rows tall, a trunk of 25 and 26 rows, legs of 35 and 37, a hip row of 22 and 26.
+    const p = proportions(NIGHT_NURSE, 1)
+    expect(p.height).toBeGreaterThanOrEqual(71)
+    expect(p.height).toBeLessThanOrEqual(76)
+    expect(p.trunkRows).toBeGreaterThanOrEqual(24)
+    expect(p.legRows).toBeLessThanOrEqual(38)
+    expect(p.hip).toBeGreaterThanOrEqual(21)
+  })
+
+  it('is the old figure: tall, thin and long-armed, her head cocked, drawn as tall as the old game drew her (2 m on the page for its 2.1)', () => {
     expect(NIGHT_NURSE.id).toBe('nurse')
-    expect(NIGHT_NURSE.sliders.height).toBe(210)
+    expect(NIGHT_NURSE.sliders.height).toBe(200)
     expect(NIGHT_NURSE.sliders.headTilt).toBe(15)
     expect(NIGHT_NURSE.sliders.arms).toBeGreaterThan(0.9)
   })

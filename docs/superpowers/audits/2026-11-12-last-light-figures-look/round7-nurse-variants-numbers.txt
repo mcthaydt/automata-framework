@@ -1,0 +1,6 @@
+BEFORE: H 78  SHOULDER 19  WAIST 20  HIP 22  FLOOR BETWEEN LEGS 0
+  texels: wardWhite 477, stain 78, stockingDark 116, heavyShoe 112, capWhite 9, inkBlack 144, pale 55
+A (ADOPTED): H 75  SHOULDER 19  WAIST 20  HIP 22  FLOOR BETWEEN LEGS 0
+  texels: wardWhite 494, stain 78, stockingDark 96, heavyShoe 102, capWhite 6, inkBlack 121, pale 35
+B: H 78  SHOULDER 19  WAIST 20  HIP 24  FLOOR BETWEEN LEGS 6
+  texels: wardWhite 560, stain 67, stockingDark 107, heavyShoe 102, capWhite 9, inkBlack 133, pale 32

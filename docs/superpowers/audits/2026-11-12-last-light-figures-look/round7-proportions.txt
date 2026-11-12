@@ -23,26 +23,26 @@ foot length, in heads    1.20              1.10              0.85              0
 
 the Night Nurse
                          ours d1           ours d2           old procedural    old atlas         
-height (rows)            78                155               71                75                
-head rows, hair on       11                21                0                 0                 
-head rows, skull         10                19                -                 -                 
-heads tall, hair on      7.09              7.38              -                 -                 
-heads tall, skull        7.70              8.05              -                 -                 
-neck rows (skin)         4                 6                 0                 0                 
-trunk rows               20                43                25                26                
-leg rows                 43                85                35                37                
-head width               9                 17                0                 0                 
-shoulder / waist / hip   18 / 18 / 22      36 / 34 / 40      18 / 18 / 22      21 / 21 / 26      
-shoulder in head widths  2.00              2.12              -                 -                 
-hip / shoulder           1.22              1.11              1.22              1.24              
-legs part at (picture)   -                 34%               -                 -                 
-hip joint (rig)          55%               55%               -                 -                 
-knee (rig)               30%               30%               -                 -                 
-elbow (rig)              55%               55%               -                 -                 
-wrist (rig)              36%               36%               -                 -                 
-fingertip (rig)          25%               25%               -                 -                 
-foot length (texels)     14                25                14                13                
-foot length, in heads    1.40              1.32              -                 -                 
+height (rows)            75                148               71                75                
+head rows, hair on       10                20                0                 0                 
+head rows, skull         9                 18                -                 -                 
+heads tall, hair on      7.50              7.40              -                 -                 
+heads tall, skull        8.22              8.11              -                 -                 
+neck rows (skin)         3                 4                 0                 0                 
+trunk rows               25                51                25                26                
+leg rows                 37                73                35                37                
+head width               9                 16                0                 0                 
+shoulder / waist / hip   18 / 18 / 22      34 / 34 / 40      18 / 18 / 22      21 / 21 / 26      
+shoulder in head widths  2.00              2.13              -                 -                 
+hip / shoulder           1.22              1.18              1.22              1.24              
+legs part at (picture)   -                 30%               -                 -                 
+hip joint (rig)          49%               49%               -                 -                 
+knee (rig)               27%               27%               -                 -                 
+elbow (rig)              57%               57%               -                 -                 
+wrist (rig)              38%               38%               -                 -                 
+fingertip (rig)          27%               27%               -                 -                 
+foot length (texels)     13                24                14                13                
+foot length, in heads    1.44              1.33              -                 -                 
 
 The builder’s base pair (a bare reference, not the target)
                          base m d1         base m d2         base f d1         base f d2         

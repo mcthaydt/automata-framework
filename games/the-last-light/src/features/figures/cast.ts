@@ -90,16 +90,18 @@ export const NIGHT_NURSE: CharacterDef = {
   name: 'the Night Nurse',
   sliders: {
     frame: 0.9,
-    height: 210,
+    // retuned: the old 210. Her legs were 43 rows of 78 and her trunk 20; the old figures' are 35 and 37 of 71 and 75, her trunk 25 and 26: 200 cm
+    // draws her 75 rows (the old atlas), with the legs, the neck and the hips set to the old proportions.
+    height: 200,
     muscle: 0,
     fat: 0,
     shoulders: 0.25,
-    hips: -0.29,
-    legs: 0.9,
+    hips: 0, // retuned: the old -0.29 (a hip row of 22 with the legs shorter, as the old procedural's)
+    legs: 0.2, // retuned: the old 0.9 (the hip joint at 49 % of her, not 55: the old figure's legs are half her height)
     arms: 0.99,
     head: 0.19,
     neck: 0.3,
-    neckLength: 0.93,
+    neckLength: 0.5, // retuned: the old 0.93
     hands: 0.6,
     feet: 0.4,
     posture: 0.52,
