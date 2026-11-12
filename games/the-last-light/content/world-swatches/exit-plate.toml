@@ -1,3 +1,13 @@
 # `exit-plate`: the plate behind the corridor's EXIT lettering, the old plaque's dark green (`#2d5c4e`; the nearest DUEL colour is pine step 3, `#325c40`).
 ramp = "pine"
 step = 3
+reads = { at = 64 }
+
+[texture]
+photo = "metalSheet"
+contrast = 0.05
+facet = 0
+flatten = 0.9
+cluster = 2
+wear = 0.15
+seed = 117

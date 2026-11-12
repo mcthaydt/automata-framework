@@ -7,6 +7,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { readPhotoLibrary, type TexturedSwatch, textureOf, tileFileOf } from '@automata/world-kit/textures'
 import { parse } from 'smol-toml'
+import { photoSwatch, WARD_PHOTOS } from '../../src/features/room/world-photos.ts'
 
 const root = fileURLToPath(new URL('../..', import.meta.url))
 const swatchDir = join(root, 'content/world-swatches')
@@ -19,5 +20,18 @@ for (const file of readdirSync(swatchDir).filter((name) => name.endsWith('.toml'
   if (textureOf(swatch) === undefined) continue
   const name = file.slice(0, -'.toml'.length)
   writeFileSync(join(tileDir, `${name}.tile.json`), `${JSON.stringify(tileFileOf(name, swatch, photos))}\n`)
+  console.log(`wrote src/features/room/world-tiles/${name}.tile.json`)
+}
+
+// The kit's own swatches the ward gives a photograph (`src/features/room/world-photos.ts`).
+const kitSwatches = JSON.parse(
+  readFileSync(new URL('../../../../extensions/world-kit/library/swatches.json', import.meta.url), 'utf8'),
+) as Record<string, object>
+for (const name of Object.keys(WARD_PHOTOS)) {
+  const base = kitSwatches[name] as object
+  writeFileSync(
+    join(tileDir, `${name}.tile.json`),
+    `${JSON.stringify(tileFileOf(name, photoSwatch(base, name), photos))}\n`,
+  )
   console.log(`wrote src/features/room/world-tiles/${name}.tile.json`)
 }

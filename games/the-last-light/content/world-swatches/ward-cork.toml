@@ -3,3 +3,13 @@
 # light multiplies the sRGB colour; the darker brown of DUEL's wood ramp, step 1 (`#614a3c`), is what draws as the old board did.
 ramp = "wood"
 step = 1
+reads = { at = 64 }
+
+[texture]
+photo = "bark"
+contrast = 0.05
+facet = 0
+flatten = 0.9
+cluster = 2
+wear = 0.15
+seed = 116

@@ -1,8 +1,8 @@
 # `ward-floor`: the clinic's floor, dark glazed tile on dark grout. The old game painted it as 30 cm tiles in two tones (mostly a warm
 # grey, now and then a cool slate) with a 1 px near-black grout line and a lit far edge; here the kit's floor-tile photograph is read
-# at that size (`scale` 1.2 makes its 25 cm tiles 30 cm), in tone mode on slate step 2, so a grout line is two steps down the ramp
+# at that size (the photograph holds five 30 cm tiles a side, so `scale` 1.2 makes them 36 cm; at 1.0 the one-texel joint is lost at this texel scale), in tone mode on slate step 2, so a grout line is two steps down the ramp
 # (#2d3136) and a lit edge one up. The tiles the photo reads as another hue take the accent, a warm grey (`ward-floor-warm`): the
-# old floor's warm/cool mix. A game's own swatch has no tile file until `tools/tiles/make.ts` writes it into `src/features/room/world-tiles`.
+# old floor's warm/cool mix. A smaller threshold gives more warm tiles but the joint, being another hue, takes the warm accent too and is lost (0.004: grout 1.3 % of the tile, 0.008: 4.8 %, under the test's 5 %), so 0.012 stays; the floor reads hue 182 against the old's 154 until the ramp can have a warm grout. A game's own swatch has no tile file until `tools/tiles/make.ts` writes it into `src/features/room/world-tiles`.
 ramp = "slate"
 step = 2
 accent = "ward-floor-warm"

@@ -6155,11 +6155,35 @@
     },
     "exit-plate": {
       "ramp": "pine",
-      "step": 3
+      "reads": {
+        "at": 64
+      },
+      "step": 3,
+      "texture": {
+        "cluster": 2,
+        "contrast": 0.05,
+        "facet": 0,
+        "flatten": 0.9,
+        "photo": "metalSheet",
+        "seed": 117,
+        "wear": 0.15
+      }
     },
     "ward-cork": {
       "ramp": "wood",
-      "step": 1
+      "reads": {
+        "at": 64
+      },
+      "step": 1,
+      "texture": {
+        "cluster": 2,
+        "contrast": 0.05,
+        "facet": 0,
+        "flatten": 0.9,
+        "photo": "bark",
+        "seed": 116,
+        "wear": 0.15
+      }
     },
     "ward-floor": {
       "accent": "ward-floor-warm",
