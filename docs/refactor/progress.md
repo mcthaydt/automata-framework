@@ -712,7 +712,7 @@ The Owner, 2026-11-08: "all editors should work between 2D and 3D unless obvious
 | 1. Audit | Done, 2026-11-08, on PR #508: 5 high (S1 to S5), 8 medium (S6 to S13), 3 low (S14 to S16), one decision for the Owner (D1, what Characters means in a 2D game; the Owner chose A the same day: one Characters editor on the rail in both kinds). A 2D and a 3D game were made in the editors, played and seen; the 2D game's Feel and Audio players were wired into a 3D game by hand and worked | [audit](2026-11-08-shared-editors-audit.md) |
 | 2. Plan and spec | Not started; based on #508, it turns #508's expected failures into passing journeys | |
 
-## The paid apps: desktop and mobile: 50% (3 of 6 stages done, 2026-11-08)
+## The paid apps: desktop and mobile: 50% (3 of 6 stages done, re-audited 2026-11-12)
 
 The Owner, 2026-11-08 14:53: "should we get to using tauri to package to desktop, ios, and android? Also let's use
 nomad sculpt economics $19.99 for mobile, $39.99 for desktop; lets keep essentials on web, everything open source except
@@ -723,9 +723,12 @@ deployment, but the full suite requires the app desktop or mobile; it needs to b
 | 1. Audit | Done, 2026-11-08, on PR #511: 8 high (A1 to A8), 9 medium (A9 to A17), 3 low (A18 to A20), one decision for the Owner (D1, which editors stay on the web), settled 21:25: every editor is free on the web and the apps sell the download. A Tauri desktop build opened the full suite on a new game; a wall, a key and a longer flash were made in it, played in it and seen. Play needed an `on_new_window` handler to open at all | [audit](2026-11-08-apps-audit.md) |
 | 2. Plan and spec | Done, 2026-11-08: [spec](2026-11-08-apps-spec.md) and [plan](2026-11-08-apps-plan.md), 30 build tasks in 8 phases (0 the start, 1 seams in the editors, 2 the desktop app, 3 play with no computer, 4 the phone app, 5 GitHub sync, 6 the Review page, 7 building and proving), then MCP as a later stage (4 tasks: on a computer through the app's sidecar, on a phone over local Wi-Fi only, no relay ever: the Owner, 21:29). A phone needs no computer: the app carries a prebuilt runtime and compiles the game inside itself. Owner, 21:33: every editor free on the web, the app never names FigureBuilder or EnvironmentBuilder, no 2D-only app, launch waits for Pixi 3D. The DUEL palette has no stated licence on Lospec; the Owner asks Arilyn | [spec](2026-11-08-apps-spec.md), [plan](2026-11-08-apps-plan.md) |
 | 3. Plan audit | Done, 2026-11-08: 5 high (H1 the phone player refuses every game, because every game has the Svelte plugin; H2 the phone runtime misses Feel, Audio, `@automata/3d` and subpaths; H3 "progress must persist" is in neither document; H4 the npm release and rename, A5, fell out; H5 the base is two sibling branches and task references are pre-v2), 7 medium, 3 low; no Owner decision. A new game made in the web editors kept a Tuner key and a Feel flash through a reload and a close and reopen, and both showed in play (Chromium, phone and iPad) | [plan audit](2026-11-08-apps-plan-audit.md) |
-| 4. Build | Not started (0 of 30 tasks) | |
+| 3b. Plan re-audit | Done, 2026-11-12, on `main` `d401ec4d` (no subagents): execution cannot start as written. Blocking: the base stack (#508, #522, #559, #532) closed unmerged, so the base is `main` after the scope rename (B1, B3); no page on `main` holds every editor, so the app waits for ship item 10's every-editor page (B2); #544 was the web sign-in plan, not phase 5, and the Owner's D2 puts sync on the web (B4). Release 1 is the desktop app (11 tasks, about 13 to 16 sessions); phones, sync and Review are release 2. #531 (the first build session, closed) holds tested work for about 4 tasks: carry it across task by task; do not revive #544. Plan and spec amended in place | [re-audit](../superpowers/audits/2026-11-12-paid-app-plan-reaudit.md) |
+| 4. Build | Not started on `main` (0 of 30 tasks). Closed #531 (`714796a2`) did 3.1, 4.1 and parts of 1.2, 1.4, 3.2, 3.3, 4.2, 5.1, 5.3, 5.4, 5.5 on old package names; recoverable | |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
+
+**Where to resume (2026-11-12, re-audit done):** the Rust lane (`apps/editor/src-tauri/`, task 2.1's Rust half) can start now on a machine with WebKitGTK 4.1; everything else waits for the scope rename to merge, then the lanes in the re-audit's task table. The Owner: the npm org (blocks the first task), D5 (web sign-in), the release split, and the accounts listed in the re-audit.
 
 ## Customer value for AI game makers (stage 1 of 6 done, 2026-11-08)
 
