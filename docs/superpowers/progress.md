@@ -378,3 +378,10 @@ tone mapping, tone mapping's default, unlit colour, samplers), and every effect 
 - 2026-11-12, asked why the wardrobe work needs FigureBuilder's repository, and given the choice of folding
   FigureBuilder's source into the framework or granting push access: "Do 1 and do the same for environment builder."
   Workstream 6. Workstream 4's wardrobe tasks (13 to 16) wait for FigureBuilder's group and then run in the framework.
+- 2026-11-12, workstream 6, three answers: (1) "remove the submodule checkout and SUBMODULES_TOKEN from the workflows":
+  it goes in the fold's first pull request, quoted there. (2) "bring the figure builder branches in that we missed":
+  `claude/c5-finish-fixes` and `claude/turned-face-both-eyes` come in as framework changes after the fold, with the
+  wardrobe branch; content branches stay behind. (3) "commit in the note, give gh command to archive both": the
+  retirement note is on `claude/optimistic-newton-yszrte` in each builder (FigureBuilder `3caa9ad`, EnvironmentBuilder
+  `6983342`); the Owner merges and archives. Still open: EnvironmentBuilder's CPU scene renderer, left behind (the
+  default) or brought as a reference tool.
