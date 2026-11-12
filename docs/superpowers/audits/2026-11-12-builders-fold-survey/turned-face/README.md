@@ -64,9 +64,22 @@ The 20 cells that differ (the table is [`table.md`](table.md); the pictures are 
   moved in each, this folder and the Owner's words.
 - **No:** the fix is reverted, and the fold goes on without it.
 
+## The two cells that change something other than a far eye, after a closer look
+
+- **`base-m/script/10@D1`'s two outline texels** are the colour budget's documented rule (`budget()`: past `PALETTE` 24
+  colours the closest pair on one material merge, the rarer into the commoner), the only one of the 20 cells where the
+  fix changes a figure's colour count (24 to 25). The accepted sets already sit at that edge: of the 430 base, actors and
+  sprites frames, 16 have exactly 24 colours and 11 have 25 or 26. I did not trace which earlier merges happened where.
+- **`base-f/script/10@D1`'s one texel** is the far eye by the same rule as in the base-m cell of the same script frame.
+  Both are the profile branch (`view` 2, a head turned 90 degrees) and draw the same two-texel mark in one column at the
+  face's front edge: a dark texel above a lid-coloured one, on the two eyes' rows (base-m: rows 34 and 35; base-f: rows
+  37 and 38). In base-m both texels were skin before; in base-f the dark one lands on an outline texel of the same colour
+  (29, 29, 33) already there, so only the lid texel (34, 38) changes.
+
 ## How the sheet was made
 
 `turned-face-sheet.ts.txt` here, run from `extensions/figures/scripts/` three times with the painter before the fix, with
 it, and pairing the two (the actors' frames came from a copy of `tests/golden/actors.ts` that keeps each frame's pixels
 in place of its md5). Both runs draw the three goldens' frames with the goldens' own recipes, so a cell is in the sheet
-exactly when its recorded md5 or bytes would differ. The scripts are not kept in the package.
+exactly when its recorded md5 or bytes would differ. The scripts are not kept in the package. `turned-face-fix.patch` is the fix as cherry-picked (`git apply`), kept so the
+fix can be applied without the filtered clone.
