@@ -8,5 +8,5 @@ export {
   nearestDuel,
   rampOf,
   step,
-} from '../shared/palette/duel'
-export { DEFAULT_PALETTE, type Palette } from '../shared/palette/palette'
+} from '../shared/palette/duel.ts'
+export { DEFAULT_PALETTE, type Palette } from '../shared/palette/palette.ts'

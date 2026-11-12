@@ -11,15 +11,15 @@
 import { dirname, join, sep } from 'node:path'
 import { Effect, Either } from 'effect'
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
-import { type CompiledContent, type ContentOptions, outDirOf } from '../../shared/compile/compile-content'
+import { type CompiledContent, type ContentOptions, outDirOf } from '../../shared/compile/compile-content.ts'
 import type {
   ContentCompileFailed,
   ContentWriteFailed,
   InvalidContentConfig,
-} from '../../shared/compile/errors'
-import { TRANSLATIONS_FOLDER } from '../../shared/compile/read-sources'
-import { buildContent } from '../../shared/compile/write-outputs'
-import { formatDiagnostic } from '../../shared/diagnostics/diagnostic'
+} from '../../shared/compile/errors.ts'
+import { TRANSLATIONS_FOLDER } from '../../shared/compile/read-sources.ts'
+import { buildContent } from '../../shared/compile/write-outputs.ts'
+import { formatDiagnostic } from '../../shared/diagnostics/diagnostic.ts'
 
 /** The import path of the compiled content: `content`, `contentHash`, `simContent` and `simContentHash`. */
 export const VIRTUAL_MODULE_ID = 'virtual:automata/content'

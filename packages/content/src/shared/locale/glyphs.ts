@@ -8,7 +8,7 @@
 // It reads a catalog value, not a file; content catalogs are plain text
 // (`checkTranslation` refuses anything else), so every character of every message counts.
 
-import type { MessageCatalog } from './messages'
+import type { MessageCatalog } from './messages.ts'
 
 const range = (from: number, to: number): string[] =>
   Array.from({ length: to - from + 1 }, (_, index) => String.fromCodePoint(from + index))

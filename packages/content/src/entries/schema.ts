@@ -8,4 +8,4 @@ export {
   contentRef,
   defineContentSchema,
   localized,
-} from '../shared/schema/content-schema'
+} from '../shared/schema/content-schema.ts'

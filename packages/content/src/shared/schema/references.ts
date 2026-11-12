@@ -3,8 +3,8 @@
 // an existing item (`unknownReference`), and that item must be the right kind (`wrongKind`). What changed is
 // how references are found: they are marked in the schema (`contentRef`) and collected by walking the data.
 
-import type { DataPath, Problem } from '../diagnostics/diagnostic'
-import { isContentRefMarker, isLocalizedMarker } from './content-schema'
+import type { DataPath, Problem } from '../diagnostics/diagnostic.ts'
+import { isContentRefMarker, isLocalizedMarker } from './content-schema.ts'
 
 export interface FoundRef {
   readonly path: DataPath

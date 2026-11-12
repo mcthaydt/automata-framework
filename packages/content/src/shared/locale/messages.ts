@@ -7,9 +7,9 @@
 // The fields are the ones a schema marks with `localized()`, not a hand-written
 // list, and each translation in `content/messages/<lang>.json` is checked to have exactly the source keys.
 
-import type { DataPath, Problem } from '../diagnostics/diagnostic'
-import { canonicalFile } from '../hash/canonical-file'
-import type { FoundText } from '../schema/references'
+import type { DataPath, Problem } from '../diagnostics/diagnostic.ts'
+import { canonicalFile } from '../hash/canonical-file.ts'
+import type { FoundText } from '../schema/references.ts'
 
 export const INLANG_SCHEMA = 'https://inlang.com/schema/inlang-message-format'
 

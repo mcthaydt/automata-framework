@@ -9,8 +9,8 @@
 
 import { Effect } from 'effect'
 import type { z } from 'zod'
-import { type Diagnostic, type Problem, sortDiagnostics } from '../diagnostics/diagnostic'
-import { checkFlow, type FlowCapabilities, type FlowGraph, flowSchema } from '../flow/check-flow'
+import { type Diagnostic, type Problem, sortDiagnostics } from '../diagnostics/diagnostic.ts'
+import { checkFlow, type FlowCapabilities, type FlowGraph, flowSchema } from '../flow/check-flow.ts'
 import {
   type AssetsSource,
   assetsSchema,
@@ -19,29 +19,29 @@ import {
   gameSchema,
   languagesOf,
   rukenFields,
-} from '../game/game-facts'
-import { checkWithRuken } from '../game/ruken/ruken-check'
-import { type ContentData, type ContentGenerator, runGenerators } from '../generate/content-generator'
-import { contentHash } from '../hash/content-hash'
-import { type ParaglideOptions, paraglideProblems } from '../locale/compile-messages'
-import { checkTranslation, collectMessages, type MessageCatalog } from '../locale/messages'
-import { checkPalette, paletteSchema } from '../palette/palette'
-import { locateJsonKeys } from '../parse/locate-json-keys'
-import { positionOf } from '../parse/locate-keys'
+} from '../game/game-facts.ts'
+import { checkWithRuken } from '../game/ruken/ruken-check.ts'
+import { type ContentData, type ContentGenerator, runGenerators } from '../generate/content-generator.ts'
+import { contentHash } from '../hash/content-hash.ts'
+import { type ParaglideOptions, paraglideProblems } from '../locale/compile-messages.ts'
+import { checkTranslation, collectMessages, type MessageCatalog } from '../locale/messages.ts'
+import { checkPalette, paletteSchema } from '../palette/palette.ts'
+import { locateJsonKeys } from '../parse/locate-json-keys.ts'
+import { positionOf } from '../parse/locate-keys.ts'
 import {
   diagnosticAt,
   type ParsedToml,
   parseDocument,
   parseTomlFile,
   type SourceFile,
-} from '../parse/parse-document'
-import { type ContentSchemaDef, configProblems } from '../schema/content-schema'
-import { checkReferences, type FoundRef, type FoundText, resolveMarkers } from '../schema/references'
-import { checkTuning, type TunableDeclarations, type TuningMeta } from '../tuning/check-tuning'
-import { builtInGenerators } from './built-in-generators'
-import { ContentCompileFailed, InvalidContentConfig } from './errors'
-import { readSources, type SourceTree } from './read-sources'
-import { type SimPartition, simKindsOf, simPartition, simReferenceProblems } from './sim-partition'
+} from '../parse/parse-document.ts'
+import { type ContentSchemaDef, configProblems } from '../schema/content-schema.ts'
+import { checkReferences, type FoundRef, type FoundText, resolveMarkers } from '../schema/references.ts'
+import { checkTuning, type TunableDeclarations, type TuningMeta } from '../tuning/check-tuning.ts'
+import { builtInGenerators } from './built-in-generators.ts'
+import { ContentCompileFailed, InvalidContentConfig } from './errors.ts'
+import { readSources, type SourceTree } from './read-sources.ts'
+import { type SimPartition, simKindsOf, simPartition, simReferenceProblems } from './sim-partition.ts'
 
 /**
  * What the content compiler is given: the project root, the registered kinds, and optionally tunables,

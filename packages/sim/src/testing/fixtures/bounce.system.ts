@@ -1,7 +1,7 @@
 import { defineSystem, type SystemDef } from '@automata/sim'
-import { Kick } from './bounce.command'
-import { Ball } from './bounce.component'
-import { BounceStats } from './bounce.resource'
+import { Kick } from './bounce.command.ts'
+import { Ball } from './bounce.component.ts'
+import { BounceStats } from './bounce.resource.ts'
 
 /** The box is 0..BOX on both axes. */
 export const BOX = 1000

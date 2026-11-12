@@ -10,11 +10,11 @@
 
 import { join } from 'node:path'
 import { Effect } from 'effect'
-import type { Diagnostic } from '../diagnostics/diagnostic'
-import { listFiles, readTextIfPresent } from '../files/content-files'
-import { LANGUAGE_TAG } from '../game/game-facts'
-import type { SourceFile } from '../parse/parse-document'
-import type { ContentSchemaDef } from '../schema/content-schema'
+import type { Diagnostic } from '../diagnostics/diagnostic.ts'
+import { listFiles, readTextIfPresent } from '../files/content-files.ts'
+import { LANGUAGE_TAG } from '../game/game-facts.ts'
+import type { SourceFile } from '../parse/parse-document.ts'
+import type { ContentSchemaDef } from '../schema/content-schema.ts'
 
 /** The compiler's own documents, keyed by the kind each is stored under in the content data. */
 export const BUILT_IN_FILES: Readonly<Record<string, string>> = {

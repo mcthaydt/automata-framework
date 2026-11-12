@@ -4,12 +4,12 @@
 //   then 6 plugin state only when a plugin keeps engine state, so other snapshots are unchanged
 // Floats are written with DataView; values are finite by construction (coerceField), so bytes are canonical.
 
-import type { ComponentDef } from '../define/definitions'
-import type { FieldType } from '../define/fields'
-import { utf8 } from '../hash/canonical'
-import { hex64, xxhash64 } from '../hash/xxhash64'
-import type { RngState } from '../rng/rng'
-import type { FieldRecord } from './entity-store'
+import type { ComponentDef } from '../define/definitions.ts'
+import type { FieldType } from '../define/fields.ts'
+import { utf8 } from '../hash/canonical.ts'
+import { hex64, xxhash64 } from '../hash/xxhash64.ts'
+import type { RngState } from '../rng/rng.ts'
+import type { FieldRecord } from './entity-store.ts'
 
 /**
  * The snapshot format version this build reads and writes; a snapshot of another version fails with

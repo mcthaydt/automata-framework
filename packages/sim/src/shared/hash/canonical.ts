@@ -1,4 +1,4 @@
-import { sortedKeys } from '../util/sorted'
+import { sortedKeys } from '../util/sorted.ts'
 
 /** A value canonical JSON cannot represent exactly; hashing it anyway would let different values collide. */
 export class CanonicalJsonError extends Error {

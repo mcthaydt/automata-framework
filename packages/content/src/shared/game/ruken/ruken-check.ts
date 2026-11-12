@@ -8,8 +8,8 @@
 // accepts; ship writes the real ones.
 
 import { type ManifestError, parseManifest } from '@ruken/manifest'
-import type { DataPath, Problem } from '../../diagnostics/diagnostic'
-import type { AssetsSource, RukenFields } from '../game-facts'
+import type { DataPath, Problem } from '../../diagnostics/diagnostic.ts'
+import type { AssetsSource, RukenFields } from '../game-facts.ts'
 
 /** Accepted by Ruken, for checking assets when the game has no game.toml yet. */
 const PLACEHOLDER_FIELDS: RukenFields = {

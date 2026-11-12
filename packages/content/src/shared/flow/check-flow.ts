@@ -7,7 +7,7 @@
 // them the graph checks still do.
 
 import { z } from 'zod'
-import type { Problem } from '../diagnostics/diagnostic'
+import type { Problem } from '../diagnostics/diagnostic.ts'
 
 export interface FlowSource {
   readonly entry: string
