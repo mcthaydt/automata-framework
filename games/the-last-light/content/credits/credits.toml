@@ -1,0 +1,16 @@
+# The credits shown over the last frame of the night. The Owner writes the names; these say only what the repository can say for
+# itself. A section's title and a name's role are translatable (`automata words`); a name and a link are not.
+
+[[sections]]
+title = "The Last Light"
+
+[[sections.names]]
+name = "A game made with Automata Framework"
+role = "The engine and the editors"
+
+[[sections]]
+title = "Sound and music"
+
+[[sections.names]]
+name = "ElevenLabs"
+role = "The recorded effects and the music"

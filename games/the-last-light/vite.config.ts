@@ -15,6 +15,7 @@ import { navGraphContent } from '@automata/nav'
 import { puzzleContent } from '@automata/puzzle'
 import { systemsContent } from '@automata/systems'
 import { carriedLightContent, peekContent } from '@automata/systems/sim'
+import { creditsContent } from '@automata/ui-screens/content'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { defaultClientConditions, defineConfig } from 'vite'
 
@@ -52,6 +53,7 @@ export function contentPlugin(): ReturnType<typeof automataContent> {
       hudContent,
       audioContent,
       feelContent,
+      creditsContent,
     ],
   })
 }

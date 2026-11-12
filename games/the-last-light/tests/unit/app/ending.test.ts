@@ -57,3 +57,19 @@ describe('the ending', () => {
     expect(panels()).toBe(0)
   })
 })
+
+describe('the credits', () => {
+  it('are the content file’s, content/credits/credits.toml, so an editor or a person changes them without code', async () => {
+    const { creditsOfContent } = await import('#src/app/ending.ts')
+    const credits = creditsOfContent()
+    expect(credits.sections.map((section) => section.title)).toEqual(['The Last Light', 'Sound and music'])
+    expect(credits.sections[1]?.names).toEqual([
+      { name: 'ElevenLabs', role: 'The recorded effects and the music' },
+    ])
+  })
+
+  it('are no longer a constant in code', async () => {
+    const module = await import('#src/app/ending.ts')
+    expect('CREDITS' in module).toBe(false)
+  })
+})

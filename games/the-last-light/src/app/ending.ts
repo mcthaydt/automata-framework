@@ -1,5 +1,6 @@
+import { content } from 'virtual:automata/content'
 import type { Hosting } from '@automata/framework'
-import { type Credits, showCredits } from '@automata/ui-screens/credits'
+import { type Credits, creditsSchema, showCredits } from '@automata/ui-screens/credits'
 
 // The end of the night. The old prologue went on to act one, which this slice does not have, so when Ada lies down and the
 // `rest` cutscene ends (or is skipped) the credits come up over the last frame. Core has no way for a game to send the player
@@ -8,18 +9,14 @@ import { type Credits, showCredits } from '@automata/ui-screens/credits'
 /** The cutscene that ends the night. */
 const LAST = 'rest'
 
-/** Who made it. The Owner writes the names; these say only what the repository can say for itself. */
-export const CREDITS: Credits = {
-  sections: [
-    {
-      title: 'The Last Light',
-      names: [{ name: 'A game made with Automata Framework', role: 'The engine and the editors' }],
-    },
-    {
-      title: 'Sound and music',
-      names: [{ name: 'ElevenLabs', role: 'The recorded effects and the music' }],
-    },
-  ],
+/**
+ * Who made it: `content/credits/credits.toml`, the `credits` content kind, so a person changes the names without code. The Owner
+ * writes them; the file says only what the repository can say for itself. Titles and roles are in the source language until
+ * `automata words` translates them.
+ */
+export function creditsOfContent(): Credits {
+  const file = (content as unknown as { credits?: { credits?: unknown } }).credits?.credits
+  return creditsSchema.parse(file ?? { sections: [] })
 }
 
 export interface EndingOptions {
@@ -45,7 +42,7 @@ export function createEnding(options: EndingOptions): Ending {
         if (shown !== undefined) return
         shown = showCredits({
           target: options.target(),
-          credits: CREDITS,
+          credits: creditsOfContent(),
           hosting: options.hosting,
           onClose: () => {
             shown = undefined
