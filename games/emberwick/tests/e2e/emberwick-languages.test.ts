@@ -1,7 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { passFirstRun } from '@automata/tools/e2e'
 import { expect, test } from '@playwright/test'
-import { emberwickWords } from '#src/features/screens/words.ts'
 import { gameUrl } from './origins.ts'
 
 // The game in each of its six languages, one Playwright project per language (playwright.config.ts: the browser's
@@ -12,6 +11,23 @@ import { gameUrl } from './origins.ts'
 const FONTS = JSON.parse(
   readFileSync(new URL('../../content/generated/fonts/fonts.json', import.meta.url), 'utf8'),
 ) as Record<string, Record<string, string>>
+
+// The expected words are read from the game's own catalog file (`messages/ui/<language>.json`), not through the game's
+// code: Playwright loads this file with plain Node, which cannot load the framework's Svelte source that the game's
+// `words.ts` imports for its locale matching.
+const wordsOf = (tag: string) => {
+  const catalog = JSON.parse(
+    readFileSync(new URL(`../../messages/ui/${tag}.json`, import.meta.url), 'utf8'),
+  ) as Record<string, string>
+  return {
+    play: catalog.play as string,
+    menuTitle: catalog.menu_title as string,
+    pause: catalog.pause as string,
+    pausedTitle: catalog.paused_title as string,
+    resume: catalog.resume as string,
+    backToMenu: catalog.back_to_menu as string,
+  }
+}
 
 /** The tag this project runs in: the browser's language, which the game matched to one of its six. */
 const TAGS: Readonly<Record<string, string>> = {
@@ -29,7 +45,7 @@ test('a first run asks for the language the browser speaks, then plays and pause
   const browserLocale = info.project.use.locale ?? 'en'
   const tag = TAGS[browserLocale]
   if (tag === undefined) throw new Error(`no language for ${browserLocale}`)
-  const words = emberwickWords(tag)
+  const words = wordsOf(tag)
   const errors: string[] = []
   page.on('console', (message) => {
     if (message.type() === 'error') errors.push(message.text())
