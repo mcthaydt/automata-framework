@@ -143,7 +143,7 @@ describe('garments sized from the body (cuffs, collar)', () => {
   ] as const)
     for (const sleeves of ['long', 'short'] as const) {
       it(`${name} ${sleeves}: the collar is today's within 2 mm`, () => {
-        const { m, s, look } = worn(sliders, sleeves),
+        const { m, look } = worn(sliders, sleeves),
           ref = today(m)
         const mine = named(look, 'collarMat')
         expect(mine).toHaveLength(ref.length)
@@ -264,12 +264,10 @@ describe('garments sized from the body (cuffs, collar)', () => {
           .slice(-2)
         expect(probes).toHaveLength(2)
         const bareParts = bare(m, s)
-        for (const [i, [region, y, hh]] of (
-          [
-            ['arm', s.rest[J['foreArm.L']][1] - 0.9 * s.foreArm, 0.022 * m.k],
-            ['leg', s.genes.ankle + 0.05 * m.k, 0.02 * m.k],
-          ] as const
-        ).entries()) {
+        for (const [region, y, hh] of [
+          ['arm', s.rest[J['foreArm.L']][1] - 0.9 * s.foreArm, 0.022 * m.k],
+          ['leg', s.genes.ankle + 0.05 * m.k, 0.02 * m.k],
+        ] as const) {
           const G = girth(p, region, 'L', y + hh, y - hh),
             mesh = meshAt(bareParts, region === 'arm' ? GROUP.armL : GROUP.legL, y, hh)
           expect(mesh.length, `${base.def.id} ${name} ${region}`).toBeGreaterThan(10)

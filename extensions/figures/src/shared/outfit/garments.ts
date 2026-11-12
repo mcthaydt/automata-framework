@@ -245,8 +245,6 @@ export function dress(
     return found
   }
   const g = s.genes,
-    k = m.k,
-    t = m.thick,
     hw = (g.head * g.headWidth) / 2,
     hd = (g.head * g.headDepth) / 2,
     h = g.head
@@ -478,19 +476,12 @@ function body(
     t = m.thick,
     fw = m.foot,
     foot = g.foot,
-    hand = m.hand,
-    fat = m.fat
+    hand = m.hand
   const f = m.sliders.frame,
-    mu = lerp(0.92, 1.1, m.sliders.muscle),
-    D = k * t * m.depth
-  const a = k * t * m.arm * mu * lerp(1.04, 0.94, f),
-    l = k * t * m.leg * lerp(0.96, 1.04, f),
-    sh = g.shoulders,
-    C = m.chest
+    mu = lerp(0.92, 1.1, m.sliders.muscle)
+  const a = k * t * m.arm * mu * lerp(1.04, 0.94, f)
   const hipY = s.hipY,
-    waistY = hipY + 0.155 * k,
     chestY = s.chestY,
-    shoulderY = s.shoulderY,
     pelvisY = s.rest[J.pelvis][1]
   // ─── Torso: seat, hips, waist, ribs, chest, the shoulders up the trapezius to the neck ───
   const torso = P.torso
@@ -525,11 +516,8 @@ function body(
     // each other (the deltoid out, the biceps forward, the elbow's point back, the forearm's swell out on its outer side
     // while its inner line runs straight), so the light turns over it rather than running down a ribbon.
     const ay = s.rest[J[`upperArm.${side}`]][1],
-      ax = x * sh,
       U = s.upperArm,
-      F = s.foreArm,
-      elbow = ay - U,
-      wrist = ay - g.arms
+      elbow = ay - U
     const arm = P.arm[side]
     const bend = across(J[`upperArm.${side}`], J[`foreArm.${side}`], elbow, 0.05 * k)
     // The shoulder's top rides the chest a little, so a swinging arm rolls under its cap rather than lifting it.
@@ -548,9 +536,7 @@ function body(
       ...hands(J[`hand.${side}`], r.hand, ag, x, k * hand, [0.017 * a, 0.022 * a]),
     )
     // ─── Leg: the hip, a thigh that narrows to the knee, the kneecap, a calf behind the shin, the ankle ───
-    const hx = x * g.hips,
-      T = s.thigh,
-      S = s.shin,
+    const T = s.thigh,
       knee = hipY - T,
       ankle = g.ankle
     const leg = P.leg[side]
