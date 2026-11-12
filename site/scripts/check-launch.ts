@@ -39,8 +39,8 @@ export type OnRegistry = (name: string) => Promise<boolean>
 
 /**
  * One sentence per package the site sends a visitor to that is not on the registry, or that could not be asked about.
- * The `@automataframework` scope on npmjs.org belongs to another account until the rename to `@automataframework` lands, so until
- * then a package of theirs with this name would pass; the runbook makes the rename the first step of the launch.
+ * The `@automataframework` organisation on npmjs.org is the project's (the runbook's launch step 2), so a package
+ * found under that name is ours.
  */
 export async function unpublishedProblems(
   names: readonly string[],

@@ -22,6 +22,7 @@ import { publishablePackages } from '../../release/src/publishable-packages.ts'
 import { bootGame } from './boot-game.ts'
 import { packAll, sh } from './commands.ts'
 import { fetchEditorPage } from './editor.ts'
+import { toolsPack } from './pack.ts'
 import { type ConsumerPackage, consumerManifest, consumerWorkspace, type ToolVersions } from './project.ts'
 import { readmeCommands, readWorkspace, unresolvedCommands } from './readme.ts'
 import { rukenHeaders } from './ruken/ruken-headers.ts'
@@ -174,10 +175,7 @@ function steps(project: string): Step[] {
       `size: the packed -tools stays under ${TOOLS_PACK_BUDGET_MB} MB`,
       () => {
         // A registry run has no `packs` folder: nothing was packed, so there is nothing to measure.
-        const packs = join(project, 'packs')
-        const pack = existsSync(packs)
-          ? readdirSync(packs).find((file) => /automataframework-tools-.*\.tgz$/.test(file))
-          : undefined
+        const pack = toolsPack(join(project, 'packs'))
         if (pack === undefined) return 'installed from the registry: not measured'
         const bytes = statSync(join(project, 'packs', pack)).size
         if (bytes > TOOLS_PACK_BUDGET_MB * 1024 * 1024)

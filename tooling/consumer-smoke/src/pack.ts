@@ -77,3 +77,22 @@ export function packPublished(options: PackOptions): readonly Packed[] {
     return { name: pkg.manifest.name, file }
   })
 }
+
+/** The tools package, whose pack the consumer smoke holds to a size budget. */
+export const TOOLS_PACKAGE = '@automataframework/tools'
+
+/**
+ * The tools pack in `packs`, by the file name `npm pack` gives the package (`@a/b` packs as `a-b-<version>.tgz`).
+ * A registry run has no `packs` folder and measures nothing. A `packs` folder without the tools pack throws, so a name
+ * that stops matching (as the scope rename would have made a hand-written pattern) fails the budget instead of
+ * skipping it.
+ */
+export function toolsPack(packs: string): string | undefined {
+  if (!existsSync(packs)) return undefined
+  const prefix = `${TOOLS_PACKAGE.slice(1).replace('/', '-')}-`
+  const pack = readdirSync(packs).find(
+    (file) => file.startsWith(prefix) && /^\d/.test(file.slice(prefix.length)),
+  )
+  if (pack === undefined) throw new Error(`${packs} has no ${prefix}<version>.tgz to measure`)
+  return pack
+}

@@ -88,7 +88,8 @@ So do the steps in this order. Steps marked (Owner) need an account or a decisio
 2. **(Owner) Create the npm organisation** `automataframework` and the `NPM_TOKEN` secret of the `release` environment.
 3. **(Owner) Create the Cloudflare Pages project** `automataframework` (Direct Upload, no Git connection) and attach
    `automataframework.com` to it as its custom domain, with `www` redirecting to the apex and HTTPS on.
-4. **The agent: merge the package rename** to `@automataframework/*` (the plan's Task 6), after the open stack has merged.
+4. **The agent: merge the package rename** to `@automataframework/*` (branch `claude/scope-rename`; in-flight branches
+   catch up with `docs/superpowers/audits/2026-11-12-scope-rename/README.md`).
 5. **(Owner) Approve the first release**, 0.1.0, as `first-public-release.md` describes, so the site's first command finds
    its package.
 6. **Pixi 3D goes public.** The AF launch task swaps `vendor/pixi-3d/` for the npm release; the Owner opens the

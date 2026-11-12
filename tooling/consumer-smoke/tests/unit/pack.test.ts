@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { type PackOptions, packPublished } from '#src/pack.ts'
+import { type PackOptions, packPublished, toolsPack } from '#src/pack.ts'
 import { publishablePackages } from '../../../release/src/publishable-packages.ts'
 
 // Packing the published packages for a project outside the workspace. A temporary workspace and an injected `pack`
@@ -105,4 +105,23 @@ describe.skipIf(!built)('the real workspace with pnpm pack (needs pnpm build)', 
     expect(packs.map((pack) => pack.name)).toEqual(published.map((pkg) => pkg.manifest.name).sort())
     for (const pack of packs) expect(existsSync(join(out, pack.file)), pack.file).toBe(true)
   }, 120_000)
+})
+
+describe('toolsPack', () => {
+  it('finds the tools pack by the file name npm gives its package name', () => {
+    const packs = temp('af-tools-pack-')
+    writeFileSync(join(packs, 'automataframework-sim-0.0.2.tgz'), '')
+    writeFileSync(join(packs, 'automataframework-tools-0.0.2.tgz'), '')
+    expect(toolsPack(packs)).toBe('automataframework-tools-0.0.2.tgz')
+  })
+
+  it('measures nothing on a registry run, which has no packs folder', () => {
+    expect(toolsPack(join(temp('af-no-packs-'), 'packs'))).toBeUndefined()
+  })
+
+  it('fails, rather than skip the budget, when the packs have no tools pack', () => {
+    const packs = temp('af-tools-missing-')
+    writeFileSync(join(packs, 'someone-tools-0.0.2.tgz'), '')
+    expect(() => toolsPack(packs)).toThrow(/no automataframework-tools-<version>\.tgz/)
+  })
 })
