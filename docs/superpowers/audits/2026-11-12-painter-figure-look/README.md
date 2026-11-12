@@ -109,5 +109,7 @@ time. The sprite lighting's treatment of a non-black outline (item 5). The READM
 
 Node 24.22.1 (this container's `/opt/node24`; the repository asks for 24.21 or later), Chromium only: no WebKit or Firefox, no GPU runner.
 Per push: the painter's whole unit suite (`AF_UNIT_FULL=1 pnpm --filter @automata/figures test:unit`), `pnpm typecheck` for the painter and
-the character kit, `pnpm lint`, `pnpm knip`, `pnpm style`. At the handoff: see the last message to the coordinator for `pnpm check` and
-the browser suites.
+the character kit, `pnpm lint`, `pnpm knip`, `pnpm style`. At the handoff: the whole `pnpm check` (exit 0, 59 files and 761 tests for the painter, 28 files and 229 tests for the character kit), the
+painter's browser suites with `AF_WEBGPU=software` (2 files, 227 tests passed), and the character kit's `webgpu` project with
+`AF_WEBGPU=software` (3 tests passed, 1 skipped by the suite). **Not run:** the character kit's `browser` project, which launches
+Firefox and WebKit (not installed here), WebKit and Firefox parity, the GPU runner, the 3D journeys.
