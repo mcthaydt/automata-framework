@@ -87,7 +87,7 @@ describe('the pass that presents the frame', () => {
 
   it('is the snap when only the snap runs', () => {
     const { list, snap, present } = createLookPasses(
-      parseLook({ switches: { haze: false } }),
+      parseLook({ switches: { haze: false, grade: false } }),
       timeOfDay('day'),
     )
     expect(present).toBeUndefined()
@@ -95,8 +95,19 @@ describe('the pass that presents the frame', () => {
   })
 
   it('is a present pass when the haze runs, which samples the depth', () => {
-    const { list, haze, snap, present } = createLookPasses(DEFAULT_LOOK, timeOfDay('day'))
-    expect(list).toEqual([haze, snap, present])
+    const { list, haze, grade, snap, present } = createLookPasses(DEFAULT_LOOK, timeOfDay('day'))
+    expect(list).toEqual([haze, grade, snap, present])
+    expect(present).toBeInstanceOf(PresentEffect)
+  })
+
+  // The grade is off until a mood is set, but a mood can be set after the list is made, and the pass then samples the depth
+  // like any other `PostEffect`; the list cannot know, so a grade in it is a reason for a present pass.
+  it('is a present pass when only the mood grade is in the list, before the snap', () => {
+    const { list, grade, snap, present } = createLookPasses(
+      parseLook({ switches: { haze: false } }),
+      timeOfDay('day'),
+    )
+    expect(list).toEqual([grade, snap, present])
     expect(present).toBeInstanceOf(PresentEffect)
   })
 

@@ -1,0 +1,110 @@
+[
+  {
+    "scene": "base-exterior",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "&fx=0",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,GradeEffect,DuelSnapEffect,GlowEffect",
+    "pieces": "32",
+    "problems": "1",
+    "lamps": "1",
+    "time": "night",
+    "readyAt": "2054",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 46 ms to build (budget 5 ms)",
+      "figure on cast took 32 ms to build (budget 5 ms)"
+    ]
+  },
+  {
+    "scene": "base-exterior",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,GradeEffect,DuelSnapEffect,GlowEffect,ShaftsEffect,ParticlesEffect",
+    "pieces": "32",
+    "problems": "1",
+    "lamps": "1",
+    "time": "night",
+    "readyAt": "1070",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 42 ms to build (budget 5 ms)",
+      "figure on cast took 26 ms to build (budget 5 ms)"
+    ]
+  },
+  {
+    "scene": "base-exterior",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "&outline=1",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,GradeEffect,DuelSnapEffect,OutlineEffect,GlowEffect,ShaftsEffect,ParticlesEffect",
+    "pieces": "32",
+    "problems": "1",
+    "lamps": "1",
+    "time": "night",
+    "readyAt": "1152",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 47 ms to build (budget 5 ms)",
+      "figure on cast took 27 ms to build (budget 5 ms)"
+    ]
+  },
+  {
+    "scene": "base-exterior-dressed",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "&fx=0",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,GradeEffect,DuelSnapEffect,GlowEffect",
+    "pieces": "41",
+    "problems": "0",
+    "lamps": "1",
+    "time": "night",
+    "readyAt": "1219",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 51 ms to build (budget 5 ms)",
+      "figure on cast took 53 ms to build (budget 5 ms)"
+    ]
+  },
+  {
+    "scene": "base-exterior-dressed",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,GradeEffect,DuelSnapEffect,GlowEffect,ShaftsEffect,ParticlesEffect",
+    "pieces": "41",
+    "problems": "0",
+    "lamps": "1",
+    "time": "night",
+    "readyAt": "889",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 57 ms to build (budget 5 ms)",
+      "figure on cast took 104 ms to build (budget 5 ms)"
+    ]
+  },
+  {
+    "scene": "base-exterior-dressed",
+    "view": "diorama",
+    "asked": "webgl",
+    "extra": "&outline=1",
+    "renderer": "webgl",
+    "passes": "SkyEffect,HazeEffect,GradeEffect,DuelSnapEffect,OutlineEffect,GlowEffect,ShaftsEffect,ParticlesEffect",
+    "pieces": "41",
+    "problems": "0",
+    "lamps": "1",
+    "time": "night",
+    "readyAt": "1042",
+    "ready": "1",
+    "errors": [
+      "figure on cast took 41 ms to build (budget 5 ms)",
+      "figure on cast took 36 ms to build (budget 5 ms)"
+    ]
+  }
+]

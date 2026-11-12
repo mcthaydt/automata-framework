@@ -26,6 +26,7 @@ import {
 import { letterMesh, setText, sizeOf } from '../../shared/lettering/lettering.ts'
 import { lifted } from '../../shared/piece-helpers.ts'
 import { turnX } from '../../shared/turn.ts'
+import { wallMounted } from './wall-mounted.ts'
 
 /** A bollard: a short post with a rounded cap. */
 const bollard: Generator = (p) => ({
@@ -429,7 +430,7 @@ export const STREET: Readonly<Record<string, Generator>> = {
   planter,
   signPost,
   cableRun,
-  fixture,
+  fixture: wallMounted(fixture),
   fence,
   facade,
   car,
