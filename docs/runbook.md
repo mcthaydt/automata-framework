@@ -81,7 +81,7 @@ The website (`site/`) builds and is tested on every pull request inside `ci.yml`
 `site` job (`.github/workflows/site.yml`) deploys it to Cloudflare Pages. Every push to `main` after step 7 runs
 `pnpm --filter @automata/site check:launch` first and stops if any of these is not true yet: the contact address is not a
 personal mailbox and its domain has a mail record, `npx <the first command's package> create-game` finds a package on
-npmjs.org, Pixi 3D (`@pixi/3d`) is public, and the repository is public (`REPOSITORY_PUBLIC` in `site/src/shared/site.js`).
+npmjs.org, and the repository is public (`REPOSITORY_PUBLIC` in `site/src/shared/site.js`).
 So do the steps in this order. Steps marked (Owner) need an account or a decision only the Owner has; the agent does the rest.
 
 1. **(Owner) Register the domain** `automataframework.com` and create the mailbox `hello@automataframework.com`.
@@ -91,7 +91,7 @@ So do the steps in this order. Steps marked (Owner) need an account or a decisio
 4. **The agent: merge the package rename** to `@automataframework/*` (the plan's Task 6), after the open stack has merged.
 5. **(Owner) Approve the first release**, 0.1.0, as `first-public-release.md` describes, so the site's first command finds
    its package.
-6. **Pixi 3D goes public.** The AF launch task swaps `vendor/pixi-3d/` for the npm release; the Owner opens the
+6. **Pixi 3D is public** (done 2026-11-12: `@pixi/3d` comes from npm and `vendor/pixi-3d/` is gone). The Owner opens the
    repository (the go-public checklist); the agent's pull request then sets `REPOSITORY_PUBLIC` to `true` in `site.js`.
 7. **(Owner) Add the deploy credentials, last:** the secret `CLOUDFLARE_API_TOKEN` and the variable
    `CLOUDFLARE_ACCOUNT_ID`. Adding them before steps 5 and 6 would make every push to `main` fail `check:launch`. The next

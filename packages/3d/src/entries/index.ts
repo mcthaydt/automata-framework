@@ -1,5 +1,5 @@
-// @automata/3d: AF's 3D renderer on @pixi/3d. Private while D-1 stands: the
-// beta's terms allow no public deployment, so `ship prepare` refuses a public build that contains it (X-b).
+// @automata/3d: AF's 3D renderer on @pixi/3d (npmjs.org, MIT). Not published yet; a game's build may carry it
+// anywhere a 2D one goes.
 // Import `@automata/3d/no-eval` first, before anything else. The view's schema, the lens and the
 // heading maths are the pure `./camera-view` entry; the heading's sim plugin is the `./sim` entry.
 

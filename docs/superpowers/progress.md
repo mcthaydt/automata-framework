@@ -282,8 +282,8 @@ Rows 8 to 11 are the reference game's own (workstream 2); they were rows 3 to 6 
   (pacing director, crew, grapple, barricade, peek, hiding), the connected facility, faces and acting, the HUD screens
   (journal, map, inventory, objectives, dialer), foley and room acoustics, twelve of its sixteen pipelines, and a
   whole-game playthrough proof. The builders' look and The Last Light's camera are already landing in `@automata/3d`.
-- The framework refuses to publish a 3D game to a public host while Pixi 3D is in beta. Private builds are allowed, so
-  the port is not blocked; an itch release is, and that is the Owner's.
+- Lifted 2026-11-12: Pixi 3D is public on npm, and a 3D game now publishes to every host a 2D one does
+  ([the move](audits/2026-11-12-pixi-3d-public/README.md)). An itch release is the Owner's.
 - FloorFifty's shared layer is in `packages/automata` except the seven items of workstream 1.
 - `automata-plus`: all 14 packages exist as extensions under the same names; its starter was cut on 2026-11-07.
 

@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { publishablePackages, type WorkspacePackage, workspacePackages } from '#src/publishable-packages.ts'
 
 // What AF publishes to npmjs.org, and how (M2.4 spec §3.1, §3.2, §3.4). Changing the list is a deliberate
-// act: an example, `@automata/3d` (D-1) or a tool marked publishable fails here before anything is released.
+// act: an example, `@automata/3d` (not published yet) or a tool marked publishable fails here before anything is released.
 // The extensions in `extensions/` are private until they join the publish set together.
 const root = fileURLToPath(new URL('../../../..', import.meta.url))
 const published = publishablePackages(root)
