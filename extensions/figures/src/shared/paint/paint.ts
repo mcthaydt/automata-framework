@@ -51,8 +51,6 @@ import { type GBuffer, noise3 } from './raster'
 import { tiled } from './row'
 
 export {
-  DARK_SHINE,
-  darkOf,
   densityOf,
   familyTones,
   GLOSS_SHEEN,

@@ -13,16 +13,7 @@ import type { FaceLook, Fit, Garment, Look, Regions, Wearing } from './garments-
 import { type ShoeForm, shoeExtras } from './shoe'
 
 export { NECK } from './garments-parts'
-export {
-  armGroup,
-  box,
-  legGroup,
-  named,
-  registerGarment,
-  registerOutfitHooks,
-  SWATCHES,
-  sides,
-} from './garments-registry'
+export { box, registerGarment, registerOutfitHooks, SWATCHES } from './garments-registry'
 export type {
   BaseGarment,
   FaceLook,

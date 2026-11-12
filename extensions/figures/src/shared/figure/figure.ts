@@ -37,7 +37,6 @@ import {
 } from './figure-build'
 
 export type { Built, FaceState, FigureInput, FigureLight, View } from './figure-build'
-export { build } from './figure-build'
 
 /**
  * One figure: call `update` every frame with the time step and input; it re-rasterises only when the stepped pose or

@@ -1,16 +1,4 @@
-export {
-  alignY,
-  along,
-  combPhase,
-  grid,
-  onHead,
-  onSkull,
-  shell,
-  skull,
-  spline,
-  sweep,
-  toHead,
-} from './hair-geometry'
+export { grid, onHead, skull, sweep, toHead } from './hair-geometry'
 export { hairParts } from './hair-parts'
 export {
   CROWN,
@@ -22,23 +10,14 @@ export {
   texels,
 } from './hair-registry'
 export type {
-  Bun,
-  Fall,
-  Finish,
-  Fringe,
   HairCtx,
   HairFinish,
   HairInput,
-  HairLook,
   HairPiece,
   HairStyle,
-  Line,
   Piece,
   Rope,
-  Rows,
-  Scalp,
   Skull,
-  Tail,
   Tie,
   Tone,
 } from './hair-types'

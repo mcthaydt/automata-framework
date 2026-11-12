@@ -5,20 +5,17 @@ import { applyHold, base, placeHems, sideBend } from './motion-gait'
 import { sideSign, standHolds } from './motion-stand'
 import type { Evaluated, Gait, MotionState } from './motion-types'
 
-export { applyHold, base, placeHems } from './motion-gait'
-export { clearance, openings, place, relaxed, standHolds } from './motion-stand'
+export { applyHold, placeHems } from './motion-gait'
+export { clearance, standHolds } from './motion-stand'
 export type {
   ActionId,
   Anchor,
   AnchorKind,
   Evaluated,
   Gait,
-  HandPlace,
-  Hang,
   Hold,
   MotionState,
   Stand,
-  Surface,
 } from './motion-types'
 export { CHAIN } from './motion-types'
 
