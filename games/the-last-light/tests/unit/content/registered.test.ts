@@ -14,6 +14,8 @@ const kinds = content as unknown as Record<string, Record<string, unknown> | und
 const READ_ANOTHER_WAY: Readonly<Record<string, string>> = {
   'editors.toml': 'the suite reads it to know which editor opens which file',
   generated: 'the compiler writes it (the types of the compiled content)',
+  messages:
+    'the translations, one catalog a language (the words pipeline reads them; tests/unit/content/translations.test.ts holds them)',
   levels: 'the 3D level is imported as the file the editor saves (app/content.ts, features/room/room.ts)',
 }
 

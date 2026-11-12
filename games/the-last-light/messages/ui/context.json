@@ -1,0 +1,68 @@
+{
+  "hotspot.bed": {
+    "note": "The label on a button over the bed the player makes up. \"Bed 04\" is the bed's number on its tag and is never translated."
+  },
+  "hotspot.monitor": {
+    "note": "A label on a button: the monitor beside a hospital bed. Short."
+  },
+  "hotspot.curtainWest": {
+    "note": "A label on a button: the heavy curtain on the ward's west side. Short."
+  },
+  "hotspot.curtainEast": {
+    "note": "A label on a button: the curtain that screens a bed for privacy. Short."
+  },
+  "hotspot.nightstand": {
+    "note": "A label on a button: the small cabinet beside a bed. Short."
+  },
+  "hotspot.record": {
+    "note": "A label on a button: a patient's paper chart. Short."
+  },
+  "hotspot.sink": {
+    "note": "A label on a button: the ward's hand-washing sink. Short."
+  },
+  "hotspot.trolley": {
+    "note": "A label on a button: a wheeled trolley holding folded linen. Short."
+  },
+  "hotspot.register": {
+    "note": "A label on a button: the night nurse's sign-on book. Short."
+  },
+  "hotspot.cabinet": {
+    "note": "A label on a button: a locked wall cabinet that holds keys, opened with a four-digit code. Short."
+  },
+  "hotspot.noticeboard": {
+    "note": "A label on a button: a corkboard of notices. Short."
+  },
+  "hotspot.clock": {
+    "note": "A label on a button: a clock on the wall. Short."
+  },
+  "hotspot.closetDoor": {
+    "note": "A label on a button: the door to the supply room in the corridor. Short."
+  },
+  "hotspot.shelf": {
+    "note": "A label on a button: a shelf in the supply room. Short."
+  },
+  "hotspot.valve": {
+    "note": "A label on a button: a red water valve. Short."
+  },
+  "hotspot.fuseBox": {
+    "note": "A label on a button: the fuse box for the emergency power. Short."
+  },
+  "hotspot.exit": {
+    "note": "A label on a button: the emergency exit door. Short."
+  },
+  "hotspot.locker": {
+    "note": "A label on a button: a locker in the supply room where the player can hide. Short."
+  },
+  "hotspot.screen": {
+    "note": "A label on a button: a folding screen the player can hide behind. Short."
+  },
+  "controls.lamp": {
+    "note": "A label on a touch button: lights or snuffs the hand lamp the player carries. One word."
+  },
+  "controls.skip": {
+    "note": "A label on a touch button: skips the cutscene on screen. One word."
+  },
+  "card.prologue": {
+    "note": "The title card at the start of the game, in capitals if the language has them: the first night of the story. The colon stays."
+  }
+}
