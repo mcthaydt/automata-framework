@@ -133,8 +133,9 @@ describe("the shod foot's form", () => {
     expect(differs(turned(wear(1, { heel: 5 })), turned(wear(1, { heel: 1 })))).toBe(false)
     expect(differs(turned(wear(1, { heel: 0.4 })), turned(wear(1, { heel: 1 })))).toBe(true)
   })
-  it("with every slider at each end and a knee shaft, no skin shows between the shaft's top and the floor", () => {
-    for (const key of BODY)
+  // One test per slider, so that none comes near the runner's per-test limit on a loaded machine.
+  for (const key of BODY)
+    it(`with ${key} at each end and a knee shaft, no skin shows between the shaft's top and the floor`, () => {
       for (const v of endsOf(key)) {
         const sliders = { [key]: v } as Partial<Sliders>,
           def = wear(0, FORMS.knee, sliders),
@@ -164,7 +165,7 @@ describe("the shod foot's form", () => {
             }
         }
       }
-  })
+    })
   it("two kinds that both set a shoe: the later one's form is built", () => {
     const m = measure(BASE[0].def.sliders),
       s = skeleton(m.genes),

@@ -149,8 +149,10 @@ describe('a fall in front of the shoulders', () => {
       }
     }
   })
-  it('a front clump is outside the dressed trunk in rest space, with fat, bust, muscle, neckLength and shoulders at each end', () => {
-    for (const key of ['fat', 'bust', 'muscle', 'neckLength', 'shoulders'] as const)
+  // One test per slider: each end dresses the figure and casts a ray for every hair vertex, seconds of work, and all five
+  // sliders in one test came near the runner's per-test limit on a loaded machine.
+  for (const key of ['fat', 'bust', 'muscle', 'neckLength', 'shoulders'] as const)
+    it(`a front clump is outside the dressed trunk in rest space, with ${key} at each end`, () => {
       for (const v of endsOf(key)) {
         const def = wear({ ...FRONT, front: 1, length: 1.5 }, { [key]: v } as Partial<Sliders>),
           m = measure(def.sliders),
@@ -175,7 +177,7 @@ describe('a fall in front of the shoulders', () => {
               ).toBe(true)
           }
       }
-  })
+    })
   it('length 2 reaches lower than length 1, seen from behind', () => {
     expect(lowest(stand({ length: 2 }, 4))).toBeGreaterThan(lowest(stand({ length: 1 }, 4)))
   })

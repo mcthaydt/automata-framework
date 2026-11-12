@@ -187,11 +187,13 @@ describe('long hair that rests on the trunk', () => {
         ),
       ).toBe(true)
   })
-  for (const i of [0, 1]) {
-    it(`${BASE[i].def.id}: with the head pitched and rolled, no hair below the shoulder enters the trunk or hangs more than two texels further from it than at rest, and no hole is enclosed`, () => {
-      const hip = (def: CharacterDef, f: Figure) =>
-        Math.floor(f.cell[1] - f.feet - skeleton(measure(def.sliders).genes).hipY * (f.cell[1] / f.metres))
-      for (const head of ANGLES) {
+  // One test per figure and angle (and, below, per block of the walk): each ray-cast pass takes seconds, and the
+  // whole of a figure's angles or walk in one test came near the runner's per-test limit on a loaded machine.
+  for (const i of [0, 1])
+    for (const head of ANGLES) {
+      it(`${BASE[i].def.id}: with the head pitched and rolled (${head}), no hair below the shoulder enters the trunk or hangs more than two texels further from it than at rest, and no hole is enclosed`, () => {
+        const hip = (def: CharacterDef, f: Figure) =>
+          Math.floor(f.cell[1] - f.feet - skeleton(measure(def.sliders).genes).hipY * (f.cell[1] / f.metres))
         const def = wear(i, 'trunk'),
           f = pose(def, { head }),
           s = stray(f, def)
@@ -210,9 +212,8 @@ describe('long hair that rests on the trunk', () => {
             hip(def, f),
           ),
         )
-      }
-    })
-  }
+      })
+    }
   it("the model fixes something real: with rest: head, the head thrown back (pitch −0.4) swings the hair out from the trunk by more than a hand's breadth, which rest: trunk holds to two texels", () => {
     // (Pitch 0.4 with a roll of 0.3, the first guess, moves the head's hair by under a texel against the trunk; the chin up is what throws it out.)
     for (const i of [0, 1]) {
@@ -224,21 +225,26 @@ describe('long hair that rests on the trunk', () => {
     }
   })
   for (const i of [0, 1]) {
-    it(`${BASE[i].def.id}: the Nurse's tilt, posture and loose spring, standing and over a walk, never lets trunk hair into the body or off it`, () => {
+    it(`${BASE[i].def.id}: the Nurse's tilt, posture and loose spring, standing, never lets trunk hair into the body or off it`, () => {
       const def = wear(i, 'trunk', NURSE, SPRING)
-      const standing = pose(def, { frames: 90 }),
-        s0 = stray(standing, def)
+      const s0 = stray(pose(def, { frames: 90 }), def)
       expect(s0.into, 'standing: into').toBeLessThanOrEqual(0.001)
       expect(s0.away, 'standing: away').toBeLessThanOrEqual(2 * TEXEL)
-      const walker = pose(def, { walk: true, frames: 1 })
-      for (let n = 0; n < 150; n++) {
-        walker.update(1 / 60, { facing: 0, moving: true, view: view() })
-        if (n % 10) continue
-        const s = stray(walker, def)
-        expect(s.into, `walk ${n}: into`).toBeLessThanOrEqual(0.001)
-        expect(s.away, `walk ${n}: away`).toBeLessThanOrEqual(2 * TEXEL)
-      }
     })
+    // The walk is one run of frames (the spring carries over from one to the next), so each block steps the whole
+    // walk from its start, which is cheap, and measures only its own thirty frames.
+    for (let from = 0; from < 150; from += 30)
+      it(`${BASE[i].def.id}: the Nurse's tilt, posture and loose spring, over walk frames ${from} to ${from + 29}, never lets trunk hair into the body or off it`, () => {
+        const def = wear(i, 'trunk', NURSE, SPRING)
+        const walker = pose(def, { walk: true, frames: 1 })
+        for (let n = 0; n < from + 30; n++) {
+          walker.update(1 / 60, { facing: 0, moving: true, view: view() })
+          if (n < from || n % 10) continue
+          const s = stray(walker, def)
+          expect(s.into, `walk ${n}: into`).toBeLessThanOrEqual(0.001)
+          expect(s.away, `walk ${n}: away`).toBeLessThanOrEqual(2 * TEXEL)
+        }
+      })
   }
   it('is drawn in 8 views, and twice to the same texels', () => {
     for (let d = 0; d < 8; d++) {
