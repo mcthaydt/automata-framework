@@ -11,12 +11,12 @@ contains it (`vendor/pixi-3d/README.md`).
 |---|---|---|---|
 | 1 | Baseline on `main` before any change | done 2026-11-12 | [§1](#1-baseline) |
 | 2 | What changed in the beta | done 2026-11-12 | [§2](#2-what-changed-in-the-beta) |
-| 3 | `pixi.js` 8.22.0 → 8.23.0, on its own, with beta.2 | not started | |
+| 3 | `pixi.js` 8.22.0 → 8.23.0, on its own, with beta.2 | done 2026-11-12 | [§3](#3-pixijs-8220--8230-on-its-own-with-beta2) |
 | 4 | `@pixi/3d` beta.3 | not started | |
 | 5 | Workarounds the beta makes unnecessary | not started | |
 | 6 | Close: build, API report and index, changesets, the whole check, this record | not started | |
 
-Progress: 2 of 6 steps (33%).
+Progress: 3 of 6 steps (50%).
 
 ## 1. Baseline
 
@@ -67,10 +67,11 @@ Not run in the baseline, and not run for the upgrade: WebKit and Firefox project
 ## 2. What changed in the beta
 
 Sources: the two tarballs, unpacked into separate empty folders outside the repository and never run; `pixi.js` 8.22.0 and
-8.23.0 from the npm registry the same way. The beta's repository is invite-only and `github.com` is refused here, so no release
-notes were readable (neither the beta's nor `pixi.js` 8.23's). What follows is read from the declarations (`dist/**/*.d.ts`
-compared export by export with the TypeScript API for `.`, `./extras`, `./webgl` and `./webgpu`), the bundled JavaScript and the
-new `skills/pixijs-3d` folder.
+8.23.0 from the npm registry the same way. The beta's repository is invite-only and `github.com` is refused here. The beta's
+own release notes reached this branch from `main` after step 1 (`vendor/pixi-3d/release-notes-0.1.0-beta.3.txt`, saved by the
+Owner) and are the authority for behaviour; `pixi.js` 8.23's notes could not be read. The first two subsections below are read
+from the declarations (`dist/**/*.d.ts` compared export by export with the TypeScript API for `.`, `./extras`, `./webgl` and
+`./webgpu`), the bundled JavaScript and the new `skills/pixijs-3d` folder, and agree with the notes.
 
 ### Package
 
@@ -130,6 +131,35 @@ names are exported by `./webgl` and `./webgpu`, and the root has the shared part
 (`loadHdr`, `parseRadianceHdr`, `equirectToCube`: an `.hdr` loads through `Assets.load`), `PointLight.radius`,
 `Camera3D.jitter`, `View3D.resolution`, float render target helpers.
 
+### The release notes: behaviour changes and where the framework stands
+
+The notes list 30 breaking or behaviour-changing items. The framework's footprint is narrow: its own views set `toneMapping:
+'none'` themselves, it builds no skinned glTF rigs (its figures are generated geometry), uses no particles, batched meshes, glTF
+cameras or `Sprite3D`, and sets no `cull` option. The items that can touch it, with what to expect (all of it is checked in step 4,
+not assumed):
+
+| Note | Where it meets the framework | Expected |
+|---|---|---|
+| `View3D` defaults to `toneMapping: 'none'` (was `'aces'`) | `create-renderer.ts` already passes `'none'` | nothing |
+| Unlit materials (`FlatMaterial`, sprites, particles, portals) encode their colour for display: beta.2 drew a 128 grey as 55; at `'none'` and exposure 1 they now draw as authored | `FlatMaterial` in `world-view.ts`, `figure-meshes.ts`, `figure-shadow-view.ts`, `box-view.ts`, `ember-view.ts` | **unlit colours get brighter**: image goldens and parity values that read a `FlatMaterial` move |
+| `srgbToLinear`/`linearToSrgb` are a pure 2.2 gamma, and every `ColorSource` the engine decodes (material colours, lights, fog, backgrounds) shifts: mid-tones carry about 2% more linear light | every lit surface, `fogSkyColor` (which decodes with the piecewise sRGB curve) | small shifts in every 3D golden; `fogSkyColor` and the fog parity test need a second look |
+| `PostEffect` runs at `'beforeToneMapping'` by default, on linear `rgba16float` light; display-picture effects must pass `stage: 'afterToneMapping'`; a view with a before-stage effect draws its scene into float linear light and the curve runs once after | the look's effects (`duel-snap-filter`, `haze`, `outline-filter`, `present-pass`) and world-kit's `glow`, `rain` and `stars` effects | each effect that works on the picture as shown needs `afterToneMapping`; decided effect by effect, test first; a wrong stage shows as a changed picture |
+| An effect's depth read binds in its own group; `RenderGraph.compile()` throws when a pass samples a transient through the view's global bind group | `PresentEffect` was written to keep the global depth slot clean (WebGPU `sceneDepth` hazard); `scene-depth.test.ts` | the hazard the WP0 record describes is the one this fix names: step 5 tries the bare effect |
+| `PassBuilder.sample(handle, binding)` takes a `TextureBinding`; `pipe.globalSlots` is gone; `globalTextureBindings` is a required graph option | `look/present-pass.ts`, `look/duel-snap-filter.ts` (custom `RenderPass`/graph code) | type errors to fix |
+| `ShaderBitTemplate` must list `{ name: 'global', ubo: true }`; slot names `{{materialAccess}}` became `{{storeAccess}}`; WGSL material templates return a `FragmentOutput` and bits set `finalColor` and `alpha` in `end`; `decodeColor`, `inputTint`, `decodeFrame`, `inputExposure`, `decodeToLinear`, `viewTexel`, `depthTexel`, `PI` became reserved or defined; bits that need screen-space functions list `requires` | `look/ramp-light-material.ts` (the one custom `ShaderBit`), the effects' fragments | compile errors or silent differences at run time; test first |
+| `Mesh3D.updateShadow()` removed: a mesh starts or stops casting when its material goes to or from `'blend'`, "delete the calls" | `occluders.ts` and its test | delete the call; the test proves the mask |
+| Opaque materials ignore `alpha` | `occluders.ts` fades a wall by setting `alpha` and `alphaMode: 'blend'` below 1 | no change: it already blends |
+| `CullMode` loses `'auto'`; `'gpu'` is the default, culling a skinned mesh at its bind pose | no `cull` option is set, so every view culls on the GPU now where beta.2 drew small views unculled; the figures are not skinned meshes | checked by the parity and figure suites; `cull: 'off'` if a figure ever vanishes |
+| A camera's `zoom` divides `orthographicSize` and `tan(fov/2)` | `character-kit`'s `pose.ts` folds `zoom` the old way (`fov / zoom`, `size * zoom`) and says it matches `Camera3D.computeProjection` | **must change** with its test: at zoom 1 it is the same, at any other zoom the pose was wrong |
+| `Camera3D` glTF cameras load | `View3D.from` is not used | nothing |
+| Point and spot lights fall off as `1 / sqrt(d⁴ + radius⁴)`, up to 29% less at 0.1 m | `lamp-kit.ts`, `scene-lighting`, `world-view.ts` lamps | lit-room brightness parity values and goldens move a little near lamps |
+| Every WebGPU material texture samples with its own style: pixi's default clamps, so a tiled texture must set `addressMode: 'repeat'` | `world-view.ts` already sets `addressMode: 'repeat'` and `scaleMode: 'nearest'` | WebGPU gets `nearest` and `repeat` it did not honour before |
+| `View3D.background` takes a colour; `View3D.resolution`; MSAA follows the canvas `antialias` through post effects (more memory, resolve each frame) | `create-renderer.ts` and the look's chain | a look view with effects now multisamples; may change edge pixels |
+| `Mesh3D.morph` removed (use `weights`); `Mesh3DOptions` geometry and material optional; `BaseMaterial3D.clone`, `extraBits` public, third type parameter | `shared-material.ts` | type check only |
+| `Sprite3D`, particles, `BatchedMesh3D`, `Model3D.skeletons`, normal maps, `getMaterial`, `uMaterialStorage`, `Geometry3D` integer positions, HDR, `.hdr`, KTX2 | not used | nothing |
+| Removed math helpers | not imported | nothing |
+| `View3D.unload()` destroys the render graph and its passes; a pass kept across an unload is dead | the look builds passes inside its graph | check |
+
 ### Anything that makes a framework workaround unnecessary
 
 | Workaround | What the beta does now | Decision (step 5) |
@@ -160,3 +190,31 @@ reference. About 70 modules changed in behaviour, none on a public signature the
 `Batcher`, `FilterSystem`, `EventBoundary`, `HTMLSource`, `CanvasObserver`, the GL and GPU limits, render-target, buffer and
 texture systems, `generateProgram`/`getUboData`, `GpuUniformBatchPipe`, the unsafe-eval shader-sync polyfill. A 2D golden or a
 parity value that moves in step 3 is reported before anything is re-recorded.
+
+## 3. `pixi.js` 8.22.0 → 8.23.0, on its own, with beta.2
+
+What moved: every exact pin (18 manifests, `vendor/figure-builder/package.json`, `create-game`'s template), the lockfile, `docs/versions.md`
+and `docs/stack.md` (`pnpm docs:stack`), the pin test's fixtures, and the no-eval allowlist's vendor strings and comment. Beta.2's
+peer `^8.22.0` accepts 8.23.0, so beta.2 stayed vendored. **One thing the versions test forced:** it floors a published package's
+peer range at that package's own dev pin, so `@automata/framework` and `@automata/feel` now ask for `pixi.js` `^8.23.0`
+(a game on 8.22.0 no longer satisfies them). Changeset `.changeset/pixi-js-8-23.md` (`patch`: framework, feel, tools).
+
+No-eval allowlist: of the five `pixi.js` files it names, `unsafeEvalSupported`, `compileBufferSync` and `generateUniformsSync` are byte
+for byte the same in 8.23.0; `GenerateShaderSyncCode` and `generateParticleUpdateFunction` changed what they generate but keep the
+`Function(...)` parameter names the allowlist matches on, and no other file of 8.23.0 builds a function from a string. The entry names
+now say 8.23.0.
+
+**Results (Chromium; same commands as the baseline).** Every count equals the baseline's. No 2D golden image, no parity value and no
+sim hash moved.
+- `pnpm check`: the whole gate (lint, typecheck, boundaries, style, knip, 63 unit tasks) passed in 10 m 16 s. Its last step,
+  `changeset status`, failed once only because the new changeset was not yet committed; committed, `check:changesets` reports 68
+  changesets, 0 problems. The first run before the peer change failed `@automata/versions` (the two rules above); fixed as described.
+- Browser suites: all 2D packages and all 3D packages (still beta.2): identical to the baseline table (`@automata/framework` 2,225;
+  `@automata/3d` 48 passed, 2 skipped; editor-3d 285; and the rest).
+- Journeys: Emberwick 38; `examples/2d` 106, 2 skipped; base-3d 14; examples/3d 20; editor-3d 16. `examples/2d-story`: **9 of 10 in the first
+  run**: the "pointing the sees-the-player switch at Follow" journey on the phone project saw the guard go `patrol → hunt` where the test
+  expects `patrol → follow` (the Schematic edit had not reached the game's content when it started), and the next test was skipped by
+  Playwright's serial rule. It passed on the iPad project in the same run, 20 of 20 on the phone project run again four times over, and 10 of 10 in a full rerun.
+  The journey edits a content file through a server and plays at once, nothing in it draws with `pixi.js`, and it is not the baseline's failure
+  (`examples/3d-story` fails to start on `main`, see §1). Recorded as a flake of that edit-then-play race, not explained further; a
+  real fix belongs to the journey's owner.
