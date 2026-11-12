@@ -1,7 +1,7 @@
 // Baked vertex light for a static mesh (2026-10-16). Kept: each lamp's light per vertex is computed once, with its
 // occlusion, because static lamps never move, so a level change is a cheap re-sum; colours are Pure: no Pixi, so it runs
 // in Node.
-import type { LightSample } from './occlusion.ts'
+import { contactShade, type LightSample } from './occlusion.ts'
 import type { SceneLighting } from './scene-lighting.schema.ts'
 import {
   baseLight,
@@ -120,6 +120,9 @@ export function bakeVertices(
   const sector = lighting.shade ** (extras.shadeSteps ?? 0)
   const albedo =
     extras.albedo === undefined || lighting.colorSpace !== 'srgb' ? undefined : srgbChannels(extras.albedo)
+  // A room that opts in has its lamps' light multiplied by the contact darkening too (the old game multiplied the whole light by it).
+  const lampShare = lighting.contact?.lamps ?? 0
+  const lampOpen = lampShare > 0 ? new Float32Array(vertexCount).fill(1) : undefined
   const slots: LampSlot[] = lighting.lamps.map((lamp) => ({
     id: lamp.id,
     colour: lightChannels(lamp.color, lighting.colorSpace),
@@ -132,6 +135,7 @@ export function bakeVertices(
     const length = Math.hypot(nx, ny, nz) || 1
     const sample: LightSample = { x, y, z, nx: nx / length, ny: ny / length, nz: nz / length }
     base.set(baseLight(sample, model, lighting), i * 3)
+    if (lampOpen !== undefined) lampOpen[i] = 1 - lampShare * (1 - contactShade(sample, lighting))
     lighting.lamps.forEach((lamp, j) => {
       const slot = slots[j]
       if (slot !== undefined) slot.light[i] = vertexLight(sample, lamp, lighting, ignore)
@@ -155,7 +159,7 @@ export function bakeVertices(
         for (let c = 0; c < 3; c++) {
           let light = base[i * 3 + c] ?? 0
           active.forEach((slot, j) => {
-            light += (slot.light[i] ?? 0) * (level[j] ?? 0) * (slot.colour[c] ?? 0)
+            light += (slot.light[i] ?? 0) * (level[j] ?? 0) * (slot.colour[c] ?? 0) * (lampOpen?.[i] ?? 1)
           })
           sum[c] = Math.min(model.max, light * sector)
         }

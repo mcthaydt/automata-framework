@@ -71,6 +71,26 @@ export const sceneFogSchema: z.ZodType<SceneFog> = z
   .strictObject({ near: z.number().min(0), far: z.number().positive(), color: colour })
   .refine((fog) => fog.far > fog.near, { message: 'fog far must be past near', path: ['far'] })
 
+/** The contact darkening's strengths: the old game's, each one a parameter. `lamps` is opt-in, and 0 leaves lamp light alone. */
+export const contactSchema: z.ZodType<ContactShadow> = z.strictObject({
+  /** The share (0 to 1) of the darkening that multiplies a lamp's light as well as the ambient and fill: 0 (the default) leaves lamps alone. */
+  lamps: z.number().min(0).max(1).default(0),
+  /** A floor, or the top of a thing, running into a wall: darkens by this at the wall, fading over 0.28 m. */
+  join: z.number().min(0).max(1).default(0.38),
+  /** An upright surface running into another wall (an inside corner). */
+  corner: z.number().min(0).max(1).default(0.3),
+  /** An underside running into a wall. */
+  under: z.number().min(0).max(1).default(0.15),
+  /** An upright surface just above a floor (a wall's base), fading over 0.35 m of height. */
+  base: z.number().min(0).max(1).default(0.28),
+  /** An upright surface just under a ceiling, fading over 0.35 m. */
+  ceiling: z.number().min(0).max(1).default(0.3),
+  /** The floor round the foot of a box, within 0.6 m of it, fading over 0.18 m. */
+  foot: z.number().min(0).max(1).default(0.45),
+  /** The least the darkening multiplies light by. */
+  floor: z.number().min(0).max(1).default(0.3),
+})
+
 export const sceneLightingSchema: z.ZodType<SceneLighting> = z
   .strictObject({
     /** Light everywhere, 0 to 1, before any lamp. */
@@ -104,6 +124,8 @@ export const sceneLightingSchema: z.ZodType<SceneLighting> = z
     lamps: z.array(lampSchema).default([]),
     boxes: z.array(occluderBoxSchema).default([]),
     planes: z.array(occluderPlaneSchema).default([]),
+    /** The contact darkening's strengths and whether lamps take it; none leaves the defaults and lamps alone. */
+    contact: contactSchema.optional(),
     fog: sceneFogSchema.optional(),
   })
   .superRefine((lighting, context) => {
@@ -164,6 +186,18 @@ export interface SceneFog {
   readonly color: number
 }
 
+/** The contact darkening's strengths (see `contactSchema`). */
+export interface ContactShadow {
+  readonly lamps: number
+  readonly join: number
+  readonly corner: number
+  readonly under: number
+  readonly base: number
+  readonly ceiling: number
+  readonly foot: number
+  readonly floor: number
+}
+
 /** A room's lamps, ambient light, occluders and fog, compiled from `content/lighting/*.toml`. */
 export interface SceneLighting {
   /** 0 to 1. */
@@ -198,5 +232,6 @@ export interface SceneLighting {
   readonly lamps: readonly Lamp[]
   readonly boxes: readonly OccluderBox[]
   readonly planes: readonly OccluderPlane[]
+  readonly contact?: ContactShadow | undefined
   readonly fog?: SceneFog | undefined
 }

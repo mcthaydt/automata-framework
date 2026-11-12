@@ -149,6 +149,8 @@ export type { LightPatch } from '../shared/render/light/light-patch.ts'
 export { type BakeOptions, createSceneLight, type SceneLight } from '../shared/render/light/scene-light.ts'
 export { sceneLightingContent } from '../shared/render/light/scene-lighting.content.ts'
 export {
+  type ContactShadow,
+  contactSchema,
   type Lamp,
   lampSchema,
   type OccluderBox,

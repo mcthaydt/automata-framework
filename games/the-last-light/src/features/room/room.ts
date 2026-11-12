@@ -1,6 +1,7 @@
 import { content } from 'virtual:automata/content'
 import {
   buildWorld,
+  contactSchema,
   DEFAULT_LOOK,
   swatchColour,
   swatchGlow,
@@ -35,6 +36,8 @@ export const WORLD: World = buildWorld(LEVEL, LIBRARY)
 
 /** The gain on the old game's lamp numbers, from `content/look.toml` (`[light]`): the framework's light is brighter than the old game's for them. */
 const LAMP_GAIN = content.look?.light.lamps ?? 1
+/** The share of the contact darkening the lamps' light takes, from `content/look.toml` (`[light] contact`): 0 is the framework's default. */
+const LAMP_CONTACT = content.look?.light.contact ?? 0
 
 /** The ward is a night room lit by its lamps. */
 export const TIME = timeOfDay('lampLit')
@@ -44,6 +47,8 @@ const OLD_LIGHTING = worldLighting(WORLD, TIME, { night: true })
 export const LIGHTING = {
   ...OLD_LIGHTING,
   lamps: OLD_LIGHTING.lamps.map((lamp) => ({ ...lamp, strength: lamp.strength * LAMP_GAIN })),
+  // The old game's strengths (the defaults), with the lamps' light taking the darkening too.
+  contact: LAMP_CONTACT > 0 ? contactSchema.parse({ lamps: LAMP_CONTACT }) : undefined,
 }
 
 /** What the world builder needs to colour and light a piece: the kit's swatches, their glow and their photo tiles. */

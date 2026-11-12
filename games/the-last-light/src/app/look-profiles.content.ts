@@ -14,6 +14,12 @@ import { z } from 'zod'
  */
 const lightGainSchema = z.strictObject({
   lamps: z.number().positive('lamps is above 0').max(2, 'lamps is 2 or less').default(1),
+  /**
+   * The share of the old game's contact darkening (wall feet, inside corners, furniture feet) that also multiplies a lamp's light:
+   * the old game multiplied its whole light by it, lamps included, and a pool of lamp light is darker where it meets a wall.
+   * 0 leaves the lamps alone (the framework's default); the ambient and fill take it always.
+   */
+  contact: z.number().min(0, 'contact is 0 to 1').max(1, 'contact is 0 to 1').default(0),
 })
 
 /**

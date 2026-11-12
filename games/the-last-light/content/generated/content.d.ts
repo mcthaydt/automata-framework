@@ -737,6 +737,7 @@ declare module 'virtual:automata/content' {
       readonly vignette: boolean
     }
     readonly light: {
+      readonly contact: number
       readonly lamps: number
     }
     readonly moonlight: readonly ({

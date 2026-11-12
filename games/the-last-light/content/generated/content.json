@@ -3901,6 +3901,7 @@
       "vignette": true
     },
     "light": {
+      "contact": 1,
       "lamps": 0.7
     },
     "moonlight": [

@@ -15,13 +15,14 @@ describe('the profiles', () => {
     const profiles = lookProfilesSchema.parse({})
     expect(profiles.lcd).toEqual(LCD_CLINIC)
     expect(profiles.retro).toEqual(RETRO_CLINIC)
-    expect(profiles.light).toEqual({ lamps: 1 })
+    expect(profiles.light).toEqual({ lamps: 1, contact: 0 })
   })
 
   it('refuse a setting out of range, naming it', () => {
     expect(() => lookProfilesSchema.parse({ lcd: { grid: 2 } })).toThrow(/grid/)
     expect(() => lookProfilesSchema.parse({ retro: { vignette: 3 } })).toThrow(/vignette/)
     expect(() => lookProfilesSchema.parse({ light: { lamps: 0 } })).toThrow(/lamps/)
+    expect(() => lookProfilesSchema.parse({ light: { contact: 1.5 } })).toThrow(/contact/)
   })
 
   it('are in the committed file: the old game’s but for the LCD cell (one field pixel) and the lamps (a gain on the old game’s light)', async () => {
@@ -31,7 +32,7 @@ describe('the profiles', () => {
     expect(lookProfilesSchema.parse(file)).toEqual({
       ...lookProfilesSchema.parse({}),
       lcd: { ...LCD_CLINIC, cell: 1 },
-      light: { lamps: 0.7 },
+      light: { lamps: 0.7, contact: 1 },
       moonlight: MOONLIGHT,
     })
   })

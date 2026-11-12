@@ -82,3 +82,52 @@ describe('segmentBlocked', () => {
     expect(segmentBlocked(0, 1, 6, 0, 1, 6.5, room)).toBe(false)
   })
 })
+
+describe('contactShade with the strengths as parameters', () => {
+  const walls = { boxes: [], planes: room.planes.slice(1, 2) }
+  const reach = Math.exp(-0.1 / 0.28)
+
+  it('reads a room’s own strengths, and the defaults are the source’s (a room with none moves nothing)', () => {
+    const own = {
+      ...walls,
+      contact: {
+        lamps: 0,
+        join: 0.5,
+        corner: 0.1,
+        under: 0.05,
+        base: 0.4,
+        ceiling: 0.2,
+        foot: 0.6,
+        floor: 0.5,
+      },
+    }
+    expect(contactShade(at(0, 1, 6.8, 0, 1, 0), own)).toBeCloseTo(Math.max(0.5, 1 - 0.5 * reach), 5)
+    expect(contactShade(at(0, 1, 6.8, 1, 0, 0), own)).toBeCloseTo(Math.max(0.5, 1 - 0.1 * reach), 5)
+    expect(contactShade(at(0, 1, 6.8, 0, -1, 0), own)).toBeCloseTo(Math.max(0.5, 1 - 0.05 * reach), 5)
+    expect(contactShade(at(0, 1, 6.8, 0, 1, 0), { ...walls, contact: undefined })).toBeCloseTo(
+      1 - 0.38 * reach,
+      5,
+    )
+  })
+
+  it('a strength of 0 turns that term off, the foot of furniture included', () => {
+    const off = { lamps: 0, join: 0, corner: 0, under: 0, base: 0, ceiling: 0, foot: 0, floor: 0.3 }
+    expect(contactShade(at(0, 0, 6.8, 0, 1, 0), { ...room, contact: off })).toBe(1)
+    expect(contactShade(at(-2.85, 0, 3.8, 0, 1, 0), { ...room, contact: off })).toBe(1)
+  })
+
+  it('lets a room parse its contact block, each strength defaulting to the source’s', () => {
+    const parsed = sceneLightingSchema.parse({ ambient: 0.1, contact: { lamps: 1 } })
+    expect(parsed.contact).toEqual({
+      lamps: 1,
+      join: 0.38,
+      corner: 0.3,
+      under: 0.15,
+      base: 0.28,
+      ceiling: 0.3,
+      foot: 0.45,
+      floor: 0.3,
+    })
+    expect(sceneLightingSchema.parse({ ambient: 0.1 }).contact).toBeUndefined()
+  })
+})
