@@ -43,8 +43,14 @@ pnpm exec automata words
 
 It reads each catalog, finds the words that have **no translation yet** (missing) and the words whose English
 **changed** since they were translated (stale), has a model translate those into every language the game ships, and
-writes the files. It leaves the rest alone, so running it again costs nothing. It needs `ANTHROPIC_API_KEY` set on your
-computer; the key is used to reach the translator and nothing else.
+writes the files. It leaves the rest alone, so running it again costs nothing.
+
+It needs a key on your computer: `AUTOMATA_ANTHROPIC_KEY` if that is set, otherwise `ANTHROPIC_API_KEY`. It reads the
+environment and nothing else, sends the key to Anthropic's API and nowhere else, and never prints it. To keep the key out of
+a shell that other programs read, set it for the one command: `AUTOMATA_ANTHROPIC_KEY=… pnpm exec automata words`. If the key
+is turned down, the service is busy or over its limit, or it cannot be reached, the run stops at the first answer instead of
+asking for every word, keeps what it had translated and says what to do; a busy answer is first asked again a few times,
+waiting longer each time. A word the model declines is only that word's problem, and the run goes on.
 
 ```sh
 pnpm exec automata words title_play        # one line, in every language

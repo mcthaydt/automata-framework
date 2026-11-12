@@ -97,7 +97,7 @@ gate could run; the side session's list of what the framework could take over is
 
 Sonnet 5.5 (`session_01HNdX7HQTNnRKaroUir7cbf`), no subagents, from `main` `62a143ce` with the audit merged. One commit per
 finding or tight group, test first, each test watched failing. Chromium only (software GL); WebKit, Firefox, real devices and
-hosts are not run; no paid API call. **Progress: 4 of 18 findings (22%)** (B1, S6, S7, S1; S6 counts with B1). Stage 6 of 7 is this one, so the workstream is
+hosts are not run; no paid API call. **Progress: 7 of 18 findings (39%)** (B1, S6, S7, S1, S2, S3, T7; S6 counts with B1, T7 with S3). Stage 6 of 7 is this one, so the workstream is
 `(5 + done/18) / 7` of the way.
 
 | Finding | What | State | Commit |
@@ -105,8 +105,8 @@ hosts are not run; no paid API call. **Progress: 4 of 18 findings (22%)** (B1, S
 | B1 + S6 | `/version` answers cross-origin; a failed check is "could not check", never "current"; a cross-origin journey | done (Chromium: net-ui browser suite 103 passed; unit tests in `pnpm check`) | `1961fc59` |
 | S7 | Content entries load under plain Node; `no-eval` passes for Emberwick | done (`automata check --only no-eval` on Emberwick: FAIL before, pass after) | `551a11f2` |
 | S1 | Flow, display and lost-picture words follow the language in force | done (unit tests; Emberwick journeys at the end) | `076ae045` |
-| S2 | The OFL text ships in a built game | | |
-| S3 | `automata words` tells a bad key, a rate limit and an outage from a refusal | | |
+| S2 | The OFL text ships in a built game | done (unit tests; Emberwick built into a temp folder in a test) | `156126ae` |
+| S3 + T7 | `automata words` tells a bad key, a rate limit and an outage from a refusal and stops at the first; the key is `AUTOMATA_ANTHROPIC_KEY`, then `ANTHROPIC_API_KEY` | done (against a local stand-in server only; the live call is not made) | _this commit_ |
 | S4 + S5 | `bindWords`, `formatNumber`, default languages and one `matchLocale` in the framework; Emberwick's limit | | |
 | S8 | "+N more" never covers a label | | |
 | S9 | The photosensitivity warning says the game's own hazards | | |
@@ -116,7 +116,7 @@ hosts are not run; no paid API call. **Progress: 4 of 18 findings (22%)** (B1, S
 | T4 | Credit names in the font build's glyph gate | | |
 | T5 | Copy that fails the grandma test | | |
 | T6 | The Languages guide names the import | | |
-| T7 | `AUTOMATA_ANTHROPIC_KEY` documented and read | | |
+| T7 | `AUTOMATA_ANTHROPIC_KEY` documented and read | done with S3 | _with S3_ |
 | T8 | The SDK on the Node-only list | | |
 
 ## Workstream 2 sessions (slice 1, the prologue)

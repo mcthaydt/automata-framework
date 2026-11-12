@@ -16,7 +16,7 @@ import {
 import { DEFAULT_LANGUAGES } from './default-languages.ts'
 import { type SourcesFile, sourceHash, sourcesFileSchema, wordsState } from './sources.ts'
 import type { WordsOptions } from './words-args.ts'
-import { WordsModel, type WordsModelUnavailable } from './words-model.ts'
+import { stopsTheRun, WordsModel, type WordsModelUnavailable } from './words-model.ts'
 
 // `automata words`: an AI translates what is missing or stale into every language the game ships. This is the run, over
 // the `Files`, `WordsModel` and `ShipConfigLoader` services, so a test drives it with fakes and no network.
@@ -28,7 +28,11 @@ export interface WordsIo {
 }
 
 const NO_KEY =
-  'automata words needs ANTHROPIC_API_KEY set on this computer to reach the translator; nothing was changed.\n'
+  'automata words needs an API key for the translator: set AUTOMATA_ANTHROPIC_KEY (or ANTHROPIC_API_KEY) on this computer; nothing was changed.\n'
+
+/** Said once when the translator cannot answer any word (a bad key, a limit, an outage): what is kept, and what to do. */
+const STOPPED =
+  'Stopped here, because asking for the other words would fail the same way. What was translated is kept; run automata words again when that is fixed.\n'
 
 /** What a missed word costs, by where it lives: the report says it so the author knows how urgent it is. */
 const COST_OF_A_MISS: Readonly<Record<string, string>> = {
@@ -207,8 +211,11 @@ export function runWords(options: WordsOptions, io: WordsIo): Effect.Effect<numb
       languages.map((lang) => [lang, { translated: 0, failed: 0, recorded: 0, costs: new Set() }]),
     )
     const tally = (lang: string): Tally => tallies.get(lang) as Tally
+    // Set by the first answer that says the translator cannot answer at all; every loop below then winds down.
+    let halted = false
 
     for (const catalog of catalogs) {
+      if (halted) break
       const source = sources.get(catalog.name) as Catalog
       const sourceKeys = Object.keys(source)
       const notes =
@@ -216,6 +223,7 @@ export function runWords(options: WordsOptions, io: WordsIo): Effect.Effect<numb
           ? ((yield* readJson(files, catalog.context)) as Record<string, { note?: string }>)
           : {}
       for (const lang of languages) {
+        if (halted) break
         const path = catalog.translation(lang)
         const onDisk = (yield* files.exists(path)) ? yield* readCatalog(files, path) : undefined
         const translated: Record<string, string> = { ...(onDisk ?? {}) }
@@ -252,6 +260,7 @@ export function runWords(options: WordsOptions, io: WordsIo): Effect.Effect<numb
         )
         let wrote = false
         for (const key of sourceKeys.filter((candidate) => wanted.has(candidate))) {
+          if (halted) break
           const text = source[key] as string
           const request = {
             lang,
@@ -267,6 +276,7 @@ export function runWords(options: WordsOptions, io: WordsIo): Effect.Effect<numb
             const result = yield* Effect.either(model.translate(request))
             if (result._tag === 'Left') {
               why = result.left.message
+              halted = stopsTheRun(result.left.reason)
               break
             }
             const candidate = result.right.trim()
@@ -305,6 +315,7 @@ export function runWords(options: WordsOptions, io: WordsIo): Effect.Effect<numb
       yield* files.writeText(path, sortedJson(records.get(path))).pipe(Effect.mapError(fileProblem))
     }
 
+    if (halted) io.stderr(STOPPED)
     let failed = 0
     for (const lang of languages) {
       const { translated, failed: missed, recorded, costs } = tally(lang)
