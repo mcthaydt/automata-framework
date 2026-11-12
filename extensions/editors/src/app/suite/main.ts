@@ -18,7 +18,7 @@ import { openContentSuite } from './open-content-suite.ts'
 
 // The suite page with the content editors: the core editors (the Tuner, Levels 2D), then Feel, Audio, Writer, Sequence and
 // Schematic. The only file that reaches for the page's globals. It opens the checkout it is served on (the game's own
-// content and its Play and Publish) or, when none answers, a sample game held in memory, and says so in the top bar.
+// content and its Play and Publish) or, when none answers, a sample game kept in this browser, and says so in the top bar.
 
 const target = document.getElementById('app')
 if (target === null) throw new Error('suite.html has no #app element')
