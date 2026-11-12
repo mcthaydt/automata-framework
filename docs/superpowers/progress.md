@@ -197,6 +197,12 @@ Rows 8 to 11 are the reference game's own (workstream 2); they were rows 3 to 6 
 
 ## Open, for the Owner
 
+- **Emberwick's plumbing limit is 470, not 430** (the audit's S4, stage 6). The framework now has the pieces any game with
+  plain-DOM screens needs (`bindWords`, `formatNumber`, `DEFAULT_LOCALES`, `matchLocale`, exported from
+  `@automata/framework`, and used by Emberwick, `@automata/ui-screens` and `@automata/net-ui`), which took the measure from
+  479 to **469** lines. 430 was not reachable: what is left is the game's own (the panels' markup, the board submit, the
+  game's flow and its scene wiring), and the test's own rule is that a new piece of behaviour is not hidden. The limit is
+  469 rounded up to 470, and the plumbing test's comment says why.
 - The framework has 122 branches besides `main` from other workstreams; the merge session leaves them alone. Say if
   it should clean them up, and by what rule.
 

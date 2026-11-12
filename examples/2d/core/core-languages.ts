@@ -7,7 +7,7 @@
 // Packages: @automata/framework
 // Difficulty: ★☆☆☆
 // Tier: core
-import { defineGame } from '@automata/framework'
+import { DEFAULT_LOCALES, defineGame } from '@automata/framework'
 
 // The pixel font, cut to the words these menus show (content/fonts.toml): `fonts.css` is served beside this page
 // (public/core/languages/) and sets the face each language draws in, so Japanese, Korean and Chinese are not left to a device.
@@ -23,8 +23,8 @@ export default defineGame({
   id: 'core-languages',
   size: { width: 320, height: 180 },
   sim: { plugins: [] },
-  // The languages the game ships, in the order Settings lists them. The framework's own words are in each of them.
-  locale: { locales: ['en', 'ja', 'ko', 'es-419', 'pt-BR', 'zh-Hans'], baseLocale: 'en' },
+  // The languages the game ships, in the order Settings lists them: the framework's six, which its own words are in.
+  locale: { locales: [...DEFAULT_LOCALES], baseLocale: 'en' },
   // The first run's language screen has its own example (core-first-run); here the player picks in Settings.
   firstRunLanguage: false,
   draw: (ctx) => {

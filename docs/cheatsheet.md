@@ -443,6 +443,7 @@
 - `AutosavePolicy` (interface): When the loaded slot writes itself: on each listed trigger, with `intervalSeconds` for the `interval` timer.
 - `AutosaveTrigger` (type): What can make the loaded slot write itself.
 - `BarAction` (interface): One action in an `ActionBar`: an id, a label and a kind (`primary`, `secondary` or `utility`), what it does when selected, and optionally a short label, an icon, a disabled state and a pressed state.
+- `bindWords(root, locale, wordsFor, after?)`: Puts the words for the language in force into every `[data-word]` (as its text) and `[data-word-label]` (as its `aria-label`) element under `root`, now and each time the language changes.
 - `BootFailurePanel` (const): The state a boot failure draws: an ErrorPanel with the failure's copy and its ways forward.
 - `Button` (const): The framework's button: an `.af-control` of one kind.
 - `Camera2d` (interface): A presentation-only 2D camera over one container: it follows a target, shakes, and writes only that container's transform, never a sim value.
@@ -470,6 +471,7 @@
 - `createPixiRenderer(options?)`: The core 2D renderer (ADR 0002) as a runtime `RendererFactory`: a letterboxed Pixi app on the render target, entity views from each step's render delta, interpolated each frame.
 - `createPostFilterSlot(target)`: A post-filter slot writing its composed filters to `target`'s `filters`.
 - `createT(messages)`: `t` over a messages module (`import * as m from './paraglide/messages.js'`).
+- `DEFAULT_LOCALES` (const): The default languages in the order the language picker lists them.
 - `defaultContent()`: The default flow `title → play ⇄ paused → title`, with `paused ⇄ settings`, and its hash.
 - `defaultScreens(game)`: The title, play, paused and settings screens over the default content's flow (`title → play ⇄ paused → title`, `paused ⇄ settings`).
 - `defineCommand(id, schema)`: Defines a command by id and payload schema.
@@ -504,6 +506,7 @@
 - `findRukenSdkMarkers(code)`: The markers found in `code` (built JavaScript), each named once; empty means no Ruken SDK code.
 - `findTauriMarkers(code)`: The Tauri markers found in `code` (built JavaScript), each named once; empty means no Tauri IPC code.
 - `Flow` (interface): The screen flow service: the current screen, `dispatch` to follow an event's transition from it, `openMenu` for the current screen's menu, and `settled()` once no transition is pending.
+- `formatNumber` (const): A number in `locale`'s convention (Intl.NumberFormat with `options`).
 - `FormFactor` (type): The four form factors.
 - `FrameInfo` (interface): One display frame: the interpolation alpha between the last two ticks, the frame's length in ms, and whether time is paused.
 - `FullscreenRes` (interface): The answer to a fullscreen request: the new state, and how this device can go fullscreen at all.
@@ -566,6 +569,7 @@
 - `LifecycleReason` (type): Why the game is in the background.
 - `LoaderOverlay` (const): The loader over a screen while its assets load.
 - `Locale` (interface): The locale service: the game's locales, the one text is drawn in now, the player's choice and the text direction.
+- `matchLocale(requested, locales)`: The game's locale for a requested tag: the same tag (ignoring case), else the first locale with the same primary language subtag.
 - `MAX_TURN_UNITS_PER_STEP` (const): The most one step's `camera-turn` may carry either way: 45°.
 - `measureGeometry(input)`: Turns what the browser and the host report into one `Geometry`.
 - `mergeStageHooks(...all)`: Every hook of each, called in the order given; `undefined` entries are skipped.
@@ -1071,7 +1075,7 @@
 - `StaleBuildOptions` (interface): How a game sets up its stale-build check.
 - `staleBuildStep(options)`: An opening step that asks the server for its build facts before an online game's title.
 - `StaleCopy` (interface): What the stale-build panel says.
-- `staleWords(locale)`: The words for a locale: the same tag (ignoring case), else the first with the same primary language, so `pt` finds `pt-BR` and `zh-CN` finds `zh-Hans`; English otherwise.
+- `staleWords(locale)`: The words for a locale, by the framework's own matching rule (`pt` finds `pt-BR`, `zh-CN` finds `zh-Hans`); English where there is none.
 - `watchStatus(host, onView)`: Calls `onView` with what to draw now, and again whenever the connection changes or time passes.
 
 ## `@automata/physics`

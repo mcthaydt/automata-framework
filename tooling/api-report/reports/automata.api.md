@@ -161,6 +161,12 @@ interface BarAction {
 }
 ```
 
+### `bindWords` (function)
+
+```ts
+function bindWords<W extends object>(root: HTMLElement, locale: Pick<Locale, 'subscribe'>, wordsFor: (locale: string) => W, after?: (words: W, locale: string) => void): () => void;
+```
+
 ### `BootFailurePanel` (svelte)
 
 ```ts
@@ -387,6 +393,12 @@ function createPostFilterSlot(target: PostFilterTarget): PostFilterSlot;
 
 ```ts
 function createT<Messages extends Record<string, unknown>>(messages: Messages): Translate<Messages>;
+```
+
+### `DEFAULT_LOCALES` (const)
+
+```ts
+const DEFAULT_LOCALES: readonly ["en", "ja", "ko", "es-419", "pt-BR", "zh-Hans"];
 ```
 
 ### `defaultContent` (function)
@@ -694,6 +706,12 @@ interface Flow {
     openMenu(): boolean;
     settled(): Promise<void>;
 }
+```
+
+### `formatNumber` (const)
+
+```ts
+const formatNumber: (locale: string, value: number, options?: Intl.NumberFormatOptions) => string;
 ```
 
 ### `FormFactor` (type)
@@ -1340,6 +1358,12 @@ interface Locale {
     subscribe(listener: (locale: string) => void): () => void;
     set(choice: string | null): void;
 }
+```
+
+### `matchLocale` (function)
+
+```ts
+function matchLocale(requested: string, locales: readonly string[]): string | undefined;
 ```
 
 ### `MAX_TURN_UNITS_PER_STEP` (const)

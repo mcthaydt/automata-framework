@@ -4443,6 +4443,18 @@ interface BarAction {
 }
 ```
 
+#### `bindWords` (function)
+
+Puts the words for the language in force into every `[data-word]` (as its text) and `[data-word-label]` (as its
+`aria-label`) element under `root`, now and each time the language changes. `wordsFor` gives a locale's words by name;
+a name whose word is not text (a function that fills a number in) or is not there leaves its element alone. `after`
+is told each time, with the words and the locale, for what the panel works out itself. Returns what stops it: add it
+to the screen's disposables.
+
+```ts
+function bindWords<W extends object>(root: HTMLElement, locale: Pick<Locale, 'subscribe'>, wordsFor: (locale: string) => W, after?: (words: W, locale: string) => void): () => void;
+```
+
 #### `BootFailurePanel` (const)
 
 The state a boot failure draws: an ErrorPanel with the
@@ -4775,6 +4787,14 @@ An unknown key throws, naming it: the types already forbid it, so it means the c
 
 ```ts
 function createT<Messages extends Record<string, unknown>>(messages: Messages): Translate<Messages>;
+```
+
+#### `DEFAULT_LOCALES` (const)
+
+The default languages in the order the language picker lists them. The first is the source of every catalog.
+
+```ts
+const DEFAULT_LOCALES = ['en', 'ja', 'ko', 'es-419', 'pt-BR', 'zh-Hans'] as const;
 ```
 
 #### `defaultContent` (function)
@@ -5298,6 +5318,14 @@ interface Flow {
     /** Resolves once no transition is queued or running (at once when the flow is idle). */
     settled(): Promise<void>;
 }
+```
+
+#### `formatNumber` (const)
+
+A number in `locale`'s convention (Intl.NumberFormat with `options`).
+
+```ts
+const formatNumber: (locale: string, value: number, options?: Intl.NumberFormatOptions) => string;
 ```
 
 #### `FormFactor` (type)
@@ -6384,6 +6412,15 @@ interface Locale {
      */
     set(choice: string | null): void;
 }
+```
+
+#### `matchLocale` (function)
+
+The game's locale for a requested tag: the same tag (ignoring case), else the first locale with the same
+primary language subtag. `fr-CA` finds `fr`; `pt` finds `pt-BR`. Undefined when the game lacks the language.
+
+```ts
+function matchLocale(requested: string, locales: readonly string[]): string | undefined;
 ```
 
 #### `MAX_TURN_UNITS_PER_STEP` (const)
@@ -12863,8 +12900,8 @@ interface StaleCopy {
 
 #### `staleWords` (function)
 
-The words for a locale: the same tag (ignoring case), else the first with the same primary language, so `pt` finds
-`pt-BR` and `zh-CN` finds `zh-Hans`; English otherwise. The framework's own locale negotiation follows the same rule.
+The words for a locale, by the framework's own matching rule (`pt` finds `pt-BR`, `zh-CN` finds `zh-Hans`); English
+where there is none.
 
 ```ts
 function staleWords(locale: string): StaleCopy;

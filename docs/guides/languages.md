@@ -25,9 +25,15 @@ languages are the files beside it. The languages a game offers are the ones it l
 locale: { locales: ['en', 'ja', 'ko', 'es-419', 'pt-BR', 'zh-Hans'], baseLocale: 'en' },
 ```
 
-Core's `DEFAULT_LOCALES` is that same list, so `locale: { locales: [...DEFAULT_LOCALES], baseLocale: 'en' }` says the
-six. A player picks in Settings, and the choice is kept. On a first visit the game asks (see
-[How it works](./how-it-works.md#the-first-run)); on Ruken the player's own language is used.
+`DEFAULT_LOCALES`, which `@automata/framework` exports, is that same list, so
+`locale: { locales: [...DEFAULT_LOCALES], baseLocale: 'en' }` says the six. A player picks in Settings, and the choice is
+kept. On a first visit the game asks (see [How it works](./how-it-works.md#the-first-run)); on Ruken the player's own
+language is used.
+
+A game that draws its own screens in plain DOM names each word on an element (`data-word="play"`, or `data-word-label`
+for an element's accessible name) and calls `bindWords(layer, services.locale, wordsFor)`, which fills them now and again
+when the language changes. `matchLocale(tag, locales)` is the rule the framework chooses a language by (`pt` finds
+`pt-BR`), and `formatNumber(locale, value)` writes a number the way the player reads it.
 
 The runtime's own words (loading, a failed download, the lost-picture panel, the rotate hint) follow that language too,
 and change with it. Before anything is saved they are in the browser's language; once the host and the saved choice are
