@@ -13,7 +13,7 @@ contains it (`vendor/pixi-3d/README.md`).
 | 2 | What changed in the beta | done 2026-11-12 | [§2](#2-what-changed-in-the-beta) |
 | 3 | `pixi.js` 8.22.0 → 8.23.0, on its own, with beta.2 | done 2026-11-12 | [§3](#3-pixijs-8220--8230-on-its-own-with-beta2) |
 | 3b | `main` (#654, #655, #656) merged; the baseline taken again on the merged tree with beta.2; the retro-crisp case that 8.23.0 moved found | done 2026-11-12 | [§3b](#3b-the-merged-tree-with-beta2-the-baseline-taken-again) |
-| 4 | `@pixi/3d` beta.3 | in progress: the third session's list, items 1 to 8 done at the second 90-minute mark: a whole `pnpm check` on the final tree and the crates stop are what is left | [third session](#third-session-the-work-list-in-order) |
+| 4 | `@pixi/3d` beta.3 | in progress: the third session's list, items 1 to 8 done at the second 90-minute mark: the crates stop is what is left (and the `--force` check, if wanted) | [third session](#third-session-the-work-list-in-order) |
 | 5 | Workarounds the beta makes unnecessary | not started | |
 | 6 | Close: build, API report and index, changesets, the whole check, this record | not started | |
 
@@ -440,9 +440,9 @@ edited, each with the reason in its comment and each of them the Owner's to over
 - The crates (and barrels) vanish **in untouched beta.3 too** (`f1bf5b78`, before every colour fix): their pixels are the floor's palette colours (`554769`, `56506f`, `5b5c69`), where beta.2 had `3b303c`, `2e3d47`, `2d3136`. So the move itself does it, not the colour look.
 - The frame the fog decision was made on is **a fully fogged room**: `FOG` is `near 5, far 14`, and with the game's camera at the play distance every surface is past 14 m. With the fog pushed out (`near 40, far 90`, a temporary, uncommitted edit; `frames/base-3d-no-fog-beta3.png`) the same
   beta.3 build shows what the room is: a light blue floor, the orange embers, the yellow lip along the channel, the brown crates and the blue Wick. In the fogged frames of both betas the embers are not visible at all and Wick is a small dark glyph (beta.2) or gone (beta.3): so in beta.3 a fogged room loses
-  the crates and Wick as well as the walls, because "Fog on an unlit surface now reaches the fog colour" applies to the ramp-lit crates and the figure (a custom `ShaderBit`, `look/ramp-light-material.ts`, whose `end` slot may now be ahead of the engine's fog mix: not read yet).
-  That is a hypothesis; what is measured is the three frames and the pixel colours above.
-- **Whether beta.2's picture at this camera was the intended one is the Owner's to say** (its crates read, its embers did not). What to do next, in order: (1) read `ramp-light-material.ts`'s `end` slot against beta.3's fog placement; (2) a frame of `base-3d` at the journeys' own camera with Wick and an ember in range of the fog's near plane, beta.2 against beta.3; (3) then the fog decision. Until then **the fog colour decision above stands on the three frames, but `base-3d`'s frame is not a fair one**; the night room (`fog-night-room-*`) is.
+  the crates and Wick as well as the walls, because beta.3's fog mix reaches the fog colour on every surface at the far plane (the notes: "Fog on an unlit surface now reaches the fog colour"). `look/ramp-light-material.ts` is not the cause: it swaps only the lighting bit (`createLightingBit`) and leaves
+  the engine's fog to the engine, so the custom-bit hypothesis is out. The cause is not yet shown by an experiment (what is measured is the frames and the pixel colours above; the next step is the same frame with fog `far` pushed to 14, 20, 30 m to see where the crates return).
+- **Whether beta.2's picture at this camera was the intended one is the Owner's to say** (its crates read, its embers did not). What to do next, in order: (1) the fog-`far` sweep named above; (2) a frame of `base-3d` at the journeys' own camera with Wick and an ember in range of the fog's near plane, beta.2 against beta.3; (3) then the fog decision. Until then **the fog colour decision above stands on the three frames, but `base-3d`'s frame is not a fair one**; the night room (`fog-night-room-*`) is.
 
 ### Item 5: the journeys and the no-eval check (Chromium)
 
@@ -481,7 +481,8 @@ run with Ruken's no-eval CSP and fail on a violation. The shim stays.
 
 ### The whole `pnpm check` on the final tree
 
-Run on the tree at `c9cf169b` (the merge, before this session's code changes): exit 0 (item 1). **The code commits since (`e25da151`: the world-kit WGSL fix, the world-kit `webgpu` project, `@automata/3d`'s `look-compiles.test.ts` and `shader-compile.ts`) went through the pre-commit hook (biome, the affected unit tests: pass) but the whole `pnpm check` has not been run on the final tree: it is the first thing for the next session.**
+First on the merged tree at `c9cf169b` (before this session's code changes): exit 0, all 65 unit tasks run (item 1). Again on the tree at `69c3ea29` (all the code of this session: `e25da151`'s world-kit WGSL fix, the world-kit `webgpu` project, `@automata/3d`'s `look-compiles.test.ts` and
+`shader-compile.ts`): **exit 0, 65 of 65 unit tasks, 78 changesets, 0 problems, but 62 of the 65 unit tasks came from turbo's cache** (the same inputs had passed in the pre-commit hook's affected-test run), so only 3 ran afresh; `pnpm check` with `--force` is the uncached proof if the Owner wants it.
 Also run on it: `typecheck` for `@automata/3d` and `@automata/world-kit`, `pnpm knip` and `pnpm style`: clean.
 
 ## Handoff at 90 minutes
