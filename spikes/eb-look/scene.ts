@@ -253,6 +253,21 @@ const game = defineGame({
           const pieces = only === null ? kept : kept.filter((p) => new RegExp(only).test(p.id))
           drawWorld({ parent: view.root, occluders: viewName === 'fp' ? undefined : occluders, colourOf, look, light, ...(on('glow') ? { glow: (swatch: string) => swatchGlow(library, swatch) } : {}), ...(on('tiles') ? { tiles } : {}) }, pieces)
         }
+        // ?rig=1 runs the occluder rule once, as a game's camera rig does each frame: the walls between the eye and the man (and the
+        // wall the eye stands behind) are cut, and what hangs on a cut wall goes with it. The spike has no rig of its own.
+        if (q.get('rig') === '1' && (viewName === 'af' || viewName === 'zone')) {
+          const who = (level.cast ?? [])[0]?.at ?? [0, 0]
+          const g = GAMEPLAY[viewName]
+          const frame = {
+            eye: { x: camera.position.x, y: camera.position.y, z: camera.position.z },
+            look: { x: who[0], y: g.focus, z: who[1] },
+            feet: { x: who[0], y: 0, z: who[1] },
+            head: { x: who[0], y: 1.7, z: who[1] },
+            seconds: 1,
+            reduced: true,
+          }
+          occluders.update(frame)
+        }
         // The bloom rings what the room's glowing swatches show, after the snap (?bloom=0 leaves it out).
         if (on('bloom') && on('glow'))
           view.passes = [
