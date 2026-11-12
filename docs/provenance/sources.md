@@ -616,6 +616,38 @@ compiler settings into a git-ignored `types/`). One file reaches it, the charact
 Fix the builder upstream and bump the submodule (`git -C vendor/FigureBuilder checkout <commit>`, then commit the new
 pin); never patch the vendored copy. Clone AF with `--recurse-submodules`, or run `git submodule update --init`.
 
+Superseded on 2026-11-12: the submodule is gone and the builder's source is a package of this repository (the next section).
+
+## The figure painter, folded in (2026-11-12)
+
+Repository: `mcthaydt/FigureBuilder` (archived, read only), `main` at `23f889c8a5cda3511f4a2d044324c57ba624dc1c`. Licence: none
+recorded (the Owner's private repository). Taken on the Owner's word, 2026-11-12, asked whether the wardrobe work needed a
+second repository or the source in this one: "Do 1 and do the same for environment builder." (Option 1 was folding the
+builder's source in.) The submodule of the previous section is replaced by `extensions/figures` (`@automata/figures`), a private
+package.
+
+What came, with its history: the code paths (`src`, `base`, `tests`, `scripts`, `viewer`), the root's configuration, and the
+builder's `docs/contract.md` and `docs/actors.md`, filtered with `git filter-repo` and merged. Its `main` is 111 commits, its
+branch `claude/c9-wardrobe` (the wardrobe cycle; tip `856498a`) 7, `claude/c5-finish-fixes` 6 and `claude/turned-face-both-eyes`
+2, 126 commits and 1.03 MiB in all, each keeping its own subject and author; `docs/provenance/figures-commit-map.txt` maps
+every original commit to its filtered one. `docs/provenance/figures-manifest.json` lists every file of the source with
+its checksum: the package's tree at the merge was checked equal to it, file by file (134 files, 0 differ), before any file was
+changed. The pixel-art goldens were not re-recorded by the move; one later re-record, named in its commit, followed the Owner's
+word on the turned face ("yes, give me both eyes").
+
+The history is cut. Up to 2026-11-05 the builder's history held named characters of the reference game and the Owner's own
+graphics, and this repository is to become public, so it starts at the builder's commit `6b6819c` ("Sweep dead exports, …
+story-era character fields", the last of the cuts) as a root commit holding its whole tree, and keeps only what descends from
+it. Left out, and kept in the archived repository: the first cast and its graphics (`streetwear.ts`, `graphics.json`,
+`looks.json`, `sets.json`, `headwear.json`), the dressed golden's 44 sheets and `tests/fixtures/dressed.json`, the scene
+pipeline's scenes, props, signage and lettering, and the portraits.
+
+What did not come, and why: the builder's own `CLAUDE.md` and `README.md` (their rules are in the package's `README.md`), its
+`package.json`, lockfile, `tsconfig.json`, `vitest.config.ts`, `.gitignore` and `.vscode/` (the package has its own), `pixi/vendor/`
+(the framework's `vendor/pixi-3d/` holds the same bytes), and the rest of its `docs/` (33 Markdown files and 228 PNGs of audits,
+plans and sheets: the retired repository keeps them; the wardrobe cycle's spec, plan and plan audit are copied unchanged into
+`docs/archive/figure-painter/c9-wardrobe/`).
+
 ## Core: the doc comments that named their source (moved here 2026-11-07)
 
 The published doc comments below named the arcade source (`SNEKPRTY/FloorFifty`); the doc comments no longer do, so

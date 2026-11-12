@@ -1,7 +1,7 @@
 // The runway's seven fabrics, as the builder's fabric tiles (H5, `registerFabric`): a pattern a swatch names (`fabric:
 // 'twill22'`) and the painter lays over the cloth's own tone steps. Data only. Ported from FigureBuilder's showcase
 // `claude/runway-video` (`demo/runway/wardrobe.ts`, `cb4aa9f`).
-import type { Fabric } from '../../shared/figure-builder/door.ts'
+import type { Fabric } from '../../shared/figures/door.ts'
 
 const grid = (w: number, h: number, label: (column: number, row: number) => number) =>
   Array.from({ length: w * h }, (_, i) => label(i % w, Math.floor(i / w)))

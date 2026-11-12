@@ -77,12 +77,6 @@ jobs:
           # Full history, so `changeset status` on a pull request can find where it left origin/main. Not an
           # expression: `cond && 0 || 1` always gives 1, because 0 is falsy in Actions expressions.
           fetch-depth: 0
-      # The private submodules (.gitmodules) at their pinned commits, with the Owner's read-only SUBMODULES_TOKEN (see the
-      # script). The runners keep their work folders, so every job that installs resets them first.
-      - name: Check out the private submodules
-        env:
-          SUBMODULES_TOKEN: ${{ secrets.SUBMODULES_TOKEN }}
-        run: bash .github/scripts/checkout-submodules.sh
       # A pull request that changes only docs/ and Markdown files cannot change what a game builds, so the jobs
       # after this one skip it. The checkout is GitHub's merge commit: its first parent is the base tip, so
       # HEAD^1..HEAD is exactly the pull request's own changes. Anything else (no merge commit, so no way to tell)
@@ -171,12 +165,6 @@ jobs:
           fetch-tags: true
           # The merge commit and its parents, so the affected run below can compare HEAD^1..HEAD.
           fetch-depth: 2
-      # The private submodules (.gitmodules) at their pinned commits, with the Owner's read-only SUBMODULES_TOKEN (see the
-      # script). The runners keep their work folders, so every job that installs resets them first.
-      - name: Check out the private submodules
-        env:
-          SUBMODULES_TOKEN: ${{ secrets.SUBMODULES_TOKEN }}
-        run: bash .github/scripts/checkout-submodules.sh
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
@@ -249,12 +237,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # The private submodules (.gitmodules) at their pinned commits, with the Owner's read-only SUBMODULES_TOKEN (see the
-      # script). The runners keep their work folders, so every job that installs resets them first.
-      - name: Check out the private submodules
-        env:
-          SUBMODULES_TOKEN: ${{ secrets.SUBMODULES_TOKEN }}
-        run: bash .github/scripts/checkout-submodules.sh
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
@@ -313,12 +295,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # The private submodules (.gitmodules) at their pinned commits, with the Owner's read-only SUBMODULES_TOKEN (see the
-      # script). The runners keep their work folders, so every job that installs resets them first.
-      - name: Check out the private submodules
-        env:
-          SUBMODULES_TOKEN: ${{ secrets.SUBMODULES_TOKEN }}
-        run: bash .github/scripts/checkout-submodules.sh
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
@@ -377,12 +353,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # The private submodules (.gitmodules) at their pinned commits, with the Owner's read-only SUBMODULES_TOKEN (see the
-      # script). The runners keep their work folders, so every job that installs resets them first.
-      - name: Check out the private submodules
-        env:
-          SUBMODULES_TOKEN: ${{ secrets.SUBMODULES_TOKEN }}
-        run: bash .github/scripts/checkout-submodules.sh
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
@@ -416,7 +386,6 @@ jobs:
       runner: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
     secrets:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      SUBMODULES_TOKEN: ${{ secrets.SUBMODULES_TOKEN }}
 
   emberwick:
     name: emberwick through game-ci
@@ -432,5 +401,3 @@ jobs:
       working-directory: games/emberwick
       artifact-name: emberwick-dist
       runner: ${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}
-    secrets:
-      SUBMODULES_TOKEN: ${{ secrets.SUBMODULES_TOKEN }}

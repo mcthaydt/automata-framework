@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { checkState } from '#src/features/painted/state.ts'
-import { BASE, POSES } from '#src/shared/figure-builder/door.ts'
+import { BASE, POSES } from '#src/shared/figures/door.ts'
 
 const def = BASE[0]?.def
 const known = Object.keys(POSES)[0] ?? ''

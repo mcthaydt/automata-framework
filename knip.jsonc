@@ -5,8 +5,7 @@
   // An export its own file uses is not dead code (constants and types that tests also read).
   "ignoreExportsUsedInFile": true,
   // Fixtures are test inputs read as files, never imported.
-  // vendor/FigureBuilder is the figure builder, a git submodule that keeps its own rules (fixed upstream, never here).
-  "ignore": ["**/fixtures/**", "games/base-3d/src/paraglide/**", "vendor/FigureBuilder/**"],
+  "ignore": ["**/fixtures/**", "games/base-3d/src/paraglide/**"],
   // BootErrorIsDrawable is a compile-time assertion (shared contracts §4); exporting it keeps it checked.
   "ignoreIssues": { "packages/automata/src/app/boot/boot-error.ts": ["types"] },
   "workspaces": {
@@ -25,10 +24,6 @@
     },
     // DX.7: the example imports @automata/sim, which tooling/agent-skills' vitest config aliases to the source.
     "tooling/agent-skills": { "ignoreDependencies": ["@automata/sim"] },
-    // The figure builder as a package: its surface is the submodule's, used through the character kit's door. Its view
-    // entry imports Pixi, which the wrapper declares so the declarations and the sources resolve; no file of the wrapper's
-    // own imports them.
-    "vendor/figure-builder": { "entry": [], "project": [], "ignoreDependencies": ["@pixi/3d", "pixi.js"] },
     // DX.7: the plugin's hook runs Emberwick's own `automata` bin from node_modules/.bin (install.test.ts).
     "games/emberwick": {
       // The journeys sit in tests/e2e; the config names its directory, which knip does not follow. The `automata-content`
@@ -99,6 +94,9 @@
     "packages/3d": {
       "entry": ["src/testing/bundle/*-entry.ts", "scripts/*.ts"]
     },
+    // The painter's three entries are its public surface; its scripts are run by hand (`pnpm golden`, `render`, ...) and the
+    // hand viewer (`vite viewer`) starts at `viewer/main.ts`, which the HTML page names.
+    "extensions/figures": { "entry": ["src/entries/*.ts", "scripts/*.ts", "viewer/main.ts"] },
     // The bundle tests build the two fixture modules in `src/testing/bundle/` with Vite by path; nothing imports them.
     "extensions/debug": { "entry": ["src/testing/bundle/*.ts"] },
     // Runtime dependencies of the Ruken code that tsdown bundles (@ruken/cli, @ruken/manifest, @ruken/sdk-host).

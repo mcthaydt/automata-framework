@@ -1,7 +1,7 @@
-// A 3D scene's camera as the figure builder's stage contract reads it (vendor/FigureBuilder/docs/contract.md, `CameraPose`):
+// A 3D scene's camera as the figure builder's stage contract reads it (extensions/figures/docs/contract.md, `CameraPose`):
 // the eye and the camera's own three axes in metres, the frame in pixels, and the lens as a focal length in pixels
 // (perspective) or pixels a metre (orthographic). Pure: it reads the camera and changes nothing, so it runs in Node.
-import type { CameraPose, V3 } from '../../shared/figure-builder/door.ts'
+import type { CameraPose, V3 } from '../../shared/figures/door.ts'
 
 /** What `poseOf` reads of a `Camera3D` (`@pixi/3d` 0.1.0-beta.2): a position, a rotation, and the lens. */
 export interface CameraLike {

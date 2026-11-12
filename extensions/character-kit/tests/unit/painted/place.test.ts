@@ -10,7 +10,7 @@ import {
   stageFrame,
   type V3,
   zoomOf,
-} from '#src/shared/figure-builder/door.ts'
+} from '#src/shared/figures/door.ts'
 import { followCamera, orthographicCamera, perspectiveCamera } from '../../fixtures/cameras.ts'
 import { painted } from '../../fixtures/painted-cell.ts'
 

@@ -4,7 +4,7 @@
 // into the second, with six probes at the chest and four on the floor, so the kit needs to know none of the room's lamps and
 // nothing in `@automata/3d` changes. It is pure: the same `tint` answers give the same `RoomLight`, whose `key` is exactly
 // what is quantised, so two rooms with one key light a cell to the same bytes and a host may cache the lit cell by it.
-import { flatSteps, type SpriteLighting, type V3 } from '../../shared/figure-builder/door.ts'
+import { flatSteps, type SpriteLighting, type V3 } from '../../shared/figures/door.ts'
 
 /** The probes and thresholds, in metres and light units. */
 export const ROOM_LIGHT = {

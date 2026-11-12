@@ -4,7 +4,7 @@
 // took, as the kit read it, and the parity of a lit frame with the builder's compose. Nothing here is typed in by hand.
 import { sceneLightingSchema } from '@automata/3d'
 import { commands } from 'vitest/browser'
-import { BASE } from '#src/shared/figure-builder/door.ts'
+import { BASE } from '#src/shared/figures/door.ts'
 import { drawRoom, GATE_SIZE, type Rect, type RoomFrame, type RoomName } from './gate-lit.ts'
 import { buildScene, differing, expectedPixels } from './stage-scene.ts'
 

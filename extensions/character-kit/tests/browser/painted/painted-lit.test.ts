@@ -3,7 +3,7 @@
 // figure and leaves a near one. Headless Firefox here has no WebGL; the GPU runner runs it there.
 import { DEFAULT_LOOK, type Look, sceneLightingSchema } from '@automata/3d'
 import { afterEach, describe, expect, it } from 'vitest'
-import { BASE, type CharacterDef } from '#src/shared/figure-builder/door.ts'
+import { BASE, type CharacterDef } from '#src/shared/figures/door.ts'
 import {
   buildScene,
   crossings,

@@ -1,4 +1,4 @@
-// The stage contract's placement rule (vendor/FigureBuilder/docs/contract.md, section 2) for one figure: where its painted
+// The stage contract's placement rule (extensions/figures/docs/contract.md, section 2) for one figure: where its painted
 // cell lands on screen, how many pixels a texel covers, and where a quad that shows it stands in the scene. The
 // builder's own `stageFrame` does this for its `ScriptedActor`s; a figure here is a sim entity, so the kit applies the same
 // rule to it, and tests/unit/painted/place.test.ts holds the two together. Pure: no Pixi, so it runs in Node.
@@ -12,7 +12,7 @@ import {
   type View,
   viewOf,
   zoomOf,
-} from '../../shared/figure-builder/door.ts'
+} from '../../shared/figures/door.ts'
 
 /** The density the kit paints at unless a figure asks otherwise: the builder's own working resolution. */
 export const DEFAULT_DENSITY = 2

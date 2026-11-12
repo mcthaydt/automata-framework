@@ -3,7 +3,7 @@
 // review sheets' 18°, one texel to a pixel, against what the sheets draw (`standing`). Headless Firefox here has no WebGL;
 // the GPU runner runs it there.
 import { afterEach, describe, expect, it } from 'vitest'
-import { BASE, member, standing } from '#src/shared/figure-builder/door.ts'
+import { BASE, member, standing } from '#src/shared/figures/door.ts'
 import { buildScene, type StageScene } from '../../fixtures/stage-scene.ts'
 
 const hasWebGL2 = document.createElement('canvas').getContext('webgl2') !== null

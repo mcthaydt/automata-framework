@@ -1,0 +1,91 @@
+diff --git a/extensions/figures/src/features/paint/paint.ts b/extensions/figures/src/features/paint/paint.ts
+index 7857500d8..220822049 100644
+--- a/extensions/figures/src/features/paint/paint.ts
++++ b/extensions/figures/src/features/paint/paint.ts
+@@ -243,7 +243,7 @@ function onForm(pl: readonly number[], n: readonly number[], wf: number) {
+   const X = wf * pl[0] + (1 - wf) * n[0], Y = wf * pl[1] + (1 - wf) * n[1], Z = wf * pl[2] + (1 - wf) * n[2], m = Math.hypot(X, Y, Z) || 1;
+   return [X / m, Y / m, Z / m];
+ }
+-function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedArray, tone: Int8Array, through: Map<number, number[]>, kept: Uint8Array) {
++function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedArray, tone: Int8Array, through: Map<number, number[]>, kept: Uint8Array, skinFamily: (material: number) => boolean) {
+   const { w, h, material, part, group } = g, view = Math.abs(f.view), d = f.view < 0 ? -1 : 1, F = f.shape, s = f.size;
+   if (view >= 3) return;
+   const has = (t: string) => !!f.mood?.has(t), angry = has('angry'), smile = has('smile'), dead = has('dead'), open = has('mouthOpen');
+@@ -278,7 +278,7 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
+   const near = d > 0 ? f.eyes[0] : f.eyes[1], I = Math.floor(view === 2 ? near[1] : f.centre[1]);
+   /** The face's last skin texel from `x` toward `d` on row `y`: its front edge, inside the outline. */
+   const edge = (x: number, y: number) => { while (own(x + d, y)) x += d; return x; };
+-  /** Shades over columns a..b: a part worn on the head that is neither its skin nor its hair (nor a mark), from the
++  /** Shades over columns a..b: a part worn on the head that is neither its skin (nor a surface painted in the skin's own tones, an ear's rim) nor its hair (nor a mark), from the
+    * brow's row down past the eye's. An eye there is behind them, whatever skin shows round the lens; behind a tinted
+    * lens (`through`) it shows, on the lens (`behind`). */
+   const shaded = (a: number, b: number) => {
+@@ -287,7 +287,7 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
+       if (!inside(x, y)) continue;
+       const k = y * w + x, p = part[k];
+       if (through.has(k)) lens = true;
+-      else if (material[k] >= 0 && group[k] === GROUP.head && material[k] !== f.skin && p >= 0 && p !== FACE_SEAM && !(p >= HAIR_SEAMS[0] && p < HAIR_SEAMS[1])) worn = true;
++      else if (material[k] >= 0 && group[k] === GROUP.head && !skinFamily(material[k]) && p >= 0 && p !== FACE_SEAM && !(p >= HAIR_SEAMS[0] && p < HAIR_SEAMS[1])) worn = true;
+     }
+     behind = lens;
+     return worn && !lens;
+@@ -1587,7 +1587,7 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
+   const fixed = tone.map(v => (v >= OUTLINE ? 9 : v));
+   const kept = new Uint8Array(n);
+   for (let k = 0; k < n; k++) if (tone[k] === -1 || hue[k] >= 0) kept[k] = 1;
+-  if (face) stampFace(face, { ...g, material, part, group, depth }, tones[face.skin], albedo, fixed, through, kept);
++  if (face) stampFace(face, { ...g, material, part, group, depth }, tones[face.skin], albedo, fixed, through, kept, m => skinny[m]);
+   budget(albedo, w, h, D, kept, (k: number) => material[tone[k] >= OUTLINE && material[k] < 0 ? owner[k] : k]);
+   if (light) lightTexels(light, g, albedo, D);
+   if (weave) {
+diff --git a/extensions/figures/tests/features/figure/eyes.test.ts b/extensions/figures/tests/features/figure/eyes.test.ts
+index 684a03dd4..8639aa4fe 100644
+--- a/extensions/figures/tests/features/figure/eyes.test.ts
++++ b/extensions/figures/tests/features/figure/eyes.test.ts
+@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
+ import { BASE } from '../../../base/base';
+ import { eyeWidth, Figure } from '../../../src/features/figure/figure';
+ import { member, view } from '../../../src/features/figure/frames';
+-import type { CharacterDef } from '../../../src/features/figure/cast';
++import { standOf, type CharacterDef } from '../../../src/features/figure/cast';
++import { evaluate } from '../../../src/features/motion/motion';
+ 
+ /**
+  * The eye's size (figure.ts eyeWidth): the density sizes it (four texels at density 2), capped at a little over half the
+@@ -81,3 +82,36 @@ describe('eyeTilt', () => {
+     for (const d of [0, 1]) expect(diffs(drawn(f, { eyeTilt: 0 }, 1, d).px, drawn(f, { eyeTilt: 1 }, 1, d).px, 64).length, `D1 view ${d}`).toBe(0);
+   });
+ });
++
++/**
++ * A turned face keeps both eyes. The ear's rim is painted in the skin's own tones (a material of its own, `skin~ear`), and
++ * the shades check once counted it as something worn over the eye, so the base man's hero at density 1 lost an eye.
++ */
++type Eyed = { eyes: [number, number][]; view: number; iris: number; lash: number; white: number };
++function eyesShown(painted: Uint8ClampedArray, width: number, face: Eyed): number {
++  const marks = new Set([face.iris, face.lash, face.white]);
++  let seen = 0;
++  for (const [ex, ey] of face.eyes) {
++    let found = false;
++    for (let y = Math.round(ey) - 1; y <= Math.round(ey) + 1 && !found; y++) for (let x = Math.round(ex) - 2; x <= Math.round(ex) + 2 && !found; x++) {
++      const o = (y * width + x) * 4;
++      if (painted[o + 3] && marks.has((painted[o] << 16) | (painted[o + 1] << 8) | painted[o + 2])) found = true;
++    }
++    if (found) seen++;
++  }
++  return seen;
++}
++describe('a turned face', () => {
++  it('draws both eyes in the base pair\'s hero at every density', () => {
++    for (const c of BASE) for (const D of [1, 2]) {
++      const cast = member(c.def, D), f = new Figure(cast), facing = Math.PI / 4, input = { facing, moving: false, view: view() };
++      const s = f.skeleton, placed = c.pose ? standOf(s, cast.outfits[cast.defaultOutfit](s), c.pose) : null;
++      expect(placed, `${c.def.id} has its stand`).not.toBeNull();
++      const rel = Math.round(facing / (Math.PI / 4)) * (Math.PI / 4);
++      const st = { ...f.motion(input, 0, 0, facing, rel), yaw: 0, view: rel, stand: placed!.stand, holds: placed!.holds };
++      f.update(1 / 60, { ...input, pose: { key: 'hero', pose: evaluate(s, cast.gait, st).pose } });
++      const face = (f as unknown as { faceStamp: Eyed }).faceStamp;
++      expect(eyesShown(f.painted, cast.cell[0], face), `${c.def.id} D${D}`).toBe(2);
++    }
++  });
++});

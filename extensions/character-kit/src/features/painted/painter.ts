@@ -12,7 +12,7 @@ import {
   member,
   ScriptedActor,
   type View,
-} from '../../shared/figure-builder/door.ts'
+} from '../../shared/figures/door.ts'
 import { litCells } from './lit-cells.ts'
 import type { Exposure, RoomLight } from './room-light.ts'
 import type { PaintedState } from './state.ts'

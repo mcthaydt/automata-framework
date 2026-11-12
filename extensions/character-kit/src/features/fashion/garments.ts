@@ -3,7 +3,7 @@
 // `trousers` and `shoes`. Each is sized from the body under it by `shells.ts`. Ported from FigureBuilder's `claude/runway-video`
 // (`demo/runway/wardrobe.ts`, `cb4aa9f`), which was written against an older main: where `Wearing`, `Fit` or `Body` moved, the
 // types here are main's. H2 (`registerOutfitHooks`) is not used: no kind here needs more than a kind's own `build`.
-import { type GarmentKind, GROUP, J, lerp, registerGarment } from '../../shared/figure-builder/door.ts'
+import { type GarmentKind, GROUP, J, lerp, registerGarment } from '../../shared/figures/door.ts'
 import { collarBand, frontAt, heights, lapels, legsOf, opening, piece, tail, top } from './shells.ts'
 
 /** A tee (or a knit, a shirt): the torso and sleeves one clearance out, its hem `length` (0 the belt, 1 the hip's bottom). */
@@ -57,8 +57,8 @@ export interface Shoes {
   sole?: string
 }
 
-// The builder widens its `Garment` union by augmentation: a kind declared here is a garment an outfit may list.
-declare module 'figure-builder' {
+// The painter widens its `Garment` union by augmentation: a kind declared here is a garment an outfit may list.
+declare module '@automata/figures' {
   interface GarmentKinds {
     tee: Tee
     hoodie: Hoodie
