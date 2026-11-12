@@ -1,7 +1,8 @@
 import { content } from 'virtual:automata/content'
 import { describe, expect, it } from 'vitest'
 import { ROOM, roomWorld } from '#src/features/room/room.ts'
-import { heroFigureState, lipBoxes, placed } from '#src/features/scene/scene.ts'
+import { FOG, heroFigureState, lipBoxes, placed } from '#src/features/scene/scene.ts'
+import { compileArea } from '#src/shared/area.ts'
 import { metres, TICK_HZ } from '#src/shared/constants.ts'
 import { TUNING } from '#src/testing/sim.ts'
 
@@ -75,5 +76,15 @@ describe('lipBoxes', () => {
     expect(boxes).toHaveLength(ROOM.pits.length * 2)
     expect(new Set(boxes.map((entry) => entry.colour)).size).toBe(1)
     for (const lip of boxes) expect(lip.box.max[1]).toBeLessThan(0.2)
+  })
+})
+
+describe('the room’s fog', () => {
+  // Fog counts from the eye. Set for the 5 m camera the room was first played with, it reached full at 14 m, nearer than
+  // the default gameplay camera stands (16 m): every pixel was the fog's colour, by day and by night alike
+  // (docs/superpowers/audits/2026-11-12-3d-night-regression).
+  it('leaves the player clear in every view the room has: it starts no nearer than the camera stands', () => {
+    for (const view of compileArea(ROOM, TUNING).views)
+      expect(FOG.near, view.id).toBeGreaterThanOrEqual(view.distance)
   })
 })
