@@ -80,6 +80,42 @@ async function roomLive(page: Page) {
   await expect(game(page)).toHaveAttribute('data-player-x', /\d+/, { timeout: ROOM_STEP_MS })
 }
 
+/** A button's size and place as the page lays it out, in CSS pixels from the viewport's top left. */
+interface ButtonBox {
+  name: string
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+/**
+ * Measures every visible button under `selector` in one call, with the page's own `getBoundingClientRect`. Asking a
+ * Playwright locator for each box costs several frames per button while the room draws (`isVisible` about 0.3 s and
+ * `boundingBox` about 0.8 s each on a quiet machine, 0.5 s and 1.4 s loaded: 6 s for four buttons, 10 s loaded), and
+ * a journey that measures them one by one sits on the 30 s limit when a runner is shared. A button counts as
+ * visible as Playwright counts it: a box with an area and no `visibility: hidden`. One that is `display: none`
+ * has no box and is skipped; one that is on the page and hidden any other way would be measured and fail.
+ */
+async function measureButtons(page: Page, selector: string): Promise<ButtonBox[]> {
+  return page.evaluate((selector) => {
+    const boxes: ButtonBox[] = []
+    for (const button of document.querySelectorAll(selector)) {
+      const rect = button.getBoundingClientRect()
+      if (rect.width === 0 || rect.height === 0 || getComputedStyle(button).visibility === 'hidden') continue
+      const label = button.getAttribute('aria-label') ?? button.textContent?.trim()
+      boxes.push({
+        name: `${label ? `“${label}”` : 'unlabelled'} (${button.tagName.toLowerCase()}${button.className ? `.${String(button.className).trim().split(/\s+/).join('.')}` : ''})`,
+        x: rect.x,
+        y: rect.y,
+        width: rect.width,
+        height: rect.height,
+      })
+    }
+    return boxes
+  }, selector)
+}
+
 test('boots standalone under Ruken’s headers and shows the splash, then the menu', async ({ page }) => {
   const errors = await collectErrors(page)
   const response = await page.goto(gameUrl)
@@ -305,25 +341,28 @@ test('every button of the room and the pause screen is on screen and at least 44
   const errors = await collectErrors(page)
   await openMenu(page)
   await page.keyboard.press('Enter')
-  await expect(game(page)).toHaveAttribute('data-screen', 'room')
+  await roomLive(page)
   const viewport = page.viewportSize()
   if (viewport === null) throw new Error('no viewport')
-  const check = async (selector: string) => {
-    for (const button of await page.locator(selector).all()) {
-      if (!(await button.isVisible())) continue
-      const box = await button.boundingBox()
-      if (box === null) throw new Error(`${selector} has no box`)
-      expect(box.width).toBeGreaterThanOrEqual(44)
-      expect(box.height).toBeGreaterThanOrEqual(44)
-      expect(box.x).toBeGreaterThanOrEqual(0)
-      expect(box.y).toBeGreaterThanOrEqual(0)
-      expect(box.x + box.width).toBeLessThanOrEqual(viewport.width)
-      expect(box.y + box.height).toBeLessThanOrEqual(viewport.height)
-    }
+  // Every fault of every button is listed by its name, so a failure says which button is wrong and how.
+  const check = async (where: string, selector: string) => {
+    const buttons = await measureButtons(page, selector)
+    expect(buttons.length, `${where}: no button found for ${selector}`).toBeGreaterThan(0)
+    const faults = buttons.flatMap(({ name, x, y, width, height }) => [
+      ...(width < 44 || height < 44 ? [`${name} is ${width} × ${height} px, under 44`] : []),
+      ...(x < 0 || y < 0 || x + width > viewport.width || y + height > viewport.height
+        ? [
+            `${name} is off screen: x ${x}–${x + width}, y ${y}–${y + height} in ${viewport.width} × ${viewport.height}`,
+          ]
+        : []),
+    ])
+    expect(faults, `${where}: ${buttons.length} buttons measured`).toEqual([])
   }
-  await check('.hud button, .touch button')
+  await check('the room', '.hud button, .touch button')
   await page.keyboard.press('Escape')
-  await check('[data-layer="screens"] [data-screen="paused"] button')
+  // The pause screen opens on the key, not on a frame the test can wait for: measure only once it is the screen.
+  await expect(game(page)).toHaveAttribute('data-screen', 'paused')
+  await check('the pause screen', '[data-layer="screens"] [data-screen="paused"] button')
   expect(errors).toEqual([])
 })
 
