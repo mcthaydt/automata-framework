@@ -28,9 +28,8 @@ sections, since each example is one file. Colours are the DUEL palette.
 | [`worldkit/worldkit-sky.ts`](worldkit/worldkit-sky.ts) | A street at night under the kit's stars, rain and glow passes |
 | [`lcdpanel/lcdpanel-screen.ts`](lcdpanel/lcdpanel-screen.ts) | A room seen through an LCD screen, the panel switched on and off (the `lcd-panel` extension) |
 | [`retrocrisp/retrocrisp-grade.ts`](retrocrisp/retrocrisp-grade.ts) | A room graded and faded like old film, with the colour split snapped to whole pixels (the `retro-crisp` extension) |
-| [`roomvisibility/roomvisibility-zones.ts`](roomvisibility/roomvisibility-zones.ts) | Three rooms and a bulkhead, drawn only as far as the camera's zone sees (the `room-visibility` extension) |
 
-The `cutscenes`, `characterkit`, `worldkit`, `lcdpanel`, `retrocrisp` and `roomvisibility` sections show extensions
-(`@automata/cutscenes`, `@automata/character-kit`, `@automata/world-kit`, `@automata/lcd-panel`, `@automata/retro-crisp`,
-`@automata/room-visibility`), so their files say `Tier: extension`. A time of day is read by the passes an extension registers,
+The `cutscenes`, `characterkit`, `worldkit`, `lcdpanel` and `retrocrisp` sections show extensions
+(`@automata/cutscenes`, `@automata/character-kit`, `@automata/world-kit`, `@automata/lcd-panel` and
+`@automata/retro-crisp`), so their files say `Tier: extension`. A time of day is read by the passes an extension registers,
 which is why the night street is the world kit's.

@@ -1,5 +1,9 @@
 # Three render extensions for the clinic (2026-11-11)
 
+> `room-visibility` was not landed in `main`: the Owner's decisions list this branch's clinic work as superseded by the last-light prologue, and
+> the prologue builds the rooms a view draws in core (`drawnRooms`), so two answers to one question would not both stand. `lcd-panel` and
+> `retro-crisp` landed. The notes and screenshots below stay as the record of all three.
+
 `@automata/room-visibility`, `@automata/lcd-panel` and `@automata/retro-crisp` (all in `extensions/`) are the render features
 the adventure source's clinic needs that `@automata/3d` does not have. Each takes AF data only, has a README, a one-file
 example under `examples/3d/`, unit tests (and WebGL2 browser tests for the two passes), and the screenshots below.

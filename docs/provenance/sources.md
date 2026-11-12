@@ -666,7 +666,7 @@ No file was copied. What was read, and where it went:
 
 | Source | AF | Notes |
 | --- | --- | --- |
-| `src/render/room-visibility.ts`, `room-wall-owners.ts`, `room-ownership.ts`, `src/scenes/clinic/visibility.ts` | `extensions/room-visibility` | rewritten: a Zod policy and a checker that returns problems, the resolver on `@automata/3d/level`'s point test, wall groups read from an `af-sector/2` level, a renderer-free wall hider; the clinic's policy is the example's, not shipped |
+| `src/render/room-visibility.ts`, `room-wall-owners.ts`, `room-ownership.ts`, `src/scenes/clinic/visibility.ts` | not landed (`extensions/room-visibility` was dropped; the rooms a view draws are `@automata/3d`'s `drawnRooms`) | the old game's policy stays history; the extension (a Zod policy, a resolver, wall groups, a wall hider) is on the branch `claude/eb-look-effects` before this commit |
 | `src/render/lcd-panel.ts`, `filter-programs.ts` | `extensions/lcd-panel` | rewritten as a `PostEffect` pair (GLSL, WGSL) with a Zod profile; the mesh is a port of `lcd-perfect` v10 by sinedied (MIT, notice kept in `src/features/lcd-panel/lcd-shader.ts`) |
 | `src/render/retro-filter.ts`, `crisp.ts`, `look.ts` (`LOOK.post`) | `extensions/retro-crisp` | rewritten as a `PostEffect` pair with uniforms and a Zod profile, the clinic's numbers as defaults; the crisp maths as pure functions; the palette LUT and the luma-weighted dither stay core's DUEL snap |
 

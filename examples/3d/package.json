@@ -17,7 +17,6 @@
     "@automata/framework": "workspace:*",
     "@automata/lcd-panel": "workspace:*",
     "@automata/retro-crisp": "workspace:*",
-    "@automata/room-visibility": "workspace:*",
     "@automata/world-kit": "workspace:*",
     "pixi.js": "8.22.0",
     "svelte": "5.57.1"
