@@ -1,6 +1,6 @@
 import type { FieldDef, FieldValues } from '@automata/content/level-2d'
 import { type FieldRow, fieldRow } from '../../kit/fields/field-row.ts'
-import { valuesWithDefaults } from '../../kit/fields/field-values.ts'
+import { checkFieldInstance, valuesWithDefaults } from '../../kit/fields/field-values.ts'
 import type { EntityDef2D, EntityInstance, Project, Size } from '../model/project-types'
 import { refName, refTargets } from '../model/refs/ref-links'
 import { isRefValue } from '../model/refs/ref-resolve'
@@ -26,9 +26,17 @@ function rowsOf(
   values: FieldValues,
   project: Project,
   holder: string | undefined,
+  owner: string,
 ): readonly FieldRow[] {
   const shown = valuesWithDefaults(fields, values)
-  return fields.map((field) => withRef(fieldRow(field, shown[field.id]), field, project, holder))
+  return fields.map((field) =>
+    withRef(
+      fieldRow(field, shown[field.id], checkFieldInstance(field, values, owner)?.message),
+      field,
+      project,
+      holder,
+    ),
+  )
 }
 
 export type EntityInspector =
@@ -70,7 +78,7 @@ export function entityInspector(
     layer: first.layer,
     instance,
     def,
-    fields: rowsOf(def.fields, instance.fields, project, instance.id),
+    fields: rowsOf(def.fields, instance.fields, project, instance.id, def.label ?? def.id),
     position: { x: instance.x, y: instance.y },
     size: def.resizable === 'none' ? undefined : { w: instance.w ?? def.size.w, h: instance.h ?? def.size.h },
   }
@@ -99,6 +107,6 @@ export function levelInspector(project: Project, level: string): LevelInspector 
     name: found.name,
     size: found.size,
     tiles: sizeInTiles(project, found.size),
-    fields: rowsOf(project.defs.levelFields, found.fields, project, undefined),
+    fields: rowsOf(project.defs.levelFields, found.fields, project, undefined, 'level'),
   }
 }

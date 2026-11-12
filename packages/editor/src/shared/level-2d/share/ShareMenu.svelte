@@ -30,6 +30,6 @@ async function run(action: string): Promise<void> {
 }
 </script>
 
-<Menu label="Share" variant="primary" items={shareItems(exports.canShare)} onselect={(action) => void run(action)}>
+<Menu label="Share" items={shareItems(exports.canShare)} onselect={(action) => void run(action)}>
   {#snippet trigger()}<Icon name="share" size={16} />Share{/snippet}
 </Menu>

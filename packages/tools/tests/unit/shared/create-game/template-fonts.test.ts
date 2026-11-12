@@ -21,7 +21,9 @@ const sha256 = (path: string): string =>
 
 beforeAll(async () => {
   dir = mkdtempSync(join(tmpdir(), 'af-template-fonts-'))
-  await Effect.runPromise(createGame({ targetDir: join(dir, 'game'), id: 'font-game', title: 'Font Game' }))
+  await Effect.runPromise(
+    createGame({ targetDir: join(dir, 'game'), id: 'font-game', title: 'Font Game', story: false }),
+  )
   dir = join(dir, 'game')
 })
 afterAll(() => rmSync(join(dir, '..'), { recursive: true, force: true }))
@@ -103,5 +105,32 @@ describe('the new game’s fonts', () => {
     expect(read('ship.config.ts')).toContain(
       `languages: ${JSON.stringify(DEFAULT_LANGUAGES).replaceAll('"', "'")}`,
     )
+  })
+
+  it('cuts the story game’s subsets too, with the content config of the kinds its folders hold', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'af-template-fonts-story-'))
+    try {
+      await Effect.runPromise(
+        createGame({
+          targetDir: join(root, 'game'),
+          id: 'story-font-game',
+          title: 'Story Font Game',
+          story: true,
+        }),
+      )
+      const scripts = (
+        JSON.parse(readFileSync(join(root, 'game', 'package.json'), 'utf8')) as {
+          scripts: Record<string, string>
+        }
+      ).scripts
+      expect(scripts['fonts']).toBe('automata-content assets')
+      expect(scripts['dev']).toBe('pnpm fonts && vite')
+      expect(scripts['check']).toBe('pnpm fonts && automata check')
+      const config = readFileSync(join(root, 'game', 'automata.content.ts'), 'utf8')
+      expect(config).toContain('dialogueContent')
+      expect(config).toContain('systemsContent({ hooks: [] })')
+    } finally {
+      rmSync(root, { recursive: true, force: true })
+    }
   })
 })

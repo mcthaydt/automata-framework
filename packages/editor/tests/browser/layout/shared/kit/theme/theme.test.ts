@@ -147,14 +147,15 @@ const painted = (pixels: Uint8ClampedArray): number => {
 }
 
 describe('the editors in both looks', () => {
-  test('a forced look sets the chrome, and Match device lets the device decide', async () => {
+  test('with no attribute the page is dark, and a forced look sets the chrome', async () => {
     await start()
-    root.dataset.theme = 'dark'
-    expect(token('--paper')).toBe('#1b1c20')
-    expect(field()).toBe('rgb(19, 20, 23)')
+    expect(token('--paper')).toBe('#111316')
+    expect(field()).toBe('rgb(11, 12, 14)')
     root.dataset.theme = 'light'
     expect(token('--paper')).toBe('#ffffff')
-    expect(field()).toBe('rgb(247, 247, 248)')
+    expect(field()).toBe('rgb(244, 244, 245)')
+    root.dataset.theme = 'dark'
+    expect(token('--paper')).toBe('#111316')
   })
 
   test('the canvas palette reads as the same plain colour in both looks', async () => {
@@ -175,8 +176,8 @@ describe('the editors in both looks', () => {
     root.dataset.theme = 'dark'
     const dark = await drawnAt(canvas, 1181)
     expect(painted(dark), 'a level drawn, not a blank read').toBeGreaterThan(1000)
-    expect(cabinetLight).toBe('#0e1014')
-    expect(token('--charcoal')).toBe('#0e1014')
+    expect(cabinetLight).toBe('#08090b')
+    expect(token('--charcoal')).toBe('#08090b')
     expect(dark.length).toBe(light.length)
     expect(differing(light, dark), 'pixels that differ between the looks').toBe(0)
   })
@@ -199,7 +200,7 @@ describe('the editors in both looks', () => {
         '[role="radiogroup"][aria-label="Editor colours"] [role="radio"]',
       ),
     ]
-    expect(options.map((option) => option.textContent?.trim())).toEqual(['Light', 'Dark', 'Match device'])
+    expect(options.map((option) => option.textContent?.trim())).toEqual(['Dark', 'Light', 'Match device'])
     for (const option of options) {
       expect(option.getBoundingClientRect().height, option.textContent ?? '').toBeGreaterThanOrEqual(
         targets.hit,

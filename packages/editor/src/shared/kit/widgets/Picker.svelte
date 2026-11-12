@@ -234,18 +234,18 @@ function onKey(event: KeyboardEvent): void {
     align-items: center;
     justify-content: space-between;
     gap: var(--space-3);
-    min-width: var(--size-hit);
-    min-height: var(--size-hit);
+    min-width: var(--size-field);
+    min-height: var(--size-field);
     padding: 0 var(--space-4);
     border: 1px solid var(--line-strong);
     border-radius: var(--edge-sm);
-    background: var(--paper);
+    background: var(--bg);
     color: var(--ink);
     font: var(--text-body-13);
     cursor: pointer;
   }
   .trigger:hover:not([aria-disabled='true']) {
-    background: var(--paper);
+    background: var(--bg);
   }
   .trigger[aria-disabled='true'] {
     opacity: 0.45;
@@ -269,12 +269,12 @@ function onKey(event: KeyboardEvent): void {
     min-width: min(16rem, 100%);
   }
   .search {
-    min-height: var(--size-hit);
+    min-height: var(--size-field);
     margin: var(--space-1);
     padding: 0 var(--space-3);
     border: 1px solid var(--line);
     border-radius: var(--edge-sm);
-    background: var(--paper);
+    background: var(--bg);
     color: var(--ink);
     font: var(--text-body-13);
   }
@@ -296,7 +296,7 @@ function onKey(event: KeyboardEvent): void {
     align-items: center;
     justify-content: space-between;
     gap: var(--space-4);
-    min-height: var(--size-hit);
+    min-height: var(--size-field);
     padding: 0 var(--space-3);
     border-radius: var(--edge-sm);
     font: var(--text-body-13);

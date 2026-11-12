@@ -67,7 +67,7 @@ function change(entry: KeyField, value: string | number): void {
         </p>
         <div class="actions">
           <Button variant="quiet" onclick={() => (session.shortening = undefined)}>Keep the length</Button>
-          <Button variant="primary" onclick={() => void session.confirmLength()}>Remove them</Button>
+          <Button onclick={() => void session.confirmLength()}>Remove them</Button>
         </div>
       </div>
     {/if}

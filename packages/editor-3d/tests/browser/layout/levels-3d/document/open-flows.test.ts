@@ -1,7 +1,7 @@
 import '@automata/editor/tokens.css'
 import '@automata/editor/fonts.css'
 import '#src/app/main.css'
-import { arrived, type EditorSize, SIZES } from '@automata/editor/kit/testing'
+import { arrived, type EditorSize, editorTargets, SIZES } from '@automata/editor/kit/testing'
 import { byTestId, checkLayout } from '@automata/framework/testing'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
@@ -103,7 +103,7 @@ describe.each(SIZES)('3D open flows at $name ($width x $height)', (size) => {
     const another = button(panel, 'Open another')
     expect(checkLayout(conditions, [copy, another])).toEqual([])
     expect(another.getBoundingClientRect().height, 'Open another is a primary action').toBeGreaterThanOrEqual(
-      48,
+      editorTargets().primary,
     )
     if (size.width >= 700) expect(panel.getBoundingClientRect().width, 'the wide dialog').toBeGreaterThan(600)
     // The dialog's body is the one scroll region; the problems are a labelled list inside it.
@@ -136,7 +136,7 @@ describe.each(SIZES)('3D open flows at $name ($width x $height)', (size) => {
     expectInside(recover, size)
     const restore = button(recover, 'Keep my changes')
     expect(checkLayout(conditions, [button(recover, 'Throw away'), restore])).toEqual([])
-    expect(restore.getBoundingClientRect().height).toBeGreaterThanOrEqual(48)
+    expect(restore.getBoundingClientRect().height).toBeGreaterThanOrEqual(editorTargets().primary)
     await page.screenshot({ path: `.vitest/shots/ed3d-recover-${size.name}.png` })
 
     restore.click()
@@ -150,7 +150,7 @@ describe.each(SIZES)('3D open flows at $name ($width x $height)', (size) => {
     expect(
       button(held, 'Save reformatted').getBoundingClientRect().height,
       'the primary action',
-    ).toBeGreaterThanOrEqual(48)
+    ).toBeGreaterThanOrEqual(editorTargets().primary)
     await page.screenshot({ path: `.vitest/shots/ed3d-held-save-${size.name}.png` })
   })
 
@@ -165,7 +165,9 @@ describe.each(SIZES)('3D open flows at $name ($width x $height)', (size) => {
     expectInside(conflict, size)
     const choices = ['Cancel', 'Use theirs', 'Use mine', 'Keep both'].map((name) => button(conflict, name))
     expect(checkLayout(conditions, choices)).toEqual([])
-    expect(button(conflict, 'Keep both').getBoundingClientRect().height).toBeGreaterThanOrEqual(48)
+    expect(button(conflict, 'Keep both').getBoundingClientRect().height).toBeGreaterThanOrEqual(
+      editorTargets().primary,
+    )
     await page.screenshot({ path: `.vitest/shots/ed3d-conflict-${size.name}.png` })
   })
 })

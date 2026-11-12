@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { pageFor } from '#src/features/editor/page-for.ts'
 
 // Which editor page a game gets (plan task 15.2): the game's own editor list decides, so there is no flag to remember.
-// A game that names a 3D editor gets the full page; every other game, or none with a list, gets the 2D page.
+// A game that names a 3D editor or a content editor (Feel, Audio, Writer, Sequence, Schematic) gets the full page, the one
+// with every editor; every other game, or none with a list, gets the 2D page.
 
 const list = (...editors: string[]): string =>
   `format = "af-editors/1"\n${editors
@@ -28,6 +29,19 @@ describe('pageFor', () => {
   it('gives the full page for either 3D editor alone', () => {
     expect(pageFor(list('levels-3d'))).toBe('suite-full')
     expect(pageFor(list('studio', 'tuner'))).toBe('suite-full')
+  })
+
+  it('gives the full page to a game that names a content editor, which only that page has', () => {
+    for (const editor of ['feel', 'audio', 'writer', 'sequence', 'schematic'])
+      expect(pageFor(list(editor, 'tuner')), editor).toBe('suite-full')
+  })
+
+  it('gives a new 2D game the full page: its list names Feel and Audio', () => {
+    const template = readFileSync(
+      new URL('../../../src/shared/create-game/template-content/editors.toml', import.meta.url),
+      'utf8',
+    )
+    expect(pageFor(template)).toBe('suite-full')
   })
 
   it('gives the 2D page to a game with no list, or one that does not load, which shows its problems there', () => {

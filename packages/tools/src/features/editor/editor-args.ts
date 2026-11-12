@@ -1,5 +1,6 @@
 // `automata editor [dir] [--app-dir <dir>] [--port <n>] [--lan] [--token <t>] [--game-url <url>]`: serve the editors
-// against a game checkout. The game's editor list picks the page (`page-for.ts`), so there is no flag for it.
+// against a game checkout, with Play and Publish. The game's editor list picks the page (`page-for.ts`), so there is no
+// flag for it.
 
 /** Said for `--app`, which used to pick the page. */
 export const APP_IS_GONE = 'This option is gone: automata editor picks the editors your game needs.'

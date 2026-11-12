@@ -200,6 +200,7 @@ describe('level scene: what it draws', () => {
                 color: '#ff0000',
                 label: 'Door',
                 tile: undefined,
+                clip: undefined,
               },
             ],
           },
@@ -211,6 +212,40 @@ describe('level scene: what it draws', () => {
     expect(colorAt(s.root, 20, 12)).not.toBe('#000000')
     expect(colorAt(s.root, 40, 12)).toBe('#000000')
     expect(colorAt(s.root, 16, 16)).toBe('#e0a54a')
+  })
+})
+
+describe('level scene: a character with an animation', () => {
+  it('shows the first frame of its first clip, cut from its picture, not a flat shape', () => {
+    const s = sceneOf()
+    s.update(
+      list([
+        {
+          kind: 'entities',
+          def: 'e',
+          opacity: 1,
+          locked: false,
+          entities: [
+            {
+              id: 'a',
+              def: 'd',
+              shape: 'ellipse',
+              x: 16,
+              y: 8,
+              w: 16,
+              h: 16,
+              pivot: { x: 24, y: 24 },
+              color: '#ff0000',
+              label: 'Coin',
+              tile: undefined,
+              // rgb.png is three 8 px cells; frame 2 is the blue one.
+              clip: { image: 'assets/rgb.png', cell: { w: 8, h: 8 }, index: 2 },
+            },
+          ],
+        },
+      ]),
+    )
+    expect(colorAt(s.root, 24, 16)).toBe('#0000ff')
   })
 })
 

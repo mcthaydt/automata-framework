@@ -52,11 +52,35 @@ describe('openServedWorkspace', () => {
 
   it("carries the game's dev page from the ping, and none for one that is not a web address", async () => {
     const served = page('', () =>
-      json({ automata: 'editor', token: false, gameUrl: 'http://localhost:5173/' }),
+      json({ automata: 'editor', token: false, gameUrl: 'http://192.168.1.20:5173/' }),
     )
-    expect((await openServedStore(served.env))?.gameUrl).toBe('http://localhost:5173/')
+    expect((await openServedStore(served.env))?.gameUrl).toBe('http://192.168.1.20:5173/')
     const odd = page('', () => json({ automata: 'editor', token: false, gameUrl: 'not an address' }))
     expect((await openServedStore(odd.env))?.gameUrl).toBeUndefined()
+  })
+
+  it('carries why the game cannot be played from the ping, when the server says it could not start it', async () => {
+    const off = page('', () =>
+      json({ automata: 'editor', token: false, playOff: 'Your game’s packages are not installed.' }),
+    )
+    const served = await openServedStore(off.env)
+    expect(served?.playOff).toBe('Your game’s packages are not installed.')
+    expect(served?.gameUrl).toBeUndefined()
+    expect((await openServedStore(page().env))?.playOff).toBeUndefined()
+  })
+
+  it("on a tablet, points the game's page at the computer the editor came from, not at the tablet's own localhost", async () => {
+    // `page()` is served from http://tablet.local:4173, an address on the network.
+    const served = page('', () =>
+      json({ automata: 'editor', token: true, gameUrl: 'http://localhost:51234/' }),
+    )
+    expect((await openServedStore(served.env))?.gameUrl).toBe('http://tablet.local:51234/')
+    const here = page('', () =>
+      json({ automata: 'editor', token: false, gameUrl: 'http://localhost:51234/' }),
+    )
+    expect((await openServedStore({ ...here.env, origin: 'http://127.0.0.1:4173' }))?.gameUrl).toBe(
+      'http://localhost:51234/',
+    )
   })
 
   it('is nothing when the origin is not an editor server (a plain page)', async () => {

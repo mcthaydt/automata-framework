@@ -12,6 +12,11 @@ export interface Size {
   readonly label: number
   /** A label's width; a box's when left out. A label is meant to fit in the gap between two columns. */
   readonly labelW?: number
+  /**
+   * Tall: the columns are rows, so the modes stack from the top down and a level's siblings sit side by side. It is what a
+   * narrow area wants, where a wide board would have to shrink until its words could not be read.
+   */
+  readonly tall?: boolean
 }
 
 export interface Box {
@@ -97,11 +102,55 @@ function columns(agent: AgentDef): string[][] {
   return result
 }
 
+/**
+ * Wide is worked out directly. Tall is worked out as a wide board whose boxes and labels are turned on their side and
+ * whose result is then turned back, so the modes, the arrows and what each links to are the same in both and only
+ * where they sit differs.
+ */
 export function layoutAgent(agent: AgentDef, size: Size): Diagram {
+  if (size.tall !== true) return layoutWide(agent, size)
+  const labelW = size.labelW ?? size.box.w
+  const turned = layoutWide(agent, {
+    box: { w: size.box.h, h: size.box.w },
+    // A level's gap holds a label's height now, and a sibling's gap its width.
+    gap: size.label + 40,
+    label: labelW,
+    labelW: size.label,
+    siblingGap: labelW + 40,
+  })
+  const rect = <T extends Rect>(r: T): T => ({ ...r, x: r.y, y: r.x, w: r.h, h: r.w })
+  const boxes = turned.boxes.map(rect)
+  const arrows = turned.arrows.map((arrow) => ({
+    ...arrow,
+    points: arrow.points.map(([x, y]) => [y, x] as const),
+    label: rect(arrow.label),
+  }))
+  // The wide board's first row leaves room above it for loops and lanes, which turned is room to the left; where nothing is
+  // drawn there (labels are beside the boxes, not before them) that room is a strip of empty width the narrow area could
+  // not spare. The board starts at its own left edge instead.
+  const left = Math.min(
+    ...boxes.map((box) => box.x),
+    ...arrows.map((arrow) => arrow.label.x),
+    ...arrows.flatMap((arrow) => arrow.points.map(([x]) => x)),
+  )
+  const shift = Number.isFinite(left) ? left : 0
+  return {
+    boxes: boxes.map((box) => ({ ...box, x: box.x - shift })),
+    arrows: arrows.map((arrow) => ({
+      ...arrow,
+      points: arrow.points.map(([x, y]) => [x - shift, y] as const),
+      label: { ...arrow.label, x: arrow.label.x - shift },
+    })),
+    width: turned.height - shift,
+    height: turned.width,
+  }
+}
+
+function layoutWide(agent: AgentDef, size: Size & { readonly siblingGap?: number }): Diagram {
   const { box: cell, gap, label } = size
   const labelW = size.labelW ?? cell.w
   // Rows are closer than columns: a label sits in the gap beside an arrow, and above a loop.
-  const rowGap = label + 40
+  const rowGap = size.siblingGap ?? label + 40
   const usesAny = agent.transitions.some((t) => t.from === ANY_MODE)
   const grid = columns(agent)
   if (usesAny) grid.unshift([ANY_MODE])

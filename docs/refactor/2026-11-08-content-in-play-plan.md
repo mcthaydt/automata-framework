@@ -710,3 +710,26 @@ The Owner's rule (2026-11-08): content made in the editors must be seen in play,
   `@automata/release` `turbo.test.ts` (reads `site/turbo.json`, which has `//` comments, with `JSON.parse`); `api-index` exits 1 for
   three exports with no doc comment (`STICK_DIRECTIONS`, `Picture` in `content/level-2d`, `PROMPT_COPY`).
   **Not run, pending:** WebKit and Firefox; the GPU runner's journeys; the Writer, Sequence and Schematic journey steps (#478).
+- **2026-11-08, build audit (Opus medium).** [`2026-11-08-content-in-play-build-audit.md`](2026-11-08-content-in-play-build-audit.md):
+  2 High, 5 Medium, 9 Low. A game made in the editors and played shows its tiles, wall, animated coin and new key; the 2D
+  story plays its dialogue, cutscene and guard. High: the editor's level does not draw an animation that the game does
+  (`pictureOf` lacks it); nobody can yet edit the story's words, caption or guard (#478). Next: Sonnet high fixes.
+- **2026-11-08, fixes for the build audit (Sonnet high, PR on #491).** H1: `pictureOf` returns a clip (first frame of the first
+  clip, with the still as fallback), and the editor's Levels canvas, `levelDrawList` and `pictureView` use it; a stroke-only box
+  shows over the frame. M1: `at = "actor:<name>"` anchors (`levelAnchors`) and a lint warning when a cutscene's first key says
+  the character starts elsewhere; the story's keeper uses it. M2: the cutscene fade draws on the scene's `overlay`, over live
+  entities. M3: `Suite.svelte` held its sessions in a `SvelteMap`, whose `has()` miss did not re-run, so the Tuner stayed empty
+  after work in Levels; it is `$state.raw` now (journey `tuner-after-levels`, red before). M4: `level2dLintFloor`, and the
+  story's tests run the cutscene and systems lints. M5: documented as one level (README, doc comment). M-controls: the story
+  has `content/controls.toml`, registered with `controlsKind()` in its Vite config, and a Tuner row in `editors.toml`.
+  Lows: L1 waiting colours, L2 clip frame past the picture, L3 only its own picture swaps a view, L4 number keys ignored
+  from another screen, L5 a speaker with no words has an empty name and a sentence, L6 pads read "Pad X", L7 a placed
+  animated character in the real engine, L8 README note on the hunting guard, L9 "Make one" after Controls.
+  **Rulings:** M5 is documentation, not multi-level support (`Places` gets no context for rooms). M4: the lints run through the
+  game's own tests, because core tools cannot import extensions. The 2D wall check uses margin 0. A speaker with no words shows
+  an empty name, never the id. **Ran, green:** the four served journeys (`story-in-play`, `controls-change-the-game`,
+  `animation-plays-in-game`, `paint-shows-in-game`) and `tuner-after-levels` on editor-ipad-chromium; unit and Chromium browser
+  suites for the changed packages. **Not run, pending:** WebKit, Firefox and the GPU runner; the Writer, Sequence and Schematic
+  steps.
+  **H2, named step for when #478 merges up:** point `wordsOf` at the line's own words, delete `content/words/en.json` except the
+  screen words, list the editors in `editors.toml`, and run the unchecked journey steps.

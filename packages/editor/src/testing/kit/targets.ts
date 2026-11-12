@@ -1,10 +1,11 @@
 import { type Targets, TOUCH_TARGETS } from '@automata/framework/testing'
 
 /**
- * With a mouse the editors are dense, as the approved mockup draws them: rows and controls 32 px, a primary too
- * (`tool-chrome.css`). Nothing an editor draws may be smaller.
+ * With a mouse the editors are dense, as the approved mockup draws them: rows, buttons and icon buttons are 32 px, and a
+ * field (a stepper, a picker, a colour, a text box) is 28 px (`--size-field`, `tool-chrome.css`); a primary is 32 too.
+ * Nothing an editor draws may be smaller than its smallest control, the field.
  */
-const MOUSE_TARGETS: Targets = { hit: 32, primary: 32 }
+const MOUSE_TARGETS: Targets = { hit: 28, primary: 32 }
 
 /**
  * The sizes an editor's controls are held to under the pointer this test runs with, by the same media queries

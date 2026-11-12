@@ -111,7 +111,7 @@ function show(path: string): void {
               <div class="actions">
                 <Button onclick={() => show(finding.path)}>Show</Button>
                 {#if canFix(finding)}
-                  <Button variant="primary" onclick={() => repair(finding)}>{fixLabel(finding)}</Button>
+                  <Button onclick={() => repair(finding)}>{fixLabel(finding)}</Button>
                 {/if}
               </div>
             </li>

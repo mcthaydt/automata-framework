@@ -184,7 +184,7 @@ describe('the Entities session: fields', () => {
     ])
     expect(history.revision).toBe(before)
     oneStep(history, 'Change field', () => session.setType('text', { anyway: true }))
-    expect(session.selection.field).toEqual({ id: 'hp', type: 'text', label: 'Hit points' })
+    expect(session.selection.field).toEqual({ id: 'hp', type: 'text', label: 'Hits to beat it' })
   })
 
   it('changes the type of a field nothing holds without asking', () => {

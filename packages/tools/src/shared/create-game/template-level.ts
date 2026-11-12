@@ -15,6 +15,7 @@ export const LEVEL_FILES: readonly TemplateFile[] = [
   entitiesOf,
   intGridRows,
 } from '@automata/content/level-2d'
+import type { Tuning } from '../../shared/tuning.ts'
 
 // Reads a level the 2D editor exported into what this game plays: its size, its walls and where the player starts.
 // Pure, so the sim can hold the result.
@@ -60,8 +61,14 @@ export function liveCharacters(project: ContentProject): readonly string[] {
   return ['player-start', 'area'].filter((id) => project.entities.some((def) => def.id === id))
 }
 
-/** The level a system finds in \`ctx.content\`: the app gives the sim \`LEVEL\` as its content (src/app/game.ts). */
-export const levelIn = (content: unknown): Level => content as Level
+/** What the sim reads as its content: the level, and the tunables a designer changes (src/shared/tuning.ts). */
+export interface PlayContent {
+  readonly level: Level
+  readonly tuning: Tuning
+}
+
+/** The content a system finds in \`ctx.content\`: the app gives the sim \`{ level, tuning }\` (src/app/game.ts). */
+export const playIn = (content: unknown): PlayContent => content as PlayContent
 `,
   },
   {
@@ -99,6 +106,7 @@ declare module 'virtual:automata/content' {
     readonly project?: unknown
     readonly world?: unknown
     readonly controls?: unknown
+    readonly tuning?: Readonly<Record<string, unknown>>
     readonly levels?: Readonly<Record<string, unknown>>
     readonly feel?: Readonly<Record<string, unknown>>
     readonly audio?: Readonly<Record<string, unknown>>
@@ -113,8 +121,8 @@ import { levelContentSchema, worldContentSchema } from '@automata/content/level-
 import { type Level, levelOf, startLevelId } from './read-level.ts'
 
 // The level this game plays: the first one content/world.toml places, which the 2D editor's Save writes into
-// content/levels/, compiled by the content plugin (vite.config.ts). Change it in the editor (\`pnpm exec automata editor\`),
-// then press Save.
+// content/levels/, compiled by the content plugin (vite.config.ts). Change it in the editor (\`pnpm editor\`), which
+// saves as you draw.
 
 const levels = Object.fromEntries(
   Object.entries(simContent.levels ?? {}).map(([id, level]) => [id, levelContentSchema.parse(level)]),
@@ -138,14 +146,18 @@ import { liveCharacters } from './read-level.ts'
 // What the game shows of the level: core draws the tiles, auto tiles, objects and placed characters the editor made,
 // from the same files the sim reads. Press Save in the editor and the game shows the change.
 
-/** The pictures Add tiles put in \`assets/\`, by the path the editor knows them by (\`assets/terrain.png\`). */
-const found: Record<string, string> = import.meta.glob('/assets/*.{png,webp,jpg,jpeg}', {
+/**
+ * The pictures Add tiles put in \`assets/\`, by the path the editor knows them by (\`assets/terrain.png\`). The glob is
+ * relative to this file: its keys are written into the build, and a root-absolute one (\`/assets/…\`) is a path itch.io
+ * and Ruken cannot serve, which Publish refuses.
+ */
+const found: Record<string, string> = import.meta.glob('../../../assets/*.{png,webp,jpg,jpeg}', {
   eager: true,
   query: '?url',
   import: 'default',
 })
 export const images: Readonly<Record<string, string>> = Object.fromEntries(
-  Object.entries(found).map(([path, url]) => [path.slice(1), url]),
+  Object.entries(found).map(([path, url]) => [path.replace(/^(\\.\\.\\/)+/, ''), url]),
 )
 
 /** The editor's project: the characters, tilesets and layers the levels are made from. */

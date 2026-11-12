@@ -32,4 +32,5 @@ export {
   type V3,
 } from '../shared/sim/cutscene.schema'
 export { locked, startCutscene } from '../shared/sim/cutscene.system'
+export { type AnchorOf, levelAnchors } from '../shared/sim/level-anchors'
 export { loadCutscenes } from '../shared/sim/load-cutscenes'

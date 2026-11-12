@@ -25,11 +25,12 @@ describe('fieldRow', () => {
 
     expect(fieldRow(hp as FieldDef, 3)).toEqual({
       id: 'hp',
-      label: 'Hit points',
+      label: 'Hits to beat it',
       type: 'int',
       value: 3,
       widget: 'stepper',
       bounds: { min: 1, max: 9, step: 1 },
+      hint: '1 to 9',
     })
     expect(fieldRow(patrol as FieldDef, [{ x: 1, y: 2 }])).toMatchObject({
       widget: 'points',

@@ -7,6 +7,7 @@ import { createHistory, type History } from '@automata/editor/kit/core'
 import { type ContentEdit, DocumentSyntaxError, openDocument } from '@automata/editor/kit/documents'
 import type { SuitePorts } from '@automata/editor/kit/ports'
 import type { z } from 'zod'
+import { listedWords } from './listed-words.ts'
 import { problemWords } from './problem-words.ts'
 
 export interface TomlState {
@@ -76,6 +77,11 @@ export interface TomlSessionOptions<T> {
   /** The text `create` writes: a comment that says what the file is for. */
   readonly empty: string
   /**
+   * The editor's id. Making the file first asks the suite to list the editor in the game's list of editors, and a
+   * refusal because no row lists the file is said in the editor's words.
+   */
+  readonly editor?: string | undefined
+  /**
    * Called with the step's label as each edit, accept or create is about to be written (not for Undo or Redo), so the
    * suite's record of the write can carry it. What it gives back is called if the write is refused.
    */
@@ -143,12 +149,14 @@ export async function openTomlSession<T>(options: TomlSessionOptions<T>): Promis
       mtime = undefined
       return OK
     }
-    const written = await workspace.write(
-      path,
-      to.text,
-      from.text === undefined || mtime === undefined ? 'absent' : { mtime },
-    )
-    if (!written.ok) return refused(written.message)
+    const known = from.text === undefined ? undefined : mtime
+    const starting = known === undefined
+    if (starting && options.editor !== undefined) {
+      const listed = await ports.list?.ensure(options.editor)
+      if (listed !== undefined && !listed.ok) return refused(listed.message)
+    }
+    const written = await workspace.write(path, to.text, known === undefined ? 'absent' : { mtime: known })
+    if (!written.ok) return refused(listedWords(options.editor, written.message, starting))
     mtime = written.mtime
     return OK
   }

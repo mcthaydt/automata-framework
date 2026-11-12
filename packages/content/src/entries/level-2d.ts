@@ -58,7 +58,12 @@ export {
   fieldValuesSchema,
 } from '../shared/level-2d/fields.schema.ts'
 export { type Level2dKindsOptions, level2dKinds } from '../shared/level-2d/level-2d-kinds.ts'
-export { type Picture, pictureOf } from '../shared/level-2d/picture-of.ts'
+export {
+  type ClipPicture,
+  type Picture,
+  pictureOf,
+  type StillPicture,
+} from '../shared/level-2d/picture-of.ts'
 export { entitiesOf, intGridRows } from '../shared/level-2d/read-level.ts'
 export {
   autoStacks,

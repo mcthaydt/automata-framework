@@ -36,13 +36,13 @@ export interface Checkout {
   write(full: string, path: string, body: Buffer, expected: string | null): Promise<WriteOutcome>
 }
 
-/** The checkout at `root` (a real path), read and written as `policy` allows. */
-export function openCheckout(root: string, policy: EditorPolicy): Checkout {
-  async function walk(dir: string, relative: string, out: ListedFile[]): Promise<void> {
+/** The checkout at `root` (a real path), read and written as the policy allows; asked again for each listing. */
+export function openCheckout(root: string, policyOf: () => Promise<EditorPolicy>): Checkout {
+  async function walk(dir: string, relative: string, out: ListedFile[], policy: EditorPolicy): Promise<void> {
     for (const entry of await readdir(dir, { withFileTypes: true }).catch(() => [])) {
       if (entry.isSymbolicLink() || OWNED.has(entry.name)) continue
       const path = relative === '' ? entry.name : `${relative}/${entry.name}`
-      if (entry.isDirectory()) await walk(join(dir, entry.name), path, out)
+      if (entry.isDirectory()) await walk(join(dir, entry.name), path, out, policy)
       else if (entry.isFile() && policy.canRead(path)) {
         // A file can go between being named and being read (the content build writes a temp file and renames it as
         // the editor lists), and a file that is gone is not listed. Failing the whole list would stop every save.
@@ -70,7 +70,7 @@ export function openCheckout(root: string, policy: EditorPolicy): Checkout {
 
     async list(prefix) {
       const entries: ListedFile[] = []
-      await walk(root, '', entries)
+      await walk(root, '', entries, await policyOf())
       return entries
         .filter((entry) => entry.path.startsWith(prefix))
         .sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0))

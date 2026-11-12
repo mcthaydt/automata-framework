@@ -13,7 +13,14 @@ import type {
   TilesetDef,
 } from '../../model/project-types'
 import { createCellChunks } from './cell-chunks'
-import type { EntityDraw, LayerDraw, LevelDrawInput, LevelDrawList, ObjectDraw } from './draw-list-types'
+import type {
+  ClipDraw,
+  EntityDraw,
+  LayerDraw,
+  LevelDrawInput,
+  LevelDrawList,
+  ObjectDraw,
+} from './draw-list-types'
 import { footprint, gridLines, linkChips, selectionBoxes } from './overlays'
 import { tileDraw } from './tile-draw'
 
@@ -49,14 +56,20 @@ function entitiesOf(
     const def = entityDefOf(project, item.def)
     if (def === undefined) return []
     const box = entityBounds(def, item)
-    // The editor and the game ask the same question: is this definition drawn as a tile?
+    // The editor and the game ask the same question (`pictureOf`): a clip's first frame, a tile, or a flat shape. The game
+    // plays the clip; the editor holds the first frame, and shows the still look until the picture is loaded.
     const picture = pictureOf(def)
+    const clip: ClipDraw | undefined =
+      picture.kind === 'clip' && images.has(picture.image)
+        ? { image: picture.image, cell: picture.cell, index: picture.index }
+        : undefined
+    const still = picture.kind === 'clip' ? picture.still : picture
     const tile =
-      picture.kind === 'tile'
+      clip === undefined && still.kind === 'tile'
         ? tileDraw(
-            tilesetOf(project, picture.tileset),
+            tilesetOf(project, still.tileset),
             images,
-            { tile: picture.index, flipX: false, flipY: false },
+            { tile: still.index, flipX: false, flipY: false },
             box,
           )
         : undefined
@@ -70,6 +83,7 @@ function entitiesOf(
         color: def.color,
         label: def.label ?? def.id,
         tile,
+        clip,
       },
     ]
   })

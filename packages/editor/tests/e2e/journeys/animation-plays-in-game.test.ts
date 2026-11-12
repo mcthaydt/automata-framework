@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { openFromRail, pressInList } from '../harness/complete-game.ts'
 import { EMBERWICK, expect, openRoom, test } from '../harness/fixtures.ts'
 import { newGame } from '../harness/new-game.ts'
 import { boxOf, readPng } from '../harness/read-png.ts'
@@ -25,8 +26,8 @@ test('a clip made in Characters plays in the game, frame after frame', async ({ 
   const editor = await runEditor(game.dir)
   try {
     await openRoom(page, editor, 'Start')
-    await page.getByRole('radio', { name: 'Characters' }).click()
-    await page.getByRole('radio', { name: /Player start/ }).click()
+    await openFromRail(page, 'Characters')
+    await pressInList(page, /Player start/, 'radio')
     const details = page.getByRole('button', { name: 'Details' })
     if ((await details.getAttribute('aria-expanded')) === 'false') await details.click()
 

@@ -1,6 +1,6 @@
 // feelStage plays the feel table on the Pixi stage: the shake moves the world, the flash and tint are drawn over the
 // playfield, and cues and rumbles go to the game's own ports. It never writes the sim.
-import type { PixiStage } from '@automata/framework'
+import type { PixiStage, StageCharacters } from '@automata/framework'
 import { fakeClock } from '@automata/framework/testing'
 import type { SimEvent, StepResult } from '@automata/sim'
 import { Container, Text } from 'pixi.js'
@@ -9,8 +9,19 @@ import { feelStage } from '#src/app/feel-stage.ts'
 import type { FeelFrame } from '#src/features/frame/feel.ts'
 import { content, slam } from '#src/testing/feel-table.ts'
 
+const noCharacters: StageCharacters = {
+  point: () => undefined,
+  squash: () => undefined,
+  rest: () => undefined,
+  hold: () => undefined,
+}
 const fakeStage = (): PixiStage =>
-  ({ world: new Container(), ui: new Container(), backdrop: new Container() }) as unknown as PixiStage
+  ({
+    world: new Container(),
+    ui: new Container(),
+    backdrop: new Container(),
+    characters: noCharacters,
+  }) as unknown as PixiStage
 
 const step = (tick: number, events: readonly SimEvent[]): StepResult =>
   ({ tick, events, render: {}, rejected: [] }) as unknown as StepResult
@@ -107,17 +118,39 @@ describe('feelStage', () => {
   })
 })
 
-// A stage with the one thing the renderer's consumer gives a view: the view of an entity, and a hold on it.
+// A stage with the one thing the renderer gives characters: its port. Feel never reaches for the 2D consumer, so a
+// stage that throws on it stands for a 3D renderer, whose characters are not the consumer's views.
 const withViews = (views: Record<number, Container>) => {
   const held: ReadonlySet<number>[] = []
+  const calls: string[] = []
+  const resting = new Map<number, { x: number; y: number }>()
+  const characters: StageCharacters = {
+    point: (ref) => (views[ref] === undefined ? undefined : { x: views[ref].x, y: views[ref].y }),
+    squash(ref, x, y) {
+      const view = views[ref]
+      if (view === undefined) return
+      const base = resting.get(ref) ?? { x: view.scale.x, y: view.scale.y }
+      resting.set(ref, base)
+      view.scale.set(base.x * x, base.y * y)
+      calls.push(`squash ${ref}`)
+    },
+    rest(ref) {
+      const base = resting.get(ref)
+      if (base === undefined) return
+      views[ref]?.scale.set(base.x, base.y)
+      resting.delete(ref)
+      calls.push(`rest ${ref}`)
+    },
+    hold: (refs) => void held.push(refs),
+  }
   const stage = {
     ...fakeStage(),
-    consumer: {
-      viewOf: (sid: number) => (views[sid] === undefined ? undefined : { container: views[sid] }),
-      hold: (sids: ReadonlySet<number>) => void held.push(sids),
+    characters,
+    get consumer(): never {
+      throw new Error('Feel reached for the 2D consumer')
     },
   } as unknown as PixiStage
-  return { stage, held }
+  return { stage, held, calls }
 }
 const frameInfo = { alpha: 0, frameMs: 16, paused: false }
 
@@ -167,6 +200,22 @@ describe('feelStage: squash', () => {
       hooks.draw?.(frameInfo)
     }
     expect([view.scale.x, view.scale.y]).toEqual([2, 3])
+  })
+
+  it('squashes while it springs, then rests the character once it is done', () => {
+    const { stage, calls } = withViews({ 7: new Container() })
+    const clock = fakeClock()
+    const hooks = feelStage({ content: () => content, clock })(stage)
+    hooks.apply?.(step(1, [slam(7)]))
+    hooks.draw?.(frameInfo)
+    for (let i = 0; i < 400; i += 1) {
+      clock.advance(16)
+      hooks.draw?.(frameInfo)
+    }
+    expect(calls[0]).toBe('squash 7')
+    // The spring passes through rest on its way (each time the character is put back), and ends there.
+    expect(calls).toContain('rest 7')
+    expect(calls.at(-1)).toBe('rest 7')
   })
 
   it('does nothing for a subject that has no view', () => {

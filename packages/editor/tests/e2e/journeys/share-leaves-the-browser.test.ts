@@ -4,8 +4,8 @@ import { expect, test } from '@playwright/test'
 import { type ServedFolder, serveFolder } from '../harness/serve-folder.ts'
 
 // Share in a real browser, where a level has no game folder to be saved into (the site's "Try the editor"): the
-// level leaves by Download, Copy or Share, and Share is the bar's one primary button, so a person who just made a level
-// sees at once how to keep it. The built suite is served as the site serves it, with no game behind it, so it opens its
+// level leaves by Download, Copy or Share; Share is a plain button (Publish is the one lime button), and it is
+// where a person who just made a level looks to keep it. The built suite is served as the site serves it, with no game behind it, so it opens its
 // sample game. Build first: `pnpm build`.
 
 const EDITOR = fileURLToPath(new URL('../../../dist/suite', import.meta.url))
@@ -25,10 +25,10 @@ async function newPlatformer(page: import('@playwright/test').Page): Promise<voi
   await expect(page.locator('[data-level-canvas]')).toHaveAttribute('data-state', 'drawn')
 }
 
-test('Share is the primary button, and Download hands over the level as a file', async ({ page }) => {
+test('Share is a plain button, and Download hands over the level as a file', async ({ page }) => {
   await newPlatformer(page)
   const share = page.getByRole('button', { name: 'Share' })
-  await expect(share).toHaveAttribute('data-kind', 'primary')
+  await expect(share).toHaveAttribute('data-kind', 'secondary')
 
   await share.click()
   const download = page.waitForEvent('download')
@@ -59,6 +59,8 @@ test('the level a visitor made is still there after a reload, kept in this brows
   await newPlatformer(page)
   await page.reload()
   const levels = page.getByRole('region', { name: 'Levels' })
-  await levels.getByRole('button', { name: 'Untitled platformer' }).click()
+  // The card names the level it holds and opens the editor on it.
+  await expect(levels).toContainText('Untitled platformer')
+  await levels.getByRole('button', { name: 'Levels' }).click()
   await expect(page.locator('[data-level-canvas]')).toHaveAttribute('data-state', 'drawn')
 })

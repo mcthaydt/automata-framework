@@ -848,6 +848,18 @@ describe('level editor: entities', () => {
     expect(editor.view.selected).toEqual(['only-in-two'])
   })
 
+  it('refresh returns to the first level when the one being edited is gone (an undone Add level)', () => {
+    const base = platformerTemplate.create(counterIds())
+    const history = createFakeHistory(extraLevel(base))
+    const editor = createLevelEditor({ history, ids: counterIds(100), level: 'level-2', layer: 'entities' })
+    const heard = vi.fn()
+    editor.subscribe(heard)
+    history.apply('Undo Add level', () => base)
+    editor.refresh()
+    expect(editor.view.level).toBe('level-1')
+    expect(heard).toHaveBeenCalledTimes(1)
+  })
+
   it('switching layer or level clears the selection', () => {
     const history = createFakeHistory(extraLevel(platformerTemplate.create(counterIds())))
     const editor = createLevelEditor({ history, ids: counterIds(100), level: 'level-1', layer: 'entities' })

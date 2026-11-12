@@ -53,6 +53,15 @@ export interface Levels2dOptions {
 
 export type Levels2dView = 'level' | 'tiles' | 'characters'
 
+/**
+ * Shows the view a rail entry names. Choosing Levels from Characters returns to the level; choosing it from Tiles
+ * leaves Tiles, so a trip away and back finds the view the person left.
+ */
+export function showLevels2dView(session: Levels2dSession, view: string): void {
+  if (view === 'characters') session.view.set('characters')
+  else if (get(session.view) === 'characters') session.view.set('level')
+}
+
 export type Levels2dState =
   | {
       readonly kind: 'open'
@@ -290,7 +299,11 @@ export async function openLevels2d(
     /** Writes `value`'s game files and then its project, with the versions this session last saw. */
     async function save(value: unknown): Promise<void> {
       const text = profile.print(base, value)
-      const exported = gameFiles(value, base)
+      // The game's files come from the project as the printed file reads: printing puts what has no order (tilesets,
+      // definitions) in its own order, and the files written from anything else would not match the project on disk,
+      // which `automata check` and Publish compare them with.
+      const printed = readDocument(createAppProfiles(), name, encoder.encode(text))
+      const exported = gameFiles(printed.status === 'parsed' ? printed.value : value, text)
       const forced = force
       force = false
       const result =

@@ -130,7 +130,7 @@ describe('Writer lines', () => {
 
   it('shows no key anywhere on the page', async () => {
     await open(SHOP)
-    await userEvent.click(screen.getByRole('button', { name: 'Shopkeeper' }))
+    await userEvent.click(screen.getByRole('button', { name: "Shopkeeper's talk" }))
     const shown = document.body.textContent ?? ''
     expect(shown).not.toMatch(/shop\.|[a-z]+_[a-z]+|\bnext\b|\bchoices\b|\bstance\b|\bwhen\b|\bkind\b/)
   })
@@ -139,7 +139,7 @@ describe('Writer lines', () => {
 describe('Writer conversations', () => {
   async function talk() {
     const opened = await open(SHOP)
-    await userEvent.click(screen.getByRole('button', { name: 'Shopkeeper' }))
+    await userEvent.click(screen.getByRole('button', { name: "Shopkeeper's talk" }))
     return opened
   }
 
@@ -230,7 +230,7 @@ describe('Writer conversations', () => {
       [LINES]: lines,
       [DIALOGUE]: `${dialogue}\n[graphs.nodes.lonely]\nsay = []\nnext = "goodbye"\n`,
     })
-    await userEvent.click(screen.getByRole('button', { name: 'Shopkeeper' }))
+    await userEvent.click(screen.getByRole('button', { name: "Shopkeeper's talk" }))
     const lonely = screen.getByRole('article', { name: 'Lonely' })
     expect(within(lonely).getByText('Nothing leads to Lonely, so no one can reach it.')).toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent('1 problem in the conversations.')

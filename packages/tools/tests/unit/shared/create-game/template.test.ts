@@ -15,7 +15,7 @@ const read = (path: string): string => readFileSync(join(dir, path), 'utf8')
 beforeAll(async () => {
   dir = mkdtempSync(join(tmpdir(), 'af-template-'))
   await Effect.runPromise(
-    createGame({ targetDir: join(dir, 'game'), id: 'square-game', title: 'Square Game' }),
+    createGame({ targetDir: join(dir, 'game'), id: 'square-game', title: 'Square Game', story: false }),
   )
   dir = join(dir, 'game')
   files = readdirSync(dir, { recursive: true, withFileTypes: true })
@@ -44,6 +44,7 @@ describe('the new game’s files', () => {
       'src/features/square/square.view.ts',
       'src/main.ts',
       'src/shared/constants.ts',
+      'src/shared/tuning.ts',
       'tests/unit/level/read-level.test.ts',
       'tests/unit/square/square-move.test.ts',
     ])
@@ -64,6 +65,7 @@ describe('the new game’s files', () => {
       'content/messages/pt-BR.json',
       'content/messages/zh-Hans.json',
       'content/project.toml',
+      'content/tuning.toml',
       'content/world.toml',
     ])
     const list = read('content/editors.toml')
@@ -78,6 +80,13 @@ describe('the new game’s files', () => {
       'automataContent({ schemas: [...level2dKinds(), controlsKind(), feelContent, audioContent] })',
     )
     expect(read('.gitignore').split('\n')).toContain('content/generated/')
+  })
+
+  it("plays the level and the tuning as the sim's content, and reads the speed from content/tuning.toml", () => {
+    expect(read('src/app/game.ts')).toContain('sim: PLAY')
+    expect(read('src/app/game.ts')).toContain('{ level: LEVEL, tuning: tuningOf(content) }')
+    expect(read('src/shared/constants.ts')).not.toContain('SPEED')
+    expect(read('src/features/square/move.system.ts')).toContain('tuning.SPEED')
   })
 
   it('has no src/sim folder and no files laid out by role', () => {
@@ -124,7 +133,7 @@ describe('the new game’s README', () => {
       'src/shared/constants.ts',
       'src/app/game.ts',
       'content/levels/start.af2d.json',
-      'automata editor',
+      'pnpm editor',
     ])
       expect(readme, where).toContain(where)
     expect(readme).toContain('pnpm test')
@@ -197,7 +206,12 @@ describe('the new game plays what Feel and Audio make', () => {
   it('has something to feel and hear at once: the square bumping into a wall', () => {
     expect(read('src/features/square/bumped.event.ts')).toContain("defineEvent('square.bumped'")
     expect(read('src/features/square/move.system.ts')).toContain('ctx.emit(Bumped')
+    // Feel finds the character to squash and the word's place from who the event says it is about.
+    expect(read('src/features/square/bumped.event.ts')).toContain('entity: z.number().int()')
+    expect(read('src/features/square/move.system.ts')).toContain('ctx.emit(Bumped, { entity: square.sid })')
     expect(read('content/feel/feel.toml')).toContain('on = "square.bumped"')
+    // The word shows over the one that bumped, which is what the event's `entity` is for.
+    expect(read('content/feel/feel.toml')).toContain('at = "subject"')
     expect(read('content/audio/audio.toml')).toContain('on = "square.bumped"')
   })
 
@@ -224,9 +238,18 @@ describe('the new game shows what the editor made', () => {
 
   it('reads its pictures from assets/, where Add tiles writes them, and leaves the player start to its own view', () => {
     const scene = read('src/features/level/level-scene.ts')
-    expect(scene).toContain("import.meta.glob('/assets/*.{png,webp,jpg,jpeg}'")
+    expect(scene).toContain("import.meta.glob('../../../assets/*.{png,webp,jpg,jpeg}'")
+    // The keys come back as "../../../assets/kit.png"; the editor knows the picture as "assets/kit.png".
+    expect(scene).toContain("path.replace(/^(\\.\\.\\/)+/, '')")
     expect(scene).toContain('live: liveCharacters(project)')
     expect(scene).toContain('start: START')
+  })
+
+  it('finds its pictures and music by paths relative to the source, so the built game names no root-absolute file', () => {
+    // A glob's keys are written into the build as they are; a key like "/assets/kit.png" is a root-absolute name of the
+    // game's own file, which itch.io and Ruken serve from a sub-folder, and Publish refuses the build for it.
+    for (const file of files.filter((name) => name.startsWith('src/')))
+      expect(read(file), file).not.toMatch(/import\.meta\.glob\(\s*['"]\//)
   })
 
   it('ships an Area definition, so a person can place and stretch areas in Levels', () => {

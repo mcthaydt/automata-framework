@@ -6,6 +6,7 @@ export {
   type EditorListProblem,
   loadEditorList,
 } from '../shared/editor-list/editor-list.ts'
+export { editorRows, ensureListed, listGrowsBy } from '../shared/editor-list/editor-rows.ts'
 export {
   type CheckRow,
   CONTENT_CHECK,

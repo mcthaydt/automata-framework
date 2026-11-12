@@ -23,9 +23,9 @@ function speakerOf(index: number): string {
   if (graph === undefined) return ''
   const same = session.graphs.filter((other) => other.speaker === graph.speaker)
   const place = same.indexOf(graph)
-  return same.length > 1
-    ? `${session.nameOf(graph.speaker)} (${String(place + 1)})`
-    : session.nameOf(graph.speaker)
+  // "'s talk" so the entry is not the scene's own name again ("Keeper" under "Keeper"): it is what that person says.
+  const talk = `${session.nameOf(graph.speaker)}'s talk`
+  return same.length > 1 ? `${talk} (${String(place + 1)})` : talk
 }
 </script>
 
@@ -74,7 +74,7 @@ function speakerOf(index: number): string {
       <input id="writer-scene" bind:value={name} />
       <div class="actions">
         <Button variant="quiet" onclick={() => (adding = false)}>Cancel</Button>
-        <Button variant="primary" disabled={name.trim() === ''} onclick={() => void addScene()}>Add</Button>
+        <Button disabled={name.trim() === ''} onclick={() => void addScene()}>Add</Button>
       </div>
     </form>
   {:else}

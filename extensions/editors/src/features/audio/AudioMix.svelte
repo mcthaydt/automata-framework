@@ -5,6 +5,7 @@
 <script lang="ts">
 import type { DuckRule } from '@automata/audio-synth'
 import { Button } from '@automata/editor/kit'
+import Check from '../../shared/ui/Check.svelte'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
 import { removeEdit } from './audio-model.ts'
 import type { AudioSession } from './audio-session.svelte.ts'
@@ -50,16 +51,13 @@ const content = $derived(session.content)
       <fieldset>
         <legend>These get quieter</legend>
         {#each duck.buses as bus (bus.bus)}
-          <label class="check">
-            <input
-              type="checkbox"
-              checked={bus.on}
-              disabled={bus.on && rule.duck.length <= 1}
-              onchange={(event) =>
-                void session.change(`Change what gets quieter`, duckBusEdits(duck.index, rule, bus.bus, event.currentTarget.checked))}
-            />
+          <Check
+            checked={bus.on}
+            disabled={bus.on && rule.duck.length <= 1}
+            onchange={(on) => void session.change(`Change what gets quieter`, duckBusEdits(duck.index, rule, bus.bus, on))}
+          >
             {bus.label}
-          </label>
+          </Check>
         {/each}
       </fieldset>
       <div class="actions">
@@ -72,7 +70,7 @@ const content = $derived(session.content)
     <p>Nothing gets quieter while another sound plays.</p>
   {/each}
   <div class="actions">
-    <Button variant="primary" onclick={() => void session.change('Add a duck', addDuckEdits(content))}>
+    <Button onclick={() => void session.change('Add a duck', addDuckEdits(content))}>
       Quiet something while a sound plays
     </Button>
   </div>
@@ -90,17 +88,5 @@ const content = $derived(session.content)
     padding: 0;
     color: var(--color-text-dim);
     font: var(--text-body-13);
-  }
-  .check {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    min-height: var(--size-hit);
-    color: var(--color-text-primary);
-    font: var(--text-body-13);
-  }
-  .check input {
-    width: 1.25rem;
-    height: 1.25rem;
   }
 </style>

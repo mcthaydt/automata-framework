@@ -1,5 +1,5 @@
 <!--
-  "Editor colours": Light, Dark or Match device. It sits at the foot of each Home, where every session starts and where
+  "Editor colours": Dark, Light or Match device. It sits at the foot of each Home, where every session starts and where
   it is never in the way of work. Choosing applies at once (no reload) and is remembered in this browser. The words are
   chosen for someone who has never heard of a theme: "Editor colours" says what changes and whose colours they are
   (a bare "Colours" would read as the game's), "Match device" says it does what the phone or computer does. The label
@@ -25,8 +25,8 @@ interface Props {
 const { storage = () => globalThis.localStorage, root }: Props = $props()
 
 const OPTIONS = [
-  { id: 'light', label: 'Light' },
   { id: 'dark', label: 'Dark' },
+  { id: 'light', label: 'Light' },
   { id: 'device', label: 'Match device' },
 ]
 

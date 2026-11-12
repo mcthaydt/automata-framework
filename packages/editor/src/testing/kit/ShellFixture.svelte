@@ -104,7 +104,12 @@ const scenes = ['floor 1', 'floor 2', 'floor 3', 'floor 4', 'floor 5', 'floor 6'
 
 {#snippet railBody({ orientation }: { orientation: 'vertical' | 'horizontal' })}
   {@render bug('rail')}
-  <div class="rail" data-testid="rail" data-orientation={orientation}>
+  <div
+    class="rail"
+    data-testid="rail"
+    data-orientation={orientation}
+    data-scroll-region={orientation === 'vertical' ? '' : undefined}
+  >
     {#each destinations as destination (destination)}
       <button type="button" data-testid={`rail-${destination}`}>{destination}</button>
     {/each}
@@ -196,14 +201,17 @@ const scenes = ['floor 1', 'floor 2', 'floor 3', 'floor 4', 'floor 5', 'floor 6'
     flex-direction: column;
     flex: 1;
     min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
   }
 
-  :global([data-region='rail'][data-presentation='tabbar']) .rail {
+  .rail[data-orientation='horizontal'] {
     flex-direction: row;
   }
 
   .rail button {
     flex: 1;
+    min-height: var(--size-hit);
     padding: 0;
     font: var(--text-eyebrow-11);
     letter-spacing: 0;

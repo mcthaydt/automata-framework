@@ -7,6 +7,7 @@ declare module 'virtual:automata/content' {
   export const simContent: { readonly levels?: Readonly<Record<string, unknown>> }
   export const content: {
     readonly project?: unknown
+    readonly controls?: unknown
     readonly levels?: Readonly<Record<string, unknown>>
     readonly lines?: Files
     readonly dialogue?: Files

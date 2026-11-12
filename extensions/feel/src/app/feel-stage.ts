@@ -104,36 +104,21 @@ export function feelStage(options: FeelStageOptions): (stage: PixiStage) => Pixi
         }
         used += 1
         text.text = options.translate?.(word.path ?? [], word.words) ?? word.words
-        const view = word.at === null ? undefined : stage.consumer?.viewOf(word.at)
-        const at =
-          view === undefined
-            ? { x: size.width / 2, y: size.height / 2 }
-            : stage.ui.toLocal(view.container.getGlobalPosition())
+        const subject = word.at === null ? undefined : stage.characters.point(word.at)
+        const at = subject ?? { x: size.width / 2, y: size.height / 2 }
         const rise = word.still ? 0 : word.age * WORD_RISE_PX_PER_SECOND
-        text.position.set(at.x, at.y - (view === undefined ? 0 : WORD_ABOVE_PX) - rise)
+        text.position.set(at.x, at.y - (subject === undefined ? 0 : WORD_ABOVE_PX) - rise)
         text.visible = true
       }
       for (let i = used; i < wordTexts.length; i += 1) (wordTexts[i] as Text).visible = false
     }
 
-    // The scales squashed views had before the spring touched them, so rest puts them back exactly.
-    const squashed = new Map<number, { readonly x: number; readonly y: number }>()
+    // The refs squashed on the last frame, so the ones the spring has settled are put back exactly once.
+    let squashed = new Set<number>()
     const showSquash = (frame: FeelFrame): void => {
-      for (const [ref, [sx, sy]] of frame.squash) {
-        const container = stage.consumer?.viewOf(ref)?.container
-        if (container === undefined) continue
-        let base = squashed.get(ref)
-        if (base === undefined) {
-          base = { x: container.scale.x, y: container.scale.y }
-          squashed.set(ref, base)
-        }
-        container.scale.set(base.x * sx, base.y * sy)
-      }
-      for (const [ref, base] of squashed) {
-        if (frame.squash.has(ref)) continue
-        stage.consumer?.viewOf(ref)?.container.scale.set(base.x, base.y)
-        squashed.delete(ref)
-      }
+      for (const [ref, [sx, sy]] of frame.squash) stage.characters.squash(ref, sx, sy)
+      for (const ref of squashed) if (!frame.squash.has(ref)) stage.characters.rest(ref)
+      squashed = new Set(frame.squash.keys())
     }
 
     // The shake moves the world through its pivot, which nothing else uses, so whoever places the world (the letterbox, a
@@ -154,7 +139,7 @@ export function feelStage(options: FeelStageOptions): (stage: PixiStage) => Pixi
         paint(tint, frame.tint)
         paint(flash, frame.flash)
         // A hit-stop holds the subject's pose; the picture catches up when it ends.
-        stage.consumer?.hold(new Set(frame.frozen))
+        stage.characters.hold(new Set(frame.frozen))
         showSquash(frame)
         showWords(frame.words)
         for (const cue of frame.cues) options.onCue?.(cue)
@@ -162,7 +147,8 @@ export function feelStage(options: FeelStageOptions): (stage: PixiStage) => Pixi
         options.onFrame?.(frame)
       },
       reset(): void {
-        stage.consumer?.hold(new Set())
+        stage.characters.hold(new Set())
+        for (const ref of squashed) stage.characters.rest(ref)
         squashed.clear()
         for (const text of wordTexts) text.visible = false
         shake([0, 0])

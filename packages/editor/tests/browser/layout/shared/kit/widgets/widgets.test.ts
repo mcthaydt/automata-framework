@@ -27,6 +27,8 @@ const SIZES: readonly Size[] = [
 
 /** The hit areas under this run's pointer (`editorTargets`). */
 const { hit: HIT, primary: PRIMARY } = editorTargets()
+/** An icon button is a square of the control size (`--size-hit`): 32 px with a mouse, 44 with touch. */
+const ICON = HIT === 28 ? 32 : HIT
 
 let mounted: MountedFixture | undefined
 afterEach(async () => {
@@ -119,7 +121,7 @@ describe.each(SIZES)('widgets at $name ($width x $height)', (size) => {
     expect(plain.getBoundingClientRect().height).toBeGreaterThanOrEqual(HIT - 0.5)
     expect(primary.getBoundingClientRect().height).toBeGreaterThanOrEqual(PRIMARY - 0.5)
     const box = icon.getBoundingClientRect()
-    expect([Math.round(box.width), Math.round(box.height)]).toEqual([HIT, HIT])
+    expect([Math.round(box.width), Math.round(box.height)]).toEqual([ICON, ICON])
     expect(icon.querySelector('svg')).not.toBeNull()
   })
 
@@ -152,15 +154,23 @@ describe.each(SIZES)('widgets at $name ($width x $height)', (size) => {
 })
 
 /** The focus colour, cobalt (`--focus`), as the browser computes it. */
-const COBALT = 'rgb(29, 39, 138)'
+/** The kit's focus ring colour in the look this run opens in (Dark), as the browser computes it. */
+function ringColor(): string {
+  const probe = document.body.appendChild(document.createElement('i'))
+  probe.style.outlineColor = 'var(--focus)'
+  const colour = getComputedStyle(probe).outlineColor
+  probe.remove()
+  return colour
+}
+const RING = ringColor()
 
-/** Whether the focused element shows the kit's ring: a 2 px cobalt outline. */
+/** Whether the focused element shows the kit's ring: a 2 px outline in the focus colour. */
 function hasRing(element: Element): boolean {
   const style = getComputedStyle(element)
   return (
     Number.parseFloat(style.outlineWidth) === 2 &&
     style.outlineStyle !== 'none' &&
-    style.outlineColor === COBALT
+    style.outlineColor === RING
   )
 }
 

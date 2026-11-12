@@ -1,0 +1,10 @@
+# Where the guard may walk, in metres: along the back of the room, between the two crates.
+edges = [ [ "west", "east" ] ]
+
+[nodes.west]
+x = -2.5
+z = 3.2
+
+[nodes.east]
+x = 2.5
+z = 3.2

@@ -29,6 +29,9 @@ const { home, sample, onopen, onread }: Props = $props()
   {/if}
   <Home
     title="What do you want to change?"
+    lede={sample
+      ? 'Pick a part of the sample to try.'
+      : "Pick a part of your game. Everything you change is saved in your game's folder."}
     {home}
     empty="This game has nothing to edit yet."
     {onopen}

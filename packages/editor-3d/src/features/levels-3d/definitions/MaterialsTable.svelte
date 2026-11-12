@@ -79,7 +79,7 @@ const material = (row: MaterialRow, change: { category?: string; wallOnly?: bool
     <input class="name" aria-label="New material id" placeholder="material id" bind:value={newId} />
     <input class="name" aria-label="New material category" placeholder="category" bind:value={newCategory} />
     <Button
-      variant="primary"
+      variant="secondary"
       onclick={() => {
         if (settle(onadd(newId.trim(), { category: newCategory.trim() }))) newId = ''
       }}

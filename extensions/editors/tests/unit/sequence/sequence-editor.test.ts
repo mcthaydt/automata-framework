@@ -10,6 +10,7 @@ import SequencePanel from '#src/features/sequence/SequencePanel.svelte'
 import SequenceStatus from '#src/features/sequence/SequenceStatus.svelte'
 import type { Clock } from '#src/features/sequence/sequence-session.svelte.ts'
 import { createSequence } from '#src/features/sequence/sequence-suite-editor.ts'
+import { ROOMS } from '../../fixtures/rooms-fixtures.ts'
 
 const PATH = 'content/cutscenes/opening.toml'
 
@@ -217,11 +218,50 @@ describe('Sequence length and playing', () => {
 })
 
 describe('Sequence in a 2D and a 3D game', () => {
-  it('shows a 3D-only row in a 2D game with a warning, and says why a 3D game has no walls', async () => {
+  it('shows a 3D-only row in a 2D game with a warning', async () => {
     const withLamp = `${cutscene}\n[[light]]\nt = 1\nlamp = "porch"\nlevel = 0.5\n`
     const two = await open({ ...GAME, [PATH]: withLamp, 'content/levels/hall.toml': 'x = 1' })
     expect(within(document.body).getByText('Lights')).toBeInTheDocument()
     expect(two.session.is2d).toBe(false)
-    expect(screen.getByText('Walls show for 2D levels only, for now.')).toBeInTheDocument()
+  })
+
+  it('reads a 3D game’s room: its walls under the plan, and its people, lamps, doors and props by name', async () => {
+    const room = JSON.stringify({
+      ...ROOMS,
+      sectors: [...ROOMS.sectors.slice(0, 1), { ...ROOMS.sectors[1], door: {} }],
+      cast: [{ id: 'keeper', who: 'keeper-figure', at: [2, 2] }],
+      lamps: [{ id: 'porch', kind: 'lantern', at: [1, 1, 2] }],
+      props: [{ id: 'crate-1', use: 'crate', at: [3, 3] }],
+    })
+    const { session } = await open({ ...GAME, 'content/levels/rooms.af-sector.json': room })
+    expect(screen.queryByText('Walls show for 2D levels only, for now.')).not.toBeInTheDocument()
+    expect(session.levels).toEqual([{ name: 'rooms', path: 'content/levels/rooms.af-sector.json' }])
+    await session.showOver('content/levels/rooms.af-sector.json')
+    expect(session.walls).toHaveLength(8)
+    expect(session.names.lamps).toContain('porch')
+    expect(session.names.doors).toContain('study')
+    expect(session.names.props).toContain('crate-1')
+    expect(session.names.actors).toContain('keeper')
+    expect(session.names.anchors).toContain('actor:keeper')
+  })
+
+  it('offers the room’s lamps in a picker instead of an id box', async () => {
+    const room = JSON.stringify({
+      ...ROOMS,
+      lamps: [
+        { id: 'porch', kind: 'lantern', at: [1, 1, 2] },
+        { id: 'cellar', kind: 'lantern', at: [5, 1, 2] },
+      ],
+    })
+    const withLamp = `${cutscene}\n[[light]]\nt = 1\nlamp = "porch"\nlevel = 0.5\n`
+    await open({ ...GAME, [PATH]: withLamp, 'content/levels/rooms.af-sector.json': room })
+    await userEvent.click(await screen.findByRole('button', { name: /^Lights?, 1 s/ }))
+    const picker = await screen.findByLabelText('Which lamp')
+    expect(picker.tagName).toBe('SELECT')
+    expect(
+      within(picker)
+        .getAllByRole('option')
+        .map((option) => option.textContent),
+    ).toContain('cellar')
   })
 })

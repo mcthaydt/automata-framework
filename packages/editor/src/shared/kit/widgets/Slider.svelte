@@ -171,7 +171,7 @@ $effect(() => {
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-1) var(--space-2);
-    min-height: var(--size-hit);
+    min-height: var(--size-field);
     color: var(--ink);
     font: var(--text-body-13);
   }
@@ -184,7 +184,7 @@ $effect(() => {
     position: relative;
     flex: 1 1 8rem;
     min-width: 0;
-    min-height: var(--size-hit);
+    min-height: var(--size-field);
     display: flex;
     align-items: center;
     cursor: pointer;

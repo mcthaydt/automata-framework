@@ -18,6 +18,7 @@ export const TEMPLATE_CONTENT_PATHS: readonly string[] = [
   'levels/start.af2d.json',
   'levels/start.toml',
   'project.toml',
+  'tuning.toml',
   'world.toml',
 ]
 

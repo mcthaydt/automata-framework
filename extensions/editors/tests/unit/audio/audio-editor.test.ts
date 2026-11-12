@@ -123,7 +123,7 @@ describe('Audio: a sound as a picture and its switches', () => {
         'voices = [{ hiss = [400, 1200], q = 1, length = 0.5, volume = 0.2 }]',
       ),
     })
-    const hiss = screen.getByRole('article', { name: 'Hiss' })
+    const hiss = screen.getByRole('region', { name: 'Hiss' })
     const high = within(hiss).getByLabelText('Highest pitch')
     await userEvent.clear(high)
     await userEvent.type(high, '1500{Enter}')
@@ -227,7 +227,7 @@ describe('Audio: Tap to hear, and Check the sounds', () => {
     await open({ [AUDIO_PATH]: FILE }, { check: async () => [] })
     await userEvent.click(screen.getByRole('button', { name: 'Check the sounds' }))
     expect(await screen.findByText('Checked: nothing to fix.')).toBeInTheDocument()
-    const tone = screen.getByRole('article', { name: 'Tone' })
+    const tone = screen.getByRole('region', { name: 'Tone' })
     const end = within(tone).getByLabelText('Ends at')
     await userEvent.clear(end)
     await userEvent.type(end, '990{Enter}')
@@ -340,7 +340,7 @@ describe('Audio', () => {
 
   it('changes a tone and keeps the file comment', async () => {
     const { ports } = await open({ [AUDIO_PATH]: FILE })
-    const tone = screen.getByRole('article', { name: 'Tone' })
+    const tone = screen.getByRole('region', { name: 'Tone' })
     const end = within(tone).getByLabelText('Ends at')
     await userEvent.clear(end)
     await userEvent.type(end, '990{Enter}')
@@ -373,6 +373,11 @@ describe('Audio', () => {
 
   it('offers to start an audio file when the game has none', async () => {
     const { ports } = await open({})
+    // The start page is an empty state: one heading, one line and one way forward.
+    const start = document.querySelector<HTMLElement>('[data-widget="empty-state"]')
+    expect(start).not.toBeNull()
+    expect(within(start as HTMLElement).getAllByRole('heading')).toHaveLength(1)
+    expect(within(start as HTMLElement).getAllByRole('button')).toHaveLength(1)
     await userEvent.click(screen.getByRole('button', { name: 'Start an audio file' }))
     await vi.waitFor(async () => expect(await text(ports)).toMatch(/^# The game's sounds/))
   })

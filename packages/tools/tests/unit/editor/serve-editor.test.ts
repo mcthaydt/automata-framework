@@ -190,6 +190,95 @@ describe('serveEditor', () => {
     ).toBe(403)
   })
 
+  describe('with a list that grows', () => {
+    const LIST = [
+      'format = "af-editors/1"',
+      '',
+      '[[file]]',
+      'glob = "levels/**/*.json"',
+      'editor = "levels-3d"',
+      'modes = ["edit"]',
+      'gates = []',
+      'checks = ["content"]',
+      '',
+    ].join('\n')
+    const FEEL = [
+      '[[file]]',
+      'glob = "content/feel/*.toml"',
+      'editor = "feel"',
+      'modes = ["edit"]',
+      'gates = []',
+      'checks = []',
+      '',
+    ].join('\n')
+    const REFUSED = "The editors can only add to this game's list of editors."
+    const put = (base: string, path: string, body: string) =>
+      api(base, `/api/file?path=${encodeURIComponent(path)}`, { method: 'PUT', body })
+
+    beforeEach(async () => {
+      await mkdir(join(root, 'content'), { recursive: true })
+      await writeFile(join(root, 'content/editors.toml'), LIST)
+    })
+
+    it('writes a list that only adds an editor’s own rows', async () => {
+      const { url } = await start()
+      const response = await put(url, 'content/editors.toml', `${LIST}\n${FEEL}`)
+      expect(response.status).toBe(200)
+      expect(await readFile(join(root, 'content/editors.toml'), 'utf8')).toContain('content/feel/*.toml')
+    })
+
+    it.each([
+      ['removes a row', () => 'format = "af-editors/1"\n'],
+      [
+        'adds a row for a file a person never reaches',
+        () => `${LIST}\n${FEEL.replace('content/feel/*.toml', 'vite.config.ts')}`,
+      ],
+      ['adds a check', () => `${LIST}\n${FEEL}\n[[check]]\nid = "x"\nrun = ["rm", "-rf", "."]\n`],
+    ])('refuses a list that %s', async (_name, body) => {
+      const { url } = await start()
+      const response = await put(url, 'content/editors.toml', body())
+      expect(response.status).toBe(403)
+      expect((await response.json()).message).toBe(REFUSED)
+      expect(await readFile(join(root, 'content/editors.toml'), 'utf8')).toBe(LIST)
+    })
+
+    it('writes a newly listed file without a restart, and the file list follows the new list', async () => {
+      const { url } = await start()
+      expect((await put(url, 'content/feel/feel.toml', 'x = 1')).status).toBe(403)
+      await put(url, 'content/editors.toml', `${LIST}\n${FEEL}`)
+      expect((await put(url, 'content/feel/feel.toml', 'x = 1')).status).toBe(200)
+      const listed = (await (await api(url, '/api/list?prefix=content%2F')).json()) as { path: string }[]
+      expect(listed.map((file) => file.path)).toContain('content/feel/feel.toml')
+    })
+
+    it('follows a hand edit of the list on disk, with no write through the server', async () => {
+      await writeFile(join(root, 'content/editors.toml'), `${LIST}\n${FEEL}`)
+      const { url } = await start()
+      expect((await put(url, 'content/feel/feel.toml', 'x = 1')).status).toBe(200)
+      // A person removes the row by hand while the editor runs: the file is no longer one it may write.
+      await writeFile(join(root, 'content/editors.toml'), LIST)
+      const later = new Date(Date.now() + 5000)
+      await utimes(join(root, 'content/editors.toml'), later, later)
+      const refused = await put(url, 'content/feel/feel.toml', 'x = 2')
+      expect(refused.status).toBe(403)
+      expect(await readFile(join(root, 'content/feel/feel.toml'), 'utf8')).toBe('x = 1')
+    })
+
+    it('never starts a list for a game with none', async () => {
+      await rm(join(root, 'content/editors.toml'))
+      const { url } = await start()
+      expect((await put(url, 'content/editors.toml', `${LIST}\n${FEEL}`)).status).toBe(403)
+    })
+
+    it('keeps a policy it was given fixed', async () => {
+      const { url } = await start({
+        policy: { canRead: () => true, canWrite: (path) => path === 'notes.txt' },
+      })
+      expect((await put(url, 'content/editors.toml', `${LIST}\n${FEEL}`)).status).toBe(403)
+      expect((await put(url, 'notes.txt', 'ok')).status).toBe(200)
+    })
+  })
+
   it('wants the token off the loopback, and the Host header of a loopback server to be a loopback name', async () => {
     const { url } = await start({ token: 'secret' })
     expect(await (await api(url, '/api/ping')).json()).toMatchObject({ automata: 'editor', token: true })
@@ -248,11 +337,24 @@ describe('serveEditor: Publish', () => {
     expect(await (await api(url, '/api/ping')).json()).toMatchObject({ publish: true })
   })
 
+  it('says in the ping why Play is off, and names no game page', async () => {
+    const { url } = await start({ playOff: 'Your game’s packages are not installed.' })
+    const ping = (await (await api(url, '/api/ping')).json()) as Record<string, unknown>
+    expect(ping.playOff).toBe('Your game’s packages are not installed.')
+    expect(ping).not.toHaveProperty('gameUrl')
+    const fine = await start()
+    expect(await (await api(fine.url, '/api/ping')).json()).not.toHaveProperty('playOff')
+  })
+
   it('publishes on a POST and then hands over the zip it made, as a download', async () => {
     const zip = join(root, 'my-game-0.1.0-itch.zip')
     await writeFile(zip, 'PK zip bytes')
     const { url } = await start({ publish: async () => ({ ok: true, file: zip }) })
-    expect(await (await api(url, '/api/publish/file')).status).toBe(404)
+    const early = await api(url, '/api/publish/file')
+    expect(early.status).toBe(404)
+    expect(await early.json()).toEqual({
+      message: 'Nothing has been built yet. Open Publish and press Build my game.',
+    })
     const done = await api(url, '/api/publish', { method: 'POST' })
     expect(done.status).toBe(200)
     expect(await done.json()).toEqual({ ok: true, name: 'my-game-0.1.0-itch.zip' })
@@ -288,6 +390,9 @@ describe('serveEditor: Publish', () => {
     await new Promise((resolveSoon) => setTimeout(resolveSoon, 50))
     const second = await api(url, '/api/publish', { method: 'POST' })
     expect(second.status).toBe(409)
+    expect(await second.json()).toEqual({
+      message: 'Your game is already being built. Wait for it to finish.',
+    })
     finish()
     expect((await first).status).toBe(200)
   })

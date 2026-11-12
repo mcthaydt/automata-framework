@@ -62,16 +62,14 @@ describe.each(SIZES)('Suite Levels 2D at $name ($width x $height)', (size) => {
     const { conditions } = opened
     const surface = inShell('[data-testid="level-surface"]')
     inView(surface, size)
-    // The levels are a picker in the suite's top bar, so there is no dock and no Dock toggle.
-    const picker = [...document.querySelectorAll<HTMLElement>('button')].find((button) =>
-      button.getAttribute('aria-label')?.startsWith('Level: '),
+    // The levels are the breadcrumb's document menu ("Levels / Level 1"), so there is no dock and no Dock toggle.
+    // On a phone it is the title, which opens the sheet that holds the levels.
+    const picker = document.querySelector<HTMLElement>(
+      'nav[aria-label="Where you are"] button[aria-haspopup], button.title',
     )
-    if (picker === undefined) throw new Error('no level picker')
+    if (picker === null) throw new Error('no level picker in the breadcrumb')
+    expect(picker.textContent).toContain('Level 1')
     expect(dockToggle()).toHaveLength(0)
-    // The picker is among the editing tools, which scroll sideways when the bar is short of room (until 12.7 redoes the
-    // suite's bar): scrolled to, it is wholly in view and a full-size target.
-    picker.scrollIntoView({ block: 'nearest', inline: 'nearest' })
-    await settleLayout()
     expect(checkLayout(conditions, [editorControl('Levels'), picker])).toEqual([])
     noPageScroll()
     await page.screenshot({ path: `.vitest/shots/suite-levels-2d-${size.name}.png` })

@@ -28,6 +28,8 @@ export interface DefinitionRow {
   readonly label: string | undefined
   readonly color: string | undefined
   readonly summary: string
+  /** A person in the game (tagged `character`), as against a thing a level holds: a coin, a door, an area. */
+  readonly character: boolean
 }
 
 export interface FieldListRow {
@@ -54,6 +56,9 @@ export interface DefinitionPreview {
   readonly instances: string
 }
 
+/** The tag that makes a definition a character, and so listed under Characters. */
+export const CHARACTER_TAG = 'character'
+
 const MAX_SCALE = 8
 
 /** Each shape in plain words (the grandma audit, 5.2); the saved file keeps the ids. */
@@ -73,6 +78,7 @@ export function definitionRows(project: Project): readonly DefinitionRow[] {
     color: def.color,
     // Only what a person placing it needs to know (the grandma audit, 5.2): no field count, shape or id.
     summary: def.single === true ? 'One per level' : '',
+    character: def.tags.includes(CHARACTER_TAG),
   }))
 }
 
@@ -135,7 +141,10 @@ export function resolveSelection(project: Project, selection: EntitiesSelection)
   const def =
     wanted === 'level'
       ? undefined
-      : (entities.find((candidate) => candidate.id === wanted?.entity) ?? entities[0])
+      : (entities.find((candidate) => candidate.id === wanted?.entity) ??
+        // Nothing chosen: the first character, as the list shows them first.
+        entities.find((candidate) => candidate.tags.includes(CHARACTER_TAG)) ??
+        entities[0])
   const owner: EntitiesOwner = def === undefined ? 'level' : { entity: def.id }
   const fields = def === undefined ? levelFields : def.fields
   const field = fields.find((candidate) => candidate.id === selection.field) ?? fields[0]

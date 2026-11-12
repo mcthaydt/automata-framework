@@ -1,7 +1,8 @@
 import { createDirector } from '@automata/cutscenes/director'
 import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
 import { describe, expect, it } from 'vitest'
-import { levelWalls, NO_WALLS_WORDS, planView, wallsOfLevel } from '#src/features/sequence/plan-view.ts'
+import { levelWalls, planView, wallsOfLevel, wallsOfSectors } from '#src/features/sequence/plan-view.ts'
+import { ROOMS } from '../../fixtures/rooms-fixtures.ts'
 
 const placed = {
   id: 'gate',
@@ -90,7 +91,36 @@ describe('walls of a level', () => {
     expect(await levelWalls(ports, 'content/levels/broken.toml')).toEqual([])
   })
 
-  it('says why a 3D game has no walls', () => {
-    expect(NO_WALLS_WORDS).toBe('Walls show for 2D levels only, for now.')
+  it('reads the walls of a 3D room from its file too', async () => {
+    const { ports } = await createMemoryPorts({
+      files: { 'content/levels/rooms.af-sector.json': JSON.stringify(ROOMS) },
+      classify: (path) => ({
+        path,
+        editor: 'levels-3d',
+        gates: [],
+        checks: [],
+        modes: ['edit'],
+        writable: true,
+      }),
+    })
+    expect(await levelWalls(ports, 'content/levels/rooms.af-sector.json')).toHaveLength(8)
+    expect(await levelWalls(ports, 'content/levels/none.af-sector.json')).toEqual([])
+  })
+})
+
+describe('wallsOfSectors', () => {
+  it('gives a wall for each pair of corners of each room, in metres, back to the first corner', () => {
+    const walls = wallsOfSectors(ROOMS as never)
+    expect(walls).toHaveLength(8)
+    expect(walls.slice(0, 4)).toEqual([
+      [0, 0, 4, 0],
+      [4, 0, 4, 4],
+      [4, 4, 0, 4],
+      [0, 4, 0, 0],
+    ])
+  })
+
+  it('has none for a level with no rooms', () => {
+    expect(wallsOfSectors({ format: 'af-sector/2', name: 'x', sectors: [] } as never)).toEqual([])
   })
 })

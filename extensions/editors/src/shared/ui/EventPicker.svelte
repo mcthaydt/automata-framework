@@ -52,11 +52,11 @@ const kinds = $derived(
       if (typed.trim() !== '') onpick(typed.trim())
     }}
   >
-    <label for={id}>Something else</label>
+    <label for={id}>Another event (its name in the code)</label>
     <input {id} bind:value={typed} />
     <div class="actions">
       <Button variant="quiet" onclick={oncancel}>Cancel</Button>
-      <Button variant="primary" disabled={typed.trim() === ''} onclick={() => onpick(typed.trim())}>{addLabel}</Button>
+      <Button disabled={typed.trim() === ''} onclick={() => onpick(typed.trim())}>{addLabel}</Button>
     </div>
   </form>
 </div>

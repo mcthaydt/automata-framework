@@ -1,4 +1,5 @@
 import { cutscenesExtension } from '@automata/cutscenes'
+import { levelAnchors } from '@automata/cutscenes/sim'
 import { level2dExtension } from '@automata/level-2d'
 import { level2dPlaces } from '@automata/level-2d/sim'
 import { narrativeExtension } from '@automata/narrative'
@@ -24,8 +25,11 @@ export const PLACES = level2dPlaces({
 })
 
 export const narrative = narrativeExtension({ places: PLACES, words: wordsOf, lines: lineOf })
+const ANCHORS = levelAnchors(startLevel, METRE)
 export const cutscenes = cutscenesExtension({
   places: PLACES,
+  // A scene may start a character where Levels places it (`at = "actor:keeper"`).
+  anchor: (_ctx, name) => ANCHORS(name),
   words: wordsOf,
   lines: lineOf,
   scripts: SCRIPTS,

@@ -1,6 +1,6 @@
 <!--
-  The foot of the editor: the last thing that happened, whatever the editor wants beside it (a cursor
-  position, a zoom), and where the project stands on saving. The message is a polite live region, so keep it for
+  The foot of the editor, in the faint mono the panel's numbers use (the shell hides it on a phone): the last thing that
+  happened, whatever the editor wants beside it (a cursor position, a zoom), and where the project stands on saving. The message is a polite live region, so keep it for
   what just happened, not for a readout that changes with the pointer; put that in `children`, which is not
   announced. The save pill is announced only when it goes wrong or the project cannot be saved here.
 -->
@@ -42,8 +42,8 @@ const LABELS: Readonly<Record<SaveState, string>> = {
     padding: 0 var(--space-3);
     border-top: 1px solid var(--line);
     background: var(--paper);
-    color: var(--muted);
-    font: var(--text-mono-11);
+    color: var(--tool-faint);
+    font: var(--text-mono-12);
   }
   .message {
     flex: 1 1 auto;
@@ -60,7 +60,7 @@ const LABELS: Readonly<Record<SaveState, string>> = {
     padding: 2px var(--space-2);
     border-radius: var(--edge-sm);
     background: var(--paper);
-    color: var(--muted);
+    color: inherit;
   }
   .save[data-save='saved'] {
     color: var(--ok);

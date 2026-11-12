@@ -21,7 +21,7 @@ test('a stored dark on a light device is dark in the very first frame, on the bu
   // The built 2D editor (`pnpm build`), served as the site's "Try the editor" is: its stylesheet is a `<link>` in the head,
   // which holds the first paint, so `color-scheme` is already dark when the first frame is drawn. (A dev server injects
   // the stylesheet from a script, so only the attribute is checked there, below.)
-  const dist = fileURLToPath(new URL('../../dist/2d', import.meta.url))
+  const dist = fileURLToPath(new URL('../../dist/suite', import.meta.url))
   test.skip(!existsSync(`${dist}/index.html`), 'run `pnpm build` first')
   const served = await serveFolder(dist)
   try {
@@ -61,13 +61,38 @@ test('on the dev page too, a stored dark on a light device is dark before anythi
   expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe(DARK)
 })
 
-test('in Match device the look follows the device, also while the page is open', async ({ page }) => {
-  await page.emulateMedia({ colorScheme: 'dark' })
+test('a person who has never chosen sees Dark, whatever the device says', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'light' })
   await page.goto('/design.html')
   await expect(page.locator('[data-board-ready]')).toBeVisible()
+  expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe('dark')
   expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe(DARK)
-  await page.emulateMedia({ colorScheme: 'light' })
+  expect(await page.getByRole('radio', { name: 'Dark' }).getAttribute('aria-checked')).toBe('true')
+})
+
+test('a stored light opens light even on a dark device', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'dark' })
+  await page.addInitScript(() => localStorage.setItem('automata-editor:theme', 'light'))
+  await page.goto('/design.html')
+  await expect(page.locator('[data-board-ready]')).toBeVisible()
   expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe(LIGHT)
+})
+
+test('Match device follows a light device, is remembered as "device", and survives a reload', async ({
+  page,
+}) => {
+  await page.emulateMedia({ colorScheme: 'light' })
+  await page.goto('/design.html')
+  await expect(page.locator('[data-board-ready]')).toBeVisible()
+  await page.getByRole('radio', { name: 'Match device' }).click()
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe(LIGHT)
+  expect(await page.evaluate(() => localStorage.getItem('automata-editor:theme'))).toBe('device')
+  await page.reload()
+  await expect(page.locator('[data-board-ready]')).toBeVisible()
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe(LIGHT)
+  // And the device can still change its mind while the page is open.
+  await page.emulateMedia({ colorScheme: 'dark' })
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe(DARK)
 })
 
 test('a forced choice wins over the device, and is remembered for the next visit', async ({ page }) => {
@@ -79,8 +104,6 @@ test('a forced choice wins over the device, and is remembered for the next visit
   await page.reload()
   await expect(page.locator('[data-board-ready]')).toBeVisible()
   expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe(LIGHT)
-  await page.getByRole('radio', { name: 'Match device' }).click()
-  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe(DARK)
 })
 
 test('the boot script is a file: the page has no inline script and no CSP-refused script', async ({

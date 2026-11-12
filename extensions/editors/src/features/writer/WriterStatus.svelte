@@ -1,5 +1,6 @@
 <!-- What is wrong in the chosen scene's files and conversations, counted in words. -->
 <script lang="ts">
+import NoPlayer from '../../shared/ui/NoPlayer.svelte'
 import ProblemCount from '../../shared/ui/ProblemCount.svelte'
 import { structureProblems } from './writer-problems.ts'
 import type { WriterSession } from './writer-session.svelte.ts'
@@ -15,6 +16,7 @@ const conversations = $derived(
 )
 </script>
 
+{#if !session.hasPlayer}<NoPlayer editor="writer" short />{/if}
 {#if lines !== undefined && dialogue !== undefined}
   {#if lines.kind === 'syntax' || lines.kind === 'invalid'}
     <ProblemCount read={lines} noun="lines file" />

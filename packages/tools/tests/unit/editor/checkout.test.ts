@@ -17,7 +17,7 @@ describe('the editor checkout', () => {
     rmSync(root, { recursive: true, force: true })
     rmSync(outside, { recursive: true, force: true })
   })
-  const checkout = () => openCheckout(root, editorPolicy(undefined))
+  const checkout = () => openCheckout(root, async () => editorPolicy(undefined))
 
   it('finds a path inside the checkout, even one that does not exist yet', async () => {
     expect(await checkout().locate('content/levels/a.af2d.json')).toBe(
@@ -70,13 +70,13 @@ describe('the editor checkout', () => {
     writeFileSync(join(root, 'content/a.af2d.json'), '{}')
     writeFileSync(join(root, 'content/b.af2d.json'), '{}')
     const policy = editorPolicy(undefined)
-    const vanishing = openCheckout(root, {
+    const vanishing = openCheckout(root, async () => ({
       ...policy,
       canRead(path) {
         if (path === 'content/a.af2d.json') rmSync(join(root, path))
         return policy.canRead(path)
       },
-    })
+    }))
     expect((await vanishing.list('content/')).map((file) => file.path)).toEqual(['content/b.af2d.json'])
   })
 })

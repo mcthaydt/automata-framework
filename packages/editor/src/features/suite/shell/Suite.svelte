@@ -3,34 +3,35 @@
   editor an entry opens. An entry that exactly one installed editor covers opens it: `open` runs once per entry for
   the app's life, so the editor's session (documents, history, selection, view state) outlives a switch,
   and its regions fill the shell's. Any other entry shows its cards. The shell stays mounted through every switch and
-  rotation; only what is inside its regions changes. Home is `SuiteHome`, Undo and Redo are `suite-history`, and what a refused write says is
+  rotation; only what is inside its regions changes. Home is `SuiteHome`, Publish on a game's own folder is
+  `PublishGameDialog`, Undo and Redo are `suite-history`, and what a refused write says is
   `core/write-messages` (split by responsibility in 12.7 and 12.5).
 -->
 <script lang="ts">
 import type { GeometryState } from '@automata/framework'
-import { SvelteMap } from 'svelte/reactivity'
 import type { WriteOutcome } from '../../../shared/editor-list/write-path'
 import type { GestureClock } from '../../../shared/kit/gestures/gesture-clock'
-import type { SuiteEditor } from '../../../shared/kit/ports/suite-editor'
+import type { EditorHeader, SuiteEditor } from '../../../shared/kit/ports/suite-editor'
 import type { CheckFinding, SuitePorts, WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
 import EditorShell from '../../../shared/kit/shell/EditorShell.svelte'
 import { defaultDockOpen, dockPlacementOf, shellModeAt } from '../../../shared/kit/shell/shell-mode'
 import type { GamePublish } from '../../../shared/kit/storage/publish-client'
 import Button from '../../../shared/kit/widgets/Button.svelte'
+import Dialog from '../../../shared/kit/widgets/Dialog.svelte'
 import IconButton from '../../../shared/kit/widgets/IconButton.svelte'
-import Menu from '../../../shared/kit/widgets/Menu.svelte'
 import ToastRegion from '../../../shared/kit/widgets/ToastRegion.svelte'
 import { createToasts } from '../../../shared/kit/widgets/toasts'
-import { type Pill, pillsToShow } from '../core/pills-model'
+import { checksPill, type Pill } from '../core/pills-model'
+import { problemCounts } from '../core/problem-counts'
 import { findingMessage, refusalMessage } from '../core/write-messages'
 import type { Suite } from './create-suite'
 import Home from './Home.svelte'
 import type { EditorCard, HomeState } from './home-model'
 import PublishGameDialog from './PublishGameDialog.svelte'
 import ReadOnlyFile from './ReadOnlyFile.svelte'
+import SuiteHeader from './SuiteHeader.svelte'
 import SuiteHome from './SuiteHome.svelte'
 import SuiteRail from './SuiteRail.svelte'
-import SuiteTopBar from './SuiteTopBar.svelte'
 import { suiteEntries } from './suite-entries'
 import { suiteHistory } from './suite-history.svelte'
 import { createSuiteSession } from './suite-session'
@@ -43,75 +44,105 @@ interface Props {
   sample: boolean
   /** The game's name in words, from the server; the title. */
   game?: string | undefined
-  /** Reads Home again (on each return to it); without it, Home stays as it was given. */
-  reread?: (() => Promise<HomeState>) | undefined
   /** The running game's page, from the server: Play opens it. */
   playUrl?: string | undefined
+  /** Why Play is off (the game could not start), from the server: Play says it when pressed. */
+  playOff?: string | undefined
   /** Builds the game into a zip to upload, on a game's own folder: Publish opens it. */
   publish?: GamePublish | undefined
+  /** Reads Home again (on each return to it); without it, Home stays as it was given. */
+  reread?: (() => Promise<HomeState>) | undefined
   /** What the toasts time out on; the page's clock unless a test holds one. */
   clock?: GestureClock | undefined
 }
 
-const { geometry, home: given, suite, ports, sample, game, reread, playUrl, publish, clock }: Props = $props()
+const {
+  geometry,
+  home: given,
+  suite,
+  ports,
+  sample,
+  game,
+  playUrl,
+  playOff,
+  publish,
+  reread,
+  clock,
+}: Props = $props()
 let latest = $state<HomeState>()
 const home = $derived(latest ?? given)
 
 let current = $state<string | undefined>()
 let reading = $state<WorkspaceFile | undefined>()
-// Publish on a game's own folder: the dialog that builds the zip.
-let publishingGame = $state(false)
 let panelOpen = $state(false)
 let inspectorOpen = $state(false)
 /** `undefined` follows the shell's default for the size. */
 let dockOpen = $state<boolean | undefined>()
-const sessions = new SvelteMap<string, unknown>()
+let sessions = $state.raw<Readonly<Record<string, unknown>>>({})
 const opening = new Set<string>()
 
 const mode = $derived(shellModeAt(geometry.current))
 // Where the dock is a sheet (below `wide`, or short), the top bar opens and closes it, as Panel and Details do theirs.
 const dockIsSheet = $derived(dockPlacementOf(mode, geometry.current.heightTier) !== 'inline')
 const dockShown = $derived(dockOpen ?? defaultDockOpen(mode, geometry.current.heightTier))
-// The rail: the editors this page registered.
-// and only the ones the game's editor list names; when the list did not load, every installed one (read only).
+// The rail: every editor this page registered, less those for a kind the game is not. The list says which kind(s) the
+// game is; an editor it does not name still shows and opens on its start page.
 const entries = $derived(
   suiteEntries(suite.editors, home.kind === 'cards' ? home.cards.map((card) => card.editor) : undefined),
 )
 const entry = $derived(entries.find((candidate) => candidate.id === current))
-// A phone held sideways has no height to spare for a tab bar: the editors fold into a menu in the top bar, so the stage
-// keeps the height (V4).
-const folded = $derived(mode === 'compact' && geometry.current.heightTier === 'short')
-const editorMenu = $derived(
-  entries.map((candidate) => ({
-    id: candidate.id,
-    label: candidate.label,
-    ...(candidate.id === current ? { detail: 'Open now' } : {}),
-  })),
-)
+const gameName = $derived(sample ? 'Sample game' : (game ?? 'Your game'))
 
-// The installed editor the chosen entry opens: only when exactly one of its editors is both named and installed.
+// The installed editor the chosen entry opens: the card whose entry it is. An editor with two entries has two cards,
+// which open the same editor (and its one session) at different views.
 const target = $derived.by((): { editor: SuiteEditor<unknown>; card: EditorCard } | undefined => {
   if (entry === undefined || home.kind !== 'cards') return undefined
-  const installed = home.cards.filter((card) => card.installed && entry.editors.includes(card.editor))
-  const card = installed.length === 1 ? installed[0] : undefined
+  const card = home.cards.find((candidate) => candidate.installed && candidate.entry === entry.id)
   const editor = card === undefined ? undefined : suite.editor(card.editor)
   return card === undefined || editor === undefined ? undefined : { editor, card }
 })
 const mounted = $derived(
-  target !== undefined && reading === undefined && sessions.has(target.editor.id)
-    ? { editor: target.editor, session: sessions.get(target.editor.id) }
+  target !== undefined && reading === undefined && target.editor.id in sessions
+    ? { editor: target.editor, session: sessions[target.editor.id] }
     : undefined,
+)
+
+/** Whether the open editor has a panel, details or dock to toggle where the window has no room to show them. */
+const hasToggles = $derived(
+  mounted !== undefined &&
+    ((mounted.editor.regions.panel !== undefined && mode !== 'wide') ||
+      (mounted.editor.regions.inspector !== undefined && mode !== 'wide') ||
+      (mounted.editor.regions.dock !== undefined && dockIsSheet)),
 )
 
 $effect(() => {
   if (target === undefined) return
   const { editor, card } = target
-  if (sessions.has(editor.id) || opening.has(editor.id)) return
+  if (editor.id in sessions || opening.has(editor.id)) return
   opening.add(editor.id)
+  const asked = entry?.view
   void editor.open(card.files, editing.portsFor(editor.id)).then(
-    (session) => sessions.set(editor.id, session),
+    (session) => {
+      // The view of the entry now chosen if it is still this editor's, else the one that asked: the right view draws
+      // first, and an effect would paint the old one for a frame.
+      const now = entries.find((candidate) => candidate.id === current)
+      showView(editor, session, now?.editors[0] === editor.id ? now.view : asked)
+      sessions = { ...sessions, [editor.id]: session }
+    },
     () => opening.delete(editor.id),
   )
+})
+
+// The open editor's breadcrumb ("Levels / Start ▾", its views): a store that follows the document and the view.
+let editorHeader = $state<EditorHeader | undefined>()
+$effect(() => {
+  const open = mounted
+  const store = open?.editor.header?.(open.session)
+  if (store === undefined) {
+    editorHeader = undefined
+    return
+  }
+  return store.subscribe((header) => (editorHeader = header))
 })
 
 // Editing (flows 3 to 8): every editor is opened with ports whose writes take the suite's write path; the pills and
@@ -121,13 +152,17 @@ const editing = $derived(createSuiteSession(ports))
 // svelte-ignore state_referenced_locally
 const toasts = createToasts({ clock })
 let pills = $state<readonly Pill[]>([])
-// Icons with counts in the `short` tier and on a phone, where full labels leave no room; never hidden.
-const compact = $derived(geometry.current.heightTier === 'short' || mode === 'compact')
+const checks = $derived(pills[0] ?? checksPill({ running: false, checks: [] }))
+let findings = $state<readonly CheckFinding[]>([])
+const counts = $derived(problemCounts(findings, home.kind === 'cards' ? home.cards : []))
+// The problem count keeps its number and drops its word under 900 px; the header never hides it.
+const short = $derived(geometry.current.layout.width < 900)
 
 $effect(() => {
   const session = editing
   const read = () => {
     pills = session.pills()
+    findings = session.reports().flatMap((report) => report.findings)
   }
   const stop = session.subscribe(read)
   read()
@@ -150,6 +185,10 @@ function refused(outcome: WriteOutcome | undefined): void {
   if (message !== undefined) toasts.push({ kind: 'error', message })
 }
 
+// Publish on a game's own folder builds the zip to upload; Play that is off says why.
+let publishingGame = $state(false)
+let playOffOpen = $state(false)
+
 function locate(finding: CheckFinding): void {
   toasts.push({ kind: 'info', message: findingMessage(finding) })
 }
@@ -166,9 +205,16 @@ function shortcuts(event: KeyboardEvent): void {
   }
 }
 
+function showView(editor: SuiteEditor<unknown>, session: unknown, view: string | undefined): void {
+  if (view !== undefined) editor.showView?.(session, view)
+}
+
 function choose(id: string | undefined): void {
   // Opened sessions are kept whatever Home now lists; only the cards change.
   void reread?.().then((read) => (latest = read))
+  const chosen = entries.find((candidate) => candidate.id === id)
+  const kept = chosen === undefined ? undefined : suite.editor(chosen.editors[0] ?? '')
+  if (kept !== undefined && kept.id in sessions) showView(kept, sessions[kept.id], chosen?.view)
   current = id
   reading = undefined
   panelOpen = false
@@ -190,47 +236,32 @@ function openCard(card: EditorCard): void {
   inspector={mounted?.editor.regions.inspector ? inspector : undefined}
   dock={mounted?.editor.regions.dock ? dock : undefined}
   status={mounted?.editor.regions.status ? status : undefined}
-  rail={folded ? undefined : tabs}
+  rail={tabs}
   testId="suite-shell"
 >
   {#snippet sheets()}<ToastRegion {toasts} />{/snippet}
   {#snippet topbar()}
-    <IconButton
-      icon="home"
-      label="Home"
-      aria-current={current === undefined && reading === undefined ? 'page' : undefined}
-      onclick={() => choose(undefined)}
-    />
-    <!-- The game's name is the title; the sample says it is one in a banner over Home instead (12.7, Step G). -->
-    <SuiteTopBar
-      title={sample ? 'Sample game' : (game ?? 'Your game')}
-      saved={!sample && !compact}
-      pills={pillsToShow(pills)}
-      {compact}
+    <SuiteHeader
+      {mode}
+      {short}
+      game={gameName}
+      editor={entry === undefined ? undefined : { label: entry.label, icon: entry.icon }}
+      header={editorHeader}
+      {checks}
       onlocate={locate}
+      save={sample ? undefined : 'saved'}
       history={undoHook !== undefined || history.canUndo || history.canRedo ? history : undefined}
       onundo={history.undo}
       onredo={history.redo}
       {playUrl}
-      onpublish={publish === undefined ? undefined : () => (publishingGame = true)}
-      shippable={publish !== undefined}
+      {playOff}
+      onplayoff={() => (playOffOpen = true)}
+      onpublish={publish !== undefined ? () => (publishingGame = true) : undefined}
+      onhome={() => choose(undefined)}
+      atHome={current === undefined && reading === undefined}
       tools={mounted?.editor.regions.tools ? editorTools : undefined}
+      toggles={hasToggles ? toggles : undefined}
     />
-    {#if folded}<Menu label="Editors" items={editorMenu} onselect={choose} />{/if}
-    {#if mounted?.editor.regions.panel && mode !== 'wide'}
-      <IconButton icon="list" label="Panel" aria-expanded={panelOpen} onclick={() => (panelOpen = !panelOpen)} />
-    {/if}
-    {#if mounted?.editor.regions.inspector && mode !== 'wide'}
-      <IconButton
-        icon="inspector"
-        label="Details"
-        aria-expanded={inspectorOpen}
-        onclick={() => (inspectorOpen = !inspectorOpen)}
-      />
-    {/if}
-    {#if mounted?.editor.regions.dock && dockIsSheet}
-      <Button aria-expanded={dockShown} onclick={() => (dockOpen = !dockShown)}>Dock</Button>
-    {/if}
   {/snippet}
 
   {#snippet canvas()}
@@ -239,14 +270,14 @@ function openCard(card: EditorCard): void {
         <ReadOnlyFile file={reading} workspace={ports.workspace} onback={() => (reading = undefined)} />
       </div>
     {:else if mounted}
-      {@render mounted.editor.regions.canvas(mounted.session)}
+      {@render mounted.editor.regions.canvas(mounted.session, { mode })}
     {:else if entry === undefined}
       <SuiteHome {home} {sample} onopen={openCard} onread={(file) => (reading = file)} />
     {:else}
       <Home
         title={entry.label}
         {home}
-        editors={entry.editors}
+        entry={entry.id}
         empty={`Nothing to edit in ${entry.label} yet.`}
         onopen={openCard}
         onread={(file) => (reading = file)}
@@ -257,9 +288,42 @@ function openCard(card: EditorCard): void {
 
 <svelte:window onkeydown={shortcuts} />
 
+<Dialog open={playOffOpen} title="Play is off" width="wide" onclose={() => (playOffOpen = false)}>
+  {#each (playOff ?? '').split('\n') as line, index (index)}
+    {#if index === 0}<p>{line}</p>{:else}<pre>{line}</pre>{/if}
+  {/each}
+  {#snippet actions()}<Button variant="primary" onclick={() => (playOffOpen = false)}>Close</Button>{/snippet}
+</Dialog>
 {#if publish !== undefined}<PublishGameDialog {publish} bind:open={publishingGame} />{/if}
 
-{#snippet tabs({ orientation }: { orientation: 'vertical' | 'horizontal' })}<SuiteRail {entries} {current} {orientation} onselect={choose} />{/snippet}
+{#snippet tabs({ presentation, standing }: { presentation: 'sidebar' | 'rail' | 'tabbar'; standing: boolean })}
+  <SuiteRail
+    {entries}
+    {current}
+    {presentation}
+    {standing}
+    game={{ name: gameName, letter: gameName.trim().charAt(0) || 'G' }}
+    {counts}
+    onselect={choose}
+    onhome={() => choose(undefined)}
+  />
+{/snippet}
+{#snippet toggles()}
+  {#if mounted?.editor.regions.panel && mode !== 'wide'}
+    <IconButton icon="list" label="Panel" aria-expanded={panelOpen} onclick={() => (panelOpen = !panelOpen)} />
+  {/if}
+  {#if mounted?.editor.regions.inspector && mode !== 'wide'}
+    <IconButton
+      icon="inspector"
+      label="Details"
+      aria-expanded={inspectorOpen}
+      onclick={() => (inspectorOpen = !inspectorOpen)}
+    />
+  {/if}
+  {#if mounted?.editor.regions.dock && dockIsSheet}
+    <Button aria-expanded={dockShown} onclick={() => (dockOpen = !dockShown)}>Dock</Button>
+  {/if}
+{/snippet}
 {#snippet editorTools()}{#if mounted?.editor.regions.tools}{@render mounted.editor.regions.tools(mounted.session)}{/if}{/snippet}
 {#snippet panel()}{#if mounted?.editor.regions.panel}{@render mounted.editor.regions.panel(mounted.session)}{/if}{/snippet}
 {#snippet inspector()}{#if mounted?.editor.regions.inspector}{@render mounted.editor.regions.inspector(mounted.session)}{/if}{/snippet}
@@ -272,5 +336,18 @@ function openCard(card: EditorCard): void {
     height: 100%;
     padding: var(--space-5);
     background: var(--color-bg-app);
+  }
+  /* The "Play is off" dialog: a sentence, then (when the game printed something) what it printed. */
+  pre {
+    max-height: 12rem;
+    margin: var(--space-2) 0 0;
+    overflow: auto;
+    padding: var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--edge-sm);
+    background: var(--color-bg-field);
+    font: var(--text-mono-12);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
   }
 </style>

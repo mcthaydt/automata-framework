@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
-import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
+import { EDITOR_LIST_PATH, ensureListed } from '@automata/editor/editor-list'
+import type { SuitePorts } from '@automata/editor/kit/ports'
 import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
+import { samplePorts } from '@automata/editor/suite'
 import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -14,18 +16,20 @@ const HALL = CONTENT_SAMPLE_GAME['content/systems/hall.toml'] as string
 const NAV = CONTENT_SAMPLE_GAME['content/nav/hall.toml'] as string
 const LIST = CONTENT_SAMPLE_GAME[EDITOR_LIST_PATH] as string
 
-async function open(files: Record<string, string>) {
-  const { ports } = await createMemoryPorts({
-    files,
-    classify: (path) => ({
-      path,
-      editor: 'schematic',
-      gates: [],
-      checks: [],
-      modes: ['edit'],
-      writable: true,
-    }),
-  })
+async function open(files: Record<string, string>, given?: SuitePorts) {
+  const { ports } = given
+    ? { ports: given }
+    : await createMemoryPorts({
+        files,
+        classify: (path) => ({
+          path,
+          editor: 'schematic',
+          gates: [],
+          checks: [],
+          modes: ['edit'],
+          writable: true,
+        }),
+      })
   const listed = await ports.workspace.files('schematic')
   const session = await createSchematic().open(listed, ports)
   render(SchematicPanel, { props: { session } })
@@ -122,32 +126,29 @@ describe('Schematic', () => {
     expect(session.def?.agents[0]?.id).toBe('character')
   })
 
-  it('shows the rows to add when the list of editors does not name the files', async () => {
-    const bare = LIST.split('[[file]]').slice(0, 2).join('[[file]]')
-    await open({ [EDITOR_LIST_PATH]: bare })
-    expect(screen.getByLabelText('What to add to your list of editors').textContent).toContain(
-      'content/systems/*.toml',
-    )
-    expect(screen.getByLabelText('What to add to your list of editors').textContent).toContain(
-      'content/nav/*.toml',
-    )
-    expect(
-      screen
-        .getAllByRole('button', { name: 'Add a character' })
-        .every((b) => (b as HTMLButtonElement).disabled),
-    ).toBe(true)
+  it("adds Schematic's rows to the game's list on the first Add, with no TOML to copy", async () => {
+    const bare =
+      'format = "af-editors/1"\n[[file]]\nglob = "content/rooms/*.af2d.json"\neditor = "levels-2d"\nmodes = ["edit"]\nexports = "content"\ngates = []\nchecks = ["content"]\n'
+    const base = await samplePorts({ [EDITOR_LIST_PATH]: bare })
+    const ports: SuitePorts = { ...base, list: { ensure: (id) => ensureListed(base.workspace, id) } }
+    const { session } = await open({}, ports)
+    expect(document.body.textContent).not.toContain('content/systems/*.toml')
+    for (const button of screen.getAllByRole('button', { name: 'Add a character' }))
+      expect((button as HTMLButtonElement).disabled).toBe(false)
+    expect((await session.addCharacter()).ok).toBe(true)
+    const list = (await ports.workspace.read(EDITOR_LIST_PATH))?.text ?? ''
+    for (const glob of ['content/systems/*.toml', 'content/nav/*.toml', 'content/puzzles/*.toml'])
+      expect(list).toContain(glob)
+    expect((await ports.workspace.files('schematic')).map((file) => file.path)).toEqual([
+      'content/systems/main.toml',
+    ])
   })
 
-  it('says what to add when the game does not use the systems extension', async () => {
+  it('says the game cannot play characters yet, and still lets a person make them', async () => {
     await open({ 'package.json': JSON.stringify({ dependencies: { '@automata/feel': '1.0.0' } }) })
-    expect(
-      screen.getByRole('heading', { name: 'This game does not use characters that think yet.' }),
-    ).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'How to add it' })).toHaveAttribute(
-      'href',
-      expect.stringContaining('extensions/systems/README.md'),
-    )
-    expect(screen.queryByRole('button', { name: 'Add a character' })).toBeNull()
+    expect(screen.getAllByText("Your game can't move characters that think yet.").length).toBeGreaterThan(0)
+    expect(screen.queryByRole('link', { name: 'How to add it' })).toBeNull()
+    expect(screen.getAllByRole('button', { name: 'Add a character' }).length).toBeGreaterThan(0)
   })
 
   it('says a file with a mistake is read only', async () => {

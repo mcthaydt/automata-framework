@@ -5,6 +5,7 @@ import { type AudioContent, audioSchema } from '@automata/audio-synth'
 import { defineSuiteEditor, type SuiteEditor } from '@automata/editor/kit/ports'
 import type { AudioPlay } from '../../shared/audio-play.ts'
 import { gameEvents } from '../../shared/game-events.ts'
+import { gameHasPlayer } from '../../shared/game-player.ts'
 import { undoOf } from '../../shared/session-hooks.ts'
 import { openTomlSession } from '../../shared/toml-session.ts'
 import { canvas, panel, status } from './AudioRegions.svelte'
@@ -31,7 +32,13 @@ export function createAudio(options: {
     hue: 'color/ed/audio',
     async open(files, ports) {
       const path = files.find((file) => file.path.endsWith('.toml'))?.path ?? AUDIO_PATH
-      const toml = await openTomlSession<AudioContent>({ path, ports, schema: audioSchema, empty: EMPTY })
+      const toml = await openTomlSession<AudioContent>({
+        path,
+        ports,
+        schema: audioSchema,
+        empty: EMPTY,
+        editor: 'audio',
+      })
       const session = new AudioSession(
         toml,
         options.play,
@@ -40,6 +47,7 @@ export function createAudio(options: {
         await gameEvents(ports.workspace),
       )
       session.heard = options.started?.() ?? false
+      session.hasPlayer = await gameHasPlayer(ports.workspace, 'audio')
       return session
     },
     regions: { panel, canvas, status },

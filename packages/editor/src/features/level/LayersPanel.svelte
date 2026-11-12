@@ -156,7 +156,7 @@ function step(event: KeyboardEvent): void {
     align-items: center;
     flex: 1 1 auto;
     min-width: 0;
-    padding: 0 var(--space-2);
+    padding: var(--space-1) var(--space-2);
     text-align: start;
   }
   .swatch {
@@ -165,15 +165,16 @@ function step(event: KeyboardEvent): void {
     height: 12px;
     border-radius: var(--edge-sm);
   }
-  .label,
-  .kind {
+  .label {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  /* What the layer holds wraps instead of ending in an ellipsis: in the iPad's narrow column "Tiles that pla…" says nothing. */
   .kind {
     color: var(--color-text-dim);
     font: var(--text-label-12);
+    overflow-wrap: anywhere;
   }
   .toggle {
     display: contents;

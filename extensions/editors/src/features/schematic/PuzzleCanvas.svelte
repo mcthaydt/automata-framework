@@ -230,7 +230,7 @@ function addAction(): void {
     {/if}
 
     <h3>Can it be finished?</h3>
-    <Button variant="primary" disabled={asking} onclick={() => void ask()}>{asking ? 'Working it out…' : 'Can it be finished?'}</Button>
+    <Button disabled={asking} onclick={() => void ask()}>{asking ? 'Working it out…' : 'Can it be finished?'}</Button>
     {#if answer !== undefined}
       <div class="result" data-stale={answer.text !== text}>
         <p class="sentence" role="status">{answer.answer.words}</p>

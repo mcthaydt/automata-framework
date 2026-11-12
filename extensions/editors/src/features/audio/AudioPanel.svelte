@@ -40,7 +40,7 @@ async function addSound(): Promise<void> {
         </li>
       {/each}
     </ul>
-    <Button variant="primary" onclick={() => void addSound()}>Add a sound</Button>
+    <Button onclick={() => void addSound()}>Add a sound</Button>
     <h2>Music</h2>
     <ul>
       {#each content.slot ?? [] as track, index (index)}

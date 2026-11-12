@@ -1,6 +1,7 @@
 <!-- What is wrong in the open cutscene, counted in words. -->
 <script lang="ts">
 import { Button } from '@automata/editor/kit'
+import NoPlayer from '../../shared/ui/NoPlayer.svelte'
 import ProblemCount from '../../shared/ui/ProblemCount.svelte'
 import type { SequenceSession } from './sequence-session.svelte.ts'
 
@@ -10,6 +11,7 @@ const found = $derived(session.problems)
 const first = $derived(found[0])
 </script>
 
+{#if !session.hasPlayer}<NoPlayer editor="sequence" short />{/if}
 {#if read !== undefined}
   {#if read.kind === 'syntax' || read.kind === 'invalid'}
     <ProblemCount {read} noun="cutscene" />

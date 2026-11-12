@@ -10,8 +10,9 @@ import { readFile, realpath, rm, stat } from 'node:fs/promises'
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { basename, extname, join, resolve, sep } from 'node:path'
-import { type Checkout, openCheckout } from './checkout.ts'
-import { type EditorPolicy, editorPolicy } from './editor-policy.ts'
+import { EDITOR_LIST_PATH, listGrowsBy } from '@automata/editor/editor-list'
+import { type Checkout, mtimeOf, openCheckout } from './checkout.ts'
+import { type EditorPolicy, livePolicy } from './editor-policy.ts'
 import type { PublishOutcome } from './publish-game.ts'
 
 export interface EditorServerOptions {
@@ -29,6 +30,8 @@ export interface EditorServerOptions {
   readonly gameUrl?: string | undefined
   /** What may be touched; the checkout's editor list decides when this is left out. */
   readonly policy?: EditorPolicy | undefined
+  /** Why the game cannot be played from here (it could not start), a sentence for the editor to show where Play would be. */
+  readonly playOff?: string | undefined
   /** Builds the game and makes the zip to upload (Publish); without it the editor has no Publish for the game. */
   readonly publish?: (() => Promise<PublishOutcome>) | undefined
 }
@@ -81,18 +84,31 @@ async function readBody(req: IncomingMessage): Promise<Buffer | undefined> {
   return Buffer.concat(chunks)
 }
 
+/** The editor list's text and modified time, read from the checkout each time it is asked. */
+const readList = (root: string) => async (): Promise<{ text: string; mtime: number } | undefined> => {
+  const path = join(root, EDITOR_LIST_PATH)
+  const [text, info] = await Promise.all([readFile(path, 'utf8'), stat(path)]).catch(() => [])
+  return text === undefined || info === undefined ? undefined : { text, mtime: mtimeOf(info) }
+}
+
 /** `/api/file`: read (GET), delete (DELETE) or write (PUT) one file the policy allows, inside the checkout. */
 async function fileRoute(
   req: IncomingMessage,
   res: ServerResponse,
   url: URL,
-  policy: EditorPolicy,
+  policyOf: () => Promise<EditorPolicy>,
   checkout: Checkout,
+  root: string,
+  listMayGrow: boolean,
 ): Promise<void> {
   const method = req.method ?? 'GET'
   const path = url.searchParams.get('path') ?? ''
   const write = method === 'PUT' || method === 'DELETE'
-  if (!(write ? policy.canWrite(path) : policy.canRead(path)))
+  const policy = await policyOf()
+  // The list is never written by an editor, except to grow by an editor's own rows (`listGrowsBy`): then the editors
+  // can add themselves to a game and can never widen what they may touch. A game with no list gets none.
+  const growing = listMayGrow && method === 'PUT' && path === EDITOR_LIST_PATH
+  if (!growing && !(write ? policy.canWrite(path) : policy.canRead(path)))
     return reply(res, 403, {
       message: `${path === '' ? 'that path' : path} is not one the editor may ${write ? 'write' : 'read'}`,
     })
@@ -115,6 +131,11 @@ async function fileRoute(
   if (method !== 'PUT') return reply(res, 405, { message: 'method not allowed' })
   const body = await readBody(req)
   if (body === undefined) return reply(res, 413, { message: 'the file is over 16 MB' })
+  if (growing) {
+    const current = await readFile(join(root, EDITOR_LIST_PATH), 'utf8').catch(() => undefined)
+    if (current === undefined || !listGrowsBy(current, body.toString('utf8')))
+      return reply(res, 403, { message: "The editors can only add to this game's list of editors." })
+  }
   const outcome = await checkout.write(full, path, body, url.searchParams.get('expected'))
   if ('conflict' in outcome) return reply(res, 409, { message: outcome.conflict })
   return reply(res, 200, { mtime: outcome.mtime })
@@ -144,10 +165,11 @@ function packageTitle(root: string): string | undefined {
   }
 }
 
-/** What the ping tells the editor: the game's name and, when there are, its dev page and whether it can publish. */
+/** What the ping tells the editor: the game's name and, when there are, its dev page (or why there is none) and whether it can publish. */
 interface PingFacts {
   readonly game: string
   readonly gameUrl?: string | undefined
+  readonly playOff?: string | undefined
   readonly publish?: true
 }
 
@@ -164,7 +186,9 @@ function publishRoute(
     if (url.pathname === '/api/publish/file' && req.method === 'GET') {
       const info = made === undefined ? undefined : await stat(made).catch(() => undefined)
       if (made === undefined || info === undefined || !info.isFile())
-        return reply(res, 404, { message: 'nothing published yet: press Publish first' })
+        return reply(res, 404, {
+          message: 'Nothing has been built yet. Open Publish and press Build my game.',
+        })
       res.writeHead(200, {
         'content-type': 'application/zip',
         'content-disposition': `attachment; filename="${basename(made)}"`,
@@ -176,7 +200,8 @@ function publishRoute(
     }
     if (url.pathname !== '/api/publish' || req.method !== 'POST')
       return reply(res, 404, { message: 'no such route' })
-    if (running) return reply(res, 409, { message: 'your game is already being published' })
+    if (running)
+      return reply(res, 409, { message: 'Your game is already being built. Wait for it to finish.' })
     running = true
     try {
       const outcome = await publish()
@@ -194,8 +219,10 @@ async function api(
   res: ServerResponse,
   url: URL,
   token: string | undefined,
-  policy: EditorPolicy,
+  policyOf: () => Promise<EditorPolicy>,
   checkout: Checkout,
+  root: string,
+  listMayGrow: boolean,
   facts: PingFacts,
   publish: ((req: IncomingMessage, res: ServerResponse, url: URL) => Promise<void>) | undefined,
 ): Promise<void> {
@@ -211,7 +238,7 @@ async function api(
   }
   if (url.pathname.startsWith('/api/publish') && publish !== undefined) return publish(req, res, url)
   if (url.pathname !== '/api/file') return reply(res, 404, { message: 'no such route' })
-  return fileRoute(req, res, url, policy, checkout)
+  return fileRoute(req, res, url, policyOf, checkout, root, listMayGrow)
 }
 
 /** The editor's own static files; `/` is its `index.html`, and a path with no extension falls back to it. */
@@ -254,14 +281,15 @@ export async function serveEditor(options: EditorServerOptions): Promise<Running
     throw new Error('listening beyond the loopback needs a token: the editor writes files')
   const root = await realpath(options.root)
   const appDir = await realpath(options.appDir)
-  const policy =
-    options.policy ??
-    editorPolicy(await readFile(join(root, 'content/editors.toml'), 'utf8').catch(() => undefined))
-  const checkout = openCheckout(root, policy)
+  // An explicit policy (tests) stays fixed; otherwise the editor list is read again when it changes on disk.
+  const given = options.policy
+  const policyOf = given === undefined ? livePolicy(readList(root)) : async () => given
+  const checkout = openCheckout(root, policyOf)
   // `gameUrl` is left out of the ping when there is none, so an older editor reads the same answer.
   const facts: PingFacts = {
     game: gameName(root),
     ...(options.gameUrl === undefined ? {} : { gameUrl: options.gameUrl }),
+    ...(options.gameUrl === undefined && options.playOff !== undefined ? { playOff: options.playOff } : {}),
     ...(options.publish === undefined ? {} : { publish: true }),
   }
   const publish = options.publish === undefined ? undefined : publishRoute(options.publish)
@@ -273,7 +301,18 @@ export async function serveEditor(options: EditorServerOptions): Promise<Running
         if (refused !== undefined) return reply(res, 403, { message: refused })
         const url = new URL(req.url ?? '/', 'http://editor')
         if (url.pathname.startsWith('/api/'))
-          return await api(req, res, url, token, policy, checkout, facts, publish)
+          return await api(
+            req,
+            res,
+            url,
+            token,
+            policyOf,
+            checkout,
+            root,
+            given === undefined,
+            facts,
+            publish,
+          )
         return await staticFile(res, appDir, url.pathname)
       } catch (error) {
         if (!res.headersSent)

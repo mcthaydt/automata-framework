@@ -30,7 +30,8 @@ const SERVES = `
 import { createServer } from 'node:http'
 const args = process.argv.slice(2)
 const port = Number(args[args.indexOf('--port') + 1])
-createServer((req, res) => res.end('<title>' + process.cwd() + ' ' + args.join(' ') + '</title>')).listen(port, 'localhost')
+const host = args[args.indexOf('--host') + 1]
+createServer((req, res) => res.end('<title>' + process.cwd() + ' ' + args.join(' ') + '</title>')).listen(port, host)
 `
 
 describe('startGame', () => {
@@ -46,6 +47,16 @@ describe('startGame', () => {
       await running.stop()
     }
     await expect(fetch(running.url)).rejects.toThrow()
+  })
+
+  it('listens beyond the loopback when asked, so a tablet on the network reaches the game', async () => {
+    await installFakeVite(SERVES)
+    const running = await startGame(game, { lan: true })
+    try {
+      expect(await (await fetch(running.url)).text()).toContain('--host 0.0.0.0')
+    } finally {
+      await running.stop()
+    }
   })
 
   it('says to install the game’s packages when it has no Vite', async () => {

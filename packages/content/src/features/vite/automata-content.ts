@@ -8,6 +8,7 @@
 //   - Content is published only after a build succeeded, so a bad save reports its diagnostics, keeps the
 //     last good files and module, and leaves the watcher alive for the fix.
 
+import { existsSync } from 'node:fs'
 import { readdir, readFile } from 'node:fs/promises'
 import { dirname, join, posix, sep } from 'node:path'
 import { Effect, Either } from 'effect'
@@ -22,6 +23,7 @@ import type {
 import { TRANSLATIONS_FOLDER } from '../../shared/compile/read-sources.ts'
 import { buildContent } from '../../shared/compile/write-outputs.ts'
 import { formatDiagnostic } from '../../shared/diagnostics/diagnostic.ts'
+import { isEventFile, writeEventIds } from './event-ids.ts'
 
 /** The import path of the compiled content: `content`, `contentHash`, `simContent` and `simContentHash`. */
 export const VIRTUAL_MODULE_ID = 'virtual:automata/content'
@@ -191,6 +193,8 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
     },
 
     async buildStart() {
+      // The events are written whether or not the content compiles: the editors read them on their own.
+      if (options !== undefined) await writeEventIds(options.root, outDirOf(options)).catch(() => undefined)
       const outcome = await enqueue()
       lastOutcome = outcome
       if (outcome.ok) return
@@ -204,7 +208,14 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
       // another folder, as a journey's temp copy is) is added, so a save there still rebuilds; adding a folder
       // already inside the root changes nothing. `configResolved` has always run by now.
       if (options !== undefined) server.watcher.add(join(options.root, 'content'))
+      // A new, renamed or changed event file changes the list of events; it is not content, so nothing is rebuilt. A
+      // game with no `src` yet has no event files, and the watcher is not asked for a folder that is not there (in the
+      // HMR test's fixture it then missed the root's own writes).
+      if (options !== undefined && existsSync(join(options.root, 'src')))
+        server.watcher.add(join(options.root, 'src'))
       server.watcher.on('all', (_event, path) => {
+        if (options !== undefined && isEventFile(path))
+          void writeEventIds(options.root, outDirOf(options)).catch(() => undefined)
         if (!isWatchedSource(path)) return
         if (timer !== undefined) clearTimeout(timer)
         timer = setTimeout(() => {

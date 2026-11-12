@@ -238,7 +238,8 @@ function seekAt(event: PointerEvent & { currentTarget: HTMLElement }): void {
     top: 0;
     bottom: 0;
     width: 2px;
-    background: var(--color-accent-default);
+    /* The one lime in Sequence: where the cutscene is now. */
+    background: var(--lime);
     pointer-events: none;
   }
   .mark {

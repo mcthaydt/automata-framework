@@ -68,7 +68,7 @@ describe('bin cli', () => {
       expect(stderr).toBe('')
       // It says what it made and the next three commands, so the first run needs no README.
       expect(stdout).toBe(
-        `Created "My CLI Game" in ${testDir}.\nNext: cd ${testDir} && pnpm install && pnpm dev\n`,
+        `Created "My CLI Game" in ${testDir}.\nNext: cd ${testDir} && pnpm install && pnpm editor\n`,
       )
       expect(existsSync(join(testDir, 'package.json'))).toBe(true)
     })

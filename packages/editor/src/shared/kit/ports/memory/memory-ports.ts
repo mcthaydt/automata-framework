@@ -14,6 +14,7 @@ export interface MemoryPortsOptions {
   readonly store?: ProjectStore | undefined
   readonly checks?: readonly MemoryCheck[] | undefined
   readonly gates?: GateRecords | 'unreadable' | undefined
+  readonly listChanged?: ((text: string) => void) | undefined
 }
 
 export interface MemoryPorts {
@@ -26,6 +27,7 @@ export async function createMemoryPorts(options: MemoryPortsOptions): Promise<Me
     classify: options.classify,
     generated: options.generated,
     store: options.store,
+    listChanged: options.listChanged,
   })
   return {
     ports: {

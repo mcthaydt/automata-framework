@@ -38,7 +38,7 @@ async function lit(play: Page): Promise<number> {
 
 test('a new 3D game plays the night, the crate and the floor an editor gave its room', async ({ page }) => {
   test.setTimeout(240_000)
-  const game = await newGame(BASE_3D, 'hall-game', '3d')
+  const game = await newGame(BASE_3D, '3d', 'hall-game')
   const editor = await runEditor(game.dir)
   try {
     const room = join(game.dir, 'content/levels/room.af-sector.json')

@@ -28,6 +28,7 @@ const TEXT: Record<string, string> = {
   a: 'Staff, and I am on nights tonight, as I have been all week.',
   b: 'I do not know yet.',
   c: 'I think I am for you.',
+  'speaker.porter': 'Porter',
 }
 const GRAPH: DialogueGraph = {
   id: 'meet',

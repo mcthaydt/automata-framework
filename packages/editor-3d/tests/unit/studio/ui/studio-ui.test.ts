@@ -97,6 +97,19 @@ describe('StudioInspector, Look', () => {
     expect(controller.session.history.undoLabel).toBe('Set height of wick')
   })
 
+  it('names the skin and the outfits in words, not as they are written in the file', async () => {
+    const controller = await open()
+    render(StudioInspector, { controller })
+    // The picker's value is still the id (`wick-shadow`, `wanderer`); only what a person reads is in words.
+    expect(screen.getByRole('button', { name: 'Skin: Wick shadow' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Default outfit: Wanderer' })).toBeInTheDocument()
+    expect(
+      within(screen.getByRole('group', { name: 'Outfit on the stage' })).getByRole('button', {
+        name: 'Wanderer',
+      }),
+    ).toBeInTheDocument()
+  })
+
   it('lists the face’s five groups folded, and writes a face slider into the face table', async () => {
     const controller = await open()
     render(StudioInspector, { controller })

@@ -1,0 +1,12 @@
+# The game's sounds, and which sound plays when something happens. Open it in the Audio editor (`pnpm exec automata editor`).
+# Music is imported: put a track in assets/music and set it up there. Wick bumping into a wall plays "bump".
+
+[[cue]]
+id = "bump"
+about = "Wick meets a wall."
+bus = "sfx"
+voices = [{ tone = "square", from = 220, to = 110, length = 0.1, volume = 0.4 }]
+
+[[event]]
+on = "wick.bumped"
+cue = "bump"

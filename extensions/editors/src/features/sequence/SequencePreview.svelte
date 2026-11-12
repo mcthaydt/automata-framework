@@ -1,5 +1,5 @@
 <!--
-  The scene at the playhead seen from above: the walls of a 2D level the person picks, each person as a dot with a name
+  The scene at the playhead seen from above: the walls of a level (2D or 3D) the person picks, each person as a dot with a name
   and the way they face, the camera as a wedge showing what it sees, the words on screen under the plan, and the fade as
   darkening. It is drawn from the director's state; it never runs the game.
 -->

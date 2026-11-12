@@ -12,7 +12,7 @@ describe('Button', () => {
     render(Button, { children: text('Open') })
     const button = screen.getByRole('button', { name: 'Open' })
     expect(button).toHaveAttribute('type', 'button')
-    expect(button).toHaveAttribute('data-kind', 'plain')
+    expect(button).toHaveAttribute('data-kind', 'secondary')
   })
 
   it('names its variant, so the stylesheet can size a primary action and mark a destructive one', () => {

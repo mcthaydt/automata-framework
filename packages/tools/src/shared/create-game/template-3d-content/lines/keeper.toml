@@ -1,0 +1,41 @@
+# What the keeper says: one record per line, with its words (Writer edits them).
+[[lines]]
+id = "keeper.hello"
+kind = "dialogue"
+speaker = "keeper"
+text = "keeper.hello"
+words = "Hello there. Mind the crates on your way past."
+
+[[lines]]
+id = "keeper.passing"
+kind = "dialogue"
+speaker = "player"
+text = "keeper.passing"
+words = "Just passing through."
+
+[[lines]]
+id = "keeper.around"
+kind = "dialogue"
+speaker = "player"
+text = "keeper.around"
+words = "Show me around."
+
+[[lines]]
+id = "keeper.farewell"
+kind = "dialogue"
+speaker = "keeper"
+text = "keeper.farewell"
+words = "Safe travels."
+
+[[lines]]
+id = "keeper.follow"
+kind = "dialogue"
+speaker = "keeper"
+text = "keeper.follow"
+words = "Right this way."
+
+[[lines]]
+id = "keeper.tour"
+kind = "caption"
+text = "keeper.tour"
+words = "The keeper shows you around the room."

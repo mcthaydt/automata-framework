@@ -123,7 +123,7 @@ export function createDrawLayer(
     },
     setup(stage) {
       stage.ui.addChild(root)
-      if (level !== undefined && stage.world !== undefined) mountLevelScene(level, stage.world)
+      if (level !== undefined && stage.world !== undefined) mountLevelScene(level, stage.world, stage.ui)
       return {
         draw(frame) {
           if (view === undefined) return

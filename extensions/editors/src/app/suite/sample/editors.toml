@@ -47,15 +47,15 @@ gates = []
 checks = []
 
 [[file]]
-glob = "assets/music/*"
-editor = "audio"
+glob = "content/systems/*.toml"
+editor = "schematic"
 modes = ["edit"]
 gates = []
 checks = []
 
 [[file]]
-glob = "content/systems/*.toml"
-editor = "schematic"
+glob = "assets/music/*"
+editor = "audio"
 modes = ["edit"]
 gates = []
 checks = []

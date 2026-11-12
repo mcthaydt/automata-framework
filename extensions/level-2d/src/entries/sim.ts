@@ -6,5 +6,6 @@ export { level2dPlugin } from '../shared/sim/level-2d.plugin.ts'
 export {
   type Level2dPlacesOptions,
   type Level2dPosition,
+  level2dLintFloor,
   level2dPlaces,
 } from '../shared/sim/level-2d-places.ts'

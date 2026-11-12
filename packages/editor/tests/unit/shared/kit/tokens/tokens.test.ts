@@ -40,8 +40,8 @@ describe('tokens.css', () => {
     expect(css).toMatch(/^\/\* Generated from src\/shared\/kit\/tokens\/tokens\.json/)
   })
 
-  test('is a light theme, the website`s', () => {
-    expect(css).toContain('color-scheme: light;')
+  test('is a dark theme: the editors open Dark, and the site says its own colour scheme', () => {
+    expect(css).toContain('color-scheme: dark;')
   })
 
   test('defines every custom property the website`s :root defined, with the same value', () => {

@@ -109,20 +109,22 @@ test('a wall moved in the dark Levels 3D is what the game plays', async ({ page,
     await studio.goto(editor.url)
     await studio.getByRole('region', { name: 'Characters' }).getByRole('button').first().click()
     const stage = studio.getByTestId('studio-stage')
-    await expect(stage).toBeVisible()
+    await expect(stage).toBeVisible({ timeout: 30_000 })
     await expect(stage).toHaveAttribute('data-status', 'ready', { timeout: 30_000 })
     return stage
   }
   const darkStage = await stageOf(page)
-  expect((await look(page)).field).toBe('rgb(19, 20, 23)')
+  expect((await look(page)).field).toBe('rgb(11, 12, 14)')
   await page.screenshot({ path: test.info().outputPath('dark-studio.png') })
   const inDark = readPng(await darkStage.screenshot())
   const viewport = page.viewportSize()
   const lightContext = await browser.newContext({ colorScheme: 'light', ...(viewport ? { viewport } : {}) })
   try {
+    // The editors open dark on any device; a person who wants Light has chosen it, and the choice is kept in the browser.
+    await lightContext.addInitScript(() => localStorage.setItem('automata-editor:theme', 'light'))
     const lightPage = await lightContext.newPage()
     const lightStage = await stageOf(lightPage)
-    expect((await look(lightPage)).field).not.toBe('rgb(19, 20, 23)')
+    expect((await look(lightPage)).field).not.toBe('rgb(11, 12, 14)')
     await lightPage.screenshot({ path: test.info().outputPath('light-studio.png') })
     const inLight = readPng(await lightStage.screenshot())
     // The stage's corner is the stage's own colour; the figure in the middle may be mid-gait, so the corner is the proof.
@@ -133,7 +135,7 @@ test('a wall moved in the dark Levels 3D is what the game plays', async ({ page,
 
   // The editor opens dark, with no choice made, and every view of the room is drawn in it.
   await openLevels3d(page, editor, 'Room')
-  expect(await look(page)).toEqual({ scheme: 'dark', field: 'rgb(19, 20, 23)', chosen: undefined })
+  expect(await look(page)).toEqual({ scheme: 'dark', field: 'rgb(11, 12, 14)', chosen: 'dark' })
   await page.screenshot({ path: test.info().outputPath('dark-3d-plan.png') })
   await chooseView(page, '3D')
   await expect(page.locator('[data-testid="dollhouse-canvas"]')).toBeVisible()

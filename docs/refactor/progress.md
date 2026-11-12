@@ -438,9 +438,63 @@ holds `index.html` and the wall. All 20 journeys pass twice in Chromium at iPad 
 run (not in cloud sessions). `pnpm check`: green except `serve-editor.test.ts` "writes an mtime a later guarded write
 can use", which fails on this PR's base too (the container's file clock), not touched here. For 15.2 and 15.3: the default
 is already the suite; 15.3 cuts the change-set Publish, Export changes and Import changes, and keeps Play and the game's
-Publish. Screens: `/mnt/project-files/whole-game-loop/`.
+Publish. Screens: `/mnt/project-files/whole-game-loop/`. Follow-up the same day: the loop's Play step reads the screen
+past the game's title (the painted wall is drawn at its cell, the next cell is empty); a second journey, `a tile painted
+in the editor is drawn in the running game`, is marked `test.fail` until 2D core draws tile layers (PR #479) and fails
+today at the screen check, after the save; under `--lan` the game listens on the network and a tablet's Play and
+Tuner point at the computer's address.
+
+**Whole game loop build audit (2026-11-08, session pv36dl, PR stacked on #480).** Done by hand: create-game outside the
+repository, `automata editor`, paint a wall, Play (the wall is in the running game), Publish, the zip unzipped and
+played. E1 to E5 hold on the stack; E6 is partly fixed (Play and Publish work; Ask, checks and gates hidden, not wired).
+12 findings in `2026-11-08-whole-game-loop-audit.md`: W1 (High, painted tiles not drawn in play) waits for #479;
+Medium W2 (`--lan` game open without the token), W3 (colour codes and stack frames in a failed Publish), W4 (Play
+vanishes with no reason), W5 (Publish cut off at phone size), W6 (Publish runs no `automata check`); Low W7 to W12.
+Journeys `whole-game-loop` pass at iPad and phone in Chromium; WebKit and Firefox not run; `pnpm check` not run in
+full. Next: Sonnet high fixes.
+
+**Whole game loop fixes (2026-11-08, session 8ps35v, stacked on the audit PR #483; W1 waits for #479):** W2 to W12 fixed,
+each test first. W2 under `--lan` the command now says the game's own page has no token and to use `--lan` only on a trusted
+network (the game stays open; a token proxy for Vite's page and live reload was left out as too big); W3 Publish's steps
+run with `NO_COLOR` and no stack frames, last 20 lines; W4 the ping carries `playOff`, Play stays on the bar and says why
+when pressed; W5 on a phone Play and Publish are one **Game** menu outside the scrolling tools (real-browser layout test
+at all eight sizes: whole in view, targets, no page scroll); W6 Publish runs `check --only levels|inputs|orientation`
+before the build and scans the itch build for `eval` after it (the guide now says what it does and does not check); W7 the
+tile journey asserts today's behaviour (saved, game runs, cell still empty) instead of `test.fail`; W8 and W9
+create-game's next line and README say `pnpm editor`, add the `editor` script and write `automata.title`; W10 "Starting your
+game…" prints first and the journeys' harness waits 90 s; W11 dialog title "Make your game ready to upload", server
+sentences start with a capital and say what to do; W12 the guide gives `pnpm build:itch && pnpm prepare:itch`. Also: the
+`levels` check no longer says "press Save" (there is no Save button), and the site's Start-page test follows the new
+create-game line. Run: tools unit 775, editor unit and layout (Chromium) for the changed files, all 22 journeys at iPad and
+phone size in Chromium, the loop by hand outside the repository (create-game, editor, Game menu on a phone, Publish, a
+failed Publish with a syntax error, with `eval`, with a hand-edited level, Play off with no packages, `--lan`), `pnpm
+check` green except the site Start test, which is fixed and passes. Not run: WebKit, Firefox, the GPU runner. CI's layout suites then caught that the phone Game menu also swallowed a change set's Publish (`pnpm check` runs no browser layout suites): the menu now takes only the game's own zip, with a unit test and the layout suites in Chromium (mouse and touch) green.
+
+**The complete-game journeys (2026-11-08, session 6rfl3t, on the merge of #494, #497, #498 and #499; the Owner: "The
+complete game test should also use ALL editors", then "We likely have to do 2, one for 2D, one for 3D").** `automata
+editor` now serves one page with every editor (`extensions/editors`' suite page, which imports Levels 3D and Characters
+from `@automata/editor-3d/suite`) wherever the game's list names a 3D or content editor (`page-for.ts`), with Play and
+Publish on it. `complete-game-2d`: a new 2D game made in every editor it lists (Add tiles, a painted Decor cell, the
+player start's tile in Characters, J added in the Tuner, a 30-frame flash on the bump in Feel, the bump at 880 Hz in
+Audio), played (each change seen on the canvas, the flash in a per-frame brightness record, the pitch in the tones the
+page starts), published (the zip holds the picture, `flash_frames` and `from: 880`). `complete-game-3d`: a new 3D game
+played once as it comes, then made in every editor it lists (the walls in the crates' wood in Levels 3D, Wick at 240 cm
+in Characters, the walk at 8 m/s in the Tuner) and played again (the far wall turns brown, Wick's cloak stands about
+twice as tall, the walk to the wall takes about 0.6 of the time, counted in the game's own clamped frame time). Marked
+`test.fail` with the reason, one journey each: Writer and Sequence on a 2D game (not in its list), Schematic on a 2D game
+(no systems extension); Feel, Audio, Writer, Sequence and Schematic on a 3D game (not in its list); a floor's material in
+Levels 3D (Change materials changes only the walls); Publish on a 3D game (Pixi 3D is a closed beta, refused by design).
+Found and fixed on the way, each test first: Levels 2D exported the game's files from the unprinted project, so after
+Add tiles `check --only levels` saw drift and Publish refused the game; a new game's pictures and music were globbed from
+`/assets/`, a root-absolute path Publish refuses (now relative, with a test that no template file globs from `/`); the
+3D template, base-3d and 3d-story gave Characters only `content/figures/*.toml`, so it opened Wick with none of his
+swatches or gait and drew nothing (now `content/figure*/*.toml`, and Home lists only the figures). Run: both journeys and
+`whole-game-loop` at iPad and phone size in Chromium, the 3D one three times each; tools, editor-3d, base-3d and 3d-story
+unit tests. Not run: WebKit, Firefox, the GPU runner.
 
 **Where to resume (2026-11-08, session us0s9k, 15.1b (a) to (d) and (f) half done):** branch `claude/project-thread-us0s9k`, PR #473 stacked on #472. Next is 15.1b (e), then the last journey and the site's Try-it page, then 15.2 to 15.4; the plan's log ("Task 15.1b" entries) has each ruling and a design note for (e). `pnpm install --frozen-lockfile` first in a fresh container; a commit that exports a type needs `pnpm build`, `pnpm api-report --update` first or the hook fails on the editor report; the served journeys run with `pnpm exec playwright test -c playwright.journeys.config.ts --project=editor-ipad-chromium` in `packages/editor` (`PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`, tools built).
+
+**Where to resume (2026-11-08, session m6iu2z, after 15.3 slice B):** branch `claude/project-thread-m6iu2z` (PR #476). 15.1b, 15.2 and 15.3 slices A and B are done (the plan's log has the rulings): the change-set desk, the change-set port and journal, the Tuner's locks and the `ask` mode are gone. Next: the standalone-app dead code (Map, Home, `TilesetsView`, `App.svelte`, `boot.ts`; about 43 test files use `boot.ts` and `main.css`, so move those first; the 2D Characters view waits for the Owner's word), then 15.4 (the suite on a phone) and 16.x. Owner questions: remove the gate records and check measures that now have no screen? Does the 2D Characters view stay? A commit that moves an export needs `pnpm build`, then `pnpm api-report --update` first (the hook takes up to 5 minutes). `save-reaches-the-game` can fail once under load.
 
 **Where to resume (2026-11-08, session ngqsn7 after 14.1):** the build continues at task 15.2 (one page, chosen by the game) on branch `claude/project-thread-ngqsn7`, stacked on #467 (PR #472). 14.1, 14.2 and 15.1 are done (the plan's log has the rulings). Facts a fresh session needs: `editor-3d`'s tests are in `tests/{unit,browser/{layout,canvas,journeys}}` and import the code as `#src/...`; run them with `pnpm exec vitest run --project unit`, `--project 'layout (chromium)'`, `--project canvas`, `--project 'journeys (chromium)'` in `packages/editor-3d` (`PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`); a mover does not rewrite `new URL(...)`, `import.meta.glob(...)` or path strings in data.
 
@@ -615,8 +669,8 @@ Normal dev pipeline (no stage 1 audit; the investigation is
 | 2. Spec and plan | Done: [spec](2026-11-08-content-in-play-spec.md), [plan](2026-11-08-content-in-play-plan.md), 16 tasks |
 | 3. Plan audit | Done: [audit](2026-11-08-content-in-play-plan-audit.md), 21 findings fixed in the spec and plan; 17 tasks |
 | 4. Build | Done on PR #484, except three journey steps (17 of 17 tasks): tile readers, `levelScene`, `pictureView` and clips, controls as data, `places`, `level-2d`, `usePlay`, the dialogue box, 2D cutscenes and captions, systems in 2D, and `examples/2d-story`, played in the served journey `story-in-play` (iPad and phone, Chromium). **Pending:** changing the keeper's words in Writer, the caption in Sequence and the guard's chase speed in Schematic: those editors (PR #478) are not on this branch, so the steps are not run and nothing was written behind an editor's back. Also pending: WebKit and Firefox (parity, journeys) on the runner. |
-| 5. Build audit | Not started |
-| 6. Fixes | Not started |
+| 5. Build audit | Done: [audit](2026-11-08-content-in-play-build-audit.md), 2 High, 5 Medium, 9 Low |
+| 6. Fixes | Done on this branch except H2 (needs #478's editors; named step in the plan log) and the Writer, Sequence and Schematic journey steps. WebKit, Firefox and the GPU runner not run |
 
 ## Dark mode for the editors: 100% of the build audit's findings fixed (stage 5, fixes; PR waiting)
 
@@ -903,3 +957,57 @@ The Owner: "yes to the hook change, software run counts as a skip". Chromium on 
 | `ci.yml` frame-budget job comment | Done on the Owner's words "change the comment": comment lines only, the parsed workflow is identical before and after | `f8c5e5c6`; `workflow-invariants.test.ts` 10 of 10 |
 | Gates | `TURBO_FORCE=true pnpm check` at `7c2d6137` (the commits after it change a workflow comment and this file only): lint, typecheck (56 of 56 tasks, none cached), boundaries, style, source-names, knip and `test:unit` (66 of 66, none cached) passed, 16 m 50 s; the last step, `check:changesets`, failed only because this clone had no `origin/main` ref, and passes once fetched (79 changesets, 0 problems; none needed, only private tooling changed). `pnpm secrets` exit 0, 3,769 commits, no leaks. The frame-budget package's unit tests: 63 of 63 | the `pnpm check` stage log |
 | Not run | WebKit, Firefox, a real GPU, a GPU runner: nothing was measured against the budget; a budget row still needs the Owner's GPU run | |
+
+## Shared editors: every editor in 2D and 3D games (2026-11-08)
+
+[spec](2026-11-08-shared-editors-spec.md), [plan](2026-11-08-shared-editors-plan.md), [audit](2026-11-08-shared-editors-audit.md),
+[plan audit](2026-11-08-shared-editors-plan-audit.md). Stage 4 (build) done: 19 of 19 tasks, branch
+`claude/project-thread-fxu792` stacked on #512 (base #508's head).
+
+Every editor except the two level editors is on the rail of a new 2D and a new 3D game (nine entries fit a phone: the rest fold under
+More), each says when the game cannot play what it makes, and starting a file adds its editor to the game's list. A new
+2D game has a keeper, a cutscene and a guard; a new 3D game has Wick, a keeper, a cutscene and a guard, with Feel and
+Audio answering his bump. Made by hand in both kinds and played, at iPad and phone size (screens in
+`/mnt/project-files/refactor/2026-11-08-shared-editors-build-screens/`), and by the `complete-game-2d` and
+`complete-game-3d` journeys: 22 pass at both sizes. Not run: WebKit, Firefox, the GPU runner, hosted CI (the editor
+browser projects need the other engines, so `pnpm test:browser:2d` stops here); `stranger-3d.test.ts` pending. `pnpm check`
+is green except `check-changesets`, which fails on an earlier branch's changeset naming the unpublished `@automata/3d`
+(`stage-characters-3d.md`). Details and rulings: the plan's log.
+
+Stage 5 (build audit) done: [build audit](2026-11-08-shared-editors-build-audit.md). A 3D cutscene never moves the camera
+(C1: the stage writes it per step, the follow camera per frame); an edit is lost without a word when the list stops
+naming its file (H1); the failing changeset is this build's own (`9a7127af`, H2); plus M1-M4 and L1-L4. `pnpm check`
+red only on that changeset; journeys 21 of 22 (the one timeout passed alone).
+
+Stage 6 (fixes) done on a branch stacked on #522. C1: the 3D cutscene stage now writes its camera per frame (`draw`), with a
+unit test that failed first and a journey that watches the camera move. H1: a read the server refuses is a note, never a
+silent "Saved". H2: the build's own changeset is gone. M1: the bump event says who bumped (2D, 3D and the story game), and
+Feel's word rows say `at = "subject"`. M2: the spec records the story template as built. M3: a journey typechecks and runs
+the tests of a game as `create-game` made it (2D and 3D; the plain 2D game is not gated). M4: file rows are named by what
+they hold, a card whose one file repeats its name says "Open", each content editor has its own icon, the Levels status line
+shows a file title, and Sequence offers people only. L2 to L4 done. Then, on the owner's word ("figure out how to make
+them fit"): L1, the phone top bar, fits Undo, Redo and the level picker because the game's name gives way first (and
+leaves the bar under 380 px) and the Game menu is an icon still named Game; checked at 390 and a new 360 px layout size.
+The last two M4 items: the 2D Characters list shows the characters (tagged `character`; new definitions get the tag, the
+templates and the create-game games carry it) first, and the coin, door and area under "Things in your levels", so their
+settings stay editable; the 3D Studio's skin, gait, stand and outfit pickers read in words (`Wick shadow`) while the file
+keeps the id. Made by hand and
+played: 3D (the word "Bump!" over Wick, the camera moving in the cutscene). The 2D word over the square is covered by the
+generated test and the journey, not seen by hand. Journeys, iPad and phone, 3D: all pass (the floor and publish journeys
+are expected failures, Pixi 3D being a closed beta); one "Wick is taller" check flaked once under load and passed alone.
+Not run: WebKit, Firefox, the GPU runner, hosted CI; `stranger-3d.test.ts` pending.
+
+## Editors v2: the editors' new look (stage 5 of 6, 2026-11-09)
+
+The Owner, 2026-11-08: the editors' whole look redesigned after site v2, "not even just the dark mode, the entire
+aesthetic". Approved at 18:45 UTC with "Approve, open in Dark": the editors open Dark; Light and Match device stay on
+Home.
+
+| Stage | Status | Record |
+|---|---|---|
+| 1. Design | Done, 2026-11-08: a mockup of all 11 non-3D screens at seven sizes, 48 pictures and 5 boards in the project's shared folder (`refactor/2026-11-06-redesign-mockups/editors-v2/`); approved by the Owner | [patterns](../design/editors-v2/PATTERNS.md) |
+| 2. Plan and spec | Done, 2026-11-08: 14 tasks in 4 phases: merge dark mode into the shared-editors build, the v2 colours with Dark as the default, the site's own colour scheme and a contrast check on every page, ten kit parts (inset shell, sidebar, editor icons, breadcrumb header, rows and fields, blocks, floating toolbar, sheets, tab bar, empty state), then every screen, then proof in play | [spec](2026-11-08-editors-v2-spec.md), [plan](2026-11-08-editors-v2-plan.md) |
+| 3. Plan audit | Done, 2026-11-08: 17 findings (7 high), all fixed in the spec and plan. Review is out (it was deleted in `a15c7b36`); the editors stay a `tablist` so the journeys find them; the problem count keeps every checks state; the 3D editors' lime buttons turn secondary; the Door's words say where it goes | [audit](2026-11-08-editors-v2-plan-audit.md) |
+| 4. Build | Done, 2026-11-08 (14 of 14 tasks, 100%), with the shared-editors fixes (PR #534 at `3736b0ac`) merged in. Chromium only: `pnpm check`, layout with and without touch, 61 editor journeys at a phone and an iPad (2D and 3D complete-game among them), the extension journeys. **Open:** `audio-plays-in-game` (the played player stops after the keeper's talk, so the guard never chases; not the `character` tag, not editor UI). Not run: WebKit, Firefox, the GPU runner, the site's e2e and parity. | [plan log](2026-11-08-editors-v2-plan.md) |
+| 5. Build audit | Done, 2026-11-09 (PR stacked on #559, at `68cdd642`): `audio-plays-in-game` was a journey race, not the story (the game opened on the music rules' old order); it and three more journey races fixed (J1 to J4), and a journey that reloads, closes and restarts the editors added (P1). Open: 3 high (F1 no breadcrumb, the iPad's header cuts the level's name; F2 the phone's header takes three rows; F3 a white strip over the phone's level), 4 medium, 5 low. Chromium only | [build audit](2026-11-09-editors-v2-build-audit.md) |
+| 6. Fixes | Done, 2026-11-09 (PR stacked on #562): all 12 findings answered; the header's breadcrumb and two-row phone header, Characters names on Home, wrapping layer and switch rows, the sound after a restart. F3 (the white strip) is a headless-capture artifact, not reproduced as a defect; a real iPad look is pending. Chromium only | [fixes](2026-11-09-editors-v2-build-audit.md) |

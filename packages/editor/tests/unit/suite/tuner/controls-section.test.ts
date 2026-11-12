@@ -105,19 +105,22 @@ describe('the session', () => {
 describe('the Controls section', () => {
   const rowOf = (name: string) => screen.getByTestId(`controls-row-${name}`)
 
-  it('shows no section for a game without controls', async () => {
+  it('says the controls are in the code for a game without a controls file, and offers no rows', async () => {
     render(TunerRows, { controller: await open(tunerFixtureFiles()) })
-    expect(screen.queryByRole('region', { name: 'Controls' })).toBeNull()
+    const section = screen.getByRole('region', { name: 'Controls' })
+    expect(within(section).getByText('This game’s controls are in its code.')).toBeTruthy()
+    expect(within(section).queryByRole('group')).toBeNull()
   })
 
   it('shows one row per action with its name, its keys and its pad buttons', async () => {
     render(TunerRows, { controller: await open() })
     const left = rowOf('left')
     expect(within(left).getByRole('textbox', { name: 'Name' })).toHaveProperty('value', 'Left')
-    // ArrowLeft, and the pad's D-pad left (button 14), are both drawn as an arrow.
-    expect(within(left).getAllByText('←')).toHaveLength(2)
+    // ArrowLeft is "←"; the pad's D-pad left (button 14) says it is a pad, so a key and a pad button are never alike.
+    expect(within(left).getAllByText('←')).toHaveLength(1)
+    expect(within(left).getByText(`Pad ${padLabel(14, 'generic', PROMPT_COPY)}`)).toBeTruthy()
     expect(within(left).getByText('A')).toBeTruthy()
-    expect(within(left).getByText(padLabel(0, 'generic', PROMPT_COPY))).toBeTruthy()
+    expect(within(left).getByText(`Pad ${padLabel(0, 'generic', PROMPT_COPY)}`)).toBeTruthy()
   })
 
   it('renames an action in place', async () => {

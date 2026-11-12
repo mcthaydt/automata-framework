@@ -18,6 +18,8 @@ interface Props {
   selected: Selection | undefined
   /** How big the diagram is drawn, 1 being its natural size; never below `MIN_ZOOM`, so no target is under 44 px. */
   zoom: number
+  /** Laid out top to bottom, for an area narrower than it is high. */
+  tall?: boolean
   onselect: (selection: Selection) => void
   /** While Watch runs: the mode this character is in now, and the switch that fired last. */
   live?:
@@ -28,7 +30,7 @@ interface Props {
     | undefined
 }
 
-const { character, names, selected, zoom, onselect, live }: Props = $props()
+const { character, names, selected, zoom, tall = false, onselect, live }: Props = $props()
 
 // The "Any mode" arrow also fires when a switch from any mode does.
 const fired = (from: string, to: string): boolean =>
@@ -37,7 +39,7 @@ const fired = (from: string, to: string): boolean =>
 // Drawn at the size a finger can use: a box is 64 px tall and a label 52 (44 px at `MIN_ZOOM`).
 const SIZE = { box: { w: 160, h: 64 }, gap: 168, label: 52, labelW: 144 }
 const PAD = 12
-const diagram = $derived(layoutAgent(character, SIZE))
+const diagram = $derived(layoutAgent(character, { ...SIZE, tall }))
 const width = $derived(diagram.width + PAD * 2)
 const height = $derived(diagram.height + PAD * 2)
 

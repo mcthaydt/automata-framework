@@ -266,7 +266,7 @@ $effect(() => {
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-1);
-    min-height: var(--size-hit);
+    min-height: var(--size-field);
     color: var(--ink);
     font: var(--text-body-13);
   }
@@ -275,7 +275,7 @@ $effect(() => {
     flex: var(--label-flex, 0 1 auto);
     margin-right: var(--space-2);
     min-width: 0;
-    min-height: var(--size-hit);
+    min-height: var(--size-field);
     display: flex;
     align-items: center;
     color: var(--muted);
@@ -292,16 +292,16 @@ $effect(() => {
   .value,
   .field {
     box-sizing: border-box;
-    min-height: var(--size-hit);
+    min-height: var(--size-field);
     border: 1px solid var(--line-strong);
     border-radius: var(--edge-sm);
-    background: var(--paper);
+    background: var(--bg);
     color: inherit;
     font: var(--text-mono-12);
   }
   .step {
     flex: none;
-    width: var(--size-hit);
+    width: var(--size-field);
     padding: 0;
     cursor: pointer;
     font-size: 18px;

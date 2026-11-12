@@ -1,5 +1,5 @@
 /*
- * The editor's icons: 40 drawings from Lucide (lucide-static 0.460.0), copied as the shapes inside each
+ * The editor's icons: 49 drawings from Lucide (lucide-static 0.460.0), copied as the shapes inside each
  * 24 x 24 svg (tag and attributes), so the kit needs no icon dependency. Icon.svelte draws each with a 2 px round stroke in
  * currentColor. To add one, copy the elements inside the <svg> of icons/<lucide-name>.svg into a new entry
  * here as [tag, attributes] pairs, under the name the editor uses for it, and record it in docs/provenance/sources.md.
@@ -279,6 +279,60 @@ export const ICONS = {
     ['path', { d: 'M8 2h8l4 10H4L8 2Z' }],
     ['path', { d: 'M12 12v6' }],
     ['path', { d: 'M8 22v-2c0-1.1.9-2 2-2h4a2 2 0 0 1 2 2v2H8Z' }],
+  ],
+  levels: [
+    ['rect', { x: '3', y: '3', width: '18', height: '18', rx: '2' }],
+    ['path', { d: 'M3 12h18' }],
+    ['path', { d: 'M12 3v18' }],
+  ],
+  person: [
+    ['circle', { cx: '12', cy: '8', r: '5' }],
+    ['path', { d: 'M20 21a8 8 0 0 0-16 0' }],
+  ],
+  zap: [
+    [
+      'path',
+      {
+        d: 'M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z',
+      },
+    ],
+  ],
+  volume: [
+    [
+      'path',
+      {
+        d: 'M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z',
+      },
+    ],
+    ['path', { d: 'M16 9a5 5 0 0 1 0 6' }],
+    ['path', { d: 'M19.364 18.364a9 9 0 0 0 0-12.728' }],
+  ],
+  message: [
+    ['path', { d: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' }],
+    ['path', { d: 'M13 8H7' }],
+    ['path', { d: 'M17 12H7' }],
+  ],
+  clapper: [
+    ['path', { d: 'M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z' }],
+    ['path', { d: 'm6.2 5.3 3.1 3.9' }],
+    ['path', { d: 'm12.4 3.4 3.1 4' }],
+    ['path', { d: 'M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z' }],
+  ],
+  workflow: [
+    ['rect', { x: '3', y: '3', width: '8', height: '8', rx: '2' }],
+    ['path', { d: 'M7 11v4a2 2 0 0 0 2 2h4' }],
+    ['rect', { x: '13', y: '13', width: '8', height: '8', rx: '2' }],
+  ],
+  maximize: [
+    ['path', { d: 'M8 3H5a2 2 0 0 0-2 2v3' }],
+    ['path', { d: 'M21 8V5a2 2 0 0 0-2-2h-3' }],
+    ['path', { d: 'M3 16v3a2 2 0 0 0 2 2h3' }],
+    ['path', { d: 'M16 21h3a2 2 0 0 0 2-2v-3' }],
+  ],
+  upload: [
+    ['path', { d: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' }],
+    ['path', { d: 'm17 8-5-5-5 5' }],
+    ['path', { d: 'M12 3v12' }],
   ],
 } as const
 

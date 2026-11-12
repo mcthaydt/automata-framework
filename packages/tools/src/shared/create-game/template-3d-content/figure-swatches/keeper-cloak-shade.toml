@@ -1,0 +1,5 @@
+# `keeper-cloak-shade`: a colour from the DUEL palette.
+# Colour: DUEL ramp plum, step 1.
+
+ramp = "plum"
+step = 1

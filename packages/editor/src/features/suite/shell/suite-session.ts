@@ -2,6 +2,7 @@
 // ports, except that `workspace.write` takes the write path, so every editor's edit is checked and written once) and
 // the checks pill, which follows each write's `after` run.
 
+import { ensureListed } from '../../../shared/editor-list/editor-rows'
 import { createWritePath, type WriteOutcome, type WritePath } from '../../../shared/editor-list/write-path'
 import type { CheckReport, SuitePorts } from '../../../shared/kit/ports/suite-ports.ts'
 import { checksPill, type Pill } from '../core/pills-model'
@@ -13,6 +14,8 @@ export interface SuiteSession {
   portsFor(editor: string): SuitePorts
   readonly writePath: WritePath
   pills(): readonly Pill[]
+  /** The latest result of each check, with every finding, for the sidebar's problem counts. */
+  reports(): readonly CheckReport[]
   /** Shows a write's `after` checks running on the pill until their results are in. */
   follow(outcome: WriteOutcome): Promise<void>
   /** `owner`'s undo or redo on the write path, its `after` checks followed on the pill; `undefined` with nothing to do. */
@@ -72,6 +75,7 @@ export function createSuiteSession(raw: SuitePorts): SuiteSession {
 
   const portsFor = (owner: string): SuitePorts => ({
     ...raw,
+    list: { ensure: (editor) => ensureListed(raw.workspace, editor) },
     workspace: {
       ...raw.workspace,
       async write(path, text) {
@@ -97,6 +101,7 @@ export function createSuiteSession(raw: SuitePorts): SuiteSession {
     portsFor,
     writePath,
     pills: () => pills,
+    reports: () => [...latest.values()],
     follow,
     async undo(owner) {
       const outcome = await writePath.undo(owner)

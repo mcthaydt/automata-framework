@@ -90,6 +90,10 @@ export {
 export { default as Icon } from '../shared/kit/icons/Icon.svelte'
 export type { IconName } from '../shared/kit/icons/paths'
 export { createKeymap, type KeyInput, type Keymap, type Platform } from '../shared/kit/keymap/keymap'
+export { default as Block } from '../shared/kit/rows/Block.svelte'
+export { default as Field } from '../shared/kit/rows/Field.svelte'
+export { default as Row } from '../shared/kit/rows/Row.svelte'
+export { default as Section } from '../shared/kit/rows/Section.svelte'
 export { createSelection, type Selection, type SelectionId } from '../shared/kit/selection/selection'
 export { default as EditorShell } from '../shared/kit/shell/EditorShell.svelte'
 export {
@@ -106,6 +110,7 @@ export {
   shellModeOf,
 } from '../shared/kit/shell/shell-mode'
 export { type OpenState, reconcileOpen } from '../shared/kit/shell/shell-open'
+export { default as EmptyState } from '../shared/kit/states/EmptyState.svelte'
 export type { StorageClock } from '../shared/kit/storage/clock'
 export {
   createDocumentSession,
@@ -154,6 +159,7 @@ export { openWorkspace, type Workspace, type WorkspaceEnv } from '../shared/kit/
 export { default as ThemeChoice } from '../shared/kit/theme/ThemeChoice.svelte'
 export type { EditorTokens } from '../shared/kit/tokens/editor-tokens'
 export { tokensToCss } from '../shared/kit/tokens/tokens-to-css'
+export { default as FloatingToolbar } from '../shared/kit/toolbar/FloatingToolbar.svelte'
 export { default as Button } from '../shared/kit/widgets/Button.svelte'
 export { default as Chips } from '../shared/kit/widgets/Chips.svelte'
 export { default as ColorField } from '../shared/kit/widgets/ColorField.svelte'

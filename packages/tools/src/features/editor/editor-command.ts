@@ -8,9 +8,9 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
 import { APP_IS_GONE, parseEditorArgs } from './editor-args.ts'
-import { gameVite, type RunningGame, startGame } from './game-runner.ts'
-import { type EditorPage, pageFor } from './page-for.ts'
-import { type PublishOutcome, publishGame, runStep } from './publish-game.ts'
+import { gameVite, type RunningGame, type StartGameOptions, startGame } from './game-runner.ts'
+import { CONTENT_EDITORS, type EditorPage, fullPageEditors, pageFor, THREE_D_EDITORS } from './page-for.ts'
+import { type PublishOutcome, publishGame, runStep, scanBuildForEval } from './publish-game.ts'
 import type { EditorServerOptions, RunningEditor } from './serve-editor.ts'
 
 export interface EditorCommandIo {
@@ -33,7 +33,7 @@ export interface EditorCommandDeps {
   /** Resolves when the person stops the command (Ctrl+C). */
   readonly untilStopped: () => Promise<void>
   /** Starts the game in this folder as `pnpm dev` does, for Play and the Tuner; throws a sentence the person can act on. */
-  readonly startGame: (root: string) => Promise<RunningGame>
+  readonly startGame: (root: string, options: StartGameOptions) => Promise<RunningGame>
   /** Builds the game in this folder and makes the zip to upload (the editor's Publish). */
   readonly publishGame: (root: string) => Promise<PublishOutcome>
   readonly cwd: string
@@ -47,6 +47,7 @@ Only this computer can open it, unless you add --lan: then a tablet on your netw
 The editor saves to the files listed in content/editors.toml, and it will not overwrite a file that changed while
 you were editing. Without content/editors.toml, it opens only level files (*.af2d.json and *.af-sector.json).
 It starts your game too, so Play and the Tuner can show it, and Publish builds it into a zip to upload.
+With --lan the game is open to your network too, and it has no token: use --lan only on a network you trust.
 If your game is already running (pnpm dev), give its address with --game-url and it starts no other.
 `
 
@@ -54,8 +55,8 @@ If your game is already running (pnpm dev), give its address with --game-url and
 const BUILDS: Readonly<Record<EditorPage, { readonly folder: string; readonly pkg: string }>> = {
   // Levels and the Tuner: packed in the published tools too.
   'suite-2d': { folder: 'packages/editor/dist/suite', pkg: '@automata/editor' },
-  // The suite with Levels 3D and Characters: built in the repository only.
-  'suite-full': { folder: 'packages/editor-3d/dist/suite', pkg: '@automata/editor-3d' },
+  // Every editor (Levels 3D and Characters, Feel, Audio, Writer, Sequence and Schematic too): built in the repository only.
+  'suite-full': { folder: 'extensions/editors/dist/suite', pkg: '@automata/editors' },
 }
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -87,12 +88,29 @@ export async function editorCommand(
   }
   const { dir, appDir, port, lan, token, gameUrl } = parsed.options
   const root = resolve(deps.cwd, dir)
-  const page = pageFor(deps.readEditorList(root))
-  const build = appDir === undefined ? deps.builtApp(page) : resolve(deps.cwd, appDir)
-  // The full page is built in the repository only; a published copy of the tools packs the 2D page.
-  if (page === 'suite-full' && appDir === undefined && !deps.inRepository) {
+  const list = deps.readEditorList(root)
+  const wanted = fullPageEditors(list)
+  const outside = appDir === undefined && !deps.inRepository
+  // The full page is built in the repository only; a published copy of the tools packs the 2D page. A game that needs
+  // a 3D editor cannot be edited without it; a 2D game that lists content editors opens on the 2D page, which says so.
+  if (outside && wanted.some((editor) => THREE_D_EDITORS.has(editor))) {
     io.stderr('Error: The 3D editors are not in this release yet.\n')
     return 2
+  }
+  const page: EditorPage = outside ? 'suite-2d' : pageFor(list)
+  const build = appDir === undefined ? deps.builtApp(page) : resolve(deps.cwd, appDir)
+  if (outside && !deps.exists(resolve(build, 'index.html'))) {
+    io.stderr(
+      'Error: The editors are missing from this copy of the tools. Install them again: pnpm add -D @automata/tools\n',
+    )
+    return 2
+  }
+  if (outside && wanted.length > 0) {
+    const names = wanted.map((editor) => CONTENT_EDITORS.get(editor) ?? editor)
+    const said = names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`
+    io.stdout(
+      `${said} ${names.length === 1 ? 'is' : 'are'} not in this release yet, so the editors show Levels and the Tuner.\n`,
+    )
   }
   if (!deps.exists(resolve(build, 'index.html'))) {
     io.stderr(`Error: no editor build at ${build}. Build it first: pnpm --filter ${BUILDS[page].pkg} build\n`)
@@ -103,12 +121,15 @@ export async function editorCommand(
   // working, with Play off and the reason printed.
   let game: RunningGame | undefined
   let gameProblem: string | undefined
-  if (gameUrl === undefined)
+  if (gameUrl === undefined) {
+    // Vite can take a while on a cold cache; say so before waiting, so the silence is not mistaken for a hang.
+    io.stdout('Starting your game…\n')
     try {
-      game = await deps.startGame(root)
+      game = await deps.startGame(root, { lan })
     } catch (error) {
       gameProblem = error instanceof Error ? error.message : String(error)
     }
+  }
   let running: RunningEditor
   try {
     running = await deps.serve({
@@ -118,6 +139,7 @@ export async function editorCommand(
       port,
       token: secret,
       gameUrl: gameUrl ?? game?.url,
+      playOff: gameProblem,
       publish: () => deps.publishGame(root),
     })
   } catch (error) {
@@ -133,6 +155,11 @@ export async function editorCommand(
     for (const address of deps.lanAddresses())
       io.stdout(`  On the network: http://${address}:${running.port}${query}\n`)
   if (game !== undefined) io.stdout(`  Your game is running: ${game.url}\n`)
+  // The editor's API wants the token; the game's own page is Vite's and has none. Say so where --lan is chosen.
+  if (lan && game !== undefined)
+    io.stdout(
+      '  Anyone on your network can open your game and see its files, with no token. Use --lan only on a network you trust.\n',
+    )
   if (gameProblem !== undefined) io.stdout(`  Play is off: ${gameProblem}\n`)
   io.stdout('Press Ctrl+C to stop.\n')
   await deps.untilStopped()
@@ -179,7 +206,12 @@ export function liveEditorDeps(): EditorCommandDeps {
       }),
     startGame,
     publishGame: (root) =>
-      publishGame(root, { vite: gameVite(root), bin: process.argv[1] ?? '', run: runStep }),
+      publishGame(root, {
+        vite: gameVite(root),
+        bin: process.argv[1] ?? '',
+        run: runStep,
+        evalFindings: scanBuildForEval,
+      }),
     cwd: process.cwd(),
   }
 }

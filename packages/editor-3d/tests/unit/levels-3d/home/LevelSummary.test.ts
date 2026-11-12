@@ -39,7 +39,7 @@ describe('LevelSummary', () => {
     expect(screen.getByText('depot/depot.json')).toBeInTheDocument()
     expect(screen.getByText('4.2 KB · 5 min ago')).toBeInTheDocument()
     const open = screen.getByRole('button', { name: 'Open' })
-    expect(open).toHaveAttribute('data-kind', 'primary')
+    expect(open).toHaveAttribute('data-kind', 'secondary')
     await userEvent.click(open)
     expect(onopen).toHaveBeenCalledOnce()
   })

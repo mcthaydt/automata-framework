@@ -16,7 +16,7 @@ export function trackAlias(path: string): string {
 }
 
 /**
- * The player's `tracks` from the music files a bundler found (Vite's `import.meta.glob('/assets/music/*', { eager: true,
+ * The player's `tracks` from the music files a bundler found (Vite's `import.meta.glob('../../assets/music/*', { eager: true,
  * query: '?url', import: 'default' })`): each file's name to the address it is served from.
  */
 export function tracksFrom(found: Readonly<Record<string, string>>): Readonly<Record<string, string>> {

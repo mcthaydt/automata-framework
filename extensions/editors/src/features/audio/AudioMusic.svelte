@@ -208,7 +208,7 @@ async function removeTrack(at: number, id: string): Promise<void> {
           {#if askRefusal !== undefined}<p class="bad" role="alert">{askRefusal}</p>{/if}
           <div class="actions">
             <Button variant="quiet" onclick={() => (askingFor = undefined)}>Cancel</Button>
-            <Button variant="primary" disabled={asking.key.trim() === ''} onclick={() => void addCondition(rule.index)}>
+            <Button disabled={asking.key.trim() === ''} onclick={() => void addCondition(rule.index)}>
               Add
             </Button>
           </div>
@@ -241,7 +241,7 @@ async function removeTrack(at: number, id: string): Promise<void> {
     </article>
   {/each}
   {#if (content.slot ?? []).length > 0}
-    <div class="actions"><Button variant="primary" onclick={() => void addRule()}>Add a rule</Button></div>
+    <div class="actions"><Button onclick={() => void addRule()}>Add a rule</Button></div>
   {/if}
 {/if}
 
@@ -253,10 +253,8 @@ async function removeTrack(at: number, id: string): Promise<void> {
     gap: var(--space-3);
   }
   .card {
-    padding: var(--space-4);
-    border: 1px solid var(--color-border-default);
-    border-radius: var(--edge-md);
-    background: var(--color-bg-surface);
+    padding: var(--space-4) 0 0;
+    box-shadow: inset 0 1px 0 var(--color-border-default);
   }
   .actions {
     display: flex;

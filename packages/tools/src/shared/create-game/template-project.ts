@@ -45,9 +45,12 @@ export const packageFile = (
         version: '0.1.0',
         private: true,
         type: 'module',
+        // The name the editors show (the game's folder name in words otherwise): the name the player sees.
+        automata: { title: options.title },
         scripts: {
           ...(features.fonts === true ? { fonts: 'automata-content assets' } : {}),
           dev: features.fonts === true ? 'pnpm fonts && vite' : 'vite',
+          editor: 'automata editor',
           ...targetScripts(targetsOf(options), { fonts: features.fonts === true }),
           typecheck: 'tsc -p .',
           test: 'vitest run',

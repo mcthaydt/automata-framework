@@ -8,9 +8,14 @@ import { diagnostic, itemPath, levelPath } from './diagnostics'
 // definition a level may hold, and how many a level or the project must hold. Limits are data on the definition
 // (`single`, `min`), so a template's rules need no template code. What a `ref` field points at is `links.ts`.
 
-/** The kit's problems with `values` as diagnostics at `<path>.fields.<field>`. */
-function fieldDiagnostics(fields: readonly FieldDef[], values: FieldValues, path: string): Diagnostic[] {
-  return checkValues(fields, values).map((problem) =>
+/** The kit's problems with `values` as diagnostics at `<path>.fields.<field>`; `owner` is what the holder is called. */
+function fieldDiagnostics(
+  fields: readonly FieldDef[],
+  values: FieldValues,
+  path: string,
+  owner: string,
+): Diagnostic[] {
+  return checkValues(fields, values, owner).map((problem) =>
     diagnostic(
       'error',
       problem.code === 'fieldMissing' ? 'fieldMissing' : 'fieldInvalid',
@@ -33,7 +38,7 @@ export function entityChecks(project: Project): Diagnostic[] {
   const perLevel: { levelId: string; levelName: string; counts: Map<string, number> }[] = []
 
   for (const level of project.levels) {
-    found.push(...fieldDiagnostics(project.defs.levelFields, level.fields, levelPath(level.id)))
+    found.push(...fieldDiagnostics(project.defs.levelFields, level.fields, levelPath(level.id), 'level'))
     const counts = new Map<string, number>()
     for (const layer of level.layers) {
       if (layer.kind !== 'entities') continue
@@ -41,7 +46,7 @@ export function entityChecks(project: Project): Diagnostic[] {
         const def = defs.get(item.def)
         if (def === undefined) continue // `unknownEntityDef` reports it
         const path = itemPath(level.id, layer.def, item.id)
-        found.push(...fieldDiagnostics(def.fields, item.fields, path))
+        found.push(...fieldDiagnostics(def.fields, item.fields, path, label(def)))
         const seen = (counts.get(def.id) ?? 0) + 1
         counts.set(def.id, seen)
         inProject.set(def.id, (inProject.get(def.id) ?? 0) + 1)

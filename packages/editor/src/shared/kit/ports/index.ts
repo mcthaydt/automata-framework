@@ -16,6 +16,7 @@ export type {
   CheckRun,
   ChecksRunner,
   EditMode,
+  EditorListPort,
   GateState,
   Gates,
   SuitePorts,

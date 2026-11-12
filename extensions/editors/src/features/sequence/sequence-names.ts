@@ -1,6 +1,7 @@
 // The names a person picks from in Sequence, read from the whole game, because a cutscene names no scene or level: every
-// lines file (shown by its words), the characters placed with a name in the game's 2D levels, and whatever the cutscenes
-// already use. Anything that does not read is skipped; Sequence reports on its own file, not on the game's others.
+// lines file (shown by its words), the characters placed with a name in the game's 2D levels, the lamps, doors, props and things
+// of its 3D levels, and whatever the cutscenes already use. Anything that does not read is skipped; Sequence reports on
+// its own file, not on the game's others.
 import { levelContentSchema } from '@automata/content/level-2d'
 import type { CutsceneScript } from '@automata/cutscenes/sim'
 import { openDocument } from '@automata/editor/kit/documents'
@@ -23,6 +24,13 @@ export interface GameNames {
   readonly used: Pick<SequenceNames, 'actors' | 'anchors' | 'lamps' | 'doors' | 'props' | 'clips'>
   /** The levels (2D, and 3D `af-sector` files) a preview can show walls from. */
   readonly levels: readonly { readonly name: string; readonly path: string }[]
+}
+
+/** The parts of a 3D level file this reads beyond `levelNamesOf`: its title, the people placed in it, its door sectors. */
+interface RoomValue {
+  readonly name?: unknown
+  readonly cast?: readonly { readonly id: string; readonly at?: readonly number[] }[]
+  readonly sectors?: readonly { readonly id: string; readonly door?: unknown }[]
 }
 
 const openDocumentValue = (text: string, path: string): unknown => {
@@ -107,6 +115,8 @@ export async function readGameNames(
         if (layer.kind !== 'entities') continue
         for (const item of layer.items) {
           const name = item.fields.name
+          // A named region (a Hall, a Yard) is a place; only a point is someone to ask to speak or walk.
+          if (item.w !== undefined || item.h !== undefined) continue
           if (typeof name === 'string' && name !== '') people.push({ name, x: item.x / 16, z: item.y / 16 })
         }
       }
@@ -117,7 +127,8 @@ export async function readGameNames(
       const text = (await ports.workspace.read(file.path))?.text
       if (text === undefined) continue
       const found = levelNamesOf(text, file.path)
-      const name = (openDocumentValue(text, file.path) as { name?: unknown } | undefined)?.name
+      const value = openDocumentValue(text, file.path) as RoomValue | undefined
+      const name = value?.name
       if (
         found.lamps.length + found.doors.length + found.props.length + found.things.length === 0 &&
         typeof name !== 'string'
@@ -131,6 +142,10 @@ export async function readGameNames(
       for (const door of found.doors) used.doors.add(door)
       for (const prop of found.props) used.props.add(prop)
       for (const thing of found.things) used.anchors.add(thing)
+      // The people placed in the room are someone to ask to speak or walk; a sector that is a door is named by its id.
+      for (const person of value?.cast ?? [])
+        people.push({ name: person.id, x: person.at?.[0] ?? 0, z: person.at?.[1] ?? 0 })
+      for (const sector of value?.sectors ?? []) if (sector.door !== undefined) used.doors.add(sector.id)
       continue
     }
     if (CUTSCENE_FILE.test(file.path)) {

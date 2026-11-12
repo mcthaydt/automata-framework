@@ -77,7 +77,7 @@ function goOn(): void {
       {/each}
     </div>
   {:else if view.goesOn !== undefined}
-    <div class="actions"><Button variant="primary" onclick={goOn}>Next</Button></div>
+    <div class="actions"><Button onclick={goOn}>Next</Button></div>
   {:else}
     <p>The end.</p>
     <div class="actions"><Button onclick={restart}>Start again</Button></div>

@@ -67,6 +67,12 @@ export interface AudioOptions {
   readonly document?: Pick<EventTarget, 'addEventListener' | 'removeEventListener'> & {
     readonly visibilityState: DocumentVisibilityState
   }
+  /**
+   * Whether the page has already had a gesture, so a context built now may run without another: true on a game
+   * restarted in place (the dev server's reload on a saved change), whose sound would otherwise stay off until the next
+   * tap. Defaults to the browser's `navigator.userActivation.hasBeenActive`, false where there is none.
+   */
+  readonly activated?: () => boolean
   /** Silences the master while another window has focus; the graph keeps running. */
   readonly muteUnfocused?: boolean
   /** Loads a file no screen preloaded. Defaults to `fetch`. */
@@ -118,6 +124,7 @@ export function createAudio(options: AudioServices & AudioOptions): Audio & Audi
   const page = options.document ?? globalThis.document
   const load = options.fetch ?? globalThis.fetch
   const createContext = options.createContext ?? (() => new AudioContext())
+  const activated = options.activated ?? (() => globalThis.navigator?.userActivation?.hasBeenActive === true)
 
   const graph = new AudioGraph()
   const voices = new Voices(graph)
@@ -201,6 +208,11 @@ export function createAudio(options: AudioServices & AudioOptions): Audio & Audi
       void graph.resumeOnGesture().catch(() => undefined)
       return
     }
+    unlock()
+  }
+
+  /** Builds the graph and resumes it: inside a gesture, or once the session is ready on a page that had one already. */
+  const unlock = () => {
     try {
       graph.buildIfNeeded(createContext)
     } catch (cause) {
@@ -235,7 +247,9 @@ export function createAudio(options: AudioServices & AudioOptions): Audio & Audi
 
   // A refused ready leaves the gestures ignored: the session never started, so neither does sound.
   void hosting.ready.then((result) => {
-    if (result.ok && !disposed) ready = true
+    if (!result.ok || disposed) return
+    ready = true
+    if (activated()) unlock()
   })
   // The host's volume, focus and ads arrive already combined in `gain`: multiply the mix by it, add nothing.
   const stopGain = hosting.audio.subscribe((change) => graph.setHostGain(change.gain))

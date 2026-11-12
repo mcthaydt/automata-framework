@@ -4,6 +4,7 @@
 // browser, and the top bar says so. The served suite has no change sets, so its edits write the checkout directly, and
 // its Publish builds the game into a zip on the computer that serves it.
 
+import { createLiveList } from '../../../shared/kit/ports/memory/live-list.ts'
 import { createMemoryPorts } from '../../../shared/kit/ports/memory/memory-ports.ts'
 import type { SuitePorts } from '../../../shared/kit/ports/suite-ports.ts'
 import { createMemoryStore } from '../../../shared/kit/storage/memory-store.ts'
@@ -13,7 +14,7 @@ import {
   openServedStore,
   type ServedWorkspaceEnv,
 } from '../../../shared/kit/storage/workspace.ts'
-import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '../core'
+import { EDITOR_LIST_PATH } from '../core'
 import { SAMPLE_GAME, samplePorts } from './sample-ports.ts'
 
 export interface OpenedSuitePorts {
@@ -22,6 +23,8 @@ export interface OpenedSuitePorts {
   readonly sample: boolean
   /** The game's dev page, from the server's ping; none for the sample game. */
   readonly gameUrl: string | undefined
+  /** Why Play is off, from the server's ping, when the game could not start; none otherwise. */
+  readonly playOff: string | undefined
   /** The game's name in words, from the server's ping; none for the sample game. */
   readonly game: string | undefined
   /** Builds the game into a zip to upload, from a server that can; none for the sample game. */
@@ -29,6 +32,9 @@ export interface OpenedSuitePorts {
 }
 
 const decoder = new TextDecoder()
+
+/** Where the content build writes what it makes. */
+const GENERATED_FOLDER = 'content/generated/'
 
 export interface SuitePortsEnv
   extends Pick<ServedWorkspaceEnv, 'origin' | 'search' | 'fetch' | 'sessionStorage' | 'storage'> {
@@ -46,17 +52,24 @@ export async function openSuitePorts(env: SuitePortsEnv): Promise<OpenedSuitePor
     // page keeps a visitor's level through a reload, as the site says.
     const [store = createMemoryStore()] = (await openPrivateStores([SAMPLE_FOLDER], env.storage)).stores
     const ports = await samplePorts(env.sample ?? SAMPLE_GAME, { store })
-    return { ports, sample: true, gameUrl: undefined, game: undefined, publish: undefined }
+    return {
+      ports,
+      sample: true,
+      gameUrl: undefined,
+      playOff: undefined,
+      game: undefined,
+      publish: undefined,
+    }
   }
-  const { store, gameUrl, game, publish } = served
+  const { store, gameUrl, playOff, game, publish } = served
   const bytes = await store.read(EDITOR_LIST_PATH)
-  const load = loadEditorList(bytes === undefined ? undefined : decoder.decode(bytes))
+  const list = createLiveList(bytes === undefined ? undefined : decoder.decode(bytes))
   const { ports } = await createMemoryPorts({
     store,
-    classify: (path) =>
-      load.ok
-        ? workspaceFile(load.list, path)
-        : { path, writable: false, why: 'The editor list has a problem.' },
+    classify: list.classify,
+    // The compiler's outputs (`tuning-meta.json`, `events.json`) are read from the checkout, never written.
+    generated: (path) => path.startsWith(GENERATED_FOLDER),
+    listChanged: list.replace,
   })
-  return { ports, sample: false, gameUrl, game, publish }
+  return { ports, sample: false, gameUrl, playOff, game, publish }
 }

@@ -41,6 +41,10 @@ export interface FieldRow {
   readonly bounds?: { readonly min?: number; readonly max?: number; readonly step: number }
   /** `segmented` and `picker` only. */
   readonly options?: readonly string[]
+  /** What to say under the control when the holder has no value for a required field, in a person's words. */
+  readonly missing?: string
+  /** `stepper` with both bounds only: the range in words ("1 to 9"), since the control shows the value alone. */
+  readonly hint?: string
   /** `ref` only, where the editor knows the level: the target's name (`undefined` when not set or broken) and the picker's groups. */
   readonly ref?: { readonly name: string | undefined; readonly targets: readonly RefTargetGroup[] }
 }
@@ -81,7 +85,7 @@ function boundsOf(def: FieldDef): NonNullable<FieldRow['bounds']> {
   }
 }
 
-export function fieldRow(def: FieldDef, value: FieldValue | undefined): FieldRow {
+export function fieldRow(def: FieldDef, value: FieldValue | undefined, missing?: string): FieldRow {
   const widget = widgetOf(def)
   return {
     id: def.id,
@@ -90,6 +94,10 @@ export function fieldRow(def: FieldDef, value: FieldValue | undefined): FieldRow
     value,
     widget,
     ...(widget === 'stepper' ? { bounds: boundsOf(def) } : {}),
+    ...(widget === 'stepper' && def.min !== undefined && def.max !== undefined
+      ? { hint: `${def.min} to ${def.max}` }
+      : {}),
+    ...(missing === undefined ? {} : { missing }),
     ...(widget === 'segmented' || widget === 'picker' ? { options: def.options ?? [] } : {}),
   }
 }

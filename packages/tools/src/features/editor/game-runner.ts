@@ -8,7 +8,7 @@ import { createServer } from 'node:net'
 import { join } from 'node:path'
 
 export interface RunningGame {
-  /** The game's page: `http://localhost:<port>/`. */
+  /** The game's page on this computer: `http://localhost:<port>/` (a tablet's editor swaps in the computer's address). */
   readonly url: string
   /** Stops the game's Vite and waits for it to exit. */
   readonly stop: () => Promise<void>
@@ -52,8 +52,13 @@ function stopChild(child: ChildProcess): Promise<void> {
   })
 }
 
+export interface StartGameOptions {
+  /** Listen on every address, as the editor does with `--lan`, so a tablet on the network can open the game too. */
+  readonly lan?: boolean | undefined
+}
+
 /** Starts the game in `root` and resolves once its page answers. Throws a sentence the person can act on. */
-export async function startGame(root: string): Promise<RunningGame> {
+export async function startGame(root: string, options: StartGameOptions = {}): Promise<RunningGame> {
   const vite = gameVite(root)
   if (vite === undefined) throw new Error(NOT_INSTALLED)
   const port = await freePort()
@@ -61,7 +66,16 @@ export async function startGame(root: string): Promise<RunningGame> {
   // packages are installed builds or a workspace's sources.
   const child = spawn(
     process.execPath,
-    [vite, '--configLoader', 'runner', '--strictPort', '--host', 'localhost', '--port', String(port)],
+    [
+      vite,
+      '--configLoader',
+      'runner',
+      '--strictPort',
+      '--host',
+      options.lan === true ? '0.0.0.0' : 'localhost',
+      '--port',
+      String(port),
+    ],
     { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] },
   )
   let said = ''

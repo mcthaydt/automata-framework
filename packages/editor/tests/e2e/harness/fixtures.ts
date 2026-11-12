@@ -14,6 +14,7 @@ import {
   type TestType,
 } from '@playwright/test'
 import { cellOnCanvas } from './canvas-pointer.ts'
+import { closePanel, openPanel } from './press-in-list.ts'
 import { BIN, type RunningEditor, runEditor } from './run-editor.ts'
 import { copyGame, type TempGame } from './temp-game.ts'
 
@@ -47,29 +48,61 @@ export const test: TestType<
 export { expect }
 
 /**
- * Opens the editor, then a level (Emberwick's room unless named, by its name in words as Home shows it) in the Level
+ * Opens the editor, then a level (Emberwick's room unless named, by its name in the Levels list) in the Level
  * view, and waits for the canvas to draw.
  */
 export async function openRoom(page: Page, editor: RunningEditor, level = 'Room 1'): Promise<void> {
   await page.goto(editor.url)
-  await page.getByRole('region', { name: 'Levels' }).getByRole('button', { name: level }).click()
+  // Home's card for Levels opens the editor, whose list has the level.
+  await page.getByRole('region', { name: 'Levels' }).getByRole('button', { name: 'Levels' }).click()
   await expect(page.locator('[data-level-canvas]')).toHaveAttribute('data-state', 'drawn')
+  // The level that opens is named in the header ("Levels / Start"); a person picks another from that name's menu.
+  const here = page.locator('nav[aria-label="Where you are"] button[aria-haspopup], button.title').first()
+  if (!((await here.textContent()) ?? '').includes(level)) {
+    await here.click()
+    await page
+      .getByRole('menuitem', { name: level })
+      .or(page.getByRole('button', { name: level }))
+      .first()
+      .click()
+    await expect(page.locator('[data-level-canvas]')).toHaveAttribute('data-state', 'drawn')
+  }
 }
 
-/** Chooses the Collision layer and the Brush, then taps one cell of the level (`tile` px cells) with a pointer. */
+/**
+ * Switches Levels to a view ("Level" or "Tiles"). The views are tabs in the header; on a phone, where the header has no
+ * room, they are in the sheet the title opens, which a person closes again.
+ */
+export async function chooseView(page: Page, view: 'Level' | 'Tiles'): Promise<void> {
+  const radio = page.getByRole('radio', { name: view, exact: true })
+  const title = page.locator('button.title')
+  if (await title.isVisible()) {
+    await title.click()
+    await radio.click()
+    await page.keyboard.press('Escape')
+    await expect(radio).toBeHidden()
+  } else await radio.click()
+}
+
+/**
+ * Chooses a layer (the Collision layer unless named, by its button's name) and the Brush, then taps one cell of the
+ * level (`tile` px cells) with a pointer.
+ */
 export async function paintWall(
   page: Page,
   cell: { col: number; row: number },
   tile: number = ROOM_TILE,
+  layerName = 'Collision Walls and floors',
 ): Promise<void> {
   // Below the wide layout the layers sit in a sheet behind the top bar's Panel button.
-  const layer = page.getByRole('button', { name: 'Collision Walls and floors' })
-  if (!(await layer.isVisible())) await page.getByRole('button', { name: 'Panel' }).click()
+  const layer = page.getByRole('button', { name: layerName })
+  await openPanel(page)
   await layer.click()
   await page.getByRole('radio', { name: 'Brush' }).click()
   const canvas = page.locator('[data-level-canvas]')
   // A new layer redraws the canvas; tap where the cell is now.
   await expect(canvas).toHaveAttribute('data-state', 'drawn')
+  await closePanel(page)
   const point = await cellOnCanvas(canvas, cell, tile)
   await page.mouse.click(point.x, point.y)
 }

@@ -16,7 +16,6 @@ import {
 
 /** The part of the session the actions use. */
 export interface PlacesHost {
-  readonly facts: { readonly listsNav: boolean }
   readonly ports: SuitePorts
   readonly files: { readonly nav: TomlSession<NavGraph>; readonly systems: TomlSession<SystemsDef> }
   readonly places: NavGraph | undefined
@@ -46,10 +45,6 @@ const NO_PLACES = 'There are no places yet.'
 
 /** The first place makes the scene's places file (when the editor list lets Schematic write it). */
 export async function addPlace(host: PlacesHost, name: string, x: number, z: number): Promise<Outcome> {
-  if (!host.facts.listsNav)
-    return host.refuse(
-      'The editor list does not name the places files yet. Add the rows shown on the start page.',
-    )
   const nav = host.places
   if (nav !== undefined) return run(host, 'Add a place', addPlaceEdits(nav, name, x, z))
   if (host.files.nav.exists())

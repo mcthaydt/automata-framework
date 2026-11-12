@@ -83,7 +83,11 @@ test('a shake added in Feel with its default numbers moves the played screen', a
   await page.getByRole('button', { name: 'Add an effect' }).click()
   await page.getByRole('button', { name: 'Shake the screen', exact: true }).click()
   await savedInto(story, 'content/feel/feel.toml', 'narrative.choices')
-  await servedWith(editor, 'narrative.choices')
+  // The effect is its own save, after the event's: the game is played once both are on disk.
+  await savedInto(story, 'content/feel/feel.toml', 'shake = ')
+  // The served entry with its shake, not only its event: the event lands first, and a game opened between the two saves
+  // has a feel that does nothing.
+  await servedWith(editor, '{ "camera": [ { "shake": 0.8 } ], "on": "narrative.choices" }')
 
   const game = await context.newPage()
   await playStory(game, editor)

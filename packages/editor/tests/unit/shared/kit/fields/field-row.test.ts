@@ -15,6 +15,7 @@ describe('fieldRow', () => {
       value: 3,
       widget: 'stepper',
       bounds: { min: 1, max: 9, step: 1 },
+      hint: '1 to 9',
     })
     expect(fieldRow({ id: 'patrol', type: 'point', list: true }, [{ x: 1, y: 2 }])).toMatchObject({
       widget: 'points',

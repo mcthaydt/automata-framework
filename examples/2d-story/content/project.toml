@@ -212,7 +212,7 @@ single = true
 fields = []
 shape = "rect"
 resizable = "none"
-tags = [ "spawn" ]
+tags = [ "spawn", "character" ]
 
 [entities.size]
 w = 16
@@ -232,7 +232,7 @@ label = "Slime"
 color = "#a855f7"
 shape = "rect"
 resizable = "none"
-tags = [ "enemy" ]
+tags = [ "enemy", "character" ]
 
 [[entities.fields]]
 id = "hp"
@@ -268,7 +268,7 @@ label = "Keeper"
 color = "#38bdf8"
 shape = "rect"
 resizable = "none"
-tags = [ "npc" ]
+tags = [ "npc", "character" ]
 
 [[entities.fields]]
 id = "name"
@@ -290,7 +290,7 @@ label = "Guard"
 color = "#ef4444"
 shape = "rect"
 resizable = "none"
-tags = [ "enemy" ]
+tags = [ "enemy", "character" ]
 
 [[entities.fields]]
 id = "name"

@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { entitiesOf, intGridRows, levelContentSchema } from '@automata/content/level-2d'
-import { loadEditorList } from '@automata/editor/editor-list'
+import { editorRows, loadEditorList } from '@automata/editor/editor-list'
 import { Effect } from 'effect'
 import { parse } from 'smol-toml'
 import { afterAll, describe, expect, it } from 'vitest'
@@ -66,5 +66,36 @@ describe('the starter editor list', () => {
       'content/puzzles/*.toml',
     ])
     expect(loadEditorList(list).ok).toBe(true)
+  })
+})
+
+describe('the starter tuning', () => {
+  it('holds the square’s speed as one tunable, with the words the Tuner shows beside it', () => {
+    const text = readTemplateContent('tuning.toml')
+    expect(text).toMatch(/^# .*\n/)
+    expect(parse(text)).toEqual({
+      SPEED: {
+        value: 2,
+        min: 1,
+        max: 4,
+        step: 1,
+        label: 'Speed',
+        feel: 'How far the square moves each step.',
+        unit: 'pixels a step',
+      },
+    })
+  })
+
+  it('is listed for the Tuner, in the Tuner’s own rows', () => {
+    const list = readTemplateContent('editors.toml')
+    const rows = (parse(list) as { file: { glob: string; editor: string }[] }).file
+    expect(rows.filter((row) => row.editor === 'tuner').map((row) => row.glob)).toEqual([
+      'content/tuning.toml',
+      'content/controls.toml',
+    ])
+    for (const glob of (editorRows('tuner')?.match(/glob = "([^"]+)"/g) ?? []).map((line) =>
+      line.slice(8, -1),
+    ))
+      expect(rows.some((row) => row.glob === glob && row.editor === 'tuner')).toBe(true)
   })
 })

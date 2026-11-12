@@ -10,7 +10,7 @@ import {
 } from '@automata/sim'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { Level2dAt, level2dPlaces, level2dPlugin } from '#src/entries/sim.ts'
+import { Level2dAt, level2dLintFloor, level2dPlaces, level2dPlugin } from '#src/entries/sim.ts'
 
 // A small level, 16 px to the metre: 8 cells across and 4 down, a floor of solid cells on the bottom row, a block in the
 // middle of the row above, and three areas the way the editor saves them (a rectangle placed by its top-left pivot).
@@ -247,5 +247,31 @@ describe('level2dPlaces: positions', () => {
       return { ...ctx.entity(sid)?.get(Level2dAt) }
     })
     expect(result).toEqual({ x: 32, y: 32 })
+  })
+})
+
+describe('level2dLintFloor', () => {
+  // The same areas and walls as the places, for the cutscene lint, which has no sim to ask.
+  const floor = level2dLintFloor({ level: LEVEL, project: PROJECT })
+
+  it('says which area a point in metres is in, or none off every area', () => {
+    expect(floor.sectorAt({ x: 1, z: 1 })).toBe('hall')
+    expect(floor.sectorAt({ x: 5, z: 1 })).toBe('yard')
+    expect(floor.sectorAt({ x: 7, z: 5 })).toBeUndefined()
+  })
+
+  it('is blocked by the solid cells, with the margin a body needs', () => {
+    // The block is cell (3, 1): metres 3 to 4 across, 1 to 2 down.
+    expect(floor.segmentBlocked({ x: 0.5, z: 1.5 }, { x: 3.5, z: 1.5 }, 0)).toBe(true)
+    expect(floor.segmentBlocked({ x: 0.5, z: 0.5 }, { x: 2.5, z: 0.5 }, 0)).toBe(false)
+    expect(floor.segmentBlocked({ x: 2.9, z: 1.5 }, { x: 2.9, z: 1.5 }, 0.2)).toBe(true)
+  })
+
+  it('treats the whole plane as floor in a level with no areas, since nothing says where it is', () => {
+    const bare = level2dLintFloor({
+      level: { ...LEVEL, layers: LEVEL.layers.filter((layer) => layer.kind !== 'entities') },
+      project: PROJECT,
+    })
+    expect(bare.sectorAt({ x: 7, z: 5 })).toBeDefined()
   })
 })

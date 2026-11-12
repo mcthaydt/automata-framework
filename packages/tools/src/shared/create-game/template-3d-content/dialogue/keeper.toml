@@ -1,0 +1,30 @@
+# The keeper's conversation. The second answer sets `look`, which the game reads to start the cutscene.
+[[graphs]]
+id = "keeper"
+speaker = "keeper"
+start = "hello"
+
+[graphs.nodes.hello]
+say = [ "keeper.hello" ]
+
+[[graphs.nodes.hello.choices]]
+line = "keeper.passing"
+next = "farewell"
+
+[[graphs.nodes.hello.choices]]
+line = "keeper.around"
+next = "follow"
+
+[graphs.nodes.hello.choices.set]
+look = true
+
+[graphs.nodes.farewell]
+say = [ "keeper.farewell" ]
+next = "end"
+
+[graphs.nodes.follow]
+say = [ "keeper.follow" ]
+next = "end"
+
+[graphs.nodes.end]
+say = []

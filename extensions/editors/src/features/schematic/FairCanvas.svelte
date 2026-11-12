@@ -107,7 +107,7 @@ const THRESHOLDS = [
         <a href={README}>How to add them</a>
       </p>
     {:else}
-      <Button variant="primary" disabled={session.fairRunning} onclick={() => void session.checkFair()}>
+      <Button disabled={session.fairRunning} onclick={() => void session.checkFair()}>
         {session.fairRunning ? 'Checking…' : 'Check now'}
       </Button>
       {#if session.fair !== undefined}

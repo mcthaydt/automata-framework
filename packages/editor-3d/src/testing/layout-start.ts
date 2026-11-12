@@ -1,4 +1,5 @@
-import { type EditorSize, REST } from '@automata/editor/kit/testing'
+import '@automata/editor/tool-chrome.css'
+import { type EditorSize, editorTargets, REST } from '@automata/editor/kit/testing'
 import { publishConditions, settleLayout } from '@automata/framework/testing'
 import { page } from 'vitest/browser'
 import { type EditorHandle, startEditor } from '../app/boot'
@@ -24,7 +25,7 @@ export async function startAt(
   fill: (workspace: MemoryWorkspace) => Promise<void>,
 ): Promise<{ conditions: ReturnType<typeof publishConditions>; workspace: MemoryWorkspace }> {
   await page.viewport(size.width, size.height)
-  const conditions = publishConditions(document.documentElement, size, REST)
+  const conditions = publishConditions(document.documentElement, size, REST, editorTargets())
   const clock = createTestClock(Date.now())
   const workspace = memoryWorkspace(clock)
   await fill(workspace)

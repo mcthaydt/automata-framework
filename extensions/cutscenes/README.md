@@ -36,6 +36,8 @@ Call `cutscenes.start` from the puzzle's `cutscene` hook. If a needed extension 
   script in a 3D game: it hands the camera, the pieces (doors, props, lamp levels), each actor and the fade to the parts of
   your game that show them. Pass it the cutscene's clock (`(tick - start) / tickHz`), so a replay draws the same frames.
   `end()` gives the camera back and puts the pieces back as `restore` says.
+  `cutsceneHooks3d({ scripts, show, tickHz })` is the other way in: the renderer's `scene` hook for a 3D room, which
+  follows the sim's cutscene events and hands each moment to `show`; `showScene3d({ camera, pieces, lamps })` makes that `show`.
 - **`@automata/cutscenes/tools`**: lint a script, naming a lamp, door or prop the level does not have.
 
 `examples/3d/cutscenes` has two scenes you can run.

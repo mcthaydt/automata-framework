@@ -21,7 +21,7 @@ the task-by-task record; this page is the short version.
   saved; a character's clips, the default controls (Tuner), a dialogue box, cutscene captions and a 2D cutscene stage run from
   files; `narrative`, `cutscenes`, `nav` and `systems` work in a 2D level through `places` and `level-2d`. `examples/2d-story`
   plays all of it, and the journey `story-in-play` makes a change in the editor and plays it (iPad and phone, Chromium). Not yet
-  run: changing the words in Writer, a caption in Sequence and the guard's chase speed in Schematic (those editors are PR #478).
+  run: changing the words in Writer, a caption in Sequence and the guard's chase speed in Schematic (those editors are PR #478). The build audit's findings are fixed on the audit's follow-up PR, apart from wiring those editors.
 - **Painted figures are lit by their room (c8-lit, on `claude/c8-lit`, not on main yet).** The character kit reads the renderer's light where a figure stands and lights its painted cell in whole DUEL steps (`lit: false` turns it off); painted figures depth-test per texel under WebGPU as under WebGL; and the hair-grid pole rule makes the runway cell the Macs painted differently the same on every machine. A figure is never lit above its painted colours (by day it is as painted). The bench's median for eight lit figures is inside its 2 ms budget (1.51, 0.15 and 1.66 ms in three scenarios); the worst frame, when several relight at once, is recorded and not a budget (5.77 to 9.44 ms there).
 - **Tools.** One `automata` command: create-game (the new game plays a starter feel and sound that the Feel and Audio editors change), add, check, build, editor, ship. `automata --help` works.
 - **Examples.** 27 single-file examples and the content hot-reload demo.

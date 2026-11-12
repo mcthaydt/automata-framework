@@ -54,8 +54,8 @@ describe('Inspector', () => {
   it('shows one chosen instance and edits its fields as one step each', async () => {
     const { history, edits, user } = setup(['slime-a'])
     expect(screen.getByRole('heading', { level: 2, name: 'Slime' })).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Increase Hit points' }))
-    expect(history.undoLabel).toBe('Set Hit points')
+    await user.click(screen.getByRole('button', { name: 'Increase Hits to beat it' }))
+    expect(history.undoLabel).toBe('Set Hits to beat it')
     await user.click(screen.getByRole('button', { name: 'Increase X' }))
     expect(history.undoLabel).toBe('Move entity')
     expect(JSON.stringify(edits.state)).toContain('"id":"slime-a","def":"slime","x":33')

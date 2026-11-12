@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { editorPolicy } from '#src/features/editor/editor-policy.ts'
+import { editorPolicy, livePolicy } from '#src/features/editor/editor-policy.ts'
 
 // The server's policy and the suite's `fileAccess` are one rule: a row that names `exports` lets a browser write the
 // game files of its level project, and nothing else new.
@@ -101,5 +101,37 @@ describe('editorPolicy with no editor list', () => {
     expect(policy.canWrite('node_modules/x/a.af2d.json')).toBe(false)
     expect(policy.canWrite('dist/a.af2d.json')).toBe(false)
     expect(policy.canWrite('../a.af2d.json')).toBe(false)
+  })
+})
+
+describe('livePolicy', () => {
+  it('rebuilds the policy when the list changes and reuses it when it does not', async () => {
+    let file: { text: string; mtime: number } | undefined = { text: LIST, mtime: 1 }
+    let reads = 0
+    const policy = livePolicy(async () => {
+      reads += 1
+      return file
+    })
+    const first = await policy()
+    expect(await policy()).toBe(first)
+    expect(first.canWrite('content/feel/feel.toml')).toBe(false)
+    file = {
+      text: `${LIST}\n[[file]]\nglob = "content/feel/*.toml"\neditor = "feel"\nmodes = ["edit"]\ngates = []\nchecks = []\n`,
+      mtime: 2,
+    }
+    const next = await policy()
+    expect(next).not.toBe(first)
+    expect(next.canWrite('content/feel/feel.toml')).toBe(true)
+    expect(reads).toBe(3)
+  })
+
+  it('follows a list that appears or goes away', async () => {
+    let file: { text: string; mtime: number } | undefined
+    const policy = livePolicy(async () => file)
+    expect((await policy()).canWrite('content/tuning.toml')).toBe(false)
+    file = { text: LIST, mtime: 5 }
+    expect((await policy()).canWrite('content/tuning.toml')).toBe(true)
+    file = undefined
+    expect((await policy()).canWrite('content/tuning.toml')).toBe(false)
   })
 })

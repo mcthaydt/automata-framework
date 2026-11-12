@@ -144,6 +144,9 @@ onMount(() => {
   // Keys 1 to 9 take the choice with that number.
   const onKey = (event: KeyboardEvent): void => {
     if (event.altKey || event.ctrlKey || event.metaKey || !/^[1-9]$/.test(event.key)) return
+    // A menu on top (Pause) has the keyboard: a number pressed there is for the menu, not for an answer behind it.
+    const screen = event.target instanceof Element ? event.target.closest('[data-game-screen]') : null
+    if (screen !== null && screen.getAttribute('data-game-screen') !== 'play') return
     const choice = reveal.done ? model?.choices[Number(event.key) - 1] : undefined
     if (choice === undefined) return
     event.preventDefault()

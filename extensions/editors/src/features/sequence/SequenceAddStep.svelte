@@ -97,7 +97,7 @@ $effect(() => {
     {#if refusal !== undefined}<p class="bad" role="alert">{refusal}</p>{/if}
     <div class="actions">
       <Button variant="quiet" onclick={ondone}>Cancel</Button>
-      <Button variant="primary" onclick={() => void add()}>Add here</Button>
+      <Button onclick={() => void add()}>Add here</Button>
     </div>
   </form>
 {/if}

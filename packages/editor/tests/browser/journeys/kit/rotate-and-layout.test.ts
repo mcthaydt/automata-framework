@@ -16,6 +16,7 @@ import JourneyFixture, { type JourneyState } from '#src/testing/kit/JourneyFixtu
 import { REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
 import { createPointers } from '#src/testing/kit/pointers.ts'
 import ShellFixture from '#src/testing/kit/ShellFixture.svelte'
+import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'
 
 // EK-c and EK-g in the iPad context.
 
@@ -83,4 +84,39 @@ describe('EK-g: the shell at each iPad', () => {
       expect(checkLayout(conditions, CHROME.map(byTestId))).toEqual([])
     },
   )
+})
+
+describe('a phone turned sideways with a sheet open', () => {
+  it('keeps the inspector sheet open, the name being typed and its focus, and the tab bar moves to the left', async () => {
+    const portrait = SIZES.find((each) => each.name === 'phone-portrait')
+    const landscape = SIZES.find((each) => each.name === 'phone-landscape')
+    if (portrait === undefined || landscape === undefined) throw new Error('no phone sizes')
+    await page.viewport(portrait.width, portrait.height)
+    publishConditions(document.documentElement, portrait, REST)
+    const geometry = stubGeometry(portrait.width, portrait.height)
+    mounted = mountFixture(ShellFixture, { geometry })
+    await settleLayout()
+    byTestId('toggle-inspector').click()
+    await settleLayout()
+    const inspector = document.querySelector<HTMLElement>('[data-region="inspector"]')
+    const field = byTestId('field-name') as HTMLInputElement
+    expect(inspector).toHaveAttribute('data-open', 'true')
+    field.focus()
+    field.value = 'Shop'
+    const shell = document.querySelector<HTMLElement>('[data-editor-shell]')
+    expect(shell).not.toHaveAttribute('data-standing')
+
+    await page.viewport(landscape.width, landscape.height)
+    publishConditions(document.documentElement, landscape, REST)
+    geometry.resize(landscape.width, landscape.height)
+    await settleLayout()
+
+    expect(shell).toHaveAttribute('data-standing')
+    expect(document.querySelector('[data-region="inspector"]')).toBe(inspector)
+    expect(inspector).toHaveAttribute('data-open', 'true')
+    expect(byTestId('field-name')).toBe(field)
+    expect(document.activeElement).toBe(field)
+    expect(field.value).toBe('Shop')
+    expect(document.querySelector<HTMLElement>('[data-region="rail"]')?.getBoundingClientRect().left).toBe(0)
+  })
 })

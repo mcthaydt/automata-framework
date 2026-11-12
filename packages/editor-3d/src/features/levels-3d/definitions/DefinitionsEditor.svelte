@@ -118,7 +118,7 @@ function addField(def: string): void {
   <section class="definition new" aria-label="New definition">
     <input class="name" aria-label="New definition id" placeholder="definition id" bind:value={newId} />
     <Segmented label="Shape" options={shapes} value={newShape} onedit={(event) => (newShape = event.value as 'point' | 'box')} />
-    <Button variant="primary" onclick={add}>Add definition</Button>
+    <Button variant="secondary" onclick={add}>Add definition</Button>
   </section>
   {#if refusal !== undefined}<p class="refusal" role="alert">{refusal}</p>{/if}
 </div>

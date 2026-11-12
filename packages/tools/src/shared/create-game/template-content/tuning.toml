@@ -1,0 +1,5 @@
+# How fast the square moves, in the game's pixels. The range, label and feel are what the Tuner shows beside the slider;
+# the game reads only the value.
+
+# 2 pixels a step: the square's walk at a full push.
+SPEED = { value = 2, min = 1, max = 4, step = 1, label = "Speed", feel = "How far the square moves each step.", unit = "pixels a step" }

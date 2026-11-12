@@ -1,5 +1,6 @@
-<!-- The Levels 2D status line: the open file, the group's other files, and why a write was refused. -->
+<!-- The Levels 2D status line: the open level in words, the group's other files, and why a write was refused. -->
 <script lang="ts">
+import { fileTitle } from '../../../features/suite/shell/home-model'
 import type { Levels2dSession } from './levels-2d-session'
 
 const { session }: { session: Levels2dSession } = $props()
@@ -11,7 +12,7 @@ const shared = session.shared
 </script>
 
 <p class="status">
-  <span>{session.path}</span>
+  <span>{fileTitle(session.path)}</span>
   {#if session.others.length > 0}<span>{session.others.length} more in this group</span>{/if}
   {#if $shared !== undefined}<span role="status">{$shared}</span>{/if}
   {#if $refused !== undefined}<span role="alert">Not saved: {$refused}</span>{/if}

@@ -40,11 +40,7 @@ describe.each([
 ])('the list on a $name', ({ width, height, rail }) => {
   test('stays inside its rail, and its buttons are at least touch size', async () => {
     await page.viewport(width, height)
-    const session = new SchematicSession(
-      ports,
-      { usesSystems: true, listsSystems: true, listsNav: true, gameUrl: undefined, twoD: false },
-      ['bay'],
-    )
+    const session = new SchematicSession(ports, { hasPlayer: true, gameUrl: undefined, twoD: false }, ['bay'])
     await session.select('bay')
     // The suite's shell and main, which the kit's chrome (a select at touch size on macOS WebKit) is scoped to.
     const shell = document.body.appendChild(document.createElement('div'))

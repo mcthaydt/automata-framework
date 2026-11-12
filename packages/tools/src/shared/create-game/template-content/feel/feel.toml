@@ -1,7 +1,8 @@
 # What the player feels when something happens in the game. Open it in the Feel editor (`pnpm exec automata editor`).
 # The square bumping into a wall is the one thing this game says happens; add an effect to it, or answer anything else.
+# The word shows over the square, the one that bumped.
 
 [[entry]]
 on = "square.bumped"
 camera = [{ shake = 0.8 }]
-word = [{ key = "square.bumped.word", words = "Bump!" }]
+word = [{ key = "square.bumped.word", words = "Bump!", at = "subject" }]

@@ -18,7 +18,7 @@ describe('SuiteRail', () => {
     render(SuiteRail, {
       entries: SUITE_ENTRIES,
       current: 'audio',
-      orientation: 'vertical',
+      presentation: 'sidebar',
       onselect: () => {},
     })
     expect(screen.getByRole('tablist', { name: 'Editors' })).toHaveAttribute('aria-orientation', 'vertical')
@@ -31,7 +31,7 @@ describe('SuiteRail', () => {
     render(SuiteRail, {
       entries: SUITE_ENTRIES,
       current: 'tuner',
-      orientation: 'vertical',
+      presentation: 'sidebar',
       onselect: () => {},
     })
     for (const tab of tabs()) {
@@ -44,7 +44,7 @@ describe('SuiteRail', () => {
     render(SuiteRail, {
       entries: SUITE_ENTRIES,
       current: undefined,
-      orientation: 'horizontal',
+      presentation: 'tabbar',
       onselect: () => {},
     })
     expect(tabs().filter((tab) => tab.getAttribute('aria-selected') === 'true')).toEqual([])
@@ -53,7 +53,7 @@ describe('SuiteRail', () => {
 
   it('a tap chooses an entry', async () => {
     const onselect = vi.fn()
-    render(SuiteRail, { entries: SUITE_ENTRIES, current: undefined, orientation: 'vertical', onselect })
+    render(SuiteRail, { entries: SUITE_ENTRIES, current: undefined, presentation: 'sidebar', onselect })
     await userEvent.click(screen.getByRole('tab', { name: 'Levels' }))
     expect(onselect).toHaveBeenCalledWith('levels')
   })
@@ -63,7 +63,7 @@ describe('SuiteRail', () => {
     const { rerender } = render(SuiteRail, {
       entries: SUITE_ENTRIES,
       current: 'tuner',
-      orientation: 'vertical',
+      presentation: 'sidebar',
       onselect,
     })
     screen.getByRole('tab', { name: 'Tuner' }).focus()
@@ -73,10 +73,10 @@ describe('SuiteRail', () => {
     expect(onselect).toHaveBeenLastCalledWith('studio')
     await userEvent.keyboard('{End}')
     expect(onselect).toHaveBeenLastCalledWith('levels')
-    await rerender({ orientation: 'horizontal', current: 'feel' })
-    screen.getByRole('tab', { name: 'Feel' }).focus()
+    await rerender({ presentation: 'tabbar', current: 'studio' })
+    screen.getByRole('tab', { name: 'Studio' }).focus()
     await userEvent.keyboard('{ArrowRight}')
-    expect(onselect).toHaveBeenLastCalledWith('writer')
+    expect(onselect).toHaveBeenLastCalledWith('audio')
     await userEvent.keyboard('{Home}')
     expect(onselect).toHaveBeenLastCalledWith('tuner')
   })
@@ -85,7 +85,7 @@ describe('SuiteRail', () => {
     const { rerender } = render(SuiteRail, {
       entries: SUITE_ENTRIES,
       current: 'tuner',
-      orientation: 'vertical',
+      presentation: 'sidebar',
       onselect: () => {},
     })
     screen.getByRole('tab', { name: 'Tuner' }).focus()
@@ -95,7 +95,7 @@ describe('SuiteRail', () => {
 
   it('Cmd or Ctrl and a digit choose that entry from anywhere; other digits and plain digits do nothing', async () => {
     const onselect = vi.fn()
-    render(SuiteRail, { entries: SUITE_ENTRIES, current: undefined, orientation: 'vertical', onselect })
+    render(SuiteRail, { entries: SUITE_ENTRIES, current: undefined, presentation: 'sidebar', onselect })
     await userEvent.keyboard('{Meta>}8{/Meta}')
     expect(onselect).toHaveBeenLastCalledWith('levels')
     await userEvent.keyboard('{Control>}1{/Control}')
@@ -111,7 +111,7 @@ describe('SuiteRail', () => {
       { id: 'tuner', label: 'Tuner' },
       { id: 'levels-2d', label: 'Levels' },
     ])
-    render(SuiteRail, { entries: two, current: undefined, orientation: 'vertical', onselect })
+    render(SuiteRail, { entries: two, current: undefined, presentation: 'sidebar', onselect })
     expect(tabs().map((tab) => tab.textContent?.trim())).toEqual(['Tuner', 'Levels'])
     await userEvent.keyboard('{Meta>}2{/Meta}')
     expect(onselect).toHaveBeenLastCalledWith('levels-2d')

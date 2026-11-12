@@ -4,7 +4,7 @@
 import { publishConditions, settleLayout } from '@automata/framework/testing'
 import { expect } from 'vitest'
 import { page } from 'vitest/browser'
-import { type SuiteHandle, startSuite } from '../../features/suite/shell/boot'
+import { type SuiteEnv, type SuiteHandle, startSuite } from '../../features/suite/shell/boot'
 import { createSuite } from '../../features/suite/shell/create-suite'
 import { samplePorts } from '../../features/suite/shell/sample-ports'
 import type { SuiteEditor } from '../../shared/kit/ports/suite-editor.ts'
@@ -25,13 +25,13 @@ export interface OpenedSuite {
   close(): Promise<void>
 }
 
-/** Open the suite with `editors` over `files` at `size`, choose the rail's `entry` tab and wait for `ready` to appear. */
-export async function openSuite(
+/** Open the suite on its Home with `editors` over `files` at `size`, and wait for the layout to settle. */
+export async function openSuiteHome(
   size: EditorSize,
   editors: SuiteEditor<unknown>[],
   files: Record<string, string>,
-  ready: string,
-  entry: string,
+  /** What a served game adds to the top bar: the page Play opens, why it is off, and Publish. */
+  game: Pick<SuiteEnv, 'playUrl' | 'playOff' | 'publish'> = {},
 ): Promise<OpenedSuite> {
   await page.viewport(size.width, size.height)
   const conditions = publishConditions(document.documentElement, size, REST, editorTargets())
@@ -42,10 +42,8 @@ export async function openSuite(
     document,
     ports: await samplePorts(files),
     suite: createSuite({ editors }),
+    ...game,
   })
-  await settleLayout()
-  await chooseEditor(entry)
-  await expect.poll(() => document.querySelector(ready)).not.toBeNull()
   await settleLayout()
   return {
     conditions,
@@ -56,6 +54,22 @@ export async function openSuite(
   }
 }
 
+/** Open the suite with `editors` over `files` at `size`, choose the rail's `entry` tab and wait for `ready` to appear. */
+export async function openSuite(
+  size: EditorSize,
+  editors: SuiteEditor<unknown>[],
+  files: Record<string, string>,
+  ready: string,
+  entry: string,
+  game: Pick<SuiteEnv, 'playUrl' | 'playOff' | 'publish'> = {},
+): Promise<OpenedSuite> {
+  const opened = await openSuiteHome(size, editors, files, game)
+  await chooseEditor(entry)
+  await expect.poll(() => document.querySelector(ready)).not.toBeNull()
+  await settleLayout()
+  return opened
+}
+
 export function tab(name: string): HTMLElement {
   const found = [...document.querySelectorAll<HTMLElement>('[role="tab"]')].find(
     (candidate) => (candidate.getAttribute('aria-label') ?? candidate.textContent?.trim()) === name,
@@ -64,34 +78,40 @@ export function tab(name: string): HTMLElement {
   return found
 }
 
-/** The top bar's Editors menu, where the tabs fold into it (a phone held sideways); `undefined` where the tabs show. */
-export function editorsMenu(): HTMLElement | undefined {
-  return [...document.querySelectorAll<HTMLElement>('button[aria-haspopup]')].find(
-    (button) => button.textContent?.trim() === 'Editors',
+/** The More button of the compact tab bar, where the editors beyond its four tabs wait; `undefined` when every editor has a tab. */
+export function moreButton(): HTMLElement | undefined {
+  return [...document.querySelectorAll<HTMLElement>('button')].find(
+    (button) => button.textContent?.trim() === 'More' && button.getAttribute('aria-haspopup') === 'dialog',
   )
 }
 
-/** The control that reaches editor `name`: its tab, or the Editors menu where the tabs have folded into it. */
+/** The control that reaches editor `name`: its tab, or More where the tab bar has no room for its tab. */
 export function editorControl(name: string): HTMLElement {
-  return editorsMenu() ?? tab(name)
+  const tabbed = [...document.querySelectorAll<HTMLElement>('[role="tab"]')].find(
+    (candidate) => candidate.textContent?.trim() === name,
+  )
+  const more = moreButton()
+  if (tabbed === undefined && more !== undefined) return more
+  return tab(name)
 }
 
-/** Choose editor `name` the way a person does: tap its tab, or pick it from the Editors menu; the first when unnamed. */
+/** Choose editor `name` the way a person does: tap its tab, or open More and pick it; the first when unnamed. */
 export async function chooseEditor(name?: string): Promise<void> {
-  const menu = editorsMenu()
-  if (menu === undefined) {
-    const tabs = [...document.querySelectorAll<HTMLElement>('[role="tab"]')]
-    const chosen = name === undefined ? tabs[0] : tab(name)
-    if (chosen === undefined) throw new Error('no editor tab')
-    chosen.click()
+  const tabs = [...document.querySelectorAll<HTMLElement>('[role="tab"]')]
+  const tabbed =
+    name === undefined ? tabs[0] : tabs.find((candidate) => candidate.textContent?.trim() === name)
+  if (tabbed !== undefined) {
+    tabbed.click()
     return
   }
-  menu.click()
+  const more = moreButton()
+  if (more === undefined) throw new Error(`no ${name ?? 'editor'} tab`)
+  more.click()
   await arrived()
-  const items = [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')]
-  const item =
-    name === undefined ? items[0] : items.find((candidate) => candidate.textContent?.trim().startsWith(name))
-  if (item === undefined) throw new Error(`no ${name ?? 'editor'} in the Editors menu`)
+  const item = [...document.querySelectorAll<HTMLElement>('[data-more-entry]')].find(
+    (candidate) => candidate.textContent?.trim() === name,
+  )
+  if (item === undefined) throw new Error(`no ${name} under More`)
   item.click()
 }
 
@@ -106,7 +126,8 @@ export function inShell(selector: string): HTMLElement {
 /** The canvas has real room (the Level view's own bar: a medium dock starts open as a strip over its foot). */
 export function inView(element: HTMLElement, size: EditorSize): void {
   const box = element.getBoundingClientRect()
-  expect(box.width).toBeGreaterThan(size.mode === 'wide' && size.width < 1000 ? 240 : size.width / 3)
+  // Wide is a 224 px sidebar, a 264 px list and a 320 px inspector: 1194 px leaves about 370 for the stage.
+  expect(box.width).toBeGreaterThan(size.mode === 'wide' ? 320 : size.width / 3)
   expect(box.height).toBeGreaterThan(size.mode === 'compact' && size.height < 500 ? 80 : 200)
   expect(box.left).toBeGreaterThanOrEqual(-0.5)
   expect(box.right).toBeLessThanOrEqual(size.width + 0.5)

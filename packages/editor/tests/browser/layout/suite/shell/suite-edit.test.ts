@@ -87,16 +87,17 @@ async function open(size: EditorSize) {
   await settleLayout()
   await chooseEditor()
   await expect.poll(() => document.querySelector('[data-testid="fixture-text"]')).not.toBeNull()
-  // The first edit runs the `after` check, which fails, so the pill appears (a pill with nothing to say is hidden).
+  // The first edit runs the `after` check, which fails, so the header counts one problem.
   button('Raise speed').click()
-  await expect.poll(() => pillButtons().map((pill) => pill.dataset.tone)).toEqual(['fail'])
+  // On a phone the count is inside the title's sheet, so the test waits for it there.
+  if (size.mode !== 'compact') await expect.poll(() => problemsText()).toBe('1 problem')
   await settleLayout()
   return conditions
 }
 
-const pillButtons = (): HTMLElement[] => [
-  ...document.querySelectorAll<HTMLElement>('[aria-label="Checks"] > .pill-wrap > button'),
-]
+/** The count's words, from its button in the header. */
+const problemsText = (): string | null | undefined =>
+  document.querySelector('[data-region="topbar"] .count')?.getAttribute('aria-label')
 const button = (name: string, within: ParentNode = document): HTMLElement => {
   const found = [...within.querySelectorAll<HTMLElement>('button')].find(
     (candidate) => (candidate.getAttribute('aria-label') ?? candidate.textContent?.trim()) === name,
@@ -112,35 +113,38 @@ function noPageScroll(): void {
 }
 
 describe.each(SIZES)('Suite editing at $name ($width x $height)', (size) => {
-  test('the checks pill stays in the top bar, whole and at least 44 px; an icon with a count when short', async () => {
+  test('the problem count stays in the header whole (its number alone under 900 px), and its list stays in the window', async () => {
     const conditions = await open(size)
-    const pills = pillButtons()
-    expect(pills).toHaveLength(1)
-    const bar = pills[0]?.closest('header, [data-region="topbar"]') ?? pills[0]?.parentElement?.parentElement
-    const barBox = bar?.getBoundingClientRect()
-    for (const pill of pills) {
-      const box = pill.getBoundingClientRect()
+    const compact = size.mode === 'compact'
+    let opener: HTMLElement
+    if (compact) {
+      // A phone has no room for the count in the bar: the title opens a sheet that holds it.
+      opener = document.querySelector<HTMLElement>('[data-region="topbar"] .title') as HTMLElement
+      expect(opener).not.toBeNull()
+    } else {
+      opener = document.querySelector<HTMLElement>('[data-region="topbar"] .count') as HTMLElement
+      const box = opener.getBoundingClientRect()
       expect(box.height).toBeGreaterThanOrEqual(targets.hit)
       expect(box.width).toBeGreaterThanOrEqual(targets.hit)
       expect(box.left).toBeGreaterThanOrEqual(-0.5)
       expect(box.right).toBeLessThanOrEqual(size.width + 0.5)
-      if (barBox !== undefined) expect(box.top).toBeGreaterThanOrEqual(barBox.top - 0.5)
+      const words = opener.textContent?.replace(/\s+/g, ' ').trim()
+      expect(words, 'under 900 px the word goes and the number stays').toBe(
+        size.width < 900 ? '1' : '1 problem',
+      )
+      expect(checkLayout(conditions, [opener])).toEqual([])
     }
-    const icons =
-      document.documentElement.dataset.height === 'short' ||
-      document.querySelector('[data-editor-shell]')?.getAttribute('data-mode') === 'compact'
-    if (icons) expect(pills.map((pill) => pill.textContent?.replace(/\s+/g, ''))).toEqual(['✓1'])
-    expect(checkLayout(conditions, [...pills])).toEqual([])
     noPageScroll()
-    pills[0]?.click()
+    opener.click()
+    await expect.poll(() => document.querySelector('section[aria-label="1 problem"]')).not.toBeNull()
     await settleLayout()
-    const list = document.querySelector<HTMLElement>('section[aria-label="lint failed"]')
+    const list = document.querySelector<HTMLElement>('section[aria-label="1 problem"]')
     const listBox = list?.getBoundingClientRect()
+    expect(listBox, 'the list is open').toBeDefined()
+    expect(listBox?.left).toBeGreaterThanOrEqual(-0.5)
     expect(listBox?.right).toBeLessThanOrEqual(size.width + 0.5)
     expect(listBox?.bottom).toBeLessThanOrEqual(size.height + 0.5)
     expect(button('Locate lint').getBoundingClientRect().height).toBeGreaterThanOrEqual(targets.hit)
-    await page.screenshot({ path: `.vitest/shots/suite-pills-${size.name}.png` })
-    pills[0]?.click()
-    noPageScroll()
+    await page.screenshot({ path: `.vitest/shots/suite-problems-${size.name}.png` })
   })
 })

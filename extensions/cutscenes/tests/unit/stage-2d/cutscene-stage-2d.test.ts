@@ -42,6 +42,7 @@ const SCRIPT: PlacedScript = {
 
 function setup(script: PlacedScript = SCRIPT) {
   const container = new Container()
+  const overlay = new Container()
   const hide = vi.fn()
   let hook: LevelSceneHooks | undefined
   const scene: LevelScene = { add: (hooks) => (hook = hooks) }
@@ -75,9 +76,9 @@ function setup(script: PlacedScript = SCRIPT) {
   })
   const draw = (state: CutsceneStateValue, tick: number): void => {
     const sim = { tick, resource: () => state } as unknown as DrawSim
-    hook?.draw(sim, { container, hide })
+    hook?.draw(sim, { container, overlay, hide })
   }
-  return { container, hide, target, draw, clips, views }
+  return { container, overlay, hide, target, draw, clips, views }
 }
 const going = (start: number): CutsceneStateValue => ({ id: 'gate', start, end: start + 4 * HZ })
 const idle: CutsceneStateValue = { id: null, start: 0, end: 0 }
@@ -126,8 +127,8 @@ describe('the 2D cutscene stage', () => {
     expect(container.children).toHaveLength(0)
   })
 
-  it('draws the fade as a black rectangle at the fade’s alpha, over the part of the level in view', () => {
-    const { container, draw } = setup({
+  it('draws the fade as a black rectangle at the fade’s alpha, on the overlay over the whole view', () => {
+    const { container, overlay, draw } = setup({
       ...SCRIPT,
       fade: [
         { t: 0, value: 0 },
@@ -135,9 +136,11 @@ describe('the 2D cutscene stage', () => {
       ],
     } as PlacedScript)
     draw(going(0), HZ)
-    const fade = fadeOf(container)
+    const fade = fadeOf(overlay)
     expect(fade?.alpha).toBeCloseTo(0.5)
     expect(fade?.getLocalBounds().width).toBe(320)
+    expect(fade?.getLocalBounds().height).toBe(180)
+    expect(fadeOf(container)).toBeUndefined()
   })
 
   it('plays a new cutscene from its own start, not the old one’s', () => {
