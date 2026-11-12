@@ -90,7 +90,8 @@ export const relaxed = (gait: Gait): Stand => ({
   roll: gait.stance * 1.4 * RELAX,
   under: gait.standTrack === undefined ? 0.25 : 1 - gait.standTrack,
   free: [gait.stanceLead * 0.25, gait.stance ? 0.01 : 0, gait.stance ? 0.11 : 0, 0],
-  chest: [gait.stance * 0.3 * RELAX, 0, 0],
+  chest: [gait.stance * 0.3 * RELAX, 0, gait.standStoop ?? 0],
+  ...(gait.standStoop ? { head: [0, 0, -0.5 * gait.standStoop] as [number, number, number] } : {}),
 })
 /** How much of the gait's stance the relaxed stand leans into its weight leg: a quarter of what a posed contrapposto does. */
 const RELAX = 0.4

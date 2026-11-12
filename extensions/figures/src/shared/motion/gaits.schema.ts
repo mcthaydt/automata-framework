@@ -30,6 +30,7 @@ export const gaitSchema = z.strictObject({
   track: n,
   standOut: n.optional(),
   standTrack: n.optional(),
+  standStoop: n.optional(),
   poseRate: n,
   walkPoses: n,
   turnRate: n,

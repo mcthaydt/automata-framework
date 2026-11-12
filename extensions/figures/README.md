@@ -114,6 +114,7 @@ that draws a base figure with it and without it:
 - the `eyes` garment's face options (`mark`, `nose`, `mouth`, `keep`): `figure/eye-marks.test.ts`;
 - the relaxed stand's feet (`Gait.standTrack`; the arms are `standOut`, which was already a gait number): `motion/stand-track.test.ts`;
 - the outline's colour (`PaintStyle.ink`): `paint/outline-colour.test.ts`;
+- a stooping stand (`Gait.standStoop`): `motion/stand-stoop.test.ts`;
 - the diversity sliders and pieces, each drawn with and without it (at its default the pair is unchanged): fat
   (`body/fat.test.ts`), the face at D2 (`body/face-d2.test.ts`), the eyes (`figure/eyes.test.ts`), asymmetry
   (`body/asymmetry.test.ts`), `bust` and `seat` (`body/bust-seat.test.ts`); every slider pushed to either end:

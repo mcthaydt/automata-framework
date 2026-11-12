@@ -146,6 +146,21 @@ const gaited =
   (def) => ({ ...def, gaitOverrides: { ...def.gaitOverrides, ...over } as CharacterDef['gaitOverrides'] })
 
 export const LOOKS: Readonly<Record<string, readonly Look[]>> = {
+  stoop: [
+    { label: 'before: the upright stand', note: 'the relaxed stand as it always was', style: 'bobFull' },
+    {
+      label: 'after: standStoop .35',
+      note: 'the chest pitched forward .35 rad, the head half as far back up',
+      style: 'bobFull',
+      patch: gaited({ standStoop: 0.35 }),
+    },
+    {
+      label: 'after: standStoop .7',
+      note: 'a deep stoop',
+      style: 'bobFull',
+      patch: gaited({ standStoop: 0.7 }),
+    },
+  ],
   outline: [
     {
       label: 'before: black ink',
