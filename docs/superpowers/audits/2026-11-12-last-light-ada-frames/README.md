@@ -70,3 +70,56 @@ game's `look.toml`; the panel's default is unchanged. The halation (`glow`) cost
 Six heads, the panel's gain 1.28. Against the reference: brows bold (read); the woman's lid over whites each side of the iris (read); the nose a
 faint column; the lips a dark band with a lighter row, still low in contrast; the hair's dark tones a little deeper than round 2 and the skin a
 little less pink, but still paler and pinker than the reference; the mesh's haze over every texel. Better than round 2, not yet the reference.
+
+## Item 3(a): the mesh on texel borders, scoped for the next session (not done here)
+
+**Why the panel's numbers cannot do it.** The LCD panel (`extensions/lcd-panel`) is a 3D `PostEffect` on the look's field (512 by 384 here,
+shown at a whole scale of 2). A figure texel is two field pixels (`PLAY_FIGURE`, crisp at density 2). A mesh period of 2 field pixels is the
+Nyquist limit (`derivePitch` fades it out; integrated over each pixel, both pixels of a period get the same mean, so nothing is drawn); a period
+of 4, at any phase, gives each texel one lighter and one darker pixel. A line can only sit between texels when it is drawn at a finer grid than
+the field: the screen's.
+
+**1. A filter slot on the upscaled composite (`packages/automata`).** `CompositeTarget` (`src/features/render/letterbox/composite-target.ts`)
+draws the world and UI at the logical size and shows them through `composite.sprite`, nearest-upscaled into the letterbox at device pixels. Today
+every `postFilters` entry goes on `composite.stage` (`renderer.ts`, `sceneFilters`), at field pixels. Add an opt-in placement to the declaration:
+`postFilter(name, { glsl, wgsl, at: 'screen' })` (default `'field'`, today's), kept by the same `PostFilterSlot` under its name, and set on
+`composite.sprite.filters` with `resolution` the renderer's (device pixels). Give the filter the whole scale (device pixels a field pixel, from the
+letterbox's `whole` layout) and the sprite's device-pixel origin as uniforms, so a shader can say where each field pixel's edges are. Without a
+composite (`pixelArt: false`) an `at: 'screen'` filter is left out with the slot's existing warning.
+
+**2. The panel as a screen filter (`extensions/lcd-panel`).** A second entry, `lcdPanelScreenFilter(profile)`, from the same Zod profile
+plus `cellPixels` (device pixels a mesh cell; at this game's 2x, 4 = one figure texel), GLSL and WGSL, the mesh, stripes and scanlines as today's
+`lcd-shader.ts` maths but with `p = (devicePixel - origin) / cellPixels`, so the period is whole device pixels and phase 0 is the field's own
+origin; the dark of the mesh on the last device pixel of each cell (the cell's border), never inside. The field pass keeps its own profile with
+`grid`, `subpixels` and `scanlines` at 0 when the screen filter draws them (`look.toml` would say which). `brightness` stays the gain for what the
+mesh absorbs (see 3b: it has to follow the mesh's strength).
+
+**3. The phase rule (`extensions/character-kit`).** A 4-device-pixel cell is 2 field pixels, so its borders are a figure's texel borders only when
+the figure's cell starts on an even field pixel. `place()` in `src/features/painted/place.ts` rounds the cell's top-left to a whole pixel
+(`Math.round(ax - scale * anchor)`): add an opt-in `grid: true` to `PlaceOptions` (and `PLAY_FIGURE`) that rounds it to a multiple of `scale` (the
+texel's field pixels), so every figure's texels lie on the field's 2-pixel lattice and therefore on the screen mesh. Default unchanged.
+
+**Tests first.** Unit: `postFilter` with `at: 'screen'` lands on `composite.sprite.filters`, `'field'` and the default on `composite.stage`
+(`packages/automata`'s render tests); `place()` with `grid: true` puts `screen` on multiples of `scale` for anchors and positions that today round
+odd, and leaves today's placements alone without it; the lcd-panel's uniform maths for `cellPixels` (period, phase 0 at the origin). Browser
+(`extensions/lcd-panel/tests/browser`): a flat field at scale 2 with a 4-pixel cell, read back: every darkened column and row is a device pixel
+whose index mod 4 is 3, none inside a field-pixel pair that forms one texel. The existing panel tests stay as they are. Then the game: shoot the
+room with the panel at full strength (the old .3s) and at session 16's third, her head x2.5 from each, and keep full strength if the face is clean.
+
+**Ruled out: a figure mask.** The pass would need the figures' pixels in a target of their own (a second draw of every painted figure into a mask
+in the 3D graph, kept in step with depth and occlusion), and the face would then show no panel at all while the room does, which is not the old
+game's look; the screen mesh keeps one panel over everything and puts its lines between texels, as the old game's did.
+
+## Item 4: her directions in play (`item4-eight-directions-in-play-1to1.png`; partly done, nothing fixed)
+
+Shot in the hall at the gameplay scale by walking her with each key and key pair from the spawn (`play-shots.test.ts`), 1:1 crops. What the keys
+gave: N her back; NE her back three-quarter; E the same as NE (a wall stopped her, so she kept her facing); SE and S her front; SW her front
+three-quarter; W her profile; NW hidden behind the waiting-room chairs. So the shoot still lacks a true E and her back three-quarter on the other
+side, and the walk frames (the harness shoots only once a key is up). Looked at:
+
+- Front, front three-quarter, profile: read well; the face's features read in all three; the bob's side and the rolled sleeves and boots are clean.
+- From behind: the `bobOpen` is a smooth round dome from crown to collar with no nape or fall, a ball on her shoulders. The generator's back of the
+  bob wants a nape step (the hair ending a row or two above the collar, with the neck's skin under it) and a darker under-row. Not fixed.
+- The waistcoat's back: a lighter brown triangle across the oxblood (its shading split down the back) reads as a patch. Not fixed.
+- The camera, not hers (the sister session's): facing away at the hall's north end the frame cuts her at the waist; at NW the chairs hide her whole.
+- The dark-red blotch at her right temple (session 16's note) shows in the painted x10 heads; not fixed.
