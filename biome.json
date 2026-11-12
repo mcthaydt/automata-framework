@@ -25,10 +25,6 @@
   "linter": { "enabled": true, "rules": { "preset": "recommended" } },
   "overrides": [
     {
-      "includes": ["extensions/figures/**"],
-      "linter": { "enabled": false }
-    },
-    {
       "includes": ["packages/sim/**"],
       "linter": { "rules": { "style": { "useExponentiationOperator": "off" } } }
     },
