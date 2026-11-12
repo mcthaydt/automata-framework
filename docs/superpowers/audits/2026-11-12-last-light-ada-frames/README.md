@@ -186,3 +186,26 @@ Branches no longer edit `docs/superpowers/progress.md` (the coordinator, 2026-11
 Where to resume: item 2's fix in `warmer()` (test first; the kit's lit goldens looked at and listed), then items 3 to 5 of the brief.
 
 | 4. Look, game branch, the ada session 2 | Opus 5.5 (look session, no subagents) | `claude/last-light-ada` | 2026-11-12, from `80656856` (node_modules installed with `pnpm install --frozen-lockfile`). Frames, numbers and verdicts: [ada folder](audits/2026-11-12-last-light-ada-frames/README.md), sections "Session 2". **Done, tests first, pushed:** (1) the LCD mesh on texel borders: `postFilter(..., { at: 'screen' })` and `stage.screenFilters` on the composite's upscaled sprite with `uScreenScale` and `uScreenOrigin` (`@automata/framework`, `5fda196`, changeset patch; `pnpm build`, `api-report --update` and `api-index --write` committed, `3d.api.md` was stale); `lcdPanelScreenFilter` in GLSL and WGSL, a line on each cell's last device pixel (`@automata/lcd-panel`, `cf6a1bb`); `grid: true` in the kit's `place()` and `paintedFigure` (`2a92304`); the game draws the mesh and scanlines at the screen's pixels, stripes off, figures on their lattice; full strength (gain 1.46 measured) outlined every texel and was rejected by the coordinator; a third, a quarter and a fifth shot, a fifth kept (`3b6dddd`: a faint texture on the room, no grid on her face at a glance, a faint lattice in a 1:1 crop), gain 1.09 measured on the room's large areas; `content.hash` moved (look.toml). Browser tests on WebGL2 and WebGPU (software) for the panel and the kit. Every texel is one flat colour and lines fall only between texels. (2) lips and nose: the cause of the grey nose highlight found and not fixed: `warmer()`'s chroma weight (.25) in the kit's `skin-hue.ts` picks grey-beige DUEL steps for a skin colour a step darker; 2 keeps them warm (a replica's numbers in the README). **Not done:** item 2's fix; item 3 (the gameplay frame at 10 px a texel against the reference, beyond the s2-item1 head crop); item 4 (directions: `bobOpen`'s nape, the waistcoat back, the temple blotch, the cheek patches, likely the same `warmer()` greys); item 5's whole uncached `pnpm check` (the pre-commit hook's affected unit tests passed on each commit; lcd-panel and kit browser suites ran in Chromium only). Chromium (software GL, software WebGPU) only; WebKit, Firefox and a real GPU unrun; journeys not run (the camera session's). |
+
+## Session 3, item 1: warm steps (`s3-item1-head-before-after-x2.5.png`, `s3-item1-gameplay-frame-1024x768.png`)
+
+Test first (`extensions/character-kit/tests/unit/painted/skin-hue.test.ts`): for each of the six skin swatches the kit ships (skinWarm,
+skinBrown, skinPale, skinTan, skinGolden, skinDeep), each painted tone dimmed one, two and three steps down its own DUEL row must play a hue
+inside the swatch's own hue span (15 degrees either side) with a chroma at least .6 of the painted. Today's `warmer()` failed 11 of them, all
+grey-beige (skinWarm #edb67c -1 #c0a588, -2 #9e8c79, -3 #857565; #ce9770 -2 #857565; skinGolden #d89f75 -1 #b39783; skinPale #b98c93 -1
+#917a7b; ...). Fixed in `d4df32b`. Why weights alone could not: holding the texel's OWN hue at a darker lightness asks for a colour no skin
+has: every swatch reddens as it darkens (skinWarm 67 to 28 degrees of OKLab hue, skinGolden 81 to 30, skinPale 77 to 8), and at a shadow's
+lightness DUEL answers a highlight's yellow with an olive or a grey (tried: chroma weights .25 to 16 left 5 or 6 failures; holding the hue
+with a ramp chroma picked olives #9e6520, #854f12). So the target is now the swatch's own ramp at the room's lightness (between two painted
+tones, their mix; past the ends, the end tone), and the lost chroma is counted as a share of the target's chroma in units of one mean DUEL
+step of lightness (losing all the colour costs one step): scale-free, so pale skin's faint colour is guarded as much as deep skin's. The hue
+arc keeps its old weight (6). With it every dimmed warm, golden and tan tone lands exactly on its swatch's next painted tone.
+
+The cool-room test's "no texel moves 20 degrees of hue" was restated as "no texel leaves its swatch's hue span (5 degrees either side)":
+Ada's old `fair` highlight #ebbd9d (56 degrees) now darkens to its own swatch's #d5a39a (30), as the painter's shading does; the lavender that
+test guards against (row 27's #977488 at -16 degrees) is far outside the span. Said here because it is a changed assertion.
+
+Recorded cells: none moved. `holdSkinHue` is opt-in and no kit golden or recorded cell uses it; the kit's unit suite (368) and browser suite
+(Chromium + WebGPU software: 66 passed, 3 skipped) pass unchanged, so there is no before/after golden sheet to make; the game's unit tests
+(445) pass. Her head in play (the hall's south wall, x2.5 nearest, before left, after right): the grey-beige band over her brows and the grey
+nose column are warm skin now. Not yet fixed: the lower lip (item 2), the temple blotch and the grey-green at both temples (item 4).
