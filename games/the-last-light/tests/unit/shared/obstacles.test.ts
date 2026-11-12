@@ -38,6 +38,20 @@ describe('withObstacles', () => {
     expect(blocked.segment({ x: 1.5, z: 1.5 }, { x: 3, z: 1.5 }, 0.2)).toBe(false)
   })
 
+  it('lets a walker who stands against a box (within the margin) walk away from it, as a stopped walk leaves her', () => {
+    expect(blocked.segment({ x: 0.9, z: 1.5 }, { x: 0, z: 1.5 }, 0.2)).toBe(false)
+    expect(blocked.segment({ x: 0.9, z: 1.2 }, { x: 0.9, z: 0 }, 0.2)).toBe(false)
+  })
+
+  it('still blocks one that goes into the box from there, nearer to it, or through it', () => {
+    expect(blocked.segment({ x: 0.9, z: 1.5 }, { x: 3, z: 1.5 }, 0.2)).toBe(true)
+    expect(blocked.segment({ x: 0.85, z: 1.5 }, { x: 0.95, z: 1.5 }, 0.2)).toBe(true)
+  })
+
+  it('lets her walk along it, no nearer', () => {
+    expect(blocked.segment({ x: 0.9, z: 1.2 }, { x: 0.9, z: 2.5 }, 0.2)).toBe(false)
+  })
+
   it('blocks nothing more with no boxes', () => {
     expect(withObstacles(open, []).segment({ x: 0, z: 1.5 }, { x: 3, z: 1.5 }, 0.2)).toBe(false)
   })

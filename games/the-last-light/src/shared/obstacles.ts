@@ -43,19 +43,32 @@ function crosses(
   return true
 }
 
-const within = (box: Obstacle, at: { readonly x: number; readonly z: number }): boolean =>
-  at.x >= box.x0 && at.x <= box.x1 && at.z >= box.z0 && at.z <= box.z1
+const within = (box: Obstacle, at: { readonly x: number; readonly z: number }, margin = 0): boolean =>
+  at.x >= box.x0 - margin && at.x <= box.x1 + margin && at.z >= box.z0 - margin && at.z <= box.z1 + margin
+
+/** The square of the distance from a point to the box (0 on or in it): squares only, so no engine's square root is asked. */
+const apart = (box: Obstacle, at: { readonly x: number; readonly z: number }): number => {
+  const dx = Math.max(box.x0 - at.x, 0, at.x - box.x1)
+  const dz = Math.max(box.z0 - at.z, 0, at.z - box.z1)
+  return dx * dx + dz * dz
+}
 
 /**
  * `walls` with the boxes added: a segment is blocked when the walls block it or it comes within the walker's margin of a box.
  * A box does not block a segment that starts or ends on it: a record on the bench is walked up to (a use fires within reach),
- * and a walker found on a box may leave it. Only additions and comparisons, so every engine answers alike; doors are the walls'.
+ * and a walker found on a box may leave it. A walker who stands against a box (a walk stops within reach, wherever that is)
+ * may walk on if she goes no nearer to it and not into it, so she can walk away or along it. Only additions and comparisons, so every engine answers alike; doors are the walls'.
  */
 export function withObstacles(walls: Blocked, obstacles: readonly Obstacle[]): Blocked {
   return {
     segment: (a, b, margin) =>
       walls.segment(a, b, margin) ||
-      obstacles.some((box) => !within(box, a) && !within(box, b) && crosses(box, a, b, margin)),
+      obstacles.some((box) => {
+        if (within(box, a) || within(box, b)) return false
+        // Standing against the box already: the margin cannot be kept from here, so going no nearer is what is asked.
+        if (within(box, a, margin)) return crosses(box, a, b, 0) || apart(box, b) < apart(box, a)
+        return crosses(box, a, b, margin)
+      }),
     open: (door) => walls.open(door),
   }
 }

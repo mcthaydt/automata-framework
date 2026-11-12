@@ -3,12 +3,14 @@
 // record, puts the cutscenes on marks and rewrites the creature's calls. Without `--write` it prints the report only.
 //
 //   node tools/convert/convert.ts [--reference <checkout>] [--write] [--force]
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+//   node tools/convert/convert.ts --models <checkout> [--write]     (the level's props name the old game's models)
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { restageCutscenes } from './cutscenes.ts'
 import { convertLevel } from './level.ts'
 import { joinWords, type OldDelivery } from './lines.ts'
+import { BOXED, KEPT, modelBounds, modelPath, placeModels, TURNED } from './models.ts'
 import { convertNav } from './nav.ts'
 import type { PlacedModel } from './props-table.ts'
 import { readReference } from './reference.ts'
@@ -75,6 +77,29 @@ export function convert(options: { readonly fixtures: string; readonly reference
   )
 }
 
+/**
+ * `--models <checkout>`: names the old game's model of each prop in the level it has now (and copies the models, as `.bin`),
+ * where `convert` makes the level fresh. Without `--write` it prints what it would write.
+ */
+function placeOldModels(game: string, reference: string, write: boolean): void {
+  const old = readReference(reference)
+  const levelFile = join(game, 'content/levels/prologue.af-sector.json')
+  const placed = placeModels(JSON.parse(readFileSync(levelFile, 'utf8')), old.models, {
+    bounds: (file) => modelBounds(readFileSync(join(reference, 'src/render/models', `${file}.pack`))),
+    boxed: BOXED,
+    keep: KEPT,
+    turned: TURNED,
+  })
+  const files = [...new Set(old.models.map((model) => model.file))].sort()
+  console.log(`${old.models.length} props name ${files.length} models.`)
+  if (!write) return
+  writeFileSync(levelFile, `${JSON.stringify(placed, null, 2)}\n`)
+  mkdirSync(join(game, 'public/models'), { recursive: true })
+  for (const file of files)
+    copyFileSync(join(reference, 'src/render/models', `${file}.pack`), join(game, 'public', modelPath(file)))
+  console.log(`Wrote the level and ${files.length} models.`)
+}
+
 function main(): void {
   const args = process.argv.slice(2)
   const flag = (name: string) => args.includes(name)
@@ -83,6 +108,11 @@ function main(): void {
   const game = resolve(here, '../..')
   const fixtures = resolve(game, '../..')
   const reference = given('--reference')
+  const modelsFrom = given('--models')
+  if (modelsFrom !== undefined) {
+    placeOldModels(game, modelsFrom, flag('--write'))
+    return
+  }
   const result = convert({ fixtures, ...(reference === undefined ? {} : { reference }) })
   console.log(reportTable(result.report))
   if (!flag('--write')) return

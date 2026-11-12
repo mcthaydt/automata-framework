@@ -17,6 +17,9 @@ const SIZES = (process.env.AF_SHOOT_SIZES ?? '1024x768').split(',').map((size) =
 })
 
 test.skip(OUT === undefined, 'set AF_SHOOT to a folder to shoot frames into')
+// A desktop window with a mouse: the journeys' phone context has a coarse pointer, so the game would draw its touch buttons over the
+// frame, and the old game's frames (what these are compared with) have none.
+test.use({ hasTouch: false, isMobile: false, deviceScaleFactor: 1 })
 test.setTimeout(30 * 60_000)
 
 for (const size of SIZES) {

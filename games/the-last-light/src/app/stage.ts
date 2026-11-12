@@ -1,5 +1,12 @@
 import { content } from 'virtual:automata/content'
-import { drawWorld, type Occluders, roomHooks, sceneLamps, updatePieces } from '@automata/3d'
+import {
+  drawWorld,
+  type ModelLibrary,
+  type Occluders,
+  roomHooks,
+  sceneLamps,
+  updatePieces,
+} from '@automata/3d'
 import { fovOf } from '@automata/3d/camera-view'
 import { noPieceStates, type PieceStates } from '@automata/3d/level'
 import { CutsceneState, placeScript } from '@automata/cutscenes/sim'
@@ -64,11 +71,14 @@ export function sceneOf(options: StageOptions) {
     stage: PixiStage,
     occluders: Occluders,
     light: Parameters<typeof drawWorld>[0]['light'],
-    _models: unknown,
+    models: ModelLibrary,
     camera: { active(): string | undefined; peek(offset?: { x: number; z: number }): void } | undefined,
   ): PixiStageHooks => {
     view.environment = { skyColor: 0x0d1016, groundColor: 0x1a1520 }
-    const drawn = drawWorld({ parent: view.root as Container3D, occluders, light, ...PAINT }, WORLD.pieces)
+    const drawn = drawWorld({ parent: view.root as Container3D, occluders, light, ...PAINT }, WORLD.pieces, {
+      props: WORLD.props,
+      models,
+    })
 
     // The lights of the room: the level's lamps at the levels the pieces' state says.
     let shown = noPieceStates()

@@ -17,7 +17,7 @@ import {
   stepped,
   walkedYaw,
 } from '../features/figures/figure-view.ts'
-import { LIGHTING, TIME } from '../features/room/room.ts'
+import { LIGHTING, MODEL_FILES, TIME } from '../features/room/room.ts'
 import { Ada } from '../shared/ada.component.ts'
 import { TICK_HZ } from '../shared/constants.ts'
 import { audio, SOUND_FILES } from './audio.ts'
@@ -98,7 +98,7 @@ export const game = defineGame({
   // The night flashes a little (a red wash at a catch, a shake): the first run on a device warns once. The warning's wording will
   // be the game's own to declare (which hazards it has) when the fixes branch that makes it so lands.
   photosensitivity: true,
-  preload: SOUND_FILES,
+  preload: [...SOUND_FILES, ...MODEL_FILES],
   createRenderer: (options) =>
     createPixi3dRenderer({
       ...options,
@@ -106,6 +106,8 @@ export const game = defineGame({
       look: LOOK,
       time: TIME,
       lighting: LIGHTING,
+      // The furniture's models, loaded before the first frame: a prop that names one draws it in place of its blockout.
+      models: MODEL_FILES,
       // The painted figures, as the old game draws them: the sim says where each stands and which way it faces.
       views: {
         [Ada.id]: figureView({ def: ADA, who: () => 'player', yawOf: adaYaw, movingOf: adaMoving }, actors),

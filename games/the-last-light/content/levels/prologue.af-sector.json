@@ -724,40 +724,56 @@
         "frame": "steelGrey",
         "blanket": "linen"
       },
-      "angle": 180
+      "angle": 180,
+      "model": "models/bed.bin",
+      "fit": {
+        "turn": 90
+      }
     },
     {
       "id": "wheelchair",
       "at": [-4.2, 1.9],
       "use": "wheelchair",
-      "angle": 0
+      "angle": 0,
+      "model": "models/wheelchair.bin"
     },
     {
       "id": "bench",
       "at": [-2.85, 3.35],
-      "use": "bench"
+      "use": "bench",
+      "model": "models/bench.bin"
     },
     {
       "id": "sink",
       "at": [-4.984999999999999, 3, 0.2],
-      "use": "sink",
-      "angle": 0
+      "kind": "box",
+      "with": {
+        "size": [0.456, 0.8, 0.512],
+        "swatch": "crateWood"
+      },
+      "model": "models/sink.bin",
+      "fit": {
+        "turn": 90
+      }
     },
     {
       "id": "trolley",
       "at": [2.3, 2.4],
       "use": "trolley",
-      "angle": 0
+      "angle": 0,
+      "model": "models/trolley.bin"
     },
     {
       "id": "filing-1",
       "at": [-4.32, -3.4699999999999998],
-      "use": "cabinet.filing"
+      "use": "cabinet.filing",
+      "model": "models/filing.bin"
     },
     {
       "id": "filing-2",
       "at": [-3.76, -3.4699999999999998],
-      "use": "cabinet.filing"
+      "use": "cabinet.filing",
+      "model": "models/filing.bin"
     },
     {
       "id": "drawers",
@@ -765,12 +781,18 @@
       "use": "dresser",
       "with": {
         "size": [0.75, 0.88, 0.45]
-      }
+      },
+      "model": "models/drawers.bin"
     },
     {
       "id": "clock",
       "at": [4.45, -0.845, 2.57],
-      "use": "wallClock"
+      "kind": "box",
+      "with": {
+        "size": [0.561, 0.56, 0.05],
+        "swatch": "crateWood"
+      },
+      "model": "models/clock.bin"
     },
     {
       "id": "nightstand",
@@ -778,37 +800,56 @@
       "use": "nightstand",
       "with": {
         "size": [0.42, 0.7, 0.49]
-      }
+      },
+      "model": "models/nightstand.bin"
     },
     {
       "id": "monitor-cart",
       "at": [-2.4, -3.35],
-      "use": "monitorCart"
+      "kind": "box",
+      "with": {
+        "size": [0.713, 1.1, 0.545],
+        "swatch": "crateWood"
+      },
+      "model": "models/monitor-cart.bin"
     },
     {
       "id": "iv-stand",
       "at": [-2.6, 1.15],
-      "use": "dripStand"
+      "use": "dripStand",
+      "model": "models/iv-stand.bin"
     },
     {
       "id": "office-chair",
       "at": [3.9, -0.4],
-      "use": "chair.wood"
+      "use": "chair.wood",
+      "model": "models/office-chair.bin"
     },
     {
       "id": "wall-tv",
       "at": [-4.525, -1.7, 1.8],
-      "angle": 0,
-      "kind": "screen",
+      "kind": "box",
       "with": {
-        "size": [0.69, 0.55]
+        "size": [0.685, 0.55, 0.448],
+        "swatch": "crateWood"
+      },
+      "model": "models/wall-tv.bin",
+      "fit": {
+        "turn": 90
       }
     },
     {
       "id": "mop-bucket",
       "at": [1.1, -5.3],
-      "angle": 0,
-      "use": "mop.bucket"
+      "kind": "box",
+      "with": {
+        "size": [0.438, 1.25, 0.585],
+        "swatch": "crateWood"
+      },
+      "model": "models/mop-bucket.bin",
+      "fit": {
+        "turn": 90
+      }
     },
     {
       "id": "desk-lamp",
@@ -821,17 +862,28 @@
         "light": {
           "level": 0
         }
-      }
+      },
+      "model": "models/desk-lamp.bin"
     },
     {
       "id": "waste-bin-1",
       "at": [4.55, 2.95],
-      "use": "bin"
+      "kind": "box",
+      "with": {
+        "size": [0.407, 0.5, 0.407],
+        "swatch": "crateWood"
+      },
+      "model": "models/waste-bin.bin"
     },
     {
       "id": "waste-bin-2",
       "at": [4.5, 5.62],
-      "use": "bin"
+      "kind": "box",
+      "with": {
+        "size": [0.367, 0.45, 0.367],
+        "swatch": "crateWood"
+      },
+      "model": "models/waste-bin.bin"
     },
     {
       "id": "coat-hook",
@@ -840,7 +892,8 @@
       "with": {
         "size": [0.51, 1.15, 0.24],
         "swatch": "fabricKnit"
-      }
+      },
+      "model": "models/coat-hook.bin"
     },
     {
       "id": "wall-sconce",
@@ -849,7 +902,8 @@
       "with": {
         "size": [0.22, 0.3, 0.28],
         "swatch": "brass"
-      }
+      },
+      "model": "models/wall-sconce.bin"
     },
     {
       "id": "junction-box",
@@ -857,29 +911,43 @@
       "use": "box.utility",
       "with": {
         "size": [0.43, 0.9, 0.28]
-      }
+      },
+      "model": "models/junction-box.bin"
     },
     {
       "id": "key-cabinet",
       "at": [4.715, 3.6, 1.12],
-      "use": "keyCabinet",
-      "angle": 180
+      "kind": "box",
+      "with": {
+        "size": [0.312, 0.75, 0.599],
+        "swatch": "crateWood"
+      },
+      "model": "models/key-cabinet.bin",
+      "fit": {
+        "turn": -90
+      }
     },
     {
       "id": "floor-plant-1",
       "at": [-4.4, 6.3],
-      "use": "plant.pot",
+      "kind": "box",
       "with": {
-        "height": 1.3
-      }
+        "size": [0.853, 1.3, 0.811],
+        "swatch": "crateWood"
+      },
+      "model": "models/floor-plant.bin"
     },
     {
       "id": "floor-plant-2",
       "at": [4.4, 6.35],
-      "angle": 0,
-      "use": "plant.pot",
+      "kind": "box",
       "with": {
-        "height": 1.15
+        "size": [0.717, 1.15, 0.755],
+        "swatch": "crateWood"
+      },
+      "model": "models/floor-plant.bin",
+      "fit": {
+        "turn": 90
       }
     },
     {
@@ -888,68 +956,103 @@
       "use": "plant.pot",
       "with": {
         "height": 0.25
-      }
+      },
+      "model": "models/desk-plant.bin"
     },
     {
       "id": "book-stack-1",
       "at": [3.9, 0.45, 1.1],
-      "use": "books.stack"
+      "use": "books.stack",
+      "model": "models/book-stack.bin"
     },
     {
       "id": "book-stack-2",
       "at": [2.95, 2.95, 1.1],
       "angle": 0,
-      "use": "books.stack"
+      "use": "books.stack",
+      "model": "models/book-stack.bin"
     },
     {
       "id": "ledger",
       "at": [2.95, 1.5, 1.1],
-      "use": "paper"
+      "kind": "box",
+      "with": {
+        "size": [0.47, 0.06, 0.438],
+        "swatch": "crateWood"
+      },
+      "model": "models/ledger.bin"
     },
     {
       "id": "overbed-table",
       "at": [-3.3, 0.9],
-      "angle": 180,
-      "kind": "table",
+      "kind": "box",
       "with": {
-        "size": [0.45, 0.9, 0.8],
-        "top": "laminate",
-        "legs": "chrome"
+        "size": [0.446, 0.9, 0.772],
+        "swatch": "crateWood"
+      },
+      "model": "models/overbed-table.bin",
+      "fit": {
+        "turn": -90
       }
     },
     {
       "id": "radiator-1",
       "at": [-4.755, 4.2],
-      "use": "radiator",
-      "angle": 0
+      "kind": "box",
+      "with": {
+        "size": [0.131, 0.62, 0.622],
+        "swatch": "crateWood"
+      },
+      "model": "models/radiator.bin",
+      "fit": {
+        "turn": 90
+      }
     },
     {
       "id": "radiator-2",
       "at": [1.355, -2.35],
-      "use": "radiator",
-      "angle": 180
+      "kind": "box",
+      "with": {
+        "size": [0.131, 0.62, 0.622],
+        "swatch": "crateWood"
+      },
+      "model": "models/radiator.bin",
+      "fit": {
+        "turn": -90
+      }
     },
     {
       "id": "extinguisher-cabinet",
       "at": [-1.385, -3.3, 0.95],
       "kind": "box",
       "with": {
-        "size": [0.17, 0.75, 0.42],
-        "swatch": "carRed"
+        "size": [0.172, 0.75, 0.397],
+        "swatch": "crateWood"
       },
-      "angle": 0
+      "model": "models/extinguisher-cabinet.bin",
+      "fit": {
+        "turn": 90
+      }
     },
     {
       "id": "gurney",
       "at": [-1.1, -5.75],
       "use": "gurney",
-      "angle": 0
+      "angle": 0,
+      "model": "models/gurney.bin"
     },
     {
       "id": "water-cooler",
       "at": [4.62, 4.4],
-      "angle": 180,
-      "use": "cooler.water"
+      "kind": "box",
+      "with": {
+        "size": [0.357, 1.2, 0.306],
+        "swatch": "crateWood"
+      },
+      "model": "models/water-cooler.bin",
+      "fit": {
+        "turn": -90
+      }
     },
     {
       "id": "pendant-lamp",
@@ -964,6 +1067,11 @@
         "light": {
           "level": 0
         }
+      },
+      "model": "models/pendant-lamp.bin",
+      "fit": {
+        "scale": 0.4443,
+        "offset": [0, -0.18, 0]
       }
     },
     {
@@ -974,7 +1082,11 @@
         "size": [0.3, 0.1, 1.25],
         "swatch": "metalBox"
       },
-      "angle": 0
+      "angle": 0,
+      "model": "models/strip-light.bin",
+      "fit": {
+        "turn": -90
+      }
     },
     {
       "id": "strip-light-2",
@@ -984,7 +1096,11 @@
         "size": [0.3, 0.1, 1.25],
         "swatch": "metalBox"
       },
-      "angle": 0
+      "angle": 0,
+      "model": "models/strip-light.bin",
+      "fit": {
+        "turn": -90
+      }
     },
     {
       "id": "stock-boxes-1",
@@ -993,7 +1109,8 @@
       "with": {
         "size": [0.3, 0.4, 0.3],
         "swatch": "crateWood"
-      }
+      },
+      "model": "models/stock-boxes.bin"
     },
     {
       "id": "stock-archive-1",
@@ -1002,7 +1119,8 @@
       "with": {
         "size": [0.3, 0.36, 0.3],
         "swatch": "crateWood"
-      }
+      },
+      "model": "models/stock-archive.bin"
     },
     {
       "id": "stock-linen-1",
@@ -1011,7 +1129,8 @@
       "with": {
         "size": [0.3, 0.3, 0.3],
         "swatch": "linen"
-      }
+      },
+      "model": "models/stock-linen.bin"
     },
     {
       "id": "stock-bottles-1",
@@ -1020,7 +1139,8 @@
       "with": {
         "size": [0.3, 0.2, 0.3],
         "swatch": "bottleClear"
-      }
+      },
+      "model": "models/stock-bottles.bin"
     },
     {
       "id": "stock-canisters-1",
@@ -1029,7 +1149,8 @@
       "with": {
         "size": [0.3, 0.36, 0.3],
         "swatch": "steelGrey"
-      }
+      },
+      "model": "models/stock-canisters.bin"
     },
     {
       "id": "stock-toolbox-1",
@@ -1038,7 +1159,8 @@
       "with": {
         "size": [0.3, 0.24, 0.3],
         "swatch": "carRed"
-      }
+      },
+      "model": "models/stock-toolbox.bin"
     },
     {
       "id": "stock-rolls-1",
@@ -1047,7 +1169,8 @@
       "with": {
         "size": [0.3, 0.34, 0.3],
         "swatch": "linen"
-      }
+      },
+      "model": "models/stock-rolls.bin"
     },
     {
       "id": "stock-bandages-1",
@@ -1056,7 +1179,8 @@
       "with": {
         "size": [0.3, 0.22, 0.3],
         "swatch": "linen"
-      }
+      },
+      "model": "models/stock-bandages.bin"
     },
     {
       "id": "stock-archive-2",
@@ -1066,7 +1190,8 @@
         "size": [0.3, 0.4, 0.3],
         "swatch": "crateWood"
       },
-      "angle": 0
+      "angle": 0,
+      "model": "models/stock-archive.bin"
     },
     {
       "id": "stock-bandages-2",
@@ -1076,7 +1201,8 @@
         "size": [0.3, 0.26, 0.3],
         "swatch": "linen"
       },
-      "angle": 0
+      "angle": 0,
+      "model": "models/stock-bandages.bin"
     },
     {
       "id": "stock-bottles-2",
@@ -1086,7 +1212,8 @@
         "size": [0.3, 0.2, 0.3],
         "swatch": "bottleClear"
       },
-      "angle": 0
+      "angle": 0,
+      "model": "models/stock-bottles.bin"
     },
     {
       "id": "stock-boxes-2",
@@ -1096,7 +1223,8 @@
         "size": [0.3, 0.4, 0.3],
         "swatch": "crateWood"
       },
-      "angle": 0
+      "angle": 0,
+      "model": "models/stock-boxes.bin"
     },
     {
       "id": "stock-linen-2",
@@ -1106,7 +1234,8 @@
         "size": [0.3, 0.3, 0.3],
         "swatch": "linen"
       },
-      "angle": 0
+      "angle": 0,
+      "model": "models/stock-linen.bin"
     },
     {
       "id": "stock-rolls-2",
@@ -1116,7 +1245,8 @@
         "size": [0.3, 0.3, 0.3],
         "swatch": "linen"
       },
-      "angle": 0
+      "angle": 0,
+      "model": "models/stock-rolls.bin"
     },
     {
       "id": "stock-canisters-2",
@@ -1126,7 +1256,8 @@
         "size": [0.3, 0.36, 0.3],
         "swatch": "steelGrey"
       },
-      "angle": 180
+      "angle": 180,
+      "model": "models/stock-canisters.bin"
     },
     {
       "id": "stock-linen-3",
@@ -1136,7 +1267,8 @@
         "size": [0.3, 0.28, 0.3],
         "swatch": "linen"
       },
-      "angle": 180
+      "angle": 180,
+      "model": "models/stock-linen.bin"
     },
     {
       "id": "stock-boxes-3",
@@ -1146,7 +1278,8 @@
         "size": [0.3, 0.4, 0.3],
         "swatch": "crateWood"
       },
-      "angle": 180
+      "angle": 180,
+      "model": "models/stock-boxes.bin"
     },
     {
       "id": "stock-toolbox-2",
@@ -1156,7 +1289,34 @@
         "size": [0.3, 0.24, 0.3],
         "swatch": "carRed"
       },
-      "angle": 180
+      "angle": 180,
+      "model": "models/stock-toolbox.bin"
+    },
+    {
+      "id": "fallen-chair",
+      "at": [-1.2, 0.35],
+      "kind": "box",
+      "with": {
+        "size": [0.678, 0.42, 0.48],
+        "swatch": "crateWood"
+      },
+      "model": "models/fallen-chair.bin",
+      "fit": {
+        "turn": 90
+      }
+    },
+    {
+      "id": "privacy-screen",
+      "at": [-2.75, -2.55],
+      "kind": "box",
+      "with": {
+        "size": [1.39, 1.6, 1.118],
+        "swatch": "crateWood"
+      },
+      "model": "models/privacy-screen.bin",
+      "fit": {
+        "turn": 22.92
+      }
     }
   ],
   "lamps": [

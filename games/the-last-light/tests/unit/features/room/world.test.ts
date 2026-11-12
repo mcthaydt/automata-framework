@@ -98,9 +98,10 @@ describe('the ward\u2019s walls', () => {
 
 /**
  * The old level's props the world drew nothing for, because the level named a generator where the library wants a preset. The
- * eighteen the kit honestly has are drawn; the two it does not are left out and say why (editor gaps, row 16).
+ * eighteen the kit honestly has are drawn; the two it does not (a chair on its side, a folding screen) are a plain box of the
+ * old size: a blockout for the old game's model to replace, since no generator draws them.
  */
-const LEFT_OUT: Readonly<Record<string, string>> = {
+const BOX_ONLY: Readonly<Record<string, string>> = {
   'fallen-chair': 'a chair on its side: a prop can be turned about its base only, not tipped over',
   'privacy-screen': 'a folding screen on hinges: the kit\u2019s screen is a television',
 }
@@ -130,14 +131,12 @@ const OLD_PROPS_THE_BUILDER_REFUSED = [
 describe('the ward\u2019s furniture', () => {
   const drawn = (id: string) => WORLD.pieces.some((piece) => piece.id.includes(`:prop:${id}.`))
 
-  it('is all drawn but for what the kit has nothing of, which is named and left out of the level', () => {
-    for (const id of OLD_PROPS_THE_BUILDER_REFUSED)
-      if (Object.hasOwn(LEFT_OUT, id))
-        expect({ id, inLevel: (LEVEL.props ?? []).some((prop) => prop.id === id) }).toEqual({
-          id,
-          inLevel: false,
-        })
-      else expect({ id, drawn: drawn(id) }).toEqual({ id, drawn: true })
+  it('is all drawn, as the kit’s generator or, for what the kit has nothing of, as a box of the old size', () => {
+    for (const id of OLD_PROPS_THE_BUILDER_REFUSED) {
+      expect({ id, drawn: drawn(id) }).toEqual({ id, drawn: true })
+      if (Object.hasOwn(BOX_ONLY, id))
+        expect((LEVEL.props ?? []).find((prop) => prop.id === id)?.kind).toBe('box')
+    }
   })
 
   it('leaves the builder nothing to refuse', () => {
@@ -153,6 +152,8 @@ describe('the ward\u2019s furniture', () => {
  */
 const OLD_YAW: Readonly<Record<string, number>> = {
   wheelchair: 90,
+  'fallen-chair': 90,
+  'privacy-screen': 22.92,
   sink: 90,
   trolley: 90,
   'wall-tv': 90,
@@ -166,8 +167,10 @@ const OLD_YAW: Readonly<Record<string, number>> = {
   'extinguisher-cabinet': 90,
   gurney: 90,
   'water-cooler': -90,
-  'strip-light-1': 90,
-  'strip-light-2': 90,
+  // The old game stretched the strip light's model across its length and turned it; ours keeps its proportions, so it is turned to lie
+  // along the blockout (`tools/convert/models.ts`, TURNED).
+  'strip-light-1': 0,
+  'strip-light-2': 0,
   'stock-archive-2': 90,
   'stock-bandages-2': 90,
   'stock-bottles-2': 90,
@@ -186,10 +189,19 @@ const BED_ANGLE = 180
 describe('the ward\u2019s props face as the old game turned them', () => {
   const turnOf = (angle: number | undefined): number => (((90 - (angle ?? 90)) % 360) + 360) % 360
 
+  // What turns on screen is the model, at the blockout's turn and the fit's, which together are the old game's yaw. (Ten of the
+  // old furniture are a box now, turned the old yaw by the fit; the rest are the kit's props turned as the old model was, or by
+  // the quarter that brings the kit's front to the model's.)
   for (const prop of LEVEL.props ?? []) {
-    const yaw = prop.id === 'bed' ? turnOf(BED_ANGLE) : (OLD_YAW[prop.id] ?? 0)
-    it(`${prop.id} turns ${yaw} degrees`, () => {
-      expect(turnOf(prop.angle)).toBe(((yaw % 360) + 360) % 360)
+    const yaw = OLD_YAW[prop.id] ?? 0
+    it(`${prop.id}'s model turns ${yaw} degrees`, () => {
+      expect((((turnOf(prop.angle) + (prop.fit?.turn ?? 0)) % 360) + 360) % 360).toBe(
+        ((yaw % 360) + 360) % 360,
+      )
     })
   }
+
+  it('turns the bed’s blockout a quarter the other way, to put its head at the north end', () => {
+    expect(turnOf((LEVEL.props ?? []).find((prop) => prop.id === 'bed')?.angle)).toBe(turnOf(BED_ANGLE))
+  })
 })

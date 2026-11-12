@@ -14,15 +14,16 @@ const rows = readFileSync(join(ROOT, 'PROVENANCE.md'), 'utf8')
     return match === null ? [] : [{ path: match[1] as string, sha: match[2] as string }]
   })
 
-const shipped = ['public/sounds', 'public/music'].flatMap((folder) =>
+const shipped = ['public/sounds', 'public/music', 'public/models'].flatMap((folder) =>
   readdirSync(join(ROOT, folder)).map((name) => `${folder}/${name}`),
 )
 
 describe('the recorded files', () => {
-  it('are the twelve the old prologue plays: nine effects and three tracks', () => {
-    expect(rows).toHaveLength(12)
+  it('are the twelve the old prologue plays (nine effects and three tracks) and the 41 models of its furniture', () => {
+    expect(rows).toHaveLength(12 + 41)
     expect(rows.filter((row) => row.path.startsWith('public/sounds/'))).toHaveLength(9)
     expect(rows.filter((row) => row.path.startsWith('public/music/'))).toHaveLength(3)
+    expect(rows.filter((row) => row.path.startsWith('public/models/'))).toHaveLength(41)
   })
 
   it('have the checksum PROVENANCE.md records, byte for byte', () => {

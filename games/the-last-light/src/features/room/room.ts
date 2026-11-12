@@ -9,7 +9,7 @@ import {
   type WorldLibrary,
   worldLighting,
 } from '@automata/3d'
-import { type AfSector2, readLevel } from '@automata/3d/level'
+import { type AfSector2, modelsOf, readLevel } from '@automata/3d/level'
 import { albedoTiles, worldKitLibrary } from '@automata/world-kit'
 import levelFile from '../../../content/levels/prologue.af-sector.json' with { type: 'json' }
 
@@ -19,6 +19,9 @@ import levelFile from '../../../content/levels/prologue.af-sector.json' with { t
 
 /** The level, as the 3D level editor wrote it. */
 export const LEVEL: AfSector2 = readLevel(levelFile).level
+
+/** The model files the level's props name: the old game's furniture, which the page loads before the first frame. */
+export const MODEL_FILES: readonly string[] = modelsOf(LEVEL)
 
 /** The kit's swatches and props, and the game's own swatches (`content/world-swatches`): the clinic's plaster is not a step of the kit's. */
 export const LIBRARY: WorldLibrary = {
