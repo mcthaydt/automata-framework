@@ -12,7 +12,7 @@ import {
   swatchColour,
   worldLighting,
 } from '@automata/3d'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { commands } from 'vitest/browser'
 import { worldKitLibrary } from '#src/app/world-kit-library.ts'
 import '#src/features/props/register-props.ts'
@@ -40,13 +40,6 @@ type Camera = {
   position: { set(x: number, y: number, z: number): void }
   lookAt(p: { x: number; y: number; z: number }): void
 }
-let scope: { dispose(): void }[] = []
-afterEach(() => {
-  for (const open of scope) open.dispose()
-  scope = []
-  document.body.replaceChildren()
-})
-
 /** What the sheet shows: each kind as its preset has it, then the three that have another state, in it. */
 const SHOTS: readonly { kind: string; label: string; with?: Record<string, unknown> }[] = [
   ...KINDS.map((kind) => ({ kind, label: kind })),
@@ -56,11 +49,18 @@ const SHOTS: readonly { kind: string; label: string; with?: Record<string, unkno
 ]
 const COLUMNS = 4
 
-/** A renderer with the room of `kinds` drawn, and the camera to move between shots. */
+interface Room {
+  renderer: Pixi3dRenderer
+  camera: Camera
+  /** Frees the renderer's GL context and takes its canvas off the page. */
+  close(): void
+}
+
+/** A renderer with the room of `kinds` drawn, and the camera to move between shots. The caller closes it. */
 async function open(
   kinds: readonly string[],
   params: Readonly<Record<string, Readonly<Record<string, unknown>>>> = {},
-): Promise<{ renderer: Pixi3dRenderer; camera: Camera }> {
+): Promise<Room> {
   const level = wardRoom(kinds, params)
   const time = levelTime(level.time)
   const world = buildWorld(level, worldKitLibrary, { night: time.name !== 'day' })
@@ -85,9 +85,15 @@ async function open(
     },
   })(target(host, CELL))
   if (!made.ok) throw made.reason
-  scope.push(made.value)
   if (camera === undefined) throw new Error('the scene hook did not run')
-  return { renderer: made.value, camera }
+  return {
+    renderer: made.value,
+    camera,
+    close() {
+      made.value.dispose()
+      host.remove()
+    },
+  }
 }
 
 /** Looks at `kind` from the front, a little to the right and above, as far back as its size asks. */
@@ -118,27 +124,46 @@ function differing(a: Uint8Array, b: Uint8Array): number {
 }
 
 describe.runIf(hasWebGL2)('the ward props on WebGL2, in the base interior', () => {
-  it('each puts pixels on the screen where it stands', async () => {
-    const empty = await open([])
-    const sheet = document.createElement('canvas')
-    sheet.width = CELL.width * COLUMNS
-    sheet.height = CELL.height * Math.ceil(SHOTS.length / COLUMNS)
-    const paper = sheet.getContext('2d') as CanvasRenderingContext2D
-    for (const [i, { kind, label, with: params }] of SHOTS.entries()) {
-      const room = await open([kind], params === undefined ? {} : { [kind]: params })
-      lookAt(empty.camera, kind)
-      lookAt(room.camera, kind)
-      const without = shot(empty.renderer)
-      const withProp = shot(room.renderer)
-      // A prop is a good share of its own close shot: at least 3% of the frame's pixels changed.
-      expect(differing(without, withProp), label).toBeGreaterThan(CELL.width * CELL.height * 0.03)
-      const cell = new ImageData(new Uint8ClampedArray(withProp), CELL.width, CELL.height)
-      paper.putImageData(cell, (i % COLUMNS) * CELL.width, Math.floor(i / COLUMNS) * CELL.height)
-      paper.fillStyle = '#ffffff'
-      paper.font = '14px sans-serif'
-      paper.fillText(label, (i % COLUMNS) * CELL.width + 6, Math.floor(i / COLUMNS) * CELL.height + 16)
-    }
+  // One empty room for every shot, and one renderer at a time for the prop: a renderer per shot, all kept to the end,
+  // was thirteen GL contexts built inside one test, so a cold or busy machine ran out of its time on the loading alone.
+  let empty: Room
+  const sheet = document.createElement('canvas')
+  sheet.width = CELL.width * COLUMNS
+  sheet.height = CELL.height * Math.ceil(SHOTS.length / COLUMNS)
+  const paper = sheet.getContext('2d') as CanvasRenderingContext2D
+
+  beforeAll(async () => {
+    empty = await open([])
+  })
+  afterAll(async () => {
+    empty.close()
     const png = sheet.toDataURL('image/png').split(',')[1] as string
     await commands.writeFile('test-results/ward-props.png', png, 'base64')
   })
+
+  it.each(SHOTS.map((shot, index) => ({ ...shot, index })))(
+    '$label puts pixels on the screen where it stands',
+    async ({ kind, label, with: params, index }) => {
+      const room = await open([kind], params === undefined ? {} : { [kind]: params })
+      try {
+        lookAt(empty.camera, kind)
+        lookAt(room.camera, kind)
+        const without = shot(empty.renderer)
+        const withProp = shot(room.renderer)
+        // A prop is a good share of its own close shot: at least 3% of the frame's pixels changed.
+        expect(differing(without, withProp), label).toBeGreaterThan(CELL.width * CELL.height * 0.03)
+        const cell = new ImageData(new Uint8ClampedArray(withProp), CELL.width, CELL.height)
+        paper.putImageData(cell, (index % COLUMNS) * CELL.width, Math.floor(index / COLUMNS) * CELL.height)
+        paper.fillStyle = '#ffffff'
+        paper.font = '14px sans-serif'
+        paper.fillText(
+          label,
+          (index % COLUMNS) * CELL.width + 6,
+          Math.floor(index / COLUMNS) * CELL.height + 16,
+        )
+      } finally {
+        room.close()
+      }
+    },
+  )
 })

@@ -60,6 +60,8 @@ async function setNumber(editors: Page, label: string, value: number): Promise<v
 }
 const fileHas = (file: string, text: string) =>
   expect.poll(() => readFileSync(root + file, 'utf8')).toContain(text)
+const fileMatches = (file: string, pattern: RegExp) =>
+  expect.poll(() => readFileSync(root + file, 'utf8')).toMatch(pattern)
 
 test('the guard stays on patrol for 3 s while the player is 5 m away, outside its 4 m sight', async ({
   page,
@@ -89,15 +91,20 @@ test('Watch: stepping the player into sight lights Hunt on the diagram and logs 
   const game = pane.frameLocator('iframe')
   await game.getByRole('button', { name: 'Play' }).click()
   // The player starts 5 m from the guard; stepping toward it (screen left is east) brings it within 4 m.
+  // Hunt is lit only until the guard reaches the player (about 1.5 s later it is Catch, and stays there), so the
+  // diagram is read on every frame from the moment the key goes down, not after a wait that can outlast it.
   await editors.keyboard.down('KeyA')
-  await expect(editors.getByRole('log', { name: 'What happened' })).toContainText(
-    'went from Patrol to Hunt',
-    {
-      timeout: 20_000,
+  const lit = await editors.waitForFunction(
+    () => {
+      const node = document.querySelector('[data-live="true"]')
+      return node?.getAttribute('data-mode') === 'hunt' ? node.getAttribute('aria-label') : null
     },
+    undefined,
+    { polling: 'raf', timeout: 20_000 },
   )
   await editors.keyboard.up('KeyA')
-  await expect(editors.locator('[data-live="true"]').first()).toHaveAccessibleName(/^Hunt, /)
+  expect(await lit.jsonValue()).toMatch(/^Hunt, /)
+  await expect(editors.getByRole('log', { name: 'What happened' })).toContainText('went from Patrol to Hunt')
   await editors.screenshot({ path: test.info().outputPath('watch-hunt.png') })
 })
 
@@ -184,6 +191,9 @@ test('pointing Patrol to Hunt at Search instead: the guard’s first change is t
   if (!(await to.isVisible())) await editors.getByRole('button', { name: 'Details' }).click()
   await expect(to).toBeVisible()
   await to.selectOption('search')
+  // The editor writes the file a moment after the change and the game reads it when it loads: play only once the switch
+  // is saved. The file still holds the earlier test's 7 m sight, so a game started too soon hunts.
+  await fileMatches(FILES[0] as string, /from = "patrol"\s+to = "search"/)
   await editors.screenshot({ path: test.info().outputPath('4-switch-to-search.png') })
   await play(page)
   await page.waitForFunction(
