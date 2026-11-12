@@ -1,0 +1,10 @@
+{
+  "torch": {
+    "about": "A rag torch on a stick, held forward and low at the side, upright.",
+    "parts": [
+      { "material": "wood", "at": [0, 0, 0.13], "r": [0.018, 0.22, 0.018], "pitch": 1.5707963267948966, "seg": 6, "rings": 3 },
+      { "material": "rag", "at": [0, 0, 0.34], "r": [0.04, 0.06, 0.04], "pitch": 1.5707963267948966, "seg": 8, "rings": 4 }
+    ],
+    "hold": { "hand": [{ "k": 0.15 }, { "k": -0.34 }, { "k": 0.25 }], "turn": [-1.5707963267948966, 0, 0], "pole": [0.7, -0.4, -0.6] }
+  }
+}
