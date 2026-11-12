@@ -1,5 +1,3 @@
-// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 23 of the builders-fold plan (the strict flags) replaces each with a check
-
 import type { Material } from '../body/parts'
 import type { Weave } from './fabric'
 import { colourTexels, stampAndBudget } from './paint-colour'

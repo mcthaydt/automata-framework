@@ -1,4 +1,3 @@
-// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 24 of the builders-fold plan (the strict flags) replaces each with a check
 import { fk, J, restPose, type Side, type Skeleton, twoBoneIK } from '../body/rig'
 import { add, apply, applyDir, euler, invertRigid, lerp3, position, qmat, TAU, type V3 } from '../math/math'
 import { applyHold, base, placeHems, sideBend } from './motion-gait'

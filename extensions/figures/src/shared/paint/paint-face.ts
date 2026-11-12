@@ -1,5 +1,3 @@
-// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 23 of the builders-fold plan (the strict flags) replaces each with a check
-
 import type { HeadShape } from '../body/genes'
 import { smooth } from '../math/math'
 import { RAMPS } from './duel-ramps'
