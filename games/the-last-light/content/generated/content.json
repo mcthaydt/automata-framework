@@ -6190,7 +6190,7 @@
       "ramp": "sage",
       "step": 2,
       "texture": {
-        "accent": 0.007,
+        "accent": 0.0052,
         "cluster": 8,
         "contrast": 0.06,
         "facet": 0,

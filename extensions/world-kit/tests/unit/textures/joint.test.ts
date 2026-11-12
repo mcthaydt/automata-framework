@@ -62,6 +62,19 @@ describe('a swatch’s joint colour', () => {
     expect(jointsIn(deep.labels)).toBe(0)
   })
 
+  it('closes a short break in a joint line, and nothing else: a joint is a line, not dashes', () => {
+    // The joint along x = 16 is missing for two pixels (y 11 and 12), as a photo's joint can be where its grout is faint.
+    const broken = (x: number, y: number): number => (x === 16 && (y === 11 || y === 12) ? COOL : grid(x, y))
+    const tile = photoToTile(makePng(32, 32, broken), { ...KNOBS, joint: 'grout' })
+    tile.labels.forEach((label, i) => {
+      expect(unpack(label).slot === JOINT_SLOT, `texel ${i}`).toBe(isJointTexel(i, tile.width))
+    })
+    // A joint-free cell stays a cell: a break wider than the gap a line closes is left alone.
+    const wide = (x: number, y: number): number => (x === 16 && y >= 9 && y <= 14 ? COOL : grid(x, y))
+    const open = photoToTile(makePng(32, 32, wide), { ...KNOBS, joint: 'grout' })
+    expect(unpack(open.labels[11 * open.width + 16] as number).slot).not.toBe(JOINT_SLOT)
+  })
+
   it('is read against the joint swatch’s ramp and step, a texel being its offset from that step', () => {
     const ladder = { base: { ramp: 4, step: 3 }, joint: { ramp: 9, step: 2 } }
     const labels = Uint16Array.of(JOINT_SLOT * 16 + 8, JOINT_SLOT * 16 + 7, JOINT_SLOT * 16 + 12, 8)

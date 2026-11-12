@@ -186,6 +186,29 @@ export interface ToneOptions {
   readonly jointDepth?: number | undefined
 }
 
+/** A joint is a line: a texel between two ends of a thin joint line, within `reach` along it on both sides (wrapping, as a tile
+ * does), is joint too, so a break of up to 2 * `reach` texels in a line closes where a photo's grout is faint. An end is a joint
+ * texel with no joint beside it across the line, so two blotches of dark never bridge, and a cell a line bounds stays a cell. */
+function closeJoint(isJoint: Uint8Array, width: number, height: number, reach: number): void {
+  const before = isJoint.slice()
+  const at = (x: number, y: number): number => before[wrap(y, height) * width + wrap(x, width)] ?? 0
+  /** A joint texel on a line that runs along y (`alongY`) or along x: no joint on either side of it across that line. */
+  const thin = (x: number, y: number, alongY: boolean): boolean =>
+    at(x, y) === 1 && (alongY ? !at(x - 1, y) && !at(x + 1, y) : !at(x, y - 1) && !at(x, y + 1))
+  const end = (x: number, y: number, dx: number, dy: number, alongY: boolean): boolean => {
+    for (let k = 1; k <= reach; k++) if (thin(x + dx * k, y + dy * k, alongY)) return true
+    return false
+  }
+  for (let y = 0; y < height; y++)
+    for (let x = 0; x < width; x++)
+      if (
+        !before[y * width + x] &&
+        ((end(x, y, 0, -1, true) && end(x, y, 0, 1, true)) ||
+          (end(x, y, -1, 0, false) && end(x, y, 1, 0, false)))
+      )
+        isJoint[y * width + x] = 1
+}
+
 const median = (xs: number[]): number => {
   const sorted = xs.slice().sort((a, b) => a - b)
   return sorted[sorted.length >> 1] ?? 0
@@ -203,6 +226,7 @@ export function indexTone(src: Lab, options: ToneOptions): Uint16Array {
     const all = median(Array.from({ length: n }, (_, i) => lab[i * 3] ?? 0))
     for (let i = 0; i < n; i++)
       isJoint[i] = ((lab[i * 3] ?? 0) - all) / options.contrast <= -options.jointDepth ? 1 : 0
+    closeJoint(isJoint, width, height, 2)
   }
   const body = n - isJoint.reduce((sum, v) => sum + v, 0)
   let meanA = 0
