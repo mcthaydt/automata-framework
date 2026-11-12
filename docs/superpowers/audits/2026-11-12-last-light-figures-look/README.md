@@ -418,6 +418,22 @@ it shows beside the neck over the shoulders. Tests first (`hair-bob.test.ts`, fa
 the widest hair row below the head from behind is twice the curtain's tail and at least 18 at density 2, from the front there is hair below the head,
 and the face is still hidden (at most 10 skin texels in her head's rows at play size, the loose hair leaving her chin and neck a texel more than round 5's).
 
+### The nurse where she is first seen in the game
+
+The moment is the lights-out cutscene, where the camera shows her in the corridor doorway (about 7 s in). Old left, ours right, 1024 by 768, picture effects on:
+[`round6-ingame-nurse.png`](round6-ingame-nurse.png); the singles are [`round6-ingame-old-nurse-1024x768.png`](round6-ingame-old-nurse-1024x768.png),
+[`round6-ingame-ours-nurse-1024x768.png`](round6-ingame-ours-nurse-1024x768.png) and an earlier frame of ours,
+[`round6-ingame-ours-nurse-earlier-1024x768.png`](round6-ingame-ours-nurse-earlier-1024x768.png). The old frame is the old game's own shoot
+(`scripts/verify/shoot.mjs`, `?debug&renderer=webgl&scene=prologue`, `cutscene: lightsOut`, the game stepped 7 s on its paused clock; the old repo's `npm ci` was
+run in this container, nothing of it is on the branch). Ours is the frame at the cutscene's 210th tick after the route's bed-made step, played through the page
+(a temporary spec, not committed: the route to the lights-out and a screenshot every half second); the frame series is not on the branch, only the two frames.
+Our cutscene's timing is not the old one's (the same second shows Ada's close-up in ours), so the frame was chosen by eye from the series.
+
+What the pair shows: **ours has her loose hair to the waist, a wide blue-black mass over her shoulders and back, and the stained skirt and dark legs** as the old figure
+has them, at about the old size. **The difference is which way she faces:** in the old frame she faces the camera (a curtain of hair over the face and down the front),
+in ours she stands in the doorway with her back to it, so the frame shows the hair from behind. That is the cutscene's staging (her facing at that
+moment), not the figure: the front of the figure, with its hair over the face, is on the sheets. I did not change it (the cutscene is the game branch's).
+
 **C's skirt `ease` (.5), by the numbers: not adopted.** Against the old procedural (18 / 18 / 22): A is off by 1, 2, 0 (3 in all), C by 1, 0, 2 (3);
 against the atlas (20 / 23 / 26): A is off by 1, 3, 4 (8), C by 1, 5, 6 (12). It ties the procedural and is further from the atlas, so it stays the
 Owner's pick (variant C).
