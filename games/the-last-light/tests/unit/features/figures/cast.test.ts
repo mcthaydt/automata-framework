@@ -181,8 +181,7 @@ describe('Ada', () => {
   it('has the painter’s clean slim build: each body slider within 0.3 of the base woman’s, no body slider pushed by an earlier round', () => {
     const base = (BASE[1] as { def: CharacterDef }).def.sliders as Record<string, unknown>
     for (const [key, value] of Object.entries(ADA.sliders as Record<string, unknown>)) {
-      // Her height is her canon's, and her head is her build: about five heads tall, chosen in play (the five-heads test below).
-      if (typeof value !== 'number' || key === 'height' || key === 'head') continue
+      if (typeof value !== 'number' || key === 'height') continue
       expect(Math.abs(value - Number(base[key])), key).toBeLessThanOrEqual(0.3)
     }
     expect(ADA.genes).toBeUndefined()
@@ -196,14 +195,14 @@ describe('Ada', () => {
     expect(p.legRows / p.height).toBeLessThanOrEqual(0.52)
   })
 
-  it('is about five heads tall at density 2, with a head no smaller than the six-head build’s 20 by 18 texels (the Owner, 2026-11-12: “go with what looks the best”)', () => {
-    // Shot in play at 7, 6 and 5 heads (`docs/superpowers/audits/2026-11-12-last-light-ada-frames/item2-*`): at 5 her face reads largest
-    // and her body is still a slim adult's. A texel is fixed on screen in play, so the head's texels are its size on screen.
+  it('is about six heads tall at density 2, her features filling her face as the base woman’s do (the Owner, 2026-11-12: “go with what looks the best”)', () => {
+    // Shot in play and painted at x10 at seven, six and five heads and between (`docs/superpowers/audits/2026-11-12-last-light-ada-frames/item2-*`):
+    // the painter's features are one or two texels whatever the head's size, so a larger head spreads the same brows, eyes and mouth over an
+    // emptier face. At six they fill it as base-f's do.
     const p = proportions(ADA, 2)
-    expect(p.heads).toBeGreaterThanOrEqual(4.6)
-    expect(p.heads).toBeLessThanOrEqual(5.1)
-    expect(p.headRows).toBeGreaterThanOrEqual(25)
-    expect(p.headWidth).toBeGreaterThanOrEqual(22)
+    expect(p.heads).toBeGreaterThanOrEqual(5.6)
+    expect(p.heads).toBeLessThanOrEqual(6.4)
+    expect(p.headRows).toBeGreaterThanOrEqual(20)
   })
 
   it('walks the old brisk walk whole, with the arms close to her body', () => {

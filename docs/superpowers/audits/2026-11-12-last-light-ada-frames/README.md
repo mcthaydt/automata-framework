@@ -29,3 +29,13 @@ brows bold and two texels thick (they read, bolder than base-f's); the lid is th
 whites show both sides of each iris and are near-white but greyed by the mesh; the nose is a faint column, weaker than the reference's shadow;
 the lips are two tones but low in contrast, a grey-pink band; the skin is a pale pink-peach, cooler than the reference's warm tan; crispness
 falls short: the LCD panel's mesh crosses every texel, off the texel borders. The structure matches; the finish does not, which is item 3's.
+
+## Item 2, round 2: back to six heads (`item2-round2-six-between-five-head-x10.png`)
+
+The coordinator did not accept five heads, and the picture agrees: the painter's features are one or two texels whatever the head's size, so a
+larger head spreads the same brows, eyes and four-texel mouth over a wider, emptier face (eyes far apart, a small mouth in a large chin); in play
+it reads as a bobble-head child. The measure is how much of the face the features fill, as in the reference, not how large the face is. Painted at
+x10: base man, base woman, six heads (1.25), between (1.45, the most within .3 of base-f's 1.15), five (2.05). At six the features fill her face as
+base-f's do; between is wider and emptier, and the red-brown patch at her temple shows more. Kept six: `head` is 1.25 again and the cast test's
+"within .3 of the base woman" rule holds it once more (the exemption is gone). Kept from round 1: the cast tests' face windows as shares of the
+head's rows, and the play shots' key pairs. The item 5 frame above is the five-heads build and is re-shot below.
