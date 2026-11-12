@@ -125,9 +125,13 @@ const stand = (def: CharacterDef, d: number, density: number, paint: Paint = {})
   return { px: f.painted.slice() as Uint8ClampedArray, w: cast.cell[0], h: cast.cell[1] }
 }
 
-const COLW = 920,
+const ZB = D > 4 ? 1 : 2,
+  C = Math.round((100 * D) / 4),
+  ZH = Math.max(1, Math.floor(400 / C)),
+  W = Math.round(32.5 * D),
+  COLW = 2 * W * ZB + C * ZH + 30,
   SW = COLW * 2 + 40,
-  figH = Math.round(66 * D) * 2 + 40,
+  figH = Math.round(66 * D) * ZB + 40,
   stripH = 300,
   SH = figH + stripH + 20
 const sheet = new Uint8Array(SW * SH * 4)
@@ -137,7 +141,6 @@ for (let i = 0; i < sheet.length; i += 4) {
   sheet[i + 2] = 0x2b
   sheet[i + 3] = 255
 }
-const W = Math.round(32.5 * D)
 const rows: Record<string, number> = {}
 ;[
   { def: WOMAN, paint: {}, x: 0, name: 'base woman' },
@@ -149,11 +152,11 @@ const rows: Record<string, number> = {}
     cx = Math.round((bb.x0 + bb.x1) / 2),
     h = bb.y1 - bb.y0 + 1
   rows[name] = h
-  const z = 2,
+  const z = ZB,
     top = bb.y0 - 4
   blit(sheet, SW, f0.px, f0.w, [cx - W / 2, top, W, h + 8], x, 10, z)
   blit(sheet, SW, f1.px, f1.w, [cx - W / 2, top, W, h + 8], x + W * z, 10, z)
-  blit(sheet, SW, f0.px, f0.w, [cx - 50, top, 100, 100], x + W * z * 2 + 10, 10, 4)
+  blit(sheet, SW, f0.px, f0.w, [Math.round(cx - C / 2), top, C, C], x + W * z * 2 + 10, 10, ZH)
   if (name === 'heroine') {
     // The same figure at density 2 and 1, at the sizes they are played at (x2 and x4: about the size of the large figure's x1).
     let sx = x
