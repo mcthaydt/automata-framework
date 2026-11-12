@@ -112,9 +112,9 @@ export const ADA: CharacterDef = {
         waistband: 'denimBand',
       },
       { shoes: 'bootBrown', sole: 'bootSole', boots: true, shaft: 0.2, heel: 1, toe: 'bootToe' },
-      { hair: 'auburn', style: 'bobFringe' },
+      { hair: 'auburn', style: 'bobOpen' },
       // The painter's drawn face: eyes with their whites under a lid, brows, lips.
-      { eyes: 'eyeBrown', lids: 'lidDeep', white: 'eyeWhite', brows: 'hairBlack', lips: 'lipsWarm' },
+      { eyes: 'eyeBrown', lids: 'lidDeep', white: 'eyeWhite', brows: 'hairBlack', lips: 'lipsAda' },
     ],
   },
 }

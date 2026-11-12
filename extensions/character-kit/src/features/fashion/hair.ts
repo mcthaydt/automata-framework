@@ -62,6 +62,18 @@ const curtainLine = [
   [2.5, -0.45],
   [3.1416, -0.6],
 ]
+/** A hairline lifted over the brow at the front (0.82, where the natural line's 0.62 sits on it), coming down to the natural line at the temples. */
+const openLine = [
+  [0, 0.82],
+  [0.5, 0.78],
+  [0.85, 0.5],
+  [1.15, 0.0],
+  [1.3, -0.12],
+  [1.5, 0.1],
+  [1.9, 0.0],
+  [2.5, -0.45],
+  [3.1416, -0.6],
+]
 const crown = {
   scalp: {
     from: line,
@@ -334,6 +346,16 @@ export const FASHION_HAIR: Readonly<Record<string, HairStyle>> = {
           rope: { r: 0.19 },
         },
       },
+    ],
+  },
+  // A bob worn off the face: the hairline lifted over the brow (a clear forehead, two rows or more at density 2) and the fall's mass kept
+  // close to the head (little volume) so the cheeks and the ears are not under it; the fringe styles hide the brow, this one shows the face.
+  bobOpen: {
+    about: 'A chin-length bob with the forehead clear and the sides close to the head, off the cheeks.',
+    finish: 'smooth',
+    pieces: [
+      { scalp: { ...crown.scalp, from: openLine, lift: 0.1 } },
+      { fall: { from: hang, part: 0.3, count: 28, length: 0.3, curl: 0, volume: 0.1, rope: { r: 0.17 } } },
     ],
   },
   bobFringeShort: {

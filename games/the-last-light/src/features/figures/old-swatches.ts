@@ -48,6 +48,9 @@ export const ADA_LOOK_SWATCHES: Swatches = {
   fadedDenim: { ramp: 0, base: 3, paint: ['#626871', '#626871', '#2e3d47', '#1d2c43'] },
   denimTurn: { ramp: 0, base: 4, paint: ['#a6aeba', '#828b98', '#626871', '#434549'] },
   denimBand: { ramp: 0, base: 2, paint: ['#626871', '#434549', '#2e3d47', '#1d2c43'] },
+  // The painter's `lipsWarm` has its upper lip (#a76057) a step from the warm skin, so at density 2 on a lit face the mouth is one pale smudge.
+  // The upper lip is the painter's deeper brown-red (#7c4b47) over its own lit lower lip (#d28d7a): two rows, two tones, as the reference's mouth.
+  lipsAda: { ramp: 16, base: 3, flat: true, paint: ['#7c4b47', '#d28d7a', '#904647', '#904647'] },
   bootToe: { ramp: 24, base: 4, paint: ['#bf7e63', '#a96d58', '#945d4f', '#784c49'] },
 }
 

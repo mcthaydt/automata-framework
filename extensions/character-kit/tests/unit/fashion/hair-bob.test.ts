@@ -180,3 +180,26 @@ describe('hair that hangs loose down the back', () => {
     expect(face(bob('curtainLoose'))).toBeLessThanOrEqual(face(bob('fallLong')) * 0.6)
   })
 })
+
+describe('a bob with the forehead clear', () => {
+  const full = bob('bobFringeFull')
+  const open = bob('bobOpen')
+  /** The face's skin from the front at density 2, in the head's rows. */
+  const face = (def: CharacterDef): number => texelsOfSwatch(def, headOf(def, 0, 2), 'fair')
+
+  it('is a style of the painted wardrobe', () => {
+    expect(HAIR_STYLES.bobOpen).toBeDefined()
+  })
+
+  it('shows the forehead: the face’s skin starts at least two rows higher than under the fuller bob’s fringe', () => {
+    expect(front(open).forehead).toBeLessThanOrEqual(front(full).forehead - 2)
+  })
+
+  it('shows more face: more skin from the front than the fuller bob, whose sides cover the cheeks', () => {
+    expect(face(open)).toBeGreaterThan(face(full) + 10)
+  })
+
+  it('is still a bob: its hair reaches the jaw (more hair at the play size than the helmet bob)', () => {
+    expect(playTexels(open)).toBeGreaterThan(playTexels(bob('smoothBob')))
+  })
+})

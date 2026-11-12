@@ -204,7 +204,7 @@ describe('Ada', () => {
       lids: 'lidDeep',
       white: 'eyeWhite',
       brows: 'hairBlack',
-      lips: 'lipsWarm',
+      lips: 'lipsAda',
     })
   })
 
@@ -222,7 +222,7 @@ describe('Ada', () => {
     expect(street[1]).toMatchObject({ waistcoat: 'oxblood', open: 1, buttons: 'brass' })
     expect(street[2]).toMatchObject({ jeans: 'fadedDenim', crop: 0.3, turn: 'denimTurn', taper: 1 })
     expect(street[3]).toMatchObject({ shoes: 'bootBrown', boots: true, heel: 1, toe: 'bootToe' })
-    expect(street[4]).toEqual({ hair: 'auburn', style: 'bobFringe' })
+    expect(street[4]).toEqual({ hair: 'auburn', style: 'bobOpen' })
   })
 
   it('has the swatches of every cloth she wears: her shirt, boots, hair and skin, the look’s for the rest; her brows and lids are the painter’s own', () => {
@@ -335,8 +335,26 @@ describe('the painted frame shows what they wear', () => {
     let lips = 0
     // The eyes are about 17 rows under the crown; the mouth's rows are below them and the lips are in the middle, clear of the hair at the sides.
     for (let y = top + 19; y < top + 27; y++)
-      for (let x = Math.round(w / 2) - 5; x <= Math.round(w / 2) + 5; x++) if (is(x, y, 'lipsWarm')) lips++
+      for (let x = Math.round(w / 2) - 5; x <= Math.round(w / 2) + 5; x++) if (is(x, y, 'lipsAda')) lips++
     expect(lips).toBeGreaterThanOrEqual(4)
+  })
+
+  it('draws the mouth in two rows and two tones, as the painter’s reference does: a darker upper lip row over a lit lower lip row of the same width', () => {
+    const { cell } = faceAt2(ADA)
+    const [w] = cell.size
+    const top = rowWidths(cell).findIndex((width) => width > 0)
+    const [upper, lower] = ((ADA.swatches?.lipsAda?.paint ?? []) as readonly string[]).map((hex) =>
+      [1, 3, 5].map((k) => Number.parseInt(hex.slice(k, k + 2), 16)),
+    ) as [number[], number[]]
+    const at = (x: number, y: number, c: number[]) =>
+      c.every((v, k) => cell.painted[(y * w + x) * 4 + k] === v)
+    let rows: [number, number] | undefined
+    for (let y = top + 19; y < top + 27 && !rows; y++) {
+      const xs = [...Array(w).keys()].filter((x) => at(x, y, upper))
+      const same = xs.filter((x) => at(x, y + 1, lower))
+      if (xs.length >= 2 && same.length >= xs.length) rows = [xs.length, same.length]
+    }
+    expect(rows, 'an upper lip row with a lit lower lip row under it').toBeDefined()
   })
 
   it('shows floor between Ada’s legs below the knee from density 2, where the cutscene shots begin: two legs, not one block', () => {
