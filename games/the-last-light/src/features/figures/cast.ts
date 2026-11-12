@@ -17,7 +17,7 @@ import { ADA_LOOK_SWATCHES, ADA_SWATCHES, NURSE_SWATCHES } from './old-swatches.
  * camera is set so that number is 1 in play (the level's views: a 80 mm lens, about 74 field pixels a metre at the figure), and the
  * close-up's shot is framed so it is 2, 3 or 4. The skin keeps its hue in the ward's dim cool light (`holdSkinHue`): Ada was lavender in it.
  */
-export const PLAY_FIGURE = { crisp: true, density: 2, holdSkinHue: true } as const
+export const PLAY_FIGURE = { crisp: true, density: 2, holdSkinHue: true, dimmest: 1 } as const
 
 /**
  * Ada Voss, the staff nurse on her first night. The prologue puts her in her street clothes (the old character file's `story`:
@@ -43,7 +43,7 @@ export const ADA: CharacterDef = {
     shoulders: 0.3,
     hips: 0.55, // the base's 0.65
     arms: 0.3, // the base's 0.35
-    head: 1.15,
+    head: 1.25, // the base's 1.15: a face two rows taller at density 2, so the lower lip has its second row and no catch-light sits under the mouth like a tongue
     chunk: 0.6, // the base's 0.85
     legs: 0.5,
     posture: 0.75,

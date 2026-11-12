@@ -2,10 +2,11 @@ import { fovOf, LENS_MM } from '@automata/3d/camera-view'
 import { describe, expect, it } from 'vitest'
 import { LEVEL } from '#src/features/room/room.ts'
 
-// Ada on the screen is the painter's density-2 figure, a texel one field pixel (the Owner, 2026-11-12: "do whatever it takes to make the
+// Ada on the screen is the painter's density-2 figure, a texel TWO field pixels (four screen pixels at 2x; session 16: at one field pixel her head was
+// about 40 screen pixels wide and her face could not be read; at two it is about 95). (the Owner, 2026-11-12: "do whatever it takes to make the
 // character look like how it looks on the left during gameplay"). The old game's camera (50 mm, 30 degrees down, 16 m back) drew her at
-// density 1; the views now say their own lens, and these pin the numbers that make a density-2 texel exactly one pixel of the 384-line
-// field at her feet in every view.
+// density 1; the views now say their own lens, and these pin the numbers that make a density-2 texel exactly two pixels of the 384-line
+// field at her feet in every view: a zoom of 4, whole pixels, the pin moved from 2 and the tolerance kept.
 
 const TILT = 30
 const FIELD_LINES = 384
@@ -33,15 +34,15 @@ describe('the play camera', () => {
     for (const id of ['hall', 'corridor', 'closet']) expect(views[id]?.lensMm, id).toBe(79)
   })
 
-  it('gives a density-2 texel one field pixel at her feet in every view: a zoom of 2, to 3 %', () => {
+  it('gives a density-2 texel two field pixels at her feet in every view: a zoom of 4, to 3 %', () => {
     for (const id of ['hall', 'corridor', 'closet']) {
-      expect(zoomAtFeet(id) / 2, id).toBeGreaterThan(0.97)
-      expect(zoomAtFeet(id) / 2, id).toBeLessThan(1.03)
+      expect(zoomAtFeet(id) / 4, id).toBeGreaterThan(0.97)
+      expect(zoomAtFeet(id) / 4, id).toBeLessThan(1.03)
     }
   })
 
-  it('stands the camera back 16.6 m in the hall and 16.8 in the corridor and the closet', () => {
-    expect(['hall', 'corridor', 'closet'].map((id) => views[id]?.distance)).toEqual([16.6, 16.8, 16.8])
+  it('stands the camera back 8 m in the hall and 8.25 in the corridor and the closet', () => {
+    expect(['hall', 'corridor', 'closet'].map((id) => views[id]?.distance)).toEqual([8, 8.25, 8.25])
   })
 
   it('locks on to Ada in every view and looks ahead of her where she walks far', () => {

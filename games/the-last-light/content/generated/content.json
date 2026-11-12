@@ -3885,7 +3885,7 @@
   },
   "look": {
     "lcd": {
-      "aberration": 0.25,
+      "aberration": 0,
       "balance": 0.6,
       "brightness": 1.55,
       "cell": 1,
@@ -3893,12 +3893,12 @@
       "glow": 0.3,
       "glowRadius": 1.5,
       "glowThreshold": 0.55,
-      "grid": 0.3,
+      "grid": 0.12,
       "layout": "rgb",
       "minPitch": 3,
-      "scanlines": 0.3,
+      "scanlines": 0.12,
       "snap": false,
-      "subpixels": 0.3,
+      "subpixels": 0.1,
       "vignette": true
     },
     "light": {

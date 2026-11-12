@@ -357,6 +357,21 @@ describe('the painted frame shows what they wear', () => {
     expect(rows, 'an upper lip row with a lit lower lip row under it').toBeDefined()
   })
 
+  it('puts no pale texel under the lower lip: the chin’s catch-light is never the texel right under the mouth (it read as a tongue)', () => {
+    const { cell, is, all } = faceAt2(ADA)
+    const [w] = cell.size
+    const light = coloursOf(ADA, ADA.skin)[0] ?? []
+    const under = all('lipsAda').filter(([x, y]) => !is(x, y + 1, 'lipsAda') && is(x, y, 'lipsAda'))
+    expect(under.length).toBeGreaterThan(0)
+    for (const [x, y] of under) {
+      const i = ((y + 1) * w + x) * 4
+      expect(
+        light.every((v, k) => cell.painted[i + k] === v),
+        `texel (${x}, ${y + 1}) under the lips`,
+      ).toBe(false)
+    }
+  })
+
   it('shows floor between Ada’s legs below the knee from density 2, where the cutscene shots begin: two legs, not one block', () => {
     // Her hips are a slim build's now (0.65, not the 1 that drew the old figure's leg gap at the play size), so at density 1 her legs nearly touch.
     for (const density of [2, 4] as const) {
@@ -440,6 +455,6 @@ describe('how a figure is painted in play', () => {
   it('is the painter’s density 2 at whole pixels: a texel is a whole number of field pixels, whatever the camera’s zoom, and the skin keeps its hue in the ward’s cool light', () => {
     // A face reads at density 2 (the painter's note: faces that read at D2): its brows and lids are one or two texels thick at every density,
     // so a finer paint makes them hair-thin lines, and a coarser one dots. The camera is set so a texel is one field pixel (the level's views).
-    expect(PLAY_FIGURE).toEqual({ crisp: true, density: 2, holdSkinHue: true })
+    expect(PLAY_FIGURE).toEqual({ crisp: true, density: 2, holdSkinHue: true, dimmest: 1 })
   })
 })

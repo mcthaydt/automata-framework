@@ -8,6 +8,13 @@
 # pixels, the Nyquist limit, where the pass fades the mesh out; 3 field pixels (6 on the screen) is the finest it can draw.
 [lcd]
 cell = 1
+# Session 16: at the old strengths (mesh .3, stripes .3, scanlines .3, colour split .25) the panel crosses every texel of a face (a texel is two
+# field pixels, the mesh's period three) and the brows, whites and mouth are lost under it. Held down to a third, so the panel is still there and a
+# face is still read; the colour split is off, since it fringes the eyes' whites red and blue.
+grid = 0.12
+subpixels = 0.1
+scanlines = 0.12
+aberration = 0
 
 # The old game multiplied a texel's linear colour by its light and showed the product as it was; the framework's `srgb` light multiplies the
 # sRGB colour, so the old game's lamp numbers draw about twice as bright (a mid grey is 0.5 in sRGB and 0.21 in linear light). `lamps` is a gain on

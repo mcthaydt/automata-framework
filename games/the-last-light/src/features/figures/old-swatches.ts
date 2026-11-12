@@ -51,7 +51,8 @@ export const ADA_LOOK_SWATCHES: Swatches = {
   // The painter's `lipsWarm` has its upper lip (#a76057) a step from the warm skin, so at density 2 on a lit face the mouth is one pale smudge.
   // The upper lip is the painter's deeper brown-red (#7c4b47) over its own lit lower lip (#d28d7a): two rows, two tones, as the reference's mouth.
   lipsAda: { ramp: 16, base: 3, flat: true, paint: ['#7c4b47', '#d28d7a', '#904647', '#904647'] },
-  bootToe: { ramp: 24, base: 4, paint: ['#bf7e63', '#a96d58', '#945d4f', '#784c49'] },
+  // A toe cap a step lighter than the boot, never the skin's own peach: #bf7e63 read as bare toes under the jeans at density 2 on a lit face.
+  bootToe: { ramp: 24, base: 4, paint: ['#945d4f', '#784c49', '#583126', '#372423'] },
 }
 
 /** The night nurse's: the worn uniform, its stained hem, her dark stockings and heavy shoes, her cap and its cross, black hair, pale skin. */
