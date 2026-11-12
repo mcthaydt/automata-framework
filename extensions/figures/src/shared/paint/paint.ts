@@ -3,20 +3,7 @@
 import { GROUP, type Material } from '../body/parts'
 import { smooth } from '../math/math'
 import { depthAt, labelAt, type Weave } from './fabric'
-import {
-  budget,
-  isLeg,
-  K2,
-  LINE,
-  lightTexels,
-  MIRROR,
-  MIRROR_SKY,
-  OUTLINE,
-  RIM,
-  SHEEN_MAX,
-  sheenScale,
-  tint,
-} from './paint-budget'
+import { budget, isLeg, K2, LINE, lightTexels, MIRROR, MIRROR_SKY, OUTLINE, RIM, tint } from './paint-budget'
 import type { FaceStamp } from './paint-face'
 import type { Bends, HandStamp } from './paint-hands'
 import type { Cloth } from './paint-prepare'
@@ -24,7 +11,7 @@ import { type PaintInputs, prepare } from './paint-prepare'
 import { stampFace } from './paint-stamp'
 import { EDGE_LEVELS, FACE_SEAM, PAINT, type PaintStyle } from './paint-style'
 import { faceForm, keyLight, quiltedBands, smoothSurfaces } from './paint-surface'
-import { polishTones, ruleLines, toneTexels } from './paint-tones'
+import { clusterTones, polishTones, ruleLines, toneTexels } from './paint-tones'
 import { type GBuffer, noise3 } from './raster'
 import { tiled } from './row'
 
@@ -91,6 +78,7 @@ export function paint(
   const c6 = { ...c5, ...toneTexels(c5) }
   polishTones(c6)
   const c7 = { ...c6, ...ruleLines(c6) }
+  const c8 = { ...c7, ...clusterTones(c7) }
   // @cut-head-end: the names below are what the statements still in paint() read of the phases cut so far
   const {
     D,
@@ -100,13 +88,11 @@ export function paint(
     edges,
     extra,
     fabrics,
-    faceLight,
     filled,
     group,
     h,
     hairy,
     handTone,
-    hard,
     ink,
     lit,
     material,
@@ -114,101 +100,18 @@ export function paint(
     owner,
     part,
     ppm,
+    run,
     skinny,
     slotOf,
     sm,
     stack,
     stains,
-    surfaceOf,
     tone,
     tones,
     under,
     w,
     weave,
-  } = c7
-  // The clusters, as a pixel artist cleans them: a run of one tone in one part smaller than the cluster size takes the
-  // tone its edge touches most (a shine keeps any run of two, a face's plane its light from a run of D, at least two).
-  const minSize = style.cluster * D * D,
-    seen = new Uint8Array(n),
-    run: number[] = [],
-    votes = new Int32Array(16)
-  const shineCap = Math.ceil(SHEEN_MAX * D * D * sheenScale(D)),
-    shineOf = new Map<number, number>()
-  for (let k = 0; k < n; k++)
-    if (tone[k] === -1 && material[k] >= 0 && hard[material[k]]) {
-      const key = surfaceOf(k)
-      shineOf.set(key, (shineOf.get(key) ?? 0) + 1)
-    }
-  for (let s0 = 0; s0 < n; s0++) {
-    const t0 = tone[s0]
-    if (
-      seen[s0] ||
-      t0 < -1 ||
-      t0 >= OUTLINE ||
-      part[s0] === -2 ||
-      materials[material[s0]].flat ||
-      handTone[s0] >= 0
-    )
-      continue
-    run.length = 0
-    stack.push(s0)
-    seen[s0] = 1
-    votes.fill(0)
-    while (stack.length) {
-      const k = stack.pop()!
-      run.push(k)
-      const x = k % w,
-        y = (k - x) / w
-      for (let i = 0; i < 4; i++) {
-        const q =
-          i === 0
-            ? x > 0
-              ? k - 1
-              : -1
-            : i === 1
-              ? x < w - 1
-                ? k + 1
-                : -1
-              : i === 2
-                ? y > 0
-                  ? k - w
-                  : -1
-                : y < h - 1
-                  ? k + w
-                  : -1
-        if (q < 0 || material[q] !== material[s0] || part[q] !== part[s0]) continue
-        if (tone[q] === t0 && handTone[q] < 0) {
-          if (!seen[q]) {
-            seen[q] = 1
-            stack.push(q)
-          }
-        } else if (tone[q] >= -1 && tone[q] < OUTLINE) votes[tone[q] + 1]++
-      }
-    }
-    if (
-      run.length >= (t0 === -1 ? Math.min(2, minSize) : t0 === 0 && faceLight[s0] ? Math.max(2, D) : minSize)
-    )
-      continue
-    let best = t0,
-      most = 0
-    // (A dark gloss's shine stays within its patch's cap: a fleck beside the patch joins it only while the surface is under.)
-    const gain = hard[material[s0]] && t0 !== -1 ? (shineOf.get(surfaceOf(s0)) ?? 0) : -Infinity
-    for (let i = 0; i < 5; i++)
-      if (votes[i] > most && (i > 0 || gain + run.length <= shineCap)) {
-        most = votes[i]
-        best = i - 1
-      }
-    if (best !== t0) {
-      for (const k of run) tone[k] = best
-      if (hard[material[s0]]) {
-        const key = surfaceOf(s0)
-        shineOf.set(
-          key,
-          (shineOf.get(key) ?? 0) + (best === -1 ? run.length : 0) - (t0 === -1 ? run.length : 0),
-        )
-      }
-    }
-  }
+  } = c8
   // The detail floor: a fleck of a part's material too small to read as a thing (under 2·D² texels: a heel tab's tip
   // under a hem, a strap's end) in the middle of another's (three quarters of what it touches) is that one's; a mark
   // shorter than D + 1 texels (a woven tag's corner) with no shine of its own goes too. The head's (a stud, a tie) and
