@@ -94,3 +94,59 @@ about 109 lines tall, ours (a 1.55 m box, its top face seen from 30 degrees) abo
 The hud extension gives five pieces (objective, prompt, inventory, examine, keypad), an anchor and a width each, and one boxed sans style; it
 cannot say a minimap, an objective marker, a leader line or a pixel-font unboxed line. Logged as row 15 of the editor gaps ledger (with row 1,
 the UI editor) and not restyled by hand. The hud extension and ui-screens are not changed here.
+
+## For the dressing task: the 20 props that do not draw
+
+The level names 20 props whose preset the world kit's library lacks, so the builder reports `unknown-prop` and draws nothing for
+them (`WORLD.problems`). The old game draws each as a GLB model (`src/render/models`, packed by `scripts/pack-models.py`) or a
+dressing mesh (`src/scenes/clinic/dress.ts`). By the level's own prop id, then the preset it asked for:
+
+| Prop id | Preset the level names | What it is |
+|---|---|---|
+| `bed` | `bed` | The ward bed (Bed 04, where Ada lies down at the end) |
+| `nightstand`, `drawers` | `cabinet` | The bedside nightstand (the lamp, then the paraffin); a chest of drawers |
+| `fallen-chair`, `office-chair` | `chair` | A chair on its side in the hall; the desk's chair |
+| `filing-1`, `filing-2` | `filingCabinet` | The two filing cabinets (one holds the register's papers) |
+| `wall-tv`, `privacy-screen` | `screen` | The wall television; the folding screen by the bed |
+| `mop-bucket` | `mopBucket` | A mop bucket in the corridor |
+| `desk-lamp`, `pendant-lamp` | `lamp` | The banker's lamp on the counter; the hall's pendant shade |
+| `junction-box` | `utilityBox` | The junction box the spark comes from |
+| `floor-plant-1`, `floor-plant-2`, `desk-plant` | `plant` | Two floor plants and the desk's plant |
+| `book-stack-1`, `book-stack-2` | `bookStack` | Stacks of books on the counter and the nightstand |
+| `overbed-table` | `table` | The overbed table |
+| `water-cooler` | `waterCooler` | The water cooler |
+
+Also named but absent from the kit: the swatches the old floors and counter used (`counterTop`, `floorDim`; now `laminate` and
+`tileFloor`), and the teal glazed wainscot tile the old game put under the wall rail.
+
+## The lamp kit against the old archetypes (for the ruling on widening it)
+
+The kit clamps a lamp's range into its kind's band, and the old game's reaches are wider. In the level now, with the old range and the range
+the kit gives:
+
+| Lamp | Kind written | Old range (m) | Range drawn (m) | Why |
+|---|---|---|---|---|
+| `hallLamp` | pendant | 7.5 | **6** | pendant band 3.5 to 6 (the old pendant's 5.5 to 9) |
+| `curtainWest`, `curtainEast` | neon | 6 | **3.5** | no fire kind; neon band 1.5 to 3.5 (the old fire's 4 to 6.5) |
+| `moon` | neon | 4.2 | **3.5** | the kit's moon is another colour; neon band |
+| `wardFill` | neon | 4.8 | **3.5** | the kit's fill is a warm grey (`#d9d4cc`, peak 0.5), the old one a cool teal (peak 1.25); neon band |
+| `bayFill` | neon | 4.4 | **3.5** | same |
+| `spark` | neon | 4 | **3.5** | no spark kind (the old one 3 to 5, peak 2.5); neon band |
+| `wardLamp`, `deskLamp`, `corridorLamp`, `exitLamp`, `closetLamp`, `sconce`, `monitorGlow`, `moonCorridor` | various | as written | as written | inside their bands |
+
+The falloff is `(1 - d / range)^2`, so the hall pendant's light at 3 m is 0.25 of full instead of the old 0.36 (30% less), and at 5 m 0.03 instead
+of 0.11. The two fills and the moon matter most for the look: the old ward and bay get their cool teal fill from them.
+
+## The camera, as the coordinator asked
+
+The play camera is the old game's, measured: at the same spawn the IV stand, the bench, the counter and the back doorway land on
+the same screen positions in `side-by-side-play.png` (the IV stand at about x 240 and the bench at 120 to 290 of 1000 in both), and the
+numbers are pinned (`tests/unit/app/camera-rules.test.ts`). What reads as "closer and lower" in ours is the missing darkness, vignette
+and the dressing (the bed and the curtains on the left, the noticeboard on the back wall, the old rug-shaped light shafts), and Ada's slab.
+Before this session ours also had 5% bars top and bottom, which did crop the frame; that is fixed.
+
+## The minimap
+
+The plan has no minimap: the survey's run-time rows list the objective line, the prompt, the inventory, the examine box and the keypad (the
+hud extension's five pieces) and none for the map. The old game's minimap (`src/ui/minimap.ts`) is the journal map's model drawn small. It is
+row 15 of the editor gaps ledger and, once built, belongs with the UI editor's screens (row 1), not in the prologue's task list.
