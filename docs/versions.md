@@ -59,6 +59,7 @@ Every external dependency in AF is pinned to an exact version. AF owns its pins 
 | `yauzl` | 3.4.0 | 2026-10-11 | A runtime dependency of the vendored `@ruken/cli`, which `@automata/tools` ships in `dist/vendor/ruken-cli/` |
 | `yazl` | 3.3.1 | 2026-10-11 | The same, for `@ruken/cli` inside `@automata/tools` |
 | `zod` | 4.6.6 | 2026-10-01 | The one schema language (ADR 0003) |
+| `@napi-rs/canvas` | 1.0.10 | 2026-11-12 | A dev dependency of the private `@automata/figures`, for its hand-run sheet and GPU-check scripts (`pnpm --filter @automata/figures view-check`, `render`, `golden`): a canvas on Node to write PNGs and to read a WebGL frame back. MIT; released 2026-10-01. Nothing a gate or a game imports |
 | `@sveltejs/package` | 3.0.0 | 2026-10-11 | Builds `@automata/framework`'s published `dist/`, Svelte's documented library layout: `.svelte` shipped as Svelte source with TypeScript stripped. Peer `typescript` ^6, so it runs on the 6.0.3 the package pins |
 | `@sveltejs/vite-plugin-svelte` | 7.3.1 | 2026-10-11 | Compiles Svelte 5 in the UI, the editors, the site and `examples/2d/ui/primitives` |
 | `@tauri-apps/api` | 2.12.4 | 2026-10-31 | The desktop adapter's window API (`onCloseRequested`) and the IPC mocks its tests use, in `@automata/framework`'s `targets/tauri/` folder only. MIT or Apache-2.0; released 2026-10-14. An optional peer: a game that builds for `tauri` installs it |

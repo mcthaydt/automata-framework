@@ -1,0 +1,22 @@
+{
+  // The painter's own compiler settings, not the framework's stricter base: it predates two of the base's flags, and a
+  // `.ts` source is checked with the importer's options, so the kit would report the painter's strict errors as its own.
+  // Everything that imports the painter reads these declarations instead. They are built on `pnpm install` (`prepare`) and
+  // before every typecheck, so a fresh clone needs no manual step; this file goes when the strict tasks turn the flags on.
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM"],
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "types": [],
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "rootDir": ".",
+    "outDir": "types"
+  },
+  "include": ["src/**/*.ts", "base/**/*.ts"]
+}

@@ -18,7 +18,8 @@
       "!site/static/demos",
       "!site/static/playground",
       "!vendor/FigureBuilder",
-      "!vendor/figure-builder/types"
+      "!vendor/figure-builder/types",
+      "!extensions/figures"
     ]
   },
   "formatter": { "indentStyle": "space", "indentWidth": 2, "lineWidth": 110 },
