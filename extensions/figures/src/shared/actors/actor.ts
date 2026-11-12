@@ -318,9 +318,7 @@ export class ScriptedActor {
         return {
           cue,
           start: cue.t,
-          end:
-            cue.until ??
-            (def && def.hold ? Infinity : cue.t + (def ? lengthOf(def) : this.member.gait.reach)),
+          end: cue.until ?? (def?.hold ? Infinity : cue.t + (def ? lengthOf(def) : this.member.gait.reach)),
           cut: Infinity,
         }
       })

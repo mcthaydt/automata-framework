@@ -356,7 +356,7 @@ export function openings(s: Skeleton, surface?: Surface): Anchor[] {
     const x = sideSign(side)
     const on = (kind: AnchorKind, bone: number, from: V3, dir: V3, body: number, open: V3): Anchor => {
       const d = normalize(dir),
-        r = (surface && surface(from, d)) || body
+        r = surface?.(from, d) || body
       return { kind, side, bone, at: add(from, scale(d, r)), open: normalize(open) }
     }
     out.push(
@@ -557,7 +557,7 @@ function crossed(s: Skeleton, side: Side, surface?: Surface, anchors: Anchor[] =
   const pendant = anchors.find((a) => a.kind === 'pendant'),
     under = pendant ? pendant.at[1] - FOREARM * k : Infinity
   const y = Math.min(s.chestY - 0.1 * k, under) - (over ? 0 : 0.025 * k),
-    front = (surface && surface([0, y, 0], [0, 0, 1])) || 0.13 * k
+    front = surface?.([0, y, 0], [0, 0, 1]) || 0.13 * k
   const wrist: V3 = [-x * g.shoulders * 0.62, y, front + (over ? 0.05 : 0.025) * k]
   return {
     side,
