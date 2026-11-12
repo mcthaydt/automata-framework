@@ -1,0 +1,6 @@
+BEFORE: H 65  SHOULDER 15  WAIST 17  HIP 21  FLOOR BETWEEN LEGS 10
+  texels: maroon 105, cream 65, denim 355, bootBrown 112, auburn 76, fair 99
+A (ADOPTED): H 62  SHOULDER 15  WAIST 17  HIP 21  FLOOR BETWEEN LEGS 12
+  texels: maroon 97, cream 54, denim 233, bootBrown 87, auburn 98, fair 98
+B: H 65  SHOULDER 15  WAIST 17  HIP 21  FLOOR BETWEEN LEGS 10
+  texels: maroon 113, cream 61, denim 250, bootBrown 116, auburn 98, fair 125

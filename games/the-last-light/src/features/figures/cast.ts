@@ -24,19 +24,21 @@ export const ADA: CharacterDef = {
   name: 'Ada Voss',
   sliders: {
     frame: 0.85,
-    height: 162,
+    // retuned: the old 162. The old painter drew her 162 cm as 59 rows and ours draws it as 65, so at the same scale she was a head-and-a-bit
+    // bigger on the page than the figure the Owner prefers; 154 draws her 62 (the old atlas is 61). Her canon height is still 1.62 m.
+    height: 154,
     muscle: 0.3, // retuned: the old 0.5
     fat: 0.05, // retuned: the old 0.2
     shoulders: 0.55, // retuned: the old 0.47
     // retuned: the old 0.37, then 0.2 for a leaner pelvis. The builder stands a figure with its weight foot drawn in a quarter of the way to the
     // middle line, so the feet stand 0.75 of the hip joints' width apart where the old figure's stood under its hips; at 0.2 her two legs touch
     // from the hip to the ankle at the size she is played, and at 0.9 the floor shows between them (the hip row grows two texels).
-    hips: 0.9,
-    legs: 0.6, // retuned: the old 0.3
+    hips: 1, // at her new height 0.9 left 5 texels of floor between her legs; 1 gives 12 and no wider a hip row (21 either way)
+    legs: 0.3, // the old 0.3 (round 1 had it at 0.6 for longer legs; the old figure's legs are half of her, 29 rows of 59, and ours were 52%)
     arms: 0.15,
     head: 0.87,
     neck: 0.5,
-    neckLength: 0.2,
+    neckLength: 0.1, // retuned: the old 0.2 (the head below sits lower)
     hands: 0.5,
     feet: 0.6,
     posture: 0.85,
@@ -44,6 +46,9 @@ export const ADA: CharacterDef = {
     headTilt: 0,
     chunk: 0.2, // retuned: the old 0.6
   },
+  // The head's own size, in metres chin to crown (the slider's 0.87 draws 0.24 m at this height, 12 rows with her bob where the old Ada's head is
+  // 13): the sliders move the head by less than a texel here, the gene does not.
+  genes: { head: 0.28 },
   skin: 'fair',
   gait: 'brisk',
   // The old brisk walk whole. The old file zeroed her stance, stance lead and shift (no weight on a leg) and cut her idle elbow and hang; the

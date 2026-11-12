@@ -443,24 +443,80 @@ Owner's pick (variant C).
 **Still the painter's:** the curtain *in front*: the old hair hangs over her chest, a panel over the face and down the front; ours is a shell on the face
 and loose hair behind and beside her, nothing hangs in front of the chest.
 
+## Round 7: Ada brought to the old game's proportions (the target changed)
+
+The Owner, 2026-11-12, first: "I'm not satisfied with how the scene looks ... I'm open to some changes" (a realistic-proportions target for
+the figures was set), then, after the first measuring: **"for the character, just go with what matches better for the scene; I prefer the old
+look, I just want the updated painter and face really."** So the target is the old game's Ada and nurse, drawn by our painter, with a face that
+reads; no realistic adult. The measuring helper stays, with the old figures as the target column.
+
+**The helper.** `extensions/character-kit/src/testing/proportions.ts` (test first: `tests/unit/testing/proportions.test.ts`, a synthetic figure
+checked exactly, and the base woman against the painter) reads a painted cell: the head's rows on a bald copy (hair and headwear taken off the
+outfit), the neck as skin under the chin, the trunk and legs in rows, the shoulder, waist and hip widths, where the legs part, and the foot;
+the joints' heights (hip, knee, elbow, wrist, fingertips) come from the rig, since a front view cannot show where two legs that touch start.
+`pnpm --filter @automata/character-kit proportions <out> --old <old-game>` prints the table; [`round0-proportions.txt`](round0-proportions.txt) is
+the cast after round 6, [`round7-proportions.txt`](round7-proportions.txt) after this round, and the old figures are cropped from their review
+sheets. The old night nurse's head cannot be read (her hair hangs over her face), so her column has no head rows.
+
+**What the table said (Ada, play size, ours before / old procedural / old atlas):** 65 / 59 / 61 rows tall; head with its hair 12 / 13 / 17 rows;
+neck 3 / 3 / 0 skin rows; trunk 16 / 14 / 14; legs 34 / 29 / 30 (52 % of her, the old 49 %); shoulder, waist, hip 17, 17, 21 / 16, 16, 18 / 20, 19, 20;
+foot 12 / 11 / 11 texels. The first reading ("an oversized head") was wrong: her head was *smaller* than the old with hair. She was 10 % taller
+on the page, her legs 5 rows long and her hips 3 texels wide.
+
+**Adopted (data only, `cast.ts`; `cast.test.ts` changed first and watched failing on the height, the sliders and the picture):**
+
+| | before | **adopted** | old procedural / atlas |
+| --- | --- | --- | --- |
+| height slider | 162 cm (65 rows) | **154 cm (62 rows)** | 59 / 61 rows (the old file says 162 cm too) |
+| head with hair, rows (heads tall) | 12 (5.4) | **13 (4.8)** | 13 / 17 (4.5 / 3.6) |
+| legs slider, leg rows | .6, 34 | **.3 (the old file's), 31** | 29 / 30 |
+| trunk rows | 16 | 16 | 14 / 14 |
+| hip joint, knee (rig, share of her height) | 53 %, 29 % | **50 %, 27 %** | |
+| shoulder / waist / hip | 17, 17, 21 | **17, 17, 19** | 16, 16, 18 / 20, 19, 20 |
+| hip over shoulder | 1.24 | **1.12** | 1.13 / 1.00 |
+| floor between her legs, texels | 10 | 12 | |
+
+- The head is set by the gene (`genes.head` .28 m, chin to crown), because the `head` slider moves it by less than a texel at this size (slider
+  .87 to 1.1 changed nothing; the sliders in general move a limb by under a texel at play size: a texel is 2.7 cm).
+- Her `hips` slider is **1**, not .9: with her legs shorter the floor between them fell to 5 texels, and 1 gives 12 with no wider a hip row (the
+  hip is 19 by the helper, 21 by the older silhouette bands either way). The leg `gap` option was already on; the stand's feet are the
+  limit (painter list below), so the slider is the only lever that opens floor.
+- **The one trade-off: 154 cm.** At her canon 162 cm the painter draws her 65 rows, 8 % bigger than the old figure at the same scale. The alternative
+  (variant B on the sheet) keeps 162; the choice is the Owner's. The cast test pins 154 and says why.
+- Sheet: [`round7-ada-variants-play.png`](round7-ada-variants-play.png), [`-detail`](round7-ada-variants-detail.png), numbers
+  [`round7-ada-variants-numbers.txt`](round7-ada-variants-numbers.txt); the variants are `round7-ada` in `figure-looks.ts`.
+
+**The face (what data cannot do).** Tried, over the adopted data, on a head crop at x10 beside the old two: the drawn face (`face.drawn`) with `eyeSize` and
+`eyeSpacing` at 1, `hood` 0, `camera` 1 and `turn` 0; the skin swatch's `tones` from +.05 to -3; the `headWidth` gene; the skin ramp lightened.
+None moves the eyes: the drawn face at play size is a lid line and a brow (worse than two dots under a fringe), `eyeSize`/`eyeSpacing` act only
+from density 2, the swatch's `tones` change no texel of the face (counted: 0 / 21 / 9 / 0 of the four skin steps in every case), and `headWidth` .78
+spaces the dots by under a texel. The old face is two black texels, **2 tall**, 4 apart, on a face that is mostly the lightest skin step
+(#ebbd9d, 21 to 25 texels in the head's rows); ours is two texels, 1 tall, 2 to 3 apart, on a face that is mostly the middle step (#d5a39a, 21)
+with a dark chin. Both are painter code, first on the list.
+
 ## Waiting for the painter (the fold, `claude/builders-fold-figures`)
 
-Kept here as it grows. Each needs a hair piece, a gait entry or a pose in the painter, which this branch does not patch.
+Kept here as it grows, **ranked by what each buys at the size she is played** (the first three are the face the Owner asked for; they are the first
+painter task after the fold merges). Each needs painter code, which this branch does not patch.
 
-| Needs the painter | Why | What it would improve |
+| # | Change, file and function | What it buys |
 | --- | --- | --- |
-| The old `bob`'s turned-under hem and parting | `bobFringeFull` and `bobFringeBlunt` (kit styles of the builder's pieces) have the fringe and the mass at the ear; from behind the hair still narrows to the nape (28 wide to 10), where the old bob's hem is as wide as the ears, and no piece turns it under or parts it | the last of Ada's hair: the old bob's shape |
-| The nurse's `curtain` in front | no piece hangs a panel in front of the face and chest free of the head (a fall narrows toward the spine below the jaw; a tail piece fans behind and beside, not in front); `curtainLoose` (adopted) is a shell on the face and loose hair behind and beside | the uncanny: hair over her chest and down to the skirt |
-| A stooping stand | the stand holds a figure upright whatever the sliders (round 1, variant B) | her old shape: 71 rows for 210 cm, leaning down |
-| Skirt pleats (`folds`) | the painted skirt is a smooth profile of rings | the torn, hanging hem |
-| A cap that is as the old one exactly | the kit's `nurseBrow` is a flat band low on the brow (adopted); the old cap's exact shape (read from its sheet: a small flat white band with the cross, set at the front) is a hand-tuned piece; ours is a superquadric band | the last of her head |
-| A brisk, leaning stand and pose for Ada standing | the stand is the builder's relaxed one: feet together, arms at the sides | her first-night posture |
-| The decal face's eyes | the decal eyes are one texel each, two apart (the old figures': two texels tall, four to six apart, black) | Ada's face at play size: bigger, wider-set eyes |
-| A wider stand | the relaxed stand draws the weight foot in 25 % and keeps the other near it, so two legs touch at play size; Ada's hips slider is at .9 to open them (the hip row grows two texels) | legs that stand apart without a wider pelvis |
-| The drawn face's eyes at density 1 | the drawn face is a lid line there (eyes from density 2), under a fringe: Ada uses the decal face for now | a face with a mouth and a nose at play size, not two dots |
+| 1 | `src/features/outfit/garments.ts`, `face()`: the neutral eye decal (`when: ['neutral', 'sad', 'angry', 'talk']`) is size 1x1 at `x * hw * 0.42`, `h * 0.45`; give it `size: [1, 2]` (the `fear`/`surprised` decal already is) and widen the x to about `hw * 0.6` | eyes 2 tall and 4 apart, as the old Ada's are (ours are 1 tall, 2 to 3 apart): the biggest single thing in her face |
+| 2 | `src/features/paint/paint.ts`, `PAINT.model` (the face's tone budget `[0.06, 0.1, 0.02, 0.08]`: the least and most shares of skin in the light tone and in shadow) and `PAINT.face` (`[0.78, 0.22, -0.4]`, the key's thresholds on a face's planes): at density 1 raise the least light share to about .5 (the old face is mostly the lightest step) and lighten the chin's shadow; `PAINT.shadow` 2 draws the fringe's shadow over the brow | a lit, readable face (a bright mass with two dark eyes) in place of a dusty-pink one with a dark chin |
+| 3 | `src/features/figure/figure.ts` / `motion.ts`, `standing`: the stand draws the weight foot in 25 % (`under: 0.25`) and the free foot at `Math.max(gait.track, 0.75)` of the hip joints' half-width (motion.ts around lines 217 and 518); make the stand's `under` and its feet's track a gait number (`standTrack`) | legs that stand apart on a narrow pelvis (Ada's `hips` slider is at 1 only to open the floor between her legs) |
+| 4 | `src/features/paint/paint.ts`, `INK` (`'#000000'`, line 22): the outline on the shadow side and under; the old game's was the DUEL teal `RAMP_OUTLINE` 0x002219 (`duel-ramps.ts`); make `INK` a `PaintStyle` field | an outline that sits in the room's dark instead of a black line (the in-game frame) |
+| 5 | The decal face's eyes also under a fringe: a fringe at its hairline covers the eye row at the lowest fringe heights (`hair.ts` `FRINGE`) | a lower, fuller fringe without losing the eyes |
+| 6 | The old `bob`'s turned-under hem and parting | `bobFringeFull` and `bobFringeBlunt` have the fringe and the mass at the ear; from behind the hair still narrows to the nape (28 wide to 10), where the old bob's hem is as wide as the ears; no piece turns it under or parts it |
+| 7 | The nurse's `curtain` in front | no piece hangs a panel in front of the face and chest free of the head; `curtainLoose` (adopted) is a shell on the face and loose hair behind and beside |
+| 8 | A stooping stand | the stand holds a figure upright whatever the sliders (round 1, variant B): her old shape, 71 rows for 210 cm, leaning down |
+| 9 | Skirt pleats (`folds`) | the painted skirt is a smooth profile of rings: the torn, hanging hem |
+| 10 | A cap as the old one exactly | the kit's `nurseBrow` is a flat band low on the brow (adopted); the old cap is a hand-tuned piece |
+| 11 | A brisk, leaning stand and pose for Ada standing | her first-night posture (the stand is the builder's relaxed one) |
+| 12 | The drawn face's eyes at density 1 | a face with a mouth and a nose at play size, not two dots (eyes from density 2 now) |
 
 ## Log
 
+- Round 7: the proportions helper and its table (`proportions.test.ts` first), Ada brought to the old game's numbers (height 154, legs .3, hips 1, `genes.head` .28; `cast.test.ts` first), the painter list ranked. The Owner's change of target recorded.
 - Round 6: `curtainLoose` in the kit's hair table (a scalp shell over the face and a wide-spread tail), the nurse wears it (`hair-bob.test.ts` and `cast.test.ts` first); C's `ease` weighed by the numbers and left to the Owner; her first sighting in the game against the old game's.
 - Round 5: `fallCurtain` hair and `nurseBrow` cap in the kit's tables, a skirt `ease` option, the nurse wears the first two (`cast.test.ts` first: her face at most 8 skin texels in her head's rows); `round5-nurse` looks and sheets.
 - Round 4: the fringe's height as one number (0.3), the waistcoat's `open`, `chest`, `hem` and `neckline`, `gap` on the jeans and trousers, `bobFringeBlunt`, `rowGaps`; Ada's eye test widened, her waistcoat, jeans and hips slider set; `legs-default.test.ts`; the variants script writes its own numbers.

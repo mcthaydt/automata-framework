@@ -1,4 +1,11 @@
-import { paintedCell, rowGaps, rowWidths, silhouette, texelsOfSwatch } from '@automata/character-kit/testing'
+import {
+  paintedCell,
+  proportions,
+  rowGaps,
+  rowWidths,
+  silhouette,
+  texelsOfSwatch,
+} from '@automata/character-kit/testing'
 import { describe, expect, it } from 'vitest'
 import { ADA, HELD, NIGHT_NURSE, PLAY_FIGURE } from '#src/features/figures/cast.ts'
 
@@ -52,7 +59,16 @@ const OLD_ADA_SLIDERS = {
 
 /** Where Ada's sliders depart from the old file (round 1 of the figures' look): the old body is leaner on the page than the same numbers
  *  draw now, because the painter's `chunk` and clothing grew. */
-const RETUNED_ADA = { fat: 0.05, hips: 0.9, legs: 0.6, chunk: 0.2, muscle: 0.3, shoulders: 0.55 }
+const RETUNED_ADA = {
+  fat: 0.05,
+  hips: 1,
+  legs: 0.3,
+  chunk: 0.2,
+  muscle: 0.3,
+  shoulders: 0.55,
+  height: 154,
+  neckLength: 0.1,
+}
 
 /** The old `brisk` gait whole (`library/gaits.json` at 92e6704): the builder's own `brisk` is a tamer walk (lean 0.04, hipYaw 0.1, crouch 0.008). */
 const OLD_BRISK = {
@@ -152,9 +168,9 @@ const asDrawn = (old: readonly Record<string, unknown>[]) =>
   })
 
 describe('Ada', () => {
-  it('is the old Ada Voss: 1.62 m, fair, brisk, in the street clothes the prologue puts her in', () => {
+  it('is the old Ada Voss, fair, brisk, in the street clothes the prologue puts her in, drawn as tall as the old game drew her (1.54 m on the page for its 1.62)', () => {
     expect(ADA.id).toBe('ada')
-    expect(ADA.sliders.height).toBe(162)
+    expect(ADA.sliders.height).toBe(154)
     expect(ADA.default).toBe('street')
     expect(ADA.skin).toBe('fair')
     expect(ADA.gait).toBe('brisk')
@@ -162,6 +178,18 @@ describe('Ada', () => {
 
   it('keeps the old sliders but for the ones retuned by what the figure looks like', () => {
     expect(ADA.sliders).toEqual({ ...OLD_ADA_SLIDERS, ...RETUNED_ADA })
+  })
+
+  it('has the old Ada’s proportions on the page: her height in rows, her head and her hips (the Owner prefers the old look)', () => {
+    // Measured from the old game's review sheets (round0-proportions.txt): 59 and 61 rows tall, a head with its hair 13 and 17 rows, a hip row 18 and 20.
+    const p = proportions(ADA, 1)
+    expect(p.height).toBeGreaterThanOrEqual(59)
+    expect(p.height).toBeLessThanOrEqual(63)
+    expect(p.headRowsWithHair).toBeGreaterThanOrEqual(13)
+    expect(p.hip).toBeLessThanOrEqual(20)
+    expect(ADA.genes?.head).toBe(0.28)
+    // The old figure's legs were half of her (29 and 30 rows of 59 and 61), not more.
+    expect(p.legRows / p.height).toBeLessThanOrEqual(0.51)
   })
 
   it('walks the old brisk walk whole, with the old file’s own overrides on it, not the builder’s tamer `brisk`', () => {

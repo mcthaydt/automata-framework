@@ -492,7 +492,37 @@ const round6nurse = (() => {
   return { nurse: variants }
 })()
 
+/** Round 7: Ada brought to the old game's proportions (the Owner: "I prefer the old look"), the data's numbers over round 4's adopted data. */
+const round7ada = (() => {
+  const ada = (sliders: Record<string, number>, genes: Record<string, number> = {}): CharacterDef => ({
+    ...ADA,
+    sliders: { ...ADA.sliders, ...sliders },
+    genes: { ...ADA.genes, ...genes },
+  })
+  const variants: Variant[] = [
+    {
+      label: 'BEFORE',
+      note: 'round 4: 162 cm, legs .6, hips .9, the slider head: 65 rows, a head of 12 with her hair',
+      def: (({ genes: _genes, ...rest }) => rest)(
+        ada({ height: 162, legs: 0.6, hips: 0.9, neckLength: 0.2 }),
+      ),
+    },
+    {
+      label: 'A (ADOPTED)',
+      note: '154 cm on the page (the old Ada is 59 and 61 rows), legs .3 (the old file), hips 1 (the floor between her legs), the head set to .28 m',
+      def: ADA,
+    },
+    {
+      label: 'B',
+      note: 'A at her canon 162 cm, the rest the same: the old figure at the same scale is 8 % shorter on the page',
+      def: ada({ height: 162 }),
+    },
+  ]
+  return { ada: variants }
+})()
+
 export const LOOKS: Readonly<Record<string, readonly Variant[]>> = {
+  'round7-ada': round7ada.ada,
   'round4-ada': round4ada.ada,
   'round5-nurse': round5nurse.nurse,
   'round6-nurse': round6nurse.nurse,
