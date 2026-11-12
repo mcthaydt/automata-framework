@@ -28,8 +28,7 @@ import { CELL_TEMPLATE } from './cell-template'
 const cellDepthBit: ShaderBit = {
   name: 'cellDepth',
   textures: ['cellDepth'],
-  // `texSize`: the cell's width and height in texels (`CELL_TEMPLATE` snaps the texture coordinate to a texel's centre with it).
-  bindings: { material: { depthProj: 'vec4<f32>', texSize: 'vec4<f32>' } },
+  bindings: { material: { depthProj: 'vec4<f32>' } },
   gl: {
     fragment: {
       material: `
@@ -129,7 +128,6 @@ export class CellSprite {
       const tex = new Texture({ source: this.colour })
       if (this.depth) {
         this.makeDepthTexture(w, h)
-        this.material!.data.texSize = [w, h, 0, 0]
       }
       this.sprite.texture = tex
       this.size = size
