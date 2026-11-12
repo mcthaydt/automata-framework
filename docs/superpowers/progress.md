@@ -416,3 +416,20 @@ tone mapping, tone mapping's default, unlit colour, samplers), and every effect 
   retirement note is on `claude/optimistic-newton-yszrte` in each builder (FigureBuilder `3caa9ad`, EnvironmentBuilder
   `6983342`); the Owner merges and archives. Still open: EnvironmentBuilder's CPU scene renderer, left behind (the
   default) or brought as a reference tool.
+- 2026-11-12, the coordinator's calls made without waiting, each open to the Owner's correction:
+  - **The turned-face fix is in the fold branch, provisional** (`18d0cec`, re-record `0eb1a76` on
+    `claude/builders-fold-figures`): the patch applies only before the conform commits. It moves 18 actor md5s, one
+    sprite md5 and one base sheet (three texels). A no is `git revert --no-edit 0eb1a76 18d0cec`.
+  - **The old game's real play is the reference game's target** (no `?debug`, 1024 x 768). Found against it: Ada turns
+    her back when play starts (ours already did; kept); the LCD mesh is 4 px (ours 6 from content; 4 needs a pass on
+    screen pixels after the upscale: a framework proposal); the wainscot is DUEL sand and reads teal only under the old
+    room's green light, so the room's light and grade are the gap (lit regions about twice as bright in ours); the
+    opening's card, first camera and video clip are in scope.
+  - **Figures' look:** Ada's variant A (fringe over the brow, the vest open on a shirt, two legs) and the nurse's A (hair
+    over the face, the cap low on the brow) are adopted; B to E wait for the Owner. The painter's list (a bob hem as
+    wide as the ears, larger eyes, a wider stand, a stoop, hair hanging over the chest, pleats) becomes framework tasks
+    once the fold lands.
+  - **beta.3:** fog and lit figures are conversions that draw what beta.2 drew; no fog choice remains. What is left
+    before it can merge: the fold, then the painter's cell material fogging in display space; the grouped list; the
+    Owner's cross-engine parity run. One choice for the Owner, not a condition: beta.2 drew three things darker than
+    their content colours (unlit and sky fog, lit figures, embers) and the conversion keeps that.
