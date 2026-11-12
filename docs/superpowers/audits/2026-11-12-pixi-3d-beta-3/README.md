@@ -12,7 +12,8 @@ contains it (`vendor/pixi-3d/README.md`).
 | 1 | Baseline on `main` before any change | done 2026-11-12 | [§1](#1-baseline) |
 | 2 | What changed in the beta | done 2026-11-12 | [§2](#2-what-changed-in-the-beta) |
 | 3 | `pixi.js` 8.22.0 → 8.23.0, on its own, with beta.2 | done 2026-11-12 | [§3](#3-pixijs-8220--8230-on-its-own-with-beta2) |
-| 4 | `@pixi/3d` beta.3 | not started: handoff at 90 minutes, see below | [handoff](#handoff-at-90-minutes) |
+| 3b | `main` (#654, #655, #656) merged; the baseline taken again on the merged tree with beta.2; the retro-crisp case that 8.23.0 moved found | done 2026-11-12 | [§3b](#3b-the-merged-tree-with-beta2-the-baseline-taken-again) |
+| 4 | `@pixi/3d` beta.3 | in progress | [handoff](#handoff-at-90-minutes) |
 | 5 | Workarounds the beta makes unnecessary | not started | |
 | 6 | Close: build, API report and index, changesets, the whole check, this record | not started | |
 
@@ -218,6 +219,66 @@ sim hash moved.
   The journey edits a content file through a server and plays at once, nothing in it draws with `pixi.js`, and it is not the baseline's failure
   (`examples/3d-story` fails to start on `main`, see §1). Recorded as a flake of that edit-then-play race, not explained further; a
   real fix belongs to the journey's owner.
+
+## 3b. The merged tree with beta.2: the baseline taken again
+
+`origin/main` merged into the branch with no conflict (`c23bc6b3`: #656, the builders-into-the-framework spec; `progress.md` kept both sides). Two things the merge
+left for this session, both committed in `639ac722` after a whole `pnpm check` on exactly that tree:
+`extensions/lcd-panel` and `extensions/retro-crisp` came in from main still pinning `pixi.js` 8.22.0 (step 3's 18 manifests were the ones that existed), so the
+lockfile on the merged tree had no 8.23.0 entry for them and `pnpm install --frozen-lockfile` failed. Both pins are 8.23.0 now. And `vendor/FigureBuilder` (a submodule
+at `23f889c8`, not checked out in this container) was cloned read-only into place so `character-kit`'s typecheck could resolve its types; nothing of it is changed or committed.
+
+**`pnpm check` on the merged tree (beta.2, pixi.js 8.23.0): exit 0, 11 m 17 s, 56 of 56 tasks, 78 changesets, 0 problems.** Unit counts for the move:
+`@automata/3d` 1,529 (143 files), `@automata/framework` 2,143 (218), `@automata/tools` 926 + 1 skipped, `@automata/editor-3d` 2,279 (160), `@automata/character-kit` 228,
+`@automata/world-kit` 262, `@automata/lcd-panel` 18, `@automata/retro-crisp` 37, `@af-games/base-3d` 110, `@af-games/emberwick` 136, `@af-examples/wardrobe-3d` 95,
+`@automata/sim` 316, `@automata/versions` 35.
+
+| Chromium browser suite (beta.2, merged tree) | Result | Time |
+|---|---|---|
+| `@automata/3d` (`browser` + `webgpu`, `AF_WEBGPU=software`) | 16 files, 55 passed, 2 skipped | 62 s |
+| `@automata/world-kit` | 19 cases: 18 passed on the sequence run, the 19th (`ward.test.ts`) **timed out at 15 s (21 s)**; alone, 1 of 1 passes | 30 s |
+| `@automata/character-kit` (`browser` + `webgpu`) | 58 passed, 3 skipped | 39 s |
+| `@automata/lcd-panel` | 9 passed | 18 s |
+| `@automata/retro-crisp` | **9 passed, 1 failed, every time** (see below) | 18 s |
+| `@automata/editor-3d` (layout) | 285 passed, 3 skipped | 91 s |
+| `@af-games/base-3d` (layout + sim) | 36 passed | 18 s |
+
+| Journeys, Chromium (beta.2, merged tree) | Result | Time |
+|---|---|---|
+| `@af-games/base-3d` (`base-3d`, `base-3d-dev`) | 14 passed | 2 m 37 s |
+| `@af-examples/examples-3d` | 22 passed | 3 m 08 s |
+| `@automata/editor-3d` journeys | 16 passed (3 files) | 41 s |
+
+The 2D suites once (Chromium, `--project '*chromium*'`): `@automata/framework` (`packages/automata`) 2,252 passed (27 files); `@automata/editor` 796 passed, 5 skipped; content 3, sim 62, level-2d 1, physics 2,
+puzzle 1, sectors 2, nav 2, cutscenes 2, narrative 4, systems 1, `games/emberwick` browser 1, extensions `debug` 6, `editors` 64, `hud` 9, `net-ui` 103, `ui-screens` 550 + 1 skipped. All pass. Not rerun here: the 2D journeys
+(Emberwick, `examples/2d`, `2d-story`), which step 3 ran at 8.23.0 and which draw nothing with `@pixi/3d`. The 2D code that uses filters or render textures is `packages/automata/src/features/render`
+(`filter/post-filter*.ts`, `filter/try-filter.ts`, `letterbox/composite-target.ts`, `renderer.ts`) and `games/emberwick/src/features/scene/scene.ts`; the `@automata/framework` suite and Emberwick's 38 journeys (step 3) exercise it, and nothing moved.
+
+### Two failures before any beta.3 change
+
+1. **`world-kit` `tests/browser/props/ward.test.ts`, "each puts pixels on the screen where it stands": a 15 s timeout, 21 s, in the sequence run.** Passes alone (1 of 1). The case draws every ward prop once on
+   four CPUs of software GL after the earlier files; it is load. `world-kit` has no slow-draw timeout of its own, so none is added (the coordinator's rule); the case is recorded here as load.
+2. **`retro-crisp` `tests/browser/retro-pass.test.ts`, "the clinic profile grades the frame and the snap puts every colour back on the palette; off puts the frame back"** (line 112). After
+   `retro.enabled = false` the frame differs from the frame drawn before the pass existed in 2,253 of 14,400 pixels, all of them empty sky: the clear colour `2e222f` against dithered palette colours
+   (`48555b`, `5b5365`, `4b3f50`, `504552`: the retro fade colour `#4b5a56` and the sky, snapped). It fails 3 of 3 runs. **Not a beta.3 change and not step 3's "nothing moved"**: a suite that arrived with main after step 3.
+
+   *Root cause*, found by experiment on the beta.2 + 8.23.0 tree (probes in a scratch folder, none committed):
+   - A rebuild of the graph with the pass list unchanged (`view.passes = [...view.passes]`) changes nothing (0 pixels, haze on or off). The haze and the mood grade are not the cause (the same 2,253 pixels with
+     `haze: false` and with `haze: false, grade: false`). The pass must have drawn a graded frame first (never drawn graded: 0 pixels). The stale sky stays for 10+ frames and a second on/off cycle leaves different colours.
+   - A trace of the WebGL adaptor's `startRenderPass` (target, clear flag, `loadOp`) on the first frame after the toggle: the view's own texture opens with `clear=true`; `sceneColor` asks `clear=17664` (colour, depth, stencil) and the
+     two `effectChain` ping-pong targets ask `clear=16384` (colour), **and each of those attachments has `loadOp: 'load'`**.
+   - `pixi.js` 8.23.0 `GlRenderTargetAdaptor.clear()` now reads the attachment's own `loadOp` ("a color attachment whose own `loadOp` is `'load'` keeps its contents anyway", its doc comment) and drops the colour clear when it is `'load'`;
+     8.22.0 cleared whatever the caller asked (`if (clear & CLEAR.COLOR) ... gl.clear(clear)`, no `loadOp`). `@pixi/3d` beta.2's `RenderTargetCache._createRenderTarget` builds every transient target with `loadOp: "load"` on
+     each colour attachment and says "load, store and clear ... are set per bind", i.e. through the `clear` argument. On 8.23.0 that argument no longer clears colour on WebGL.
+   - So every transient colour target the graph acquires from the pool (`sceneColor`, `effectChain`) now keeps what the pool's previous user left in it. A scene draws only where there is a mesh, so the sky of `sceneColor` is whatever the texture held:
+     blank for a texture used only as a scene colour (as in every earlier frame, which is why it was unseen), a graded frame for a texture that was an `effectChain` target before the pass list changed and the pool lent it as the scene colour.
+   - Forcing `loadOp = 'clear'` on an attachment at the bind where a colour clear is asked (a wrapper on `adaptor.startRenderPass`, in the probe only) makes the same test give 0 differing pixels.
+
+   *Which it is*: **(a), a `pixi.js` 8.23.0 change in behaviour that `@pixi/3d` beta.2 does not answer, and our code is not the part to change.** Not (b), 8.23.0 documents it, and not (c), our pass relies on nothing undefined.
+   `@pixi/3d` beta.3 sets `attachment.loadOp` from the graph per pass (`RenderGraph._effectiveLoadOp`, `RenderGraph.mjs:1078`), and is built against exactly 8.23.0. **Beta.2's peer `^8.22.0` admits 8.23.0 but beta.2 is not
+   a supported pair with it on WebGL**: the interim state step 3 left (8.23.0 under beta.2) was never right for a view that draws through post effects. What else the stale colour reaches on that pair (a blended draw over an uncleared `sceneColor`
+   accumulates frame on frame) was not measured, since the pair is left behind by the next commit. The case stays as it is and must pass on beta.3: it is the regression test for this finding.
+   The 3D Chromium suites and the 2D suites ran all green at step 3 and above on this pair; none of them toggles a pass after drawing it.
 
 ## Handoff at 90 minutes
 
