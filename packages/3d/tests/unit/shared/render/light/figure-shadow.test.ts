@@ -114,7 +114,7 @@ describe('a figure under a sun that casts: the silhouette thrown along the sun',
 })
 
 describe('the rule is the builder’s: the same cell marks the same area', () => {
-  // EnvironmentBuilder f7c5356, `stage/cast.ts shadowOf` on a flat floor: a 64 x 96 cell (all opaque, feet 4 rows up), 73.8 texels a metre
+  // The stage builder's `stage/cast.ts shadowOf` (pin f7c5356) on a flat floor: a 64 x 96 cell (all opaque, feet 4 rows up), 73.8 texels a metre
   // (the diorama's 96 / 2.6 x 2), pitch 18°, key (-0.3, 0.6, 0.7): 256 texels of the screen for the contact ellipse alone and 2416 with the
   // silhouette. A floor cell here is `texel` metres across and the floor foreshortens by sin(pitch), so the screen area is count x texel² x
   // ppm² x sin(pitch). The street's diorama footprint measured 93% of the builder's, the interior's contact-only 106%

@@ -1,7 +1,7 @@
 // A figure's cast shadow on the floor, as arithmetic: which floor cells the figure darkens. The picture part (the decal that
 // shows them, figure-shadow-view.ts) only draws what this finds, so the rule is read and tested without a GPU.
 //
-// The rule is EnvironmentBuilder's (`stage/cast.ts shadowOf`): every figure has a contact shadow, an ellipse under its feet,
+// The rule is the stage builder's (`stage/cast.ts shadowOf`): every figure has a contact shadow, an ellipse under its feet,
 // 0.3 m either side and 0.16 m toward and away from the camera; and under a sun that casts, its silhouette is thrown along the
 // sun onto the floor, each texel at its height above the feet. Only floor is darkened: a cell counts when an up-facing plane of
 // the room is under it at the feet's height, so a shadow stops at a floor's edge and never climbs a wall.
