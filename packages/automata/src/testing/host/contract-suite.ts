@@ -26,8 +26,11 @@ export interface LinksProbe {
   createWithoutGrant?(): Hosting | Promise<Hosting>
   /** The addresses the host was asked to open since `create`, in order. */
   opened(): readonly string[]
-  /** From now on the host (or the player behind it) says no to a link. */
-  decline(): void
+  /**
+   * From now on the host (or the player behind it) says no to a link. Omit it for an adapter whose host cannot say no
+   * to the page: a web page opens a link `noopener`, which gives no answer, so a popup blocker cannot be told from a tab.
+   */
+  decline?(): void
 }
 
 const observedOf = (hosting: Hosting) => ({
@@ -273,15 +276,17 @@ function describeLinkCases(links: LinksProbe): void {
       ))
   }
 
-  it('a host that says no answers opened: false, which is an answer and not an error', () =>
-    withLinks(
-      () => links.create(),
-      async (hosting) => {
-        links.decline()
-        expect(await hosting.openLink('https://example.test/')).toEqual({
-          ok: true,
-          value: { opened: false },
-        })
-      },
-    ))
+  const decline = links.decline?.bind(links)
+  if (decline !== undefined)
+    it('a host that says no answers opened: false, which is an answer and not an error', () =>
+      withLinks(
+        () => links.create(),
+        async (hosting) => {
+          decline()
+          expect(await hosting.openLink('https://example.test/')).toEqual({
+            ok: true,
+            value: { opened: false },
+          })
+        },
+      ))
 }

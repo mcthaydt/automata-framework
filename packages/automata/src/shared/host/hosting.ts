@@ -118,6 +118,10 @@ export interface Hosting {
    * a new tab, the desktop opens the system browser. `opened: false` means the player or the host said no, which is an
    * answer and not an error. Only `https:` links are opened; any other address, or one with a name and password in it, is refused
    * `INVALID_PAYLOAD`. The game is never navigated away.
+   * A web page (and itch.io) opens the tab `noopener,noreferrer`, so the page it shows has no hold on the game and is
+   * not told the game's address. A window opened that way gives the page no answer, so a page says `opened: true` once
+   * the browser was asked and cannot tell a popup blocker's refusal (a link the player pressed is not blocked). On Ruken
+   * the game must ask for `links` in `wants` (the credits panel hides its link buttons without it).
    * Needs the `links` grant: without it the call is refused `UNSUPPORTED`, and nothing falls back to another way of
    * opening.
    */

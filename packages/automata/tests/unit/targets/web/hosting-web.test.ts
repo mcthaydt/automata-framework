@@ -28,7 +28,8 @@ const delivered = (): Promise<void> => new Promise<void>((resolve) => setTimeout
 
 // PUB-a and DIST-c: the contract cases every adapter passes (the Ruken adapter's run is in
 // `ruken/hosting-ruken.contract.test.ts`).
-// A page grants `links` unconditionally (a new tab is always there), so there is no ungranted case to build.
+// A page grants `links` unconditionally (a new tab is always there), so there is no ungranted case to build, and it has
+// no `decline`: a link opens `noopener`, which answers nothing, so no host can say no to the page (see 'links' below).
 let linkPage: FakeWebPage | undefined
 describeHostingContract('the web adapter over a page', () => webHosting().hosting, delivered, {
   create: () => {
@@ -37,7 +38,6 @@ describeHostingContract('the web adapter over a page', () => webHosting().hostin
     return made.hosting
   },
   opened: () => linkPage?.opened ?? [],
-  decline: () => linkPage?.blockPopups(),
 })
 
 /** Runs `program` against the web adapter over a fresh fake page, then disposes it. */
@@ -71,18 +71,22 @@ function record<A>(observed: { subscribe(listener: (value: A) => void): () => vo
 }
 
 describe('the web adapter: links', () => {
-  it('opens a new tab and cuts the new tab’s hold on the game', () =>
+  // A link opens with the browser's own `noopener,noreferrer`: the new tab gets no handle on the game and is not told
+  // the game's address. (Audit T1; task 11b had cut the opener by hand to keep an answer for a blocked popup.)
+  it('opens a new tab with noopener and noreferrer, so it has no hold on the game and no referrer', () =>
     onWebPage(async (hosting, fake) => {
-      // `noopener` would make the browser answer null for a tab that did open, hiding a blocked popup; the hold is cut by hand.
       expect(unwrap(await hosting.openLink('https://example.test/'))).toEqual({ opened: true })
       expect(fake.opened).toEqual(['https://example.test/'])
-      expect(fake.lastTab?.opener).toBeNull()
+      expect(fake.features).toEqual(['noopener,noreferrer'])
     }))
 
-  it('a blocked popup is opened: false, an answer', () =>
+  // A window opened with `noopener` answers null whether it opened or a popup blocker refused it, so the page cannot
+  // tell the two apart and says `opened` once the browser has been asked. (A link pressed by the player is not blocked.)
+  it('answers opened: true once the browser was asked, even if a popup blocker refuses', () =>
     onWebPage(async (hosting, fake) => {
       fake.blockPopups()
-      expect(unwrap(await hosting.openLink('https://example.test/'))).toEqual({ opened: false })
+      expect(unwrap(await hosting.openLink('https://example.test/'))).toEqual({ opened: true })
+      expect(fake.opened).toEqual(['https://example.test/'])
     }))
 
   it('keeps the link even when storage is blocked: a new tab needs none', () =>

@@ -64,10 +64,10 @@ export interface WebPage extends WebEvents {
   readonly innerHeight: number
   matchMedia?(query: string): { readonly matches: boolean }
   /**
-   * `window.open`: a new tab for `url`. It answers null when the browser blocked it. The adapter never sets the page's
-   * own location, so the page has no `location` here.
+   * `window.open`: a new tab for `url`. A window opened with `noopener` answers null, whether the browser opened it or
+   * blocked it. The adapter never sets the page's own location, so the page has no `location` here.
    */
-  open(url: string, target: string): { opener: unknown } | null
+  open(url: string, target: string, features: string): unknown
 }
 
 /** The build's publish target among those that use this adapter. */
@@ -353,15 +353,14 @@ export function createWebHosting(options: HostingOptions, page: WebPage, target:
         return refuse('DENIED', false, 'display.fullscreen', cause)
       }
     },
-    // A new tab, never the page's own location. Not `noopener`: that makes `open` answer null even when the tab opened,
-    // and a blocked popup could not be told from an opened one. The new tab's `opener` is cut by hand instead, so it
-    // cannot reach back into the game.
+    // A new tab, never the page's own location, opened `noopener,noreferrer`: the tab gets no handle on the game and is
+    // not told the game's address. A `noopener` window answers null whether it opened or a popup blocker refused it, so
+    // the answer is `opened: true` once the browser was asked (a link the player pressed is not blocked).
     openLink: async (url) =>
       whileOpen('links.open', () => {
         if (!isOpenableLink(url)) return refuse('INVALID_PAYLOAD', false, 'links.open')
-        const tab = page.open(url, '_blank')
-        if (tab !== null) tab.opener = null
-        return ok({ opened: tab !== null })
+        page.open(url, '_blank', 'noopener,noreferrer')
+        return ok({ opened: true })
       }),
     // No host counts rounds, but the game's round-end autosave reads the ends, so they are kept honest.
     round: {
