@@ -88,11 +88,11 @@ jobs:
           cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
       - run: pnpm install --frozen-lockfile
       # The "Version packages" pull request is opened with GITHUB_TOKEN, so its own CI waits for approval and
-      # nothing requires it to pass. The commit being versioned already passed the whole `pnpm check` on its own pull
-      # request (ci.yml, `checks`), so only the static stages are repeated here: the unit tests took this job past its
-      # 20 minutes on the shared Macs (run 43271549826) and told it nothing new.
+      # nothing requires it to pass. The unit tests of the commit being versioned are run by ci.yml's `checks` job (on
+      # its pull request and again on this push), so this job runs `pnpm check` without them: every static stage and
+      # the changeset checks. With the unit tests it went past its 20 minutes on the shared Macs (run 43271549826).
       - name: Check the commit being versioned
-        run: pnpm lint && pnpm typecheck && pnpm boundaries && pnpm style && pnpm source-names && pnpm knip
+        run: pnpm lint && pnpm typecheck && pnpm boundaries && pnpm style && pnpm source-names && pnpm knip && pnpm check:changesets
       # The changesets step's HOME (header): it must exist before changesets/action writes into it.
       - run: mkdir -p "$RUNNER_TEMP/release-home"
       - name: Version packages PR
