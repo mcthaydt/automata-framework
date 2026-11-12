@@ -600,7 +600,7 @@ the same display-space fog in its template; that is the fold's port (item 4 abov
 
 ### Item 5: the frames
 
-Shot on Chromium, software GL, WebGL2; beta.2 from `/home/user/b2tree` (`c1c9b7c2`, pixi.js 8.23.0; no post effect in these frames' fog path, and the night room's look effects draw on a cleared frame because the room is drawn once); the numbers are the mean luma (Rec.601, 8-bit) and the share of pixels that differ by more than 2 of 255 in a channel; each file is `beta.2 | beta.3 converted | |difference| x4`.
+Shot on Chromium, software GL, WebGL2; beta.2 from a scratch worktree of `c1c9b7c2` (pixi.js 8.23.0). **The night room's frame has the look's post effects, and the 8.23 render-target finding of §3b applies to beta.2 on WebGL; it needs a pass toggled after drawing, which these frames never do, but the beta.2 frame was not re-shot on a pixi.js 8.22.0 tree to prove it**; its luma (32.9) is the figure the earlier sessions measured on the same worktree. base-3d at the journeys' camera has the look's effects too; the numbers are the mean luma (Rec.601, 8-bit) and the share of pixels that differ by more than 2 of 255 in a channel; each file is `beta.2 | beta.3 converted | |difference| x4`.
 
 | Frame | Query | beta.2 | beta.3 converted | Differ |
 |---|---|---|---|---|
