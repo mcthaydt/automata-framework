@@ -37,7 +37,34 @@ The models still read below the generated props, by their own albedo: a model's 
 prop uses, and these boxes take in what stands behind and on them. The lighting itself is the same now: a model beside a generated prop of
 the same albedo under the same lamp reads 1.05 of it, held to 0.92 to 1.08 by `world-view-models.test.ts`.
 
-## Seen, and not changed
+## After the coordinator's rulings: the old game's scale rule and black bars (`after-scale-rule/`)
+
+The picture's size is chosen from the window by the old game's `letterboxScale` (`app/field.ts`; the table test's expected values are the old
+function's own output): 1024 by 768 is 2x of 512 by 384, 1280 by 720 is 2x of 640 by 360, 1920 by 1080 is 3x, 844 by 390 is 2x of 422 by 195, 1366 by 768
+is 2x of 640 by 384 (bars of 43 px each side), 844 by 390 at device ratio 3 is 4x of 633 by 292. The bars round the picture are black (`BAR_COLOR` in
+`app/look.ts`, handed to the renderer as `barColor`; the page is `--void: #000000` in `style.css`, with the weight of `:root` because the
+framework's theme paints the page DUEL's navy surface after the game's file loads). Nothing the look draws changed: the clear colour inside the picture, the
+vignette and the fog's far colour are as they were.
+
+| File | What |
+|---|---|
+| `side-by-side-play.png`, `side-by-side-cutscene.png` | Old left, ours right at 1024 by 768: the picture fills the window at 2x |
+| `ours-touch-play-844x390.png`, `ours-touch-cutscene-844x390.png` | A phone: 422 by 195 at 2x, the floating stick |
+| `resized-1024x768-to-1280x720.png`, `resized-1024x768-to-640x480.png` | **What a resize does today:** the field is chosen when the game starts and then kept, so the same 512 by 384 picture is drawn at the largest whole scale that fits the new window (1x in both here), centred, in black |
+
+Measured on `ours-play-1024x768.png`: the room without Ada, 47.6 (old 29.4). Ada stands 180 px tall, 90 lines of the 384-line field (23.4%); the old game's real play
+at 1024 by 768 is the same field and scale, and its Ada in the first session's `?debug` frame (a 480-line picture stretched to the window) is 156 px, 97 lines of 480 (20.3%), which is 78
+lines of 384. So ours is 1.15 times the old Ada's height by this measure (the figure's own cell height is 112 lines against the old 109: the difference is in what each measure includes, not
+in the sprite), and a smaller field shows less of the room, as in the old game.
+
+### The resize, and the smallest core shape (a proposal, not built)
+
+Before this session's core fix (`784aa1dd5`) a 512 by 384 field in a 1280 by 720 view was drawn at 2x from the width alone, 768 lines tall in a 720 view, cut at the top
+and the bottom. It now takes the tighter side and is 1x with bars. What still cannot happen is the field following the window: `size` is read once. The smallest shape: `defineGame({ size })`
+may be a function of the view (`({ width, height, ratio }) => ({ width, height })`) that the boot calls on start and on every resize or turn, and the renderer re-makes its
+letterbox and resizes its render target; a game whose field is fixed passes the object as today.
+
+## Seen earlier, before the rule
 
 - **The picture is small in a 1024 by 768 window.** `crispRendererOptions(CRISP_CLINIC)` is core's `scale: 'whole'`, which floors: the 640 by
   480 field is drawn at 1x with black bars (and the DOM overlay's words sit on the bars). The old game's play chose a whole scale that filled

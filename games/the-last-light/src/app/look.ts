@@ -5,6 +5,13 @@ import { DEFAULT_LOOK } from '@automata/3d'
 /** The old game's fog colour (`src/render/look.ts` `HAZE.color` at 92e6704): a dim grey-green. */
 const OLD_HAZE = 0x4b5a56
 
+/**
+ * The colour of the bars round the picture: black, as the old game's page was (`--c-void: #000000` in `src/style.css` at 92e6704).
+ * The framework's own bar is DUEL's darkest plum; this is the game's, and the only thing it changes: the clear colour inside the
+ * picture, the vignette and the fog's far colour are the look's own.
+ */
+export const BAR_COLOR = 0x000000
+
 /** One sRGB channel (0 to 255) as linear light (0 to 1). */
 const linear = (channel: number): number => {
   const c = channel / 255
