@@ -482,7 +482,7 @@ which only checks: every file has a row and every AF file a row names exists.
 | `tests/golden/scenes.test.ts` |  | left out: a golden of the CPU scene renderer, which does not come (the Owner, 2026-11-12: "A"); it stays in the archived repository |
 | `tests/golden/scenes.ts` |  | left out: a golden of the CPU scene renderer, which does not come (the Owner, 2026-11-12: "A"); it stays in the archived repository |
 | `tests/golden/tiles.json` | `extensions/world-kit/tests/fixtures/builder-tiles.json` | ported: the file unchanged, 112 keys, the same md5s |
-| `tests/golden/tiles.test.ts` | `extensions/world-kit/tests/unit/textures/builder-tiles.test.ts` | rewritten: one test for each of the 112 keys, and one for the key set |
+| `tests/golden/tiles.test.ts` | `extensions/world-kit/tests/unit/textures/builder-tiles.test.ts` | rewritten: one test for each of the 112 keys, one for the key set in order, one that the file is the source's byte for byte, and the source's guard that only flat frames are shared (its six) |
 | `tests/golden/tiles.ts` | `extensions/world-kit/tests/unit/textures/builder-tiles.test.ts` | rewritten: the keys and the swatch rule restated over the kit's own photos and swatches |
 | `tsconfig.json` | | left out: the builder's package and build setup; AF's packages have their own |
 | `vendor/FigureBuilder` | | left out: the submodule that gives the builder its figures; AF imports its own figure code |

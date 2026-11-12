@@ -38,17 +38,21 @@ function specs(): Record<string, TextureSpec> {
 
 /** The md5 of a tile's size and its labels' bytes. A label is never negative, so the source's `Int16Array` and the kit's
  * `Uint16Array` hold the same bytes. */
-function md5Of(spec: TextureSpec): string {
+function tileOf(spec: TextureSpec, wear: number) {
   const photo = photos[spec.photo]
   if (photo === undefined) throw new Error(`No photo called ${spec.photo}.`)
   const { photo: _name, ...knobs } = spec
-  const tile = photoToTile(photoBytes(photo), {
+  return photoToTile(photoBytes(photo), {
     ...knobs,
-    wear: 0.3,
+    wear,
     seed: 1,
     size: photo.size,
     texels: [32, 32],
   } satisfies PhotoKnobs)
+}
+
+function md5Of(spec: TextureSpec): string {
+  const tile = tileOf(spec, 0.3)
   expect(Math.min(...tile.labels), spec.photo).toBeGreaterThanOrEqual(0)
   const { buffer, byteOffset, byteLength } = tile.labels
   return createHash('md5')
@@ -72,7 +76,32 @@ describe('the source’s tiles golden', () => {
   })
 
   it('has the keys the kit’s photos and swatches make, and no others', () => {
-    expect(Object.keys(made).sort()).toEqual(Object.keys(fixture).sort())
+    expect(Object.keys(made)).toEqual(Object.keys(fixture))
+  })
+
+  // The source's guard on its own re-records: a flat photo's tone tile is one label at wear 0, so its frame pins wear
+  // alone and may share an md5 with another photo's. Any other share would mean a frame that tells two photos apart
+  // does not, and the six are the source's list.
+  it('shares a frame between photos only where the tile is flat, and only the source’s six', () => {
+    const byMd5 = new Map<string, string[]>()
+    for (const [key, md5] of Object.entries(fixture)) byMd5.set(md5, [...(byMd5.get(md5) ?? []), key])
+    const shared = [...byMd5.values()].filter((keys) => new Set(keys.map((k) => k.split('/')[0])).size > 1)
+    for (const keys of shared)
+      for (const key of keys) {
+        const spec = made[key]
+        if (spec === undefined) throw new Error(`No frame called ${key}.`)
+        expect(new Set(tileOf(spec, 0).labels).size, key).toBe(1)
+      }
+    expect(shared.map((keys) => keys.sort())).toEqual([
+      [
+        'ceilingPaint/tone',
+        'concrete/tone',
+        'plaster/tone',
+        'scallopPlaster/tone',
+        'stucco/swatch',
+        'stucco/tone',
+      ],
+    ])
   })
 
   it.each(Object.entries(made))('%s: the pipeline cuts the tile the source cut, md5 for md5', (key, spec) => {
