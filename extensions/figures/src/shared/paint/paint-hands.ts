@@ -1,6 +1,6 @@
 // biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until the strict flags (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) replace each with a check
 import { K2 } from './paint-budget'
-import { HAND_FORM, type HandFormKind, paddleRole, partedRole } from './paint-hand-form'
+import { HAND_FORM, type HandFormKind, paddleRole, partedHalf, partedRole } from './paint-hand-form'
 import { KEY } from './paint-style'
 // ─── Hands: drawn as the face is, from the projected wrist and fingertips ───
 /**
@@ -23,6 +23,8 @@ export interface HandStamp {
   /** Half-widths (texels) across the axis at the wrist and at the knuckles, and how far its front stands toward the
    * camera from its middle (m). */
   half: [number, number]
+  /** The full half-breadth (texels) at the wrist and at the knuckles, however the hand is turned. */
+  breadth: [number, number]
   front: number
   /** Across the axis toward the thumb (texels, y down), and the thumb's span down the hand (fractions of its length). */
   thumb: [number, number]
@@ -146,8 +148,10 @@ export function drawHands(
     // Sizes: the wrist as the arm shows it (two texels at least), the knuckles a texel broader from twice the brand
     // kit's density; the length its projection's, a hanging hand's fingers curled short of it (never shorter than the
     // hand is broad).
-    const Ww = Math.max(2, Math.round(2 * hs.half[0])),
-      Wk = Math.max(Ww + (D > 1 ? 1 : 0), Math.round(2 * hs.half[1]))
+    // The parted hand is drawn larger, its back turned toward the view (paint-hand-form.ts PARTED_HAND).
+    const half = form === 'parted' ? partedHalf(hs.half, hs.breadth) : hs.half
+    const Ww = Math.max(2, Math.round(2 * half[0])),
+      Wk = Math.max(Ww + (D > 1 ? 1 : 0), Math.round(2 * half[1]))
     L = Math.max(L * (hs.hangs ? 0.86 : 1), Wk + 1)
     // The origin on texel edges when straightened, so each column and row is whole.
     let ox = wx,
@@ -168,7 +172,7 @@ export function drawHands(
     // The back of the hand's light: toward the key it has its light plane, turned from it the hand sits a step down.
     const kb = hs.back[0] * KEY[0] + hs.back[1] * KEY[1] + Math.abs(hs.back[2]) * KEY[2],
       dim = kb < -0.25 ? 1 : 0
-    // The tone of each texel down and across the hand (paint-hand-form.ts): −1 none, −2 a gap inside it.
+    // The tone of each texel down and across the hand (paint-hand-form.ts), −1 where it is not.
     const role = (form === 'parted' ? partedRole : paddleRole)({ L, Ww, Wk, D, hs, kSide, dim, lo })
     // The texels it covers, and how many of them show (nothing nearer there).
     const r = Math.ceil(L + Wk + 2),
@@ -183,10 +187,7 @@ export function drawHands(
           s = dx * a[0] + dy * a[1],
           t = dx * p[0] + dy * p[1],
           q = role(s, t)
-        // A gap over skin of the hand's own colour (a bare thigh behind it) would vanish into it: there it is a crease,
-        // the ramp's deep step; over anything else the gap shows what lies behind.
         if (q >= 0) cells.push([y * w + x, q, s])
-        else if (q === -2 && material[y * w + x] === hs.material) cells.push([y * w + x, 3, s])
       }
     const shows = cells.filter(([k, , s]) => material[k] < 0 || depth[k] < z(s))
     // In a pocket: nothing of it but the wrist at the opening.

@@ -150,6 +150,7 @@ export function handsAt(f: Posed, pitch: number): HandStamp[] {
       tip,
       axis,
       half: [across(s.wrist, s.thick[0]), across(s.breadth, s.thick[1])],
+      breadth: [ppm * s.wrist, ppm * s.breadth],
       front: s.breadth * Math.abs(vb[2]) + s.thick[1] * Math.abs(vt[2]),
       thumb: [p[0] * side, p[1] * side],
       thumbAt: s.thumb,
