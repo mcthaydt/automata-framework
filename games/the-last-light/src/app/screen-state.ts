@@ -3,6 +3,12 @@ import type { HudModel } from '@automata/hud'
 // What the HUD shows that is not the sim's: the item in hand, the examine box and whether the keypad is up. They come from
 // what the sim reported (a line said, the keypad asked for) and from what the person pressed; the sim never reads them back.
 
+/** What the puzzle says a use was at when it was not at a place: combining two items, and the keypad. */
+const NOT_A_PLACE: ReadonlySet<string> = new Set(['combine', 'code'])
+
+/** The key of a line the puzzle said: the lines file's own ids carry the scene's name before the line's. */
+const lineKey = (said: string): string => `prologue.${said}`
+
 /** The keypad takes four digits: the cabinet's code. */
 export const CODE_DIGITS = 4
 
@@ -43,8 +49,10 @@ export function noteEvents(events: readonly Reported[]): void {
       if (typeof line === 'string' && line !== '')
         screen.examine = {
           title:
-            typeof payload.at === 'string' && payload.at !== 'code' ? `hotspot.${payload.at}` : undefined,
-          line,
+            typeof payload.at === 'string' && !NOT_A_PLACE.has(payload.at)
+              ? `hotspot.${payload.at}`
+              : undefined,
+          line: lineKey(line),
         }
     }
   }

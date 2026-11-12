@@ -56,9 +56,9 @@
       "entry": ["ship.config.ts", "playwright.config.ts", "tests/e2e/*.test.ts"],
       "playwright": false
     },
-    // The reference game's ship.config.ts is read by `automata ship` by path (its playwright config and journeys join in task 15).
+    // The reference game's ship.config.ts is read by `automata ship` by path; its journeys sit in tests/e2e and its config names them.
     "games/the-last-light": {
-      "entry": ["ship.config.ts", "tools/convert/convert.ts"],
+      "entry": ["ship.config.ts", "tools/convert/convert.ts", "playwright.config.ts", "tests/e2e/*.test.ts"],
       "playwright": false
     },
     "examples/2d/content/hot-reload": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },

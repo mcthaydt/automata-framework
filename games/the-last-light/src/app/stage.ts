@@ -22,6 +22,7 @@ import { sounds } from './audio.ts'
 import { createEnding } from './ending.ts'
 import { live } from './live.ts'
 import { adaAt } from './presentation.ts'
+import { installProbe } from './probe.ts'
 import { noteEvents, resetScreen } from './screen-state.ts'
 
 // The picture of the night: the ward drawn from the level, the camera that follows Ada through its rooms, the cutscenes on the
@@ -79,6 +80,9 @@ export function sceneOf(options: StageOptions) {
       )
     }
 
+    // A development build lets a journey read the sim and send what the controls send.
+    const probe = installProbe(live, options.play)
+
     // The fade a cutscene asks for: black over the picture, in the letterbox's own field.
     const fade = new Graphics().rect(0, 0, options.size.width, options.size.height).fill(0x000000)
     fade.alpha = 0
@@ -134,6 +138,7 @@ export function sceneOf(options: StageOptions) {
     return {
       apply: (result) => {
         noteEvents(result.events)
+        probe.note(result.events)
         ending.note(result.events)
         feel.apply?.(result)
         for (const event of result.events) {

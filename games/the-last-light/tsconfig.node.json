@@ -9,6 +9,8 @@
     "vitest.config.ts",
     "tests/unit/architecture.test.ts",
     "tests/unit/package.test.ts",
+    "tests/e2e/**/*.ts",
+    "playwright.config.ts",
     "content/generated/content.d.ts"
   ],
   "exclude": []

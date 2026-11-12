@@ -24,7 +24,9 @@
     "typecheck": "tsc -p . && tsc -p tsconfig.node.json",
     "test": "vitest run --configLoader runner",
     "test:unit": "vitest run --configLoader runner --project unit",
-    "check": "pnpm typecheck && pnpm test:unit && automata-check-boundaries --game src"
+    "check": "pnpm typecheck && pnpm test:unit && automata-check-boundaries --game src",
+    "test:e2e": "playwright test",
+    "e2e:dev": "vite --configLoader runner --strictPort --host localhost --port $AF_E2E_DEV_PORT"
   },
   "dependencies": {
     "@automata/3d": "workspace:*",
@@ -48,11 +50,14 @@
   },
   "devDependencies": {
     "@automata/content": "workspace:*",
+    "@automata/playwright-preset": "workspace:*",
     "@automata/tools": "workspace:*",
     "@automata/vitest-preset": "workspace:*",
+    "@playwright/test": "1.63.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",
     "jsdom": "30.1.1",
+    "playwright": "1.63.0",
     "smol-toml": "1.9.0",
     "typescript": "7.0.2",
     "vite": "8.3.3",

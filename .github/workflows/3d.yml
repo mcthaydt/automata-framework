@@ -19,6 +19,7 @@ on:
       # Their own files.
       - "games/base-3d/**"
       - "games/the-last-light/**"
+      - "games/the-last-light/**"
       - "examples/3d/**"
       - "vendor/pixi-3d/**"
       # The figure builder (the git submodule, and its wrapper package): a bump alone changes what the painted figures show.
@@ -78,6 +79,7 @@ jobs:
       # ci.yml). They take seconds, so they run in full. The unit tests run in ci.yml's core job.
       - run: pnpm test:journeys:3d
       - run: pnpm --filter @af-games/base-3d test:e2e
+      - run: pnpm --filter @af-games/the-last-light test:e2e
       - run: pnpm --filter @af-examples/examples-3d test:e2e
       - run: pnpm --filter @af-examples/3d-story test:e2e
       # Named folders, not **/playwright-report/: nothing writes a playwright-report, and a ** glob walks every
