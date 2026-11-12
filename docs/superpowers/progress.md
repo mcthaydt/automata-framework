@@ -112,7 +112,7 @@ hosts are not run; no paid API call. **Progress: 15 of 18 findings (83%)** (B1, 
 | S9 | The photosensitivity warning says the game's own hazards | done (`photosensitivity: { effects }`; Emberwick declares flashing and shaking; the editor-gaps ledger has row 12) | `f5fca953` |
 | T1 | `openLink` opens `noopener,noreferrer`; each adapter read; doc comment | done (unit tests over every adapter; a real browser's referrer not checked) | `dcf5cc1a` |
 | T2 | The four playground cases watched failing | | |
-| T3 | Interface sounds nothing plays | done (a Modal asks for `open` and `close`, the error panel for `error`) | `T3_COMMIT` |
+| T3 | Interface sounds nothing plays | done (a Modal asks for `open` and `close`, the error panel for `error`) | `07aeda0d` |
 | T4 | Credit names in the font build's glyph gate | | |
 | T5 | Copy that fails the grandma test | | |
 | T6 | The Languages guide names the import | done with S4 | `77e57029` |
@@ -133,6 +133,38 @@ fixed" is not done: `packageCatalogs` is bound to tools' `Files` service, and th
 `ship.config.ts` still writes the six tags out; say if the Owner wants those moved. (4) `sim`'s own root, `replay` and `testing`
 entries still have parameter properties plain Node cannot load; content does not reach them. (5) FigureBuilder is a copy at
 `d6e3c9fb` in `vendor/FigureBuilder` (container-local, not in `git status`).
+
+Stage 6 handoff at 90 minutes (the second fixes session, Sonnet 5.5, `session_01HNdX7K4hJ42HKM6t8Ez3s5`, from `69887136` merged with
+`main` `70df88b2`): last code commit `07aeda0d`, pushed. Done this session: S8 `13d0f15f`, S9 `f5fca953`, T1 `dcf5cc1a`, T8 `26cb32d4`,
+T3 `07aeda0d`. **Resume at T5, T4, T2** (the three left; they are small), then the closing run in the prompt's order (merge
+`origin/main`, `pnpm build`, `pnpm api-report --update`, `pnpm api-index --write`, a `patch` changeset for each published package
+changed (`@automata/framework`, `@automata/tools`, `@automata/content` if T4 touches it, none yet written this session), the whole
+`pnpm check`, then the Chromium suites listed in the prompt, the packed-install smoke, the site's Languages guide and example
+for `bindWords`, `matchLocale`, `formatNumber`, `DEFAULT_LOCALES`, and this document). Notes: (1) T5's copy is two places:
+core's `first_run_warning_choose` ("Turn down", six languages in `packages/automata/src/app/screens/words/`, then
+`automata words --mark --catalog packages/automata/src/app/screens/words`) and Emberwick's `splash_label` ("Splash",
+`games/emberwick/messages/ui/<lang>.json`, then `automata words --mark` in the game); changing a catalog character set means the
+committed fonts must be rebuilt (`automata-content assets` in `games/emberwick`, and the examples' two page folders, which the
+test `packages/content/tests/unit/shared/assets/example-fonts.test.ts` compares; delete the stale hash-named `.woff2`), as S9 did.
+(2) T4: the credits content kind (`extensions/ui-screens/src/shared/credits/credits.content.ts`) must add its names to the
+characters every language's face keeps, which is in `packages/content/src/shared/assets/build-fonts.ts` (`wordsOf`, `nameCharacters`)
+and the words step's check. (3) T2: revert `site/` `Playground.svelte`'s observer on a scratch branch and watch each of the four
+playground cases fail; nothing else changes. (4) A commit that touches `packages/automata` runs the hook for about 10 minutes;
+it fails on a stale API report (`pnpm build`, `pnpm api-report --update`, `pnpm api-index --write` first) and on stale committed
+fonts. The whole `pnpm check` takes about 12 and passed on `f5fca953`'s tree. (5) T1 changed one behaviour, reported to the
+coordinator: a web `openLink` is `opened: true` once the browser was asked (a `noopener` window answers null either way), and the
+shared contract's "a host that says no" case no longer runs for the web adapter. (6) FigureBuilder is a copy at `d6e3c9fb` in
+`vendor/FigureBuilder` (container-local).
+
+Follow-ups the audit's list leaves open, recorded here (not fixed in stage 6):
+
+- Tools still carries its own copies of `fontCoverage`, `catalogCharacters` and `packageCatalogs`, kept equal by pin tests.
+  `packageCatalogs` is bound to tools' `Files` service (an Effect service for testing without a disk), so it cannot be content's plain
+  function without giving content that service; the other two are small and could go to content once tools may import
+  `@automata/content/assets` and `/locale` under plain Node. Left on purpose: the cost of the copies is two pin tests.
+- `sim`'s root, `replay` and `testing` entries still have parameter properties plain Node cannot load (`--experimental-strip-types`
+  refuses them); content does not reach them, so S7 holds. Not fixed here.
+- Emberwick's plumbing is 470 of its limit of 470 (S9's one-line declaration took it from 469); it stays under "Open, for the Owner".
 
 ## Workstream 2 sessions (slice 1, the prologue)
 
