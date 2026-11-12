@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
@@ -10,6 +10,11 @@ import { type Workflow, workflowProblems } from '#src/workflow-invariants.ts'
 
 const WORKFLOWS = fileURLToPath(new URL('../../../../.github/workflows', import.meta.url))
 const fixture = (text: string): readonly string[] => workflowProblems('fixture.yml', parse(text) as Workflow)
+
+// The submodule's removal is kept by two checks: no step fetches one (a rule of `workflowProblems`) and no `.gitmodules` says there is one.
+it('the repository has no .gitmodules', () => {
+  expect(existsSync(fileURLToPath(new URL('../../../../.gitmodules', import.meta.url)))).toBe(false)
+})
 
 describe('the workflow invariants', () => {
   it('hold for every workflow in the repository', () => {
@@ -83,6 +88,31 @@ jobs:
     expect(text).not.toMatch(
       /SUBMODULES_TOKEN|checkout-submodules|vendor\/FigureBuilder|vendor\/figure-builder/,
     )
+  })
+
+  it('refuse a submodule step, whichever way it is written', () => {
+    const steps = (step: string): string => `
+on: push
+permissions: {}
+jobs:
+  build:
+    steps:
+${step}
+`
+    const problem = ['fixture.yml build: a step checks out a submodule (the repository has none)']
+    // `actions/checkout` fetches submodules when `submodules` is anything but false.
+    for (const value of ['recursive', 'true'])
+      expect(
+        fixture(steps(`      - uses: actions/checkout@v7\n        with:\n          submodules: ${value}`)),
+      ).toEqual(problem)
+    expect(
+      fixture(steps('      - uses: actions/checkout@v7\n        with:\n          submodules: false')),
+    ).toEqual([])
+    expect(fixture(steps('      - run: git submodule update --init --recursive'))).toEqual(problem)
+    expect(fixture(steps('      - run: |\n          git fetch\n          git  submodule sync'))).toEqual(
+      problem,
+    )
+    expect(fixture(steps('      - run: pnpm install'))).toEqual([])
   })
 
   it('make the heavy jobs skip draft pull requests, but not the light gate', () => {

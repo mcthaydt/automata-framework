@@ -8,6 +8,8 @@
 //    workflow a pull request can trigger, directly or as a reusable workflow, guards such jobs in their `if`.
 // 5. The heavy jobs skip draft pull requests: a job a pull request can start says `draft` in its `if`, unless it is
 //    one of the light gates every pull request runs.
+// 6. No step fetches a submodule: the repository has none, so `actions/checkout` is never given `submodules:` (other
+//    than false) and no command runs `git submodule`.
 
 /** The parts of a workflow the rules read. */
 export interface Workflow {
@@ -24,6 +26,7 @@ interface Job {
   readonly steps?: readonly Step[]
 }
 interface Step {
+  readonly uses?: string
   readonly run?: string
   readonly env?: Readonly<Record<string, unknown>>
   readonly with?: Readonly<Record<string, unknown>>
@@ -34,6 +37,9 @@ const READ_ONLY_SECRETS: ReadonlySet<string> = new Set(['GITHUB_TOKEN', 'AF_READ
 
 /** The light gate every pull request runs, drafts included (lint, typecheck, unit). */
 const LIGHT_GATES: ReadonlySet<string> = new Set(['checks'])
+
+/** `git submodule …` in a command, however it is spaced or wrapped. */
+const GIT_SUBMODULE = /\bgit\s+submodule\b/
 
 const SECRET = /secrets\.([A-Z0-9_]+)/g
 
@@ -65,6 +71,12 @@ function reachableByPullRequest(job: Job, workflowReachable: boolean): boolean {
   return !excludesBoth && !onlyOtherEvents
 }
 
+/** Whether a step fetches a submodule: `actions/checkout` with `submodules` set, or a `git submodule` command. */
+function fetchesSubmodule(step: Step): boolean {
+  const asked = step.with?.submodules
+  return (asked !== undefined && asked !== false && asked !== 'false') || GIT_SUBMODULE.test(step.run ?? '')
+}
+
 /** What breaks the rules in one workflow, as sentences naming the file and the job; empty when it keeps them all. */
 export function workflowProblems(file: string, workflow: Workflow): readonly string[] {
   const problems: string[] = []
@@ -77,9 +89,12 @@ export function workflowProblems(file: string, workflow: Workflow): readonly str
   for (const [id, job] of Object.entries(workflow.jobs ?? {})) {
     for (const name of secretsIn(job.env))
       problems.push(`${file} ${id}: hands ${name} to every step (job env)`)
-    for (const step of job.steps ?? [])
+    for (const step of job.steps ?? []) {
       for (const name of secretsIn([step.run, step.with]))
         problems.push(`${file} ${id}: names ${name} outside a step's env`)
+      if (fetchesSubmodule(step))
+        problems.push(`${file} ${id}: a step checks out a submodule (the repository has none)`)
+    }
     const reachable = reachableByPullRequest(job, workflowReachable)
     const publishing = [...new Set(secretsIn(job))].filter((name) => !READ_ONLY_SECRETS.has(name))
     for (const name of reachable ? publishing : [])

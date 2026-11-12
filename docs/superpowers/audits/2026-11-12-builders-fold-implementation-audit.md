@@ -247,14 +247,14 @@ its gate was red (B1); the 4d wording.
 
 ## Fixes
 
-**Stage 6**, 2026-11-12, on the same branch from `4aeafb04`, no subagents. **Progress: 1 of 16 findings answered (6%)**; the
+**Stage 6**, 2026-11-12, on the same branch from `4aeafb04`, no subagents. **Progress: 2 of 16 findings answered (12%)**; the
 table is updated as each fix commits. The commit column holds the short hash once the fix is committed.
 
 | Finding | Commit | What changed | How it is proved, or why it is left |
 | --- | --- | --- | --- |
 | B1 | | | |
 | S1 | this commit | `scripts/showcase-imports.ts` names the painter file for each of the showcase's three imports (`src/entries/index.ts`, `src/shared/body/parts.ts`, `src/shared/math/math.ts`) and throws, naming it, on a fourth; `record-runway-cells.ts` uses it. `runway-cells.json` not touched | `tests/unit/fashion/runway-recorder.test.ts` (3 cases: the three showcase lines rewritten and `existsSync` on every file named; an unknown specifier throws). It failed first (module missing). The recorder itself needs the archived clone and has no check mode, so it was not run |
-| S2 | | | |
+| S2 | this commit | `workflowProblems` gets a sixth rule: a step with `submodules:` set to anything but false, or a `git submodule` command, is a problem; the old text pattern stays for the `vendor/…` names; a hygiene case that `.gitmodules` does not exist | `workflow-invariants.test.ts`: the new case (`submodules: recursive`, `submodules: true`, `git submodule update --init --recursive`, a wrapped `git  submodule sync`; `submodules: false` and `pnpm install` pass) failed first (`expected [] to deeply equal [...]`, the audit's probe), the file's 11 cases and the real workflows pass now |
 | S3 | | | |
 | S4 | | | |
 | S5 | | | |
