@@ -24,6 +24,14 @@ describe('the game’s look', () => {
     expect(lookOf({ width: 640, height: 360 }, 16.6).pixel.short).toBe(360)
   })
 
+  // The old game's palette snap (`retro-filter.ts`, `look.ts` `dither` at 92e6704) adds an 8 by 8 Bayer offset of at most 1/64 of the colour
+  // range, scaled down as the pixel gets lighter and cut to nothing in the deep blacks "to eliminate crawling noise". The framework's snap
+  // is a 4 by 4 offset of `strength`, the same at every luma: its default 0.04 is 2.5 times the old game's, which is the black and dark-teal
+  // speckle in ours where the old game's shadows are smooth.
+  it('dithers as lightly as the old game’s snap: 1/64 of the colour range', () => {
+    expect(look.dither.strength).toBeCloseTo(1 / 64, 6)
+  })
+
   it('veils the far end of a room in the old haze: its dark colour, whole from 7 m past the focus, no light added', () => {
     expect(look.haze).toMatchObject({ colour: '#121a18', near: 0, far: 7, amount: 1, glow: 0 })
   })

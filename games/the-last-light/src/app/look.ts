@@ -6,6 +6,13 @@ import { DEFAULT_LOOK } from '@automata/3d'
 const OLD_HAZE = 0x4b5a56
 
 /**
+ * The old game's palette dither (`LOOK.post.dither.strength` in `src/render/look.ts` at 92e6704): 1/64 of the colour range, against the framework's
+ * default 0.04. The old snap also scaled it down with the pixel's luma and cut it to nothing in the deep blacks; the framework's has no such weight, so
+ * the lighter amount is what keeps the shadows smooth.
+ */
+const OLD_DITHER = 1 / 64
+
+/**
  * The colour of the bars round the picture: black, as the old game's page was (`--c-void: #000000` in `src/style.css` at 92e6704).
  * The framework's own bar is DUEL's darkest plum; this is the game's, and the only thing it changes: the clear colour inside the
  * picture, the vignette and the fog's far colour are the look's own.
@@ -45,6 +52,7 @@ export function lookOf(
   return {
     ...DEFAULT_LOOK,
     pixel: { short: Math.min(size.width, size.height) },
+    dither: { strength: OLD_DITHER },
     haze: {
       ...DEFAULT_LOOK.haze,
       colour: hazeColourOf(OLD_HAZE),

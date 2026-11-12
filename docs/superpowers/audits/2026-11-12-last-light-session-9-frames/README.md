@@ -67,3 +67,35 @@ follows cuts the sum into whole DUEL steps. The game says its patch as data in `
 **Not done:** the corridor's window (the old game's second patch and the light shaft in the air). The hall's camera draws the corridor too, so its stripes
 show through the doorway where the old game hides them; it waits for a patch that follows the player's room. The glass in the ward's window draws black with
 dither speckle in play (the dark rectangle top centre): item 7's "bright cyan window" is the other half of it.
+
+## Item 4: softness and speckle
+
+`item4` strip: [`strip-item4-old-before-after.png`](strip-item4-old-before-after.png) (old, ours after item 2, ours after item 4); the bench and bed at 2x, old
+then ours before then after: [`item4-bench-zoom-old-linear-nearest.png`](item4-bench-zoom-old-linear-nearest.png) (its middle panel has the nearest-sampled models and the old dither strength 0.04; the right panel 1/64).
+
+Causes found, measured, in the order the coordinator listed them:
+
+1. **Mesh props' texture filtering: a defect, fixed.** `loadModels` decodes a model's image with `Texture.from(ImageBitmap)`, which pixi samples **linearly**; the
+   old game decoded and snapped to the palette and drew nearest (`own(..., true)` in `assets.ts`), and the world's tiles in the framework are nearest already
+   (`world-view.ts`). Fix in `@automata/3d` `shared/render/model/load-models.ts`: the loaded texture is `nearest` with no mips; test first
+   (`load-models.test.ts`, watched failing: `'linear'` to be `'nearest'`). The browser suites with a model (parity renderer's "sampled nearest" quadrant test, the 3D example's
+   meshes, `webgpu/mesh`) say nearest in their own words; they need Firefox and WebKit here and did not run.
+2. **The dither's strength: 2.5 times the old game's, fixed in the game's look.** The old snap (`retro-filter.ts`, `look.ts` `dither` at `92e6704`) adds an 8 by 8 Bayer
+   offset of at most 1/64 of the colour range, scaled by `1 - 0.5 luma` and cut to nothing in the deep blacks (`smoothstep(0.02, 0.08, luma)`, "to eliminate crawling
+   noise"). The framework's is a 4 by 4 offset of `dither.strength` (0.04 by default), the same at every luma. The game now says 1/64 (`app/look.ts`, test first). Isolated
+   speckled pixels per 100 in the far dark box fall from 28.7 (old 38) to 18.1; in the west wall box from 29.0 to 19.5 (old 22.8). The old game's luma weight and shadow taper are not in
+   the framework's pass: a proposal (an optional `lumaWeight` and `shadowTaper` on `dither`, defaults leaving every other game's picture alone).
+3. **Pass order: the framework's design, not changed (a proposal).** The old shader snaps to the palette first and grades and fades after, so its last frame is not on the
+   palette (its darkest colours are 4, 4, 4 and 4, 8, 8); the retro extension grades **before** core's snap, "so the final frame is DUEL" (its README). Where the grade
+   lifts or crushes a dark gradient, the snap then drops it to black or the next dark colour: the black clumps behind the bench and the wheelchairs, where the old game's shadows are smooth dark teal. Moving
+   the grade after the snap would change every game that uses the retro pass; the look's own rule ("DUEL palette") is the Owner's.
+4. **Not the cause:** the field's upscale filter (the desk's edges are sharper in ours, 99th percentile of the field gradient 94 against the old 58, and the whole-pixel scale is
+   nearest), the LCD mesh (both draw it), mipmaps (none). Software GL (SwiftShader) can blur or speckle differently from a real GPU; nothing here points at it.
+
+| Box | Isolated speckle % old / before / after | Mean luma old / before / after |
+|---|---|---|
+| floor (250 560 450 700) | 51.4 / 45.8 / 40.0 | 43.9 / 43.2 / 43.4 |
+| far dark (390 120 580 260) | 38.0 / 28.7 / 18.1 | 34.9 / 25.2 / 24.8 |
+| west wall (0 170 110 400) | 22.8 / 29.0 / 19.5 | 23.8 / 29.1 / 29.3 |
+
+(Isolated speckle: a field pixel, the 2 by 2 screen pixels averaged, that differs by more than 6 levels from the median of its four neighbours.)

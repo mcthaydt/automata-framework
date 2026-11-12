@@ -64,6 +64,10 @@ async function loadModel(
   const texture = await decode(mesh.image, mesh.mime).catch(() =>
     Promise.reject(new ModelInvalid({ file, reason: 'malformed: unreadable texture' })),
   )
+  // Texels, not a blur of them: `Texture.from(bitmap)` is linear, and a lit model mixes its texels into colours the palette does not
+  // hold before the look's snap cuts them back (the world's tiles are nearest too, `albedo` in `world-view.ts`).
+  texture.source.scaleMode = 'nearest'
+  texture.source.autoGenerateMipmaps = false
   return {
     mesh,
     geometry: modelGeometry(mesh),
