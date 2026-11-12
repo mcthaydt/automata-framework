@@ -38,7 +38,8 @@ The Owner's account steps come first because they take days to settle, and the c
 | M7 | **The repository is private.** `curl https://github.com/mcthaydt/automata-framework`: 404 without sign-in. The README's "Play Emberwick from a fresh clone" (`git clone …`) cannot work for a stranger; `site/src/shared/site.js:5` `REPOSITORY_PUBLIC = false`; `check:launch` refuses the deploy until it is true | The Owner opens the repository (and checks history for secrets first: `pnpm secrets` runs in CI and passed on `c364a215`); a one-line PR flips `REPOSITORY_PUBLIC` | Owner S, session S | M1 (the names in history) |
 | M8 | **The publish needs the Owner's token and his Mac.** `release-packages.yml` reads `secrets.NPM_TOKEN` in the `release` environment; hosted runners are refused for billing (its header: "recent account payments have failed"), so every job waits for `af-mac` / `af-linux` | `NPM_TOKEN` (an automation token for the organisation of M1) in the `release` environment; a runner online | Owner S | M1 |
 | M9 | **The first release has never run.** PR #431 "Version packages" is 77 commits behind `main` (`git rev-list --count origin/changeset-release/main..origin/main`); it holds 0.1.0 (`packages/automata/package.json` on that branch). The next push to `main` with changesets refreshes it. 79 changesets are pending; one is `minor` (`first-public-release.md`), the rest `patch` | After M1 to M8: the version PR refreshed, merged by the Owner, the publish job approved; `verify-published.ts` and the registry smoke pass | S | M1, M3, M6, M8 |
-| M10 | **The site has never been deployed.** `site.yml` deploys to Cloudflare Pages only after `check:launch`; the runbook's steps 3 and 7 need the Owner's Cloudflare project and `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` | The site live on the domain; `check:deployed` passes on both addresses; the Owner looks at it on a phone and the iPad (runbook step 8) | Owner S, session S | M1, M2, M4, M7, M9 |
+| M10 | **The site has never been deployed.** `site.yml` deploys to Cloudflare Pages only after `check:launch`; the runbook's steps 3 and 7 need the Owner's Cloudflare project and `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` | The site live on the domain; `check:deployed` passes on both addresses; the Owner looks at it on a phone and the iPad (runbook step 8) | Owner S, session S | M1, M2, M4, M7, M9, M11 |
+| M11 | **Home promises two things that do not exist.** "Sign in with GitHub to keep your games in sync" (`site/src/features/home/home-content.ts:216`, `site/src/features/app/app-offer.ts:46`): no sign-in or sync code exists in `packages`, `extensions` or `site`. "Every editor, for 2D and 3D games" free in the browser (`home-content.ts:215`): the site's editor build has no 3D renderer, and no 3D editor publishes | Both lines say what is true at launch (or are marked "coming"), with `copy.md` updated | S | session; the Owner approves the words | nothing |
 
 ### SHOULD for launch
 
@@ -137,7 +138,26 @@ records that name D-1 (history; leave them).
 
 ## The site and the docs
 
-**Unfinished in this draft:** being filled by the same session.
+The site builds (36 s) and `check:site` passes on all 51 pages, its links included. These are untrue or unsafe today:
+
+| Where | Claim | Today | Class |
+|---|---|---|---|
+| Home and Start (`site/src/shared/content/agent-prompt.ts:5`), README "Make a game" | `npx @automata/tools create-game my-game` | Not on npm; the scope is another account's (M1) | MUST (M1) |
+| Home, "Free in your browser" (`site/src/features/home/home-content.ts:216`) and `/app` (`site/src/features/app/app-offer.ts:46`) | "Sign in with GitHub to keep your games in sync" | No sign-in or sync exists: `grep -rli "oauth\|sign in"` over `packages/*/src`, `extensions/*/src` and `site/src` finds only these two lines of copy (and unrelated words like "signs") | **MUST (M11): remove the line, or mark it coming** |
+| Home, "Free in your browser" (`home-content.ts:215`) | "Every editor, for 2D and 3D games" | The site's editor (`site/build/editor/app/`) carries no 3D renderer (the build ends "No Pixi 3D closed beta in the build."), and no 3D editor publishes. True only after the 3D beta | **MUST (M11): say 2D, or "3D soon"** |
+| `/app` | "$19.99", "$39.99, paid once", "Coming soon" | Words only, no buy link (`app-offer.ts`: `url: null` reads "Coming soon"). Honest, but a price on a page before a product is the Owner's call | Owner (checklist 12) |
+| Footer, Privacy, Terms, `security.txt`, `SECURITY.md:9` | `hello@automataframework.com` | The domain does not exist (M2) | MUST (M2) |
+| README "Play Emberwick from a fresh clone" | `git clone https://github.com/mcthaydt/automata-framework.git` | Private repository (M7) | MUST (M7) |
+| `docs/status.md` | "Written 2026-11-06" | Stale (S4) | SHOULD |
+| `site/scripts/check-launch.ts` | the deploy gate | Crashes (M4) | MUST |
+
+The agent package and the cheatsheet are current with the code: `pnpm api-index` writes them from the built `.d.ts`
+with "0 undocumented", and `pnpm agent-skills` reports no layout problems (the files it wrote under
+`tooling/api-index/dist` are build output, not committed). `README.md`'s commands all resolve (consumer smoke step
+"readme": "12 commands resolve").
+
+Site journeys in Chromium (`site`, `pnpm exec playwright test --project chromium --reporter=line`):
+**Unfinished in this draft:** the run's result is added below when it ends.
 
 ## Open pull requests and branches
 
@@ -179,12 +199,85 @@ these branches have no pull request.
 
 ## The trackers, checked against the code
 
-**Unfinished in this draft:** being filled by the same session.
+**Two sources disagree on the npm name.** `docs/refactor/progress.md` (2D editors and website, build, line 216) says the
+Owner named the organisation "automata" on 2026-11-06 and task 14.1 renamed every package to `@automata`. The registry
+says the `automata` scope is another account's (M1), as the site audit of 2026-11-08 found
+(`docs/refactor/2026-11-08-site-audit.md`, short version 1), and `docs/runbook.md` now plans `@automataframework`. The
+registry is right; the progress row is out of date.
+
+**`docs/refactor/progress.md`, 2D editors and website (65 of 68 tasks).** The rows not done are 21.0 (the domain:
+"Partly … the DNS is the Owner's"; still true, M2) and 21.2 (the Owner's inputs and go: "Not started"; M1, M2, M7, M8,
+M10). Everything else in that table is marked done; the stranger's journey and the consumer smoke passing here
+(above) confirm the new-game rows.
+
+**The 2D ship audit of 2026-11-06 (`docs/refactor/2026-11-06-2d-ship-rest-audit.md`), its "short version":**
+
+| Finding | Today | How it was checked |
+|---|---|---|
+| 1. A new game does not install outside the repository (`workspace:*`, `@ruken/sdk`) | closed | `create-game` writes `^0.0.5` from the registry and no `@ruken/*`; the stranger's journey installs it from packs |
+| 2. An untouched new game fails its own check | closed | the stranger's journey runs `pnpm check` and `pnpm test` on it: pass |
+| 3. Every test passes around these breaks | closed in code, open in CI | the stranger's journey exists and passes here; in CI its step has not run since 2026-11-06 (M5) |
+| 4. Packages release to GitHub Packages, restricted, under the Owner's handle | closed but for the scope | `.changeset/config.json` `"access": "public"`; `release-packages.yml` publishes to `registry.npmjs.org`; the scope is the open problem (M1) |
+| 5. The published command carries the Owner's machinery | closed | `automata --help` lists `create-game`, `check`, `build`, `editor`, `ship`, `words`; `automata ship --help` lists only `prepare` and `publish` for the four targets |
+| 6. Automata Plus is built on the old core | closed by decision | `docs/superpowers/progress.md` header: "`automata-plus` is cut: its packages are the framework's extensions" |
+| 7. The agent package and docs teach the old framework | partly verified | `pnpm agent-skills`: "5 skills, no layout problems"; `docs/status.md` is stale (S4); the mirror is not public (S6) |
+
+**The 2D editors and site audit (`docs/refactor/2026-11-06-2d-editors-and-site-audit.md`), its shipping gaps:** E2 (the
+editors in no package) closed: the packed `automata editor` serves the 2D editor (consumer smoke step "editor"). E4 (the
+3D editor by default) closed: `automata editor --help` says it picks the editors the game needs. E7 (the suite carries
+the closed beta) closed for what publishes: `@automata/editors` and `@automata/editor-3d` are `"private": true`. W1 (Start
+sends visitors to a private repository) closed: `check:site` checks "no link into the private repository". W5 (never
+deployed) open: M10. W9 (a personal contact address) closed in text; the address's domain does not exist (M2). The
+other findings were not re-checked one by one here.
+
+**`docs/superpowers/progress.md`.** Workstream 1 (shared polish) is merged (#645) and its fixes too (#654,
+`0df11a43`). Workstream 2 (The Last Light) is stopped at its prologue by the Owner; its branches are after launch.
+Workstream 3 (an editor for every content kind) and 5 (CI on rented Ubicloud runners) are not started. Workstream 4
+(the builders' look, 14 of 19 tasks) and 6 (the builders fold: group 1 merged as #661 and its audit fixes as #663;
+`claude/builders-fold-strict` and `claude/builders-fold-scenes` open) are 3D and after launch. None of them is needed
+for a 2D launch. Workstream 5 matters to launch speed only through CI capacity: every job waits for the Owner's two
+machines.
 
 ## What could not be verified here
 
-**Unfinished in this draft:** being filled by the same session.
+| Not verified | Why | What would verify it |
+|---|---|---|
+| WebKit and Firefox: parity, `emberwick-*-webkit`, `editor-ipad-webkit`, `examples-ipad`, the site's `webkit` project, the playground in three engines | Not installed in this container; AGENTS.md says not to install another Playwright | The `parity` job on `af-mac`, or `pnpm ci:local` on the Mac |
+| A real GPU; WebGPU on hardware | SwiftShader only | The `frame budget (nightly, GPU runner)` job; the 3D parity job on `af-mac` |
+| Real devices (the Owner's phone and iPad) | None here | The runbook's step 8, by the Owner |
+| `pnpm check` as a whole on `517a6eef` | Not run (about 13 min uncached; the time went to the journeys) | ci run 43307899621 on `517a6eef`, or `pnpm check` in a session; the `checks` job passed on `c364a215` |
+| `pnpm plugin:validate` and the playground e2e of release checks | Not run here | release checks by hand (`workflow_dispatch`) after M6 |
+| Publishing, `verify-published.ts`, the registry smoke | Nothing may be published from here, and the scope is not settled | The first release (M9) |
+| `automata ship publish` to itch.io, Ruken; `prepare --target tauri` | Needs `BUTLER_API_KEY`, Ruken credentials, Rust and Tauri | The Owner, once, with each credential |
+| The site on its host (`check:deployed`) | No Cloudflare project or token | M10 |
+| Whether `claude/pixi-3d-beta-3`'s frames hold on 0.1.0 | Not run; only the tarballs were compared | A2 and A3 |
+| #598's 3D Search and Watch waits against `main` | Not compared line by line | Read its diff against `af1e7bc0` before closing it |
 
 ## The Owner's checklist
 
-**Unfinished in this draft:** being filled by the same session.
+Each is the Owner's alone (credentials, money, approvals, devices, licences). In launch order.
+
+1. **Name the npm organisation and create it.** `@automata` is another account's. Create `automataframework` (the
+   runbook's choice) on npmjs.org, or pick another free name, and say which; a session then runs the rename (M1).
+2. **Register `automataframework.com`** and open `hello@automataframework.com` with an MX record (M2).
+3. **Create `NPM_TOKEN`**: an npm automation token that can publish to that organisation, saved as a secret of the
+   `release` environment (Settings, Environments, release). Keep the required reviewer on it (M8).
+4. **Keep a runner online** (`af-mac` for release, `af-linux` for the journeys) while CI goes green and while the release
+   runs. Or settle the hosted-runner billing block, or say yes to workstream 5 (Ubicloud).
+5. **Decide the frame-budget job**: a GPU runner, or the software skip on `claude/hook-scope-budget-skip` (S5).
+6. **Open the repository** to the public, after a last look at its history; then a session flips `REPOSITORY_PUBLIC` (M7).
+7. **Approve the first release**: merge the refreshed "Version packages" PR (0.1.0), then approve the `publish` job in
+   the `release` environment (M9).
+8. **Create the Cloudflare Pages project** `automataframework`, attach the domain (`www` to the apex, HTTPS on), then
+   add `CLOUDFLARE_API_TOKEN` (secret) and `CLOUDFLARE_ACCOUNT_ID` (variable), last (runbook steps 3 and 7; M10).
+9. **Look at the live site** on the phone and the iPad: Home, play Emberwick, Start, Try the editor, the app page
+   (runbook step 8).
+10. **Create `SKILLS_TOKEN`** for `mcthaydt/automata-skills` and make that repository public, or say the agent package
+    waits (S6).
+11. **Close the superseded pull requests and delete their branches**: #605, #600, #597, #578, #598 (after the check
+    above), and the branches `claude/shared-polish-emberwick-site` and `claude/fix-2d-story-journeys` (S7).
+12. **Money:** the app page says "$19.99" and "$39.99, paid once" with "Coming soon" and no buy link
+    (`site/src/shared/content/pricing.ts`, `site/src/features/app/app-offer.ts`). Confirm that wording may go live before
+    the app is on sale, or ask for the page to wait.
+13. **For 3D later:** rule whether the figure painter (from the private FigureBuilder repository) may be published (A5),
+    and run the beta.3 branch's cross-engine check (A2).
