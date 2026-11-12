@@ -168,6 +168,7 @@ export interface GarmentKind<T = any> {
  * `declare module '…/outfit/garments' { interface GarmentKinds { tee: Tee } }` for each kind it registers
  * (`registerGarment`), and its items then typecheck as garments. Empty in base.
  */
+// biome-ignore lint/suspicious/noEmptyInterface: hosts merge their kinds into it by module augmentation, which a type alias cannot take
 export interface GarmentKinds {}
 /** Any garment: the base pair's, or one of the kinds a fork registers (GarmentKinds). */
 export type Garment = BaseGarment | GarmentKinds[keyof GarmentKinds]
