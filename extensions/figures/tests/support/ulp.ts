@@ -12,7 +12,7 @@ const f64 = new Float64Array(1);
 const u64 = new BigUint64Array(f64.buffer);
 
 /** The double one unit in the last place from `x`, toward +∞ (`dir` 1) or −∞ (`dir` −1). */
-function step(x: number, dir: 1 | -1): number {
+export function step(x: number, dir: 1 | -1): number {
   f64[0] = x;
   // For a positive double the bit pattern grows with the value; for a negative one it shrinks.
   u64[0] += (x > 0) === (dir > 0) ? 1n : -1n;

@@ -42,13 +42,26 @@ describe('the outline sliders read at density 2', () => {
 /** headForm at the default sliders (every face key 0.5), as the tree drew it before the widening: a slider at 0.5 draws
  * today's face. */
 const SNAP = {"ts": [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1], "width": [0, 0.027599374113647625, 0.03913388573254893, 0.061610697028307564, 0.06917108998522993, 0.07993312838622721, 0.088674708128832, 0.091526354099712, 0.09275330742875199, 0.09322521109512222, 0.09349274793600001, 0.0944515260104348, 0.0953508756918261, 0.09534587261351041, 0.0943272937281024, 0.09192994284418562, 0.0880305844916736, 0.08084966241712502, 0.068889393216, 0.04956144034800001, 0], "front": [0.10810673999999999, 0.13988652299999998, 0.135490118203125, 0.14169330000000002, 0.14210818013538462, 0.13851112986778846, 0.1402551735576923, 0.1404795919275, 0.13935063743999998, 0.13551998906249998, 0.13432562325000003, 0.13925138653125002, 0.13939199866666668, 0.13743922106250003, 0.13373089280303033, 0.1284379902935606, 0.1207017, 0.10973232613636366, 0.09446220000000001, 0.07329037500000003, 0.015481304999999997], "back": [0.10810673999999999, 0.08289217708333335, 0.0472311, 0.007716272607421873, -0.023748114140625012, -0.04340524651367187, -0.058763885040000005, -0.07020955494000002, -0.07701302076923078, -0.08112504288461539, -0.08449119000000001, -0.08788372934294872, -0.09028107397435897, -0.09113157255681818, -0.09057663363636363, -0.08797426893818182, -0.08274163555636363, -0.07400835556490387, -0.06022806259615387, -0.03962394600230773, 0.015481304999999997]};
+const bits = new BigInt64Array(2);
+const bitsAsFloat = new Float64Array(bits.buffer);
+/** How many doubles lie between `a` and `b` (0 when they are the same number; the two must share a sign, as these do). */
+function ulps(a: number, b: number): number {
+  bitsAsFloat[0] = a; bitsAsFloat[1] = b;
+  const apart = bits[0] - bits[1];
+  return Number(apart < 0n ? -apart : apart);
+}
+/** The profile is a few float operations whose last bit differs between V8 versions: the numbers above were recorded on
+ * Node 22.23, and Node 24.21 gives `front` at t 0.95 one unit in the last place lower (measured, 1 ulp). Two allows one more
+ * rounding and nothing a cell could see: tests/features/hair/ulp.test.ts draws the base pair with this form moved a last bit
+ * either way and every cell's md5 is the same. */
+const LAST_BITS = 2;
 describe('a face at 0.5 is today\'s face', () => {
-  it('headForm at the default sliders keeps its width, front and back at t = 0, 0.05 … 1', () => {
+  it('headForm at the default sliders keeps its width, front and back at t = 0, 0.05 … 1, to within two last bits', () => {
     const m = measure({}), f = headForm(m, skeleton(m.genes));
     SNAP.ts.forEach((t, i) => {
-      expect(f.width(t), `width ${t}`).toBe(SNAP.width[i]);
-      expect(f.front(t), `front ${t}`).toBe(SNAP.front[i]);
-      expect(f.back(t), `back ${t}`).toBe(SNAP.back[i]);
+      expect(ulps(f.width(t), SNAP.width[i]), `width ${t}`).toBeLessThanOrEqual(LAST_BITS);
+      expect(ulps(f.front(t), SNAP.front[i]), `front ${t}`).toBeLessThanOrEqual(LAST_BITS);
+      expect(ulps(f.back(t), SNAP.back[i]), `back ${t}`).toBeLessThanOrEqual(LAST_BITS);
     });
   });
 });

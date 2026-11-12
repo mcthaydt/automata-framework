@@ -1,10 +1,36 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createHash } from 'node:crypto';
 import { BASE } from '../../../base/base';
 import { member, standing } from '../../../src/features/figure/frames';
 import { grid } from '../../../src/features/hair/hair';
 import type { V3 } from '../../../src/lib/math';
-import { nudged } from '../../support/ulp';
+import { nudged, step } from '../../support/ulp';
+import type { HeadForm } from '../../../src/features/body/head';
+
+/** How the head's form is read in this file: left as it is (0), or each of its numbers a last bit up (1) or down (-1). */
+const form = vi.hoisted(() => ({ dir: 0 as -1 | 0 | 1, calls: 0, size: 0 }));
+vi.mock('../../../src/features/body/head', async importOriginal => {
+  const real = await importOriginal<typeof import('../../../src/features/body/head')>();
+  /** `x` moved by `form.dir` units in the last place, or by `form.size` of itself when a control run asks for a visible step. */
+  const move = (x: number) => {
+    // Zero and non-finite values pass through, as in support/ulp.ts: a step from zero is not a last bit but a wrap to NaN.
+    if (form.dir === 0 || x === 0 || !Number.isFinite(x)) return x;
+    form.calls++;
+    return form.size ? x * (1 + form.dir * form.size) : step(x, form.dir);
+  };
+  return {
+    ...real,
+    headForm: (...args: Parameters<typeof real.headForm>): HeadForm => {
+      const f = real.headForm(...args);
+      return { ...f, width: (t, side) => move(f.width(t, side)), front: t => move(f.front(t)), back: t => move(f.back(t)) };
+    },
+    // The ear reads the form inside head.ts, out of reach of the wrapper above, so what it derives is moved the same way.
+    ear: (...args: Parameters<typeof real.ear>) => {
+      const e = real.ear(...args);
+      return { ...e, c: e.c.map(move) as V3, r: e.r.map(move) as [number, number], lobe: e.lobe.map(move) as V3 };
+    },
+  };
+});
 
 /**
  * The hair's poles. A grid row pinched to a point (the crown of a scalp) has an outward offset `p − inner(i)` of exactly
@@ -46,5 +72,28 @@ describe('the painter under the last bit of the maths', () => {
       const plain = md5(paint());
       for (let seed = 1; seed <= 8; seed++) expect(md5(nudged(seed, paint)), `${c.def.id} direction ${d} seed ${seed}`).toBe(plain);
     }
+  }, 300_000);
+});
+
+describe('the head\'s form under its own last bit', () => {
+  /** The base pair's eight standing views at each density the painter's goldens and sprites use. */
+  const cells = () => BASE.flatMap(c => [1, 2].flatMap(density => Array.from({ length: 8 }, (_, d) => ({
+    key: `${c.def.id} density ${density} view ${d}`, md5: md5(standing(member(c.def, density), d)),
+  }))));
+  it('no painted cell depends on the last bit of the head\'s width, front and back at any t', () => {
+    const plain = cells();
+    for (const dir of [1, -1] as const) {
+      form.dir = dir; form.calls = 0;
+      try {
+        const moved = cells();
+        expect(form.calls, 'the form was read').toBeGreaterThan(0);
+        moved.forEach((cell, i) => expect(cell.md5, `${cell.key}, a last bit ${dir > 0 ? 'up' : 'down'}`).toBe(plain[i].md5));
+      } finally { form.dir = 0; }
+    }
+  }, 300_000);
+  it('control: a visible step in the same form does move a cell, so the case above would have seen a bit that mattered', () => {
+    const plain = cells();
+    form.dir = 1; form.size = 0.05;
+    try { expect(cells().some((cell, i) => cell.md5 !== plain[i].md5)).toBe(true); } finally { form.dir = 0; form.size = 0; }
   }, 300_000);
 });
