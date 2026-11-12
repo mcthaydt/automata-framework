@@ -43,3 +43,21 @@ for (const size of SIZES) {
     expect(errors).toEqual([])
   })
 }
+
+// The touch layout, seen on purpose: a phone held sideways with a finger as its pointer, so the framework's six key buttons and the
+// game's Skip button are drawn over the frame. Opening cutscene first (Skip), then play (the six buttons over the objective and the
+// inventory's corners).
+test.describe('touch', () => {
+  test.use({ hasTouch: true, isMobile: true, deviceScaleFactor: 1, viewport: { width: 844, height: 390 } })
+
+  test('frames on a phone', async ({ page }) => {
+    const folder = OUT as string
+    mkdirSync(folder, { recursive: true })
+    await begin(page)
+    await page.getByTestId('cutscene-caption').waitFor({ state: 'visible', timeout: 120_000 })
+    await page.screenshot({ path: join(folder, 'ours-touch-cutscene-844x390.png') })
+    await waitFor(page, { cutscene: null }, 600_000)
+    await waitFor(page, { tickAtLeast: (await stateOf(page)).tick + 30 })
+    await page.screenshot({ path: join(folder, 'ours-touch-play-844x390.png') })
+  })
+})
