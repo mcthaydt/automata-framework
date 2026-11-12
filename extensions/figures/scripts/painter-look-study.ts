@@ -147,6 +147,18 @@ const gaited =
   (over: object): Look['patch'] =>
   (def) => ({ ...def, gaitOverrides: { ...def.gaitOverrides, ...over } as CharacterDef['gaitOverrides'] })
 
+/** Every look option on at once: the full bob and its fringe, the fair skin and its lit face, the eyes kept, a wider stand, dark ink. */
+export const FULL: Look = {
+  label: 'the study figure, every option on',
+  note: 'bobFull + fringe, skinFair + face.light .6, eyes keep, standTrack 1, ink #002219',
+  style: BOB_FULL_FRINGE,
+  paint: { ink: '#002219' },
+  patch: (def) =>
+    gaited({ standTrack: 1 })?.(
+      eyed({ keep: true, full: true })?.(skinned('skinFair', 0.6)?.(def) ?? def) ?? def,
+    ) ?? def,
+}
+
 export const LOOKS: Readonly<Record<string, readonly Look[]>> = {
   stoop: [
     { label: 'before: the upright stand', note: 'the relaxed stand as it always was', style: 'bobFull' },
@@ -512,6 +524,25 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename
   const out = resolve(process.argv[2] ?? 'out'),
     item = process.argv[3] ?? 'all'
   mkdirSync(out, { recursive: true })
+  if (item === 'd4') {
+    const D = Number(process.env.DENSITY ?? 4)
+    const entries = [
+      { label: 'untouched BASE F', def: BASE[1].def },
+      { label: FULL.label, def: study(FULL), paint: FULL.paint },
+    ]
+    writeFileSync(
+      join(out, 'd4-sheet.png'),
+      largeSheet(entries, {
+        density: D,
+        zoom: D > 4 ? 1 : 2,
+        zoomHead: D > 4 ? 3 : 4,
+        title: `the study figure and the base woman, density ${D}`,
+      }),
+    )
+    const rows = entries.map((e) => ({ label: e.label, ...sizes(e.def, D, e.paint) }))
+    writeFileSync(join(out, 'd4-numbers.json'), `${JSON.stringify(rows, null, 2)}\n`)
+    console.log('d4', JSON.stringify(rows))
+  }
   if (item === 'base') {
     const entries = BASE.map((b) => ({ label: `untouched ${b.def.name}`, def: b.def }))
     writeFileSync(

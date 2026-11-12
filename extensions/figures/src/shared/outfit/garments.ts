@@ -136,6 +136,7 @@ export function dress(
         ...(item.nose === false ? { nose: false } : {}),
         ...(item.mouth === false ? { mouth: false } : {}),
         ...(item.keep ? { keep: true } : {}),
+        ...(item.full ? { full: true } : {}),
       }
       if (item.stubble)
         parts.push(

@@ -33,6 +33,9 @@ export type BaseGarment =
       /** The drawn face's eyes kept in the face's visible rows: where hair hangs over the eye row, they are drawn on the skin
        * that shows below it, not left out. */
       keep?: boolean
+      /** The drawn face's eyes as large as their head allows (paint.ts FaceStamp `full`): a round iris in a white all round, under a
+       * lid. Off by default (a sprite's eye); drawn only where the eye is 6 texels wide (density 3 and up). */
+      full?: boolean
     }
 /** Materials of the body's regions; garments repaint them. */
 export interface Regions {
@@ -73,6 +76,7 @@ export interface FaceLook {
   nose?: boolean
   mouth?: boolean
   keep?: boolean
+  full?: boolean
 }
 
 // ─── Hooks: how a fork adds garments and tunes the outfit, with nothing registered in base ───

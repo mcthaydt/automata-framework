@@ -124,6 +124,30 @@ export function stampFace(
     return worn && !lens
   }
   /**
+   * A full eye's aperture under its lash row `Y - 1`: `id` rows (the iris's diameter, 0.45 of the eye's width, at least 3), the
+   * white across each, its two lower corners cut in so the opening is an almond; a round iris in it, set by `iris` as the
+   * sprite's is, its top row the lid's shadow (the lash's colour), its pupil dark, a catch-light of the white on the upper
+   * side from an iris of 4.
+   */
+  const openEye = (x0: number, n: number, iris: number, Y: number) => {
+    const id = Math.max(3, Math.round(n * 0.45)),
+      // `iris` is the first column of a two-wide iris: the same place, moved to the middle of this one.
+      at = Math.max(0, Math.min(n - id, Math.round(iris + 1 - id / 2))),
+      cx = x0 + at + (id - 1) / 2,
+      cy = Y + (id - 1) / 2
+    for (let r = 0; r < id; r++) {
+      const cut = r === id - 1 && id >= 3 ? 1 : 0
+      for (let i = cut; i < n - cut; i++) {
+        const x = x0 + i,
+          d = Math.hypot(x - cx, Y + r - cy),
+          inIris = d <= (id <= 3 ? id / 2 : id / 2 - 0.1)
+        if (!inIris) mark(x, Y + r, x < x0 + at ? f.white : whiteFar)
+        else if (r === 0 || d <= Math.max(0.8, id * 0.2)) mark(x, Y + r, f.lash)
+        else mark(x, Y + r, id >= 4 && r === 1 && x < cx ? f.white : f.iris)
+      }
+    }
+  }
+  /**
    * An eye: `x0` its left column, `n` texels wide, its outer corner to the `outer` side, the iris's first column `iris`
    * texels in. False when shades cover it (then it has no lid either). Open, as a sprite's eye reads awake: the upper
    * lid's lash over the iris and out to the outer corner (an eye of four, its whole width), the white either side of the
@@ -164,7 +188,8 @@ export function stampFace(
     // below, two wide in an eye of four; the white beside it on the upper row only, the lower lid the skin. Never
     // further out than the eye's own width.
     const iw = n >= 4 ? 2 : 1,
-      at = Math.max(0, Math.min(n - iw, iris))
+      at = Math.max(0, Math.min(n - iw, iris)),
+      full = !!f.full && f.detail >= 6 && !f.blink && !dead
     for (let i = 0; i < n; i++) {
       const x = x0 + i,
         inIris = i >= at && i < at + iw
@@ -173,6 +198,7 @@ export function stampFace(
         continue
       }
       if ((n < 3 || x !== xin || n >= 4) && !(tilt && x === xo)) mark(x, Y - 1, f.lash)
+      if (full) continue
       // Dead eyes: the lid drawn down over the whites, the iris alone staring out under it (its colour, not the pupil row of a live eye).
       if (dead) {
         if (inIris) mark(x, Y, f.iris)
@@ -182,6 +208,8 @@ export function stampFace(
       mark(x, Y, inIris ? f.lash : x < x0 + at ? f.white : whiteFar)
       if (inIris) mark(x, Y + 1, f.iris)
     }
+    // A full eye (`eyes.full`): the aperture as tall as a round iris is wide, from the lash's row down.
+    if (full) openEye(x0, n, iris, Y)
     // The lash's flick: a texel past the outer corner, a row down (the upper lid's line turning down at its end); with
     // liner, on the lash's own row.
     // Tilt (eyeTilt): the outer corner's lash and the flick past it a row up when lifted, a row down when drooping.
