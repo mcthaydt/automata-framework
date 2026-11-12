@@ -418,12 +418,12 @@ importers:
 
   extensions/character-kit:
     dependencies:
+      '@automata/figures':
+        specifier: workspace:*
+        version: link:../figures
       '@pixi/3d':
         specifier: file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz
         version: file:vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz(pixi.js@8.22.0)
-      figure-builder:
-        specifier: workspace:*
-        version: link:../../vendor/figure-builder
       zod:
         specifier: 4.6.6
         version: 4.6.6

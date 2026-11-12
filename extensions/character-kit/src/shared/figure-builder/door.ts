@@ -1,11 +1,11 @@
-// The door to the figure builder (the git submodule at vendor/FigureBuilder, the `figure-builder` workspace package),
-// the half that is plain TypeScript: its `index` and `kit` entries, safe in Node. The figures are its own: it generates,
-// poses and paints them, and this kit shows the cells it paints. Every module reaches the builder through this file (and
-// `door-view.ts`, the half that loads Pixi) and nowhere else (tests/unit/shared/door.test.ts), so a refactor upstream
-// breaks these files only. Fix the builder upstream and bump the submodule; never patch the vendored copy.
+// The door to the figure painter (`@automata/figures`, a private package of this repository, changed in place), the half
+// that is plain TypeScript: its `index` and `kit` entries, safe in Node. The figures are its own: it generates, poses and
+// paints them, and this kit shows the cells it paints. Every module reaches the painter through this file (and
+// `door-view.ts`, the half that loads Pixi) and nowhere else (tests/unit/shared/door.test.ts). The door stays so the kit
+// takes only the names it uses, and a change in the painter breaks these files first.
 //
-// It takes the builder's stage contract (vendor/FigureBuilder/docs/contract.md, `STAGE_VERSION` 1) as the kit's
-// placement and the wardrobe need it, and no more: a name is added here by the change that first uses it.
+// It takes the painter's stage contract (extensions/figures/docs/contract.md, `STAGE_VERSION` 1) as the kit's placement
+// and the wardrobe need it, and no more: a name is added here by the change that first uses it.
 export {
   BASE,
   type Backdrop,
@@ -52,7 +52,7 @@ export {
   viewOf,
   type Wearing,
   zoomOf,
-} from 'figure-builder'
+} from '@automata/figures'
 // The painter's toolkit: what a garment kind of the kit's own is built from (H1).
 export {
   axisAngle,
@@ -65,4 +65,4 @@ export {
   smooth,
   superquadric,
   weights,
-} from 'figure-builder/kit'
+} from '@automata/figures/kit'

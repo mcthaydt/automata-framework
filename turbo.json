@@ -9,7 +9,10 @@
       "outputs": ["dist/**", "VENDORED.md"],
       "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/tooling/release/src/**", "$TURBO_ROOT$/vendor/ruken/**"]
     },
-    "typecheck": {},
+    "typecheck": {
+      "dependsOn": ["@automata/figures#typecheck"]
+    },
+    "@automata/figures#typecheck": { "outputs": ["types/**"] },
     "test": {},
     "test:unit": {
       "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]

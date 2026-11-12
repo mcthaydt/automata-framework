@@ -25,7 +25,7 @@ argues from their measurements. **Tracker:** [`../progress.md`](../progress.md),
 
 ## Tracking
 
-**2 of 28 tasks done (7%)** (task 20 is conditional and counted only if the Owner chooses it). Audited 2026-11-12
+**3 of 28 tasks done (11%)** (task 20 is conditional and counted only if the Owner chooses it). Audited 2026-11-12
 ([plan audit](../audits/2026-11-12-builders-fold-plan-audit.md)): its fixes are in the steps below. Numbers 4b to 4d were
 added and 14 was moved to 4b after the Owner's answers of 2026-11-12, so the numbering has letters and a gap. Tick a
 task only when its checks passed in the session that did it; say what did not run.
@@ -34,7 +34,7 @@ task only when its checks passed in the session that did it; say what did not ru
 |---|---|---|---|---|
 | 1 | The baseline, and the checksum manifest | `claude/builders-fold-figures` | done | `e074227fe`: baseline `pnpm check` exit 0, 11m56s cold (65 tasks; turbo test time 9m13s); kit unit 28 files, 228 tests, 53 s; kit browser (Chromium, software GL) 7 files, 58 tests, 3 files skipped by design (the gate's sheets), 35 s; pack 275.69 MiB; manifest 134 files |
 | 2 | The painter's source arrives with its history; its own suite passes as it is | `claude/builders-fold-figures` | done | `e22caf219` (merge), `b192bad57` (the pin, step 3b made early), `ef3cd569e` (the package): filter 111 commits on main, 126 in all, 1.03 MiB, 0 SNEKPRTY blobs, 0 cut paths; manifest 134 files, 0 differ; the builder's suite 47 files, 563 tests (560 of 561 before the pin); typecheck 0 errors; view-check exit 0; `pnpm check` exit 0 (4m40s, cached) |
-| 3 | The character kit's door points at the package | `claude/builders-fold-figures` | todo | |
+| 3 | The character kit's door points at the package | `claude/builders-fold-figures` | done | `refactor(character-kit): the door imports the painter as a workspace package`: door test 5 of 5 (three specifier cases watched failing first), boundaries 0 findings, closed-beta guard passes, stale-types and missing-types checks green; kit unit 28 files, 229 tests (228 and the new case); kit browser (Chromium) 58 pass, 3 files skipped, as the baseline; no recorded file rewritten; `pnpm check` exit 0 (2m23s) |
 | 4 | The submodule and its wrapper go | `claude/builders-fold-figures` | todo | |
 | 4b | The workflows lose the submodule step (the Owner's word given) | `claude/builders-fold-figures` | todo | |
 | 4c | The c5-finish fixes come across | `claude/builders-fold-figures` | todo | |
@@ -617,7 +617,7 @@ framework's workspace, and `pnpm check` is green.
 - Consumes: `@automata/figures`, `/kit`, `/view` from task 2.
 - Produces: the door's export names unchanged (45 from the index, 10 from the kit entry, 2 from the view entry).
 
-- [ ] **Step 1: The failing test.** In `door.test.ts`, change the specifiers the three cases look for from
+- [x] **Step 1: The failing test.** In `door.test.ts`, change the specifiers the three cases look for from
   `figure-builder`, `figure-builder/kit` and `figure-builder/view` to `@automata/figures`,
   `@automata/figures/kit` and `@automata/figures/view`, and add one case:
 
@@ -630,24 +630,24 @@ it('cannot reach past the three entries', async () => {
 
   Run `pnpm --filter @automata/character-kit exec vitest run --project unit tests/unit/shared/door.test.ts`.
   Expected: the three specifier cases FAIL (the door still imports `figure-builder`); the new case passes.
-- [ ] **Step 2: Switch.** The three specifiers in `door.ts` and `door-view.ts`; the dependency in the kit's
+- [x] **Step 2: Switch.** The three specifiers in `door.ts` and `door-view.ts`; the dependency in the kit's
   `package.json`; `figure-builder` to `@automata/figures` in the root `boundaries` script's 13 `--forbid`
   entries and in the closed-beta guard test. Rewrite the door's header comment: the painter is a package of this
   repository, changed in place; the door stays so the kit takes only the names it uses.
-- [ ] **Step 3: Declarations before every typecheck.** Not only the kit compiles against the declarations: every
+- [x] **Step 3: Declarations before every typecheck.** Not only the kit compiles against the declarations: every
   workspace that imports the kit does (on `main` `examples/3d`; on `claude/last-light-prologue` the game too), and with
   no `types/` it type-checks the painter's source under the strict flags (seen by the plan audit: `examples-3d#typecheck`
   failed with the painter's `TS2532`s when the wrapper's `prepare` had run before the submodule was there). In
   `turbo.json` give the generic `typecheck` task `"dependsOn": ["@automata/figures#typecheck"]` and add
   `"@automata/figures#typecheck": {}` (its own entry, so it does not wait on itself). Check:
   `rm -rf extensions/figures/types && pnpm typecheck` passes with nothing else typed.
-- [ ] **Step 4:** `pnpm install`, then the door test (PASS), `pnpm boundaries` (0 findings), the guard test (PASS).
-- [ ] **Step 5: The stale-types check.** Add a throwaway exported type to
+- [x] **Step 4:** `pnpm install`, then the door test (PASS), `pnpm boundaries` (0 findings), the guard test (PASS).
+- [x] **Step 5: The stale-types check.** Add a throwaway exported type to
   `extensions/figures/src/index.ts`, import it in the door, run `pnpm typecheck` once: expected green. Revert
   both edits (`git checkout -- <the two files>`); `git status` shows neither.
-- [ ] **Step 6: The kit's goldens.** The kit's unit suite and its Chromium suite: the same counts as task 1,
+- [x] **Step 6: The kit's goldens.** The kit's unit suite and its Chromium suite: the same counts as task 1,
   `git status` clean after them (no recorded file rewritten). A moved cell is a stop.
-- [ ] **Step 7:** `pnpm check`; commit `refactor(character-kit): the door imports the painter as a workspace package`.
+- [x] **Step 7:** `pnpm check`; commit `refactor(character-kit): the door imports the painter as a workspace package`.
 
 **Done when:** nothing in the kit imports `figure-builder`, and the kit's suites give the baseline's counts.
 
@@ -1522,3 +1522,4 @@ pin.
 | 2026-11-12 | Stage 3 (plan audit), `claude/builders-fold-plan-audit`, no subagents, no product code | Ran: the plan's filter on the archived FigureBuilder (`main` now `c29284c`; filtered `main` is still `23f889c8`'s 236 commits; 251 commits and 1.72 MiB with the four refs); the c5 picks, N4, the turned-face fix and the wardrobe merge in a scratch clone, then the whole suite on Node 24.21 (52 files, 651 tests, 6 fail: the turned face's 5, one wardrobe pin that passes on Node 22.23 only); `tsc` after N4 (4 errors in `lighting/sprite.ts`, which `main` added after the c5 branch); the strict flags over the whole package (`src` 1,427, `tests` 579, `scripts` and `viewer` 79); a checked reader in `rasterize` (generic `at`: 5.5 times slower; inline `?? outside`: no cost); the `goldens` project's files (74 tests, 33 s); the tiles cross-check (112 of 112 equal); every hunk of the ten files EnvironmentBuilder changed after `6d82a52`; the workflow lines at `0de72717` (73, unchanged). Fixed in the plan: tasks 2, 3, 4, 4b, 4c (step 3b), 4d, 5, 7, 12, 15, 16, 19, 21 to 27 (the inline check, the painter's bench, the ledger with tests), the archived sources, the retirement notes as merged, what the upgrade inherits. Findings: [plan audit](../audits/2026-11-12-builders-fold-plan-audit.md) |
 | 2026-11-12 | Stage 4 (execution), group 1, `claude/builders-fold-figures`, Sonnet 5.5, no subagents. Task 1 | Submodule at `23f889c8`, declarations built by hand, Node 24.21 through pnpm. `pnpm check` exit 0 (11m56s cold). Kit unit 28 files, 228 tests. Kit browser in Chromium only (`--project 'browser (chromium)' --project webgpu`: WebKit and Firefox do not exist here, and the package's own script asks for all three): 58 tests pass, 3 files skipped (`gate-lit`, written by `scripts/gate.ts`). Pack 275.69 MiB. Manifest 134 files (47/1/73/6/4/3), commit `e074227fe` made with LEFTHOOK=0 right after the whole check passed on the tree before it (it adds one data file). Not run: WebKit, Firefox, arm64, a real GPU |
 | 2026-11-12 | Task 2 (same session) | Filtered and merged as the plan says (111/7/6/2 commits, main `c85b961`, root `36a135e`, 126 commits and 1.03 MiB fetched empty, 0 and 0 on the content check, grafts `13407db8` and `6b6819cb` only). Manifest `134 files, 0 differ`. **Deviation:** the builder's suite at the pin on Node 24.21 was 560 of 561: `face-d2.test.ts` (the head's profile pin, 1 ulp) is in the builder's `main`, not only in the wardrobe branch, and passes on Node 22.23.4. Task 5 step 3b was done here, in its own commit before the package's (`b192bad57`): the ±1-ulp case (both base figures, densities 1 and 2, eight views, the head form and the ear a last bit up and down: every md5 equal; a control moving the form by 5% does move a cell), then the pin within 2 ulps (measured 1; 0 fails). Node 22.23.4 and 24.21.0 both pass both files. **Also:** the extension manifest rule needs `imports: {"#src/*": "./src/*"}` and `docs/versions.md` needs a row for `@napi-rs/canvas` (found by `pnpm check`), both added in the package commit. `@napi-rs/canvas` installed here (no refusal) and `view-check` ran: exit 0. Typecheck has no error in tests, scripts or viewer. The filtered clone is `/home/user/figurebuilder-filtered`, the remote `painter-history`. Not run: WebKit, Firefox, arm64 |
+| 2026-11-12 | Task 3 | The door's three specifiers, the kit's dependency, the 13 `--forbid` entries and the closed-beta guard point at `@automata/figures`; one new case (the package has three exports and no wildcard). The "Pixi-free entries" case passed vacuously in the plan's form (no specifier matched), so it now asserts the exact specifier set and fails first. **Two things the plan did not name:** `src/features/fashion/garments.ts` augments `declare module 'figure-builder'` (now `'@automata/figures'`), and `turbo.json`'s `@automata/figures#typecheck` needs `"outputs": ["types/**"]`, else a turbo cache hit does not restore `types/` and a consumer type-checks the painter's source under the strict flags (seen: `examples-3d` and the kit failed with `TS2532` with `types/` removed and the cached typecheck). With the outputs, `rm -rf extensions/figures/types && pnpm typecheck` passes on a miss and on a hit. Not run: WebKit, Firefox, arm64 |

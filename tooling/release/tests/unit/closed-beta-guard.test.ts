@@ -30,9 +30,9 @@ function forbidden(): Map<string, string[]> {
 describe('the closed beta stays out of every published package', () => {
   const named = forbidden()
   for (const { dir, manifest } of publishablePackages(root)) {
-    it(`${manifest.name} (${dir}) may import neither @pixi/3d nor figure-builder`, () => {
+    it(`${manifest.name} (${dir}) may import neither @pixi/3d nor @automata/figures`, () => {
       expect(named.get(dir), `${dir} in the --forbid list of "boundaries"`).toEqual(
-        expect.arrayContaining(['@pixi/3d', 'figure-builder']),
+        expect.arrayContaining(['@pixi/3d', '@automata/figures']),
       )
     })
   }
