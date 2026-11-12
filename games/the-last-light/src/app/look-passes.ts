@@ -15,7 +15,7 @@ declare global {
   var __lastLightLook: (() => LookState) | undefined
 }
 
-// The old game's own picture: the retro grade before the palette snap and the LCD panel over it (`src/render/retro-filter.ts` and
+// The old game's own picture: the palette snap, then the retro grade and the LCD panel over it (`src/render/retro-filter.ts` and
 // `lcd-panel.ts` at 92e6704), drawn at whole pixels. The profiles are `content/look.toml`'s (`look-profiles.content.ts`).
 
 /** The renderer option that draws the picture at whole pixels, as the old game did. */
@@ -34,6 +34,9 @@ export interface LookPassOptions {
 export function lookPassesOf(profiles: LookProfiles, options: LookPassOptions = {}) {
   const retro = addRetroPass({
     profile: profiles.retro,
+    // The old game snapped to the palette first and graded the snapped colours: dark gradients stay smooth (the frame is then no longer
+    // strictly the palette, as the old game's was not).
+    gradeAt: 'after-snap',
     ...(options.reducedMotion === undefined ? {} : { reducedMotion: options.reducedMotion }),
   })
   // After the grade and the snap: the panel simulates the display, so what it draws is not on the palette.

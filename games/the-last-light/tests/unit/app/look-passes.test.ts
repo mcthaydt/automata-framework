@@ -90,12 +90,12 @@ describe('the LCD panel on the screen', () => {
 })
 
 describe('the passes', () => {
-  it('are added once, before the renderer is made: the grade ahead of the snap, the panel after it', () => {
+  it('are added once, before the renderer is made: the snap first, then the grade (the old game’s order), then the panel', () => {
     const made = lookPassesOf(lookProfilesSchema.parse({}), { reducedMotion: () => false })
     const names = registeredLookPasses().map((pass) => pass.name)
     expect(names).toContain('retro')
     expect(names).toContain('lcd-panel')
-    expect(registeredLookPasses().find((pass) => pass.name === 'retro')?.beforeSnap).toBe(true)
+    expect(registeredLookPasses().find((pass) => pass.name === 'retro')?.beforeSnap).toBeFalsy()
     expect(registeredLookPasses().find((pass) => pass.name === 'lcd-panel')?.beforeSnap).toBeFalsy()
     // Neither starts off: the picture is the old game's in play and in a cutscene.
     expect(made.retro.passes).toEqual([])

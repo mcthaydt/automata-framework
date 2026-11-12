@@ -1,6 +1,8 @@
-// Adds the retro pass to core's look: call it once, before the renderer is created. It runs before core's DUEL snap, so
-// the colours it grades, fades and grains are snapped to the palette (the final frame is DUEL, as the look's rule is). A name
-// already taken is refused by core (`RegistryClash`).
+// Adds the retro pass to core's look: call it once, before the renderer is created. By default it runs before core's DUEL snap, so
+// the colours it grades, fades and grains are snapped to the palette (the final frame is DUEL, as the look's rule is). A game may
+// ask for the old game's order instead, `gradeAt: 'after-snap'`: the snap first, then the grade over the snapped colours, so a
+// dark gradient stays smooth (the final frame is then no longer strictly the palette). A name already taken is refused by core
+// (`RegistryClash`).
 
 import { addLookPass } from '@automata/3d'
 import { reducedMotion } from '@automata/framework'
@@ -16,6 +18,8 @@ export const RETRO_PASS = 'retro'
 export interface RetroOptions {
   readonly profile?: unknown
   readonly enabled?: boolean
+  /** Where the pass sits against core's DUEL snap: `before-snap` (default, the frame is strictly DUEL) or `after-snap` (the old game's order, smooth dark gradients). */
+  readonly gradeAt?: 'before-snap' | 'after-snap'
   /** Whether the player asked for less movement, read each frame: the film's grain, dust and scratch hold still while it is true. Default: `prefers-reduced-motion`. */
   readonly reducedMotion?: () => boolean
 }
@@ -23,10 +27,13 @@ export interface RetroOptions {
 /** Adds the pass. The returned list holds the passes the renderer made (newest last), so a game can switch or retune one. */
 export function addRetroPass(options: RetroOptions = {}): { readonly passes: readonly RetroEffect[] } {
   const profile = parseRetroProfile(options.profile ?? {})
+  const gradeAt = options.gradeAt ?? 'before-snap'
+  if (gradeAt !== 'before-snap' && gradeAt !== 'after-snap')
+    throw new Error(`retro: gradeAt is "before-snap" or "after-snap", not "${String(gradeAt)}"`)
   const made: RetroEffect[] = []
   addLookPass({
     name: RETRO_PASS,
-    beforeSnap: true,
+    beforeSnap: gradeAt === 'before-snap',
     make: () => {
       const pass = new RetroEffect(profile, { enabled: options.enabled ?? true })
       made.push(pass)

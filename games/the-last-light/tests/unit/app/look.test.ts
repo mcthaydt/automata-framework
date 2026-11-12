@@ -32,6 +32,12 @@ describe('the game’s look', () => {
     expect(look.dither.strength).toBeCloseTo(1 / 64, 6)
   })
 
+  // The old snap scaled the offset by (1 - 0.5 luma) and cut it to nothing in the deep blacks (`lumaWeight` 0.5 and the `smoothstep(0.02, 0.08)` taper).
+  it('weights the dither by luma and tapers it in the deep blacks, as the old game’s snap does', () => {
+    expect(look.dither.lumaWeight).toBe(0.5)
+    expect(look.dither.shadowTaper).toBe(true)
+  })
+
   it('veils the far end of a room in the old haze: its dark colour, whole from 7 m past the focus, no light added', () => {
     expect(look.haze).toMatchObject({ colour: '#121a18', near: 0, far: 7, amount: 1, glow: 0 })
   })

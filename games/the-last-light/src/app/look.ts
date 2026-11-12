@@ -7,10 +7,12 @@ const OLD_HAZE = 0x4b5a56
 
 /**
  * The old game's palette dither (`LOOK.post.dither.strength` in `src/render/look.ts` at 92e6704): 1/64 of the colour range, against the framework's
- * default 0.04. The old snap also scaled it down with the pixel's luma and cut it to nothing in the deep blacks; the framework's has no such weight, so
- * the lighter amount is what keeps the shadows smooth.
+ * default 0.04. The old snap also scaled it down with the pixel's luma and cut it to nothing in the deep blacks: the framework's `lumaWeight`
+ * and `shadowTaper` say both, and the game turns them on.
  */
 const OLD_DITHER = 1 / 64
+/** The old game's `LOOK.post.dither.lumaWeight`: the offset loses this share of the pixel's luma. */
+const OLD_DITHER_LUMA = 0.5
 
 /**
  * The colour of the bars round the picture: black, as the old game's page was (`--c-void: #000000` in `src/style.css` at 92e6704).
@@ -52,7 +54,7 @@ export function lookOf(
   return {
     ...DEFAULT_LOOK,
     pixel: { short: Math.min(size.width, size.height) },
-    dither: { strength: OLD_DITHER },
+    dither: { strength: OLD_DITHER, lumaWeight: OLD_DITHER_LUMA, shadowTaper: true },
     haze: {
       ...DEFAULT_LOOK.haze,
       colour: hazeColourOf(OLD_HAZE),

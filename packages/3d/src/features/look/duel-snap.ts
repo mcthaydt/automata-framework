@@ -17,14 +17,39 @@ const COLOURS: readonly { readonly c: number; readonly v: readonly [number, numb
 /** Squared distance under which a colour is a palette colour (under half a 1/255 step on a channel, as 8-bit holds it). */
 export const EXACT: number = 1 / (510 * 510)
 
+/** Options on the dither's amplitude, both off by default (the amplitude is then the strength at every pixel). */
+export interface DitherOptions {
+  /** The amplitude falls by this share of the pixel's luma (0 to 1): `strength × (1 − lumaWeight × luma)`. The old game's was 0.5. */
+  readonly lumaWeight?: number | undefined
+  /** No dither in the deep blacks: the amplitude is scaled by `smoothstep(0.02, 0.08, luma)`, so no crawling noise sits in the dark. */
+  readonly shadowTaper?: boolean | undefined
+}
+
+/** The Rec. 709 luma of a colour, 0 to 1 a channel. */
+export const lumaOf = (r: number, g: number, b: number): number => 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+const smoothstep = (low: number, high: number, x: number): number => {
+  const t = Math.min(1, Math.max(0, (x - low) / (high - low)))
+  return t * t * (3 - 2 * t)
+}
+
+/** The dither's amplitude at a pixel of this luma: the strength, less the luma weight, tapered to nothing in the deep blacks. */
+export function ditherAmplitude(luma: number, strength: number, options: DitherOptions): number {
+  const weight = 1 - (options.lumaWeight ?? 0) * luma
+  const taper = options.shadowTaper === true ? smoothstep(0.02, 0.08, luma) : 1
+  return strength * weight * taper
+}
+
 /** The DUEL colour nearest `rgb` (0 to 1 a channel) after the Bayer offset at pixel (x, y), as `0xRRGGBB`. */
 export function duelSnap(
   rgb: readonly [number, number, number],
   x: number,
   y: number,
   strength: number,
+  options: DitherOptions = {},
 ): number {
-  const offset = ((BAYER[(x & 3) + ((y & 3) << 2)] as number) / 16 - 0.5) * strength
+  const amplitude = ditherAmplitude(lumaOf(rgb[0], rgb[1], rgb[2]), strength, options)
+  const offset = ((BAYER[(x & 3) + ((y & 3) << 2)] as number) / 16 - 0.5) * amplitude
   let best = Number.POSITIVE_INFINITY
   let pick = 0
   for (const { c, v } of COLOURS) {
