@@ -3,7 +3,7 @@
 // the game's folder (the version the game installed, not ours), on a free port, and it is ready when its page answers:
 // Vite prints its banner before it can serve, so the banner is not the signal.
 import { type ChildProcess, spawn } from 'node:child_process'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { createServer } from 'node:net'
 import { join } from 'node:path'
 
@@ -47,6 +47,40 @@ export function whyItStopped(output: string): string {
   return cause.slice(0, CAUSE_CHARS).replace(/\.$/, '') || 'it printed nothing'
 }
 
+/**
+ * The step `pnpm dev` runs before Vite: the game's own `fonts` script (`automata-content assets`), which writes what
+ * its main.ts imports into the git-ignored `content/generated/`. Without it a game that was never started with
+ * `pnpm dev` has a page that is a 500. The script is read from the game's package.json, so the two cannot drift, and
+ * the command is the content package the game installed, as Vite is the game's own. A game with no such script (the 3D
+ * game) has nothing to prepare. Throws a sentence the person can act on.
+ */
+async function prepareGame(root: string): Promise<void> {
+  const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as {
+    scripts?: Record<string, string>
+  }
+  const [command, ...args] = (manifest.scripts?.fonts ?? '').split(' ')
+  if (command !== 'automata-content') return
+  const content = join(root, 'node_modules/@automata/content')
+  const bin = (
+    JSON.parse(readFileSync(join(content, 'package.json'), 'utf8')) as { bin?: Record<string, string> }
+  ).bin?.['automata-content']
+  if (bin === undefined) throw new Error(NOT_INSTALLED)
+  const child = spawn(process.execPath, [join(content, bin), ...args], {
+    cwd: root,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
+  let said = ''
+  for (const stream of [child.stdout, child.stderr])
+    stream.on('data', (chunk: Buffer) => {
+      said = (said + chunk.toString()).slice(0, KEPT_CHARS)
+    })
+  const code = await new Promise<number | null>((resolveCode) => child.once('close', resolveCode))
+  if (code !== 0)
+    throw new Error(
+      `Your game’s fonts could not be made: ${whyItStopped(said)}.\nFix that in the game, then start the editor again.`,
+    )
+}
+
 /** A port nothing listens on now, picked by the system. */
 function freePort(): Promise<number> {
   return new Promise((resolvePort, reject) => {
@@ -72,6 +106,7 @@ function stopChild(child: ChildProcess): Promise<void> {
 export async function startGame(root: string): Promise<RunningGame> {
   const vite = gameVite(root)
   if (vite === undefined) throw new Error(NOT_INSTALLED)
+  await prepareGame(root)
   const port = await freePort()
   // `--configLoader runner` loads the game's vite.config.ts through Vite itself, so it works whether the framework's
   // packages are installed builds or a workspace's sources.

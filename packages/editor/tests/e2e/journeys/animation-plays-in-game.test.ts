@@ -27,7 +27,10 @@ test('a clip made in Characters plays in the game, frame after frame', async ({ 
   try {
     await openRoom(page, editor, 'Start')
     await page.getByRole('radio', { name: 'Characters' }).click()
-    await page.getByRole('radio', { name: /Player start/ }).click()
+    // Below the wide layout the characters sit in a sheet behind the top bar's Panel button, as the layers do.
+    const playerStart = page.getByRole('radio', { name: /Player start/ })
+    if (!(await playerStart.isVisible())) await page.getByRole('button', { name: 'Panel' }).click()
+    await playerStart.click()
     const details = page.getByRole('button', { name: 'Details' })
     if ((await details.getAttribute('aria-expanded')) === 'false') await details.click()
 
