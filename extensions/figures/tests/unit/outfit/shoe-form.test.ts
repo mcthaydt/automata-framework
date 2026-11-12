@@ -1,4 +1,4 @@
-// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 25 of the builders-fold plan (the strict flags) replaces each with a check
+// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until the strict flags (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) replace each with a check
 import { createHash } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
 import { BASE } from '#src/shared/base/base-pair.ts'
@@ -10,10 +10,10 @@ import { member, view } from '#src/shared/figure/frames.ts'
 import { bodyOf } from '#src/shared/outfit/fit.ts'
 import { dress } from '#src/shared/outfit/garments.ts'
 import type { ShoeForm } from '#src/shared/outfit/shoe.ts'
+import { BODY, endsOf } from '../../fixtures/body-ends'
 import { differs, dressed, turned } from '../../fixtures/draw'
 import { pinned } from '../../fixtures/pins'
-import { BODY, endsOf } from '../body/ends'
-import { shod, shodToo, useFixtures } from './wardrobe-fixtures'
+import { shod, shodToo, useFixtures } from '../../fixtures/wardrobe'
 
 useFixtures()
 /**

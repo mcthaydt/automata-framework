@@ -1,5 +1,3 @@
-// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 25 of the builders-fold plan (the strict flags) replaces each with a check
-
 import { GROUP, type Material, type Part, type Superquadric, superquadric } from '../body/parts'
 import type { Side } from '../body/rig'
 import type { GarmentKind, OutfitHooks } from './garments-types'

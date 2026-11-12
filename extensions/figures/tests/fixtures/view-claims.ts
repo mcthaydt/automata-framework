@@ -1,4 +1,3 @@
-// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 27 of the builders-fold plan (the strict flags) replaces each with a check
 /**
  * What each check case claims of the GPU's frame, asked of a readback: shared by the WebGL and the WebGPU suites, so both
  * hold the renderer to the same words. `bytes`: every byte of the readback is `compose(frame)`'s. `palette`: alpha is 0 or

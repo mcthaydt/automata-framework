@@ -10,7 +10,7 @@ import {
   TIE_BIAS,
   texelDepths,
 } from '#src/shared/stage/stage.ts'
-import { coloursOf, md5, ortho } from './fixtures'
+import { coloursOf, md5, ortho } from '../../fixtures/stage'
 
 /** The stage frame and its CPU reference (src/shared/stage/stage.ts). */
 const deg = Math.PI / 180

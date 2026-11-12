@@ -1,6 +1,6 @@
 /**
- * The Pixi 3D view: painted figures in a 3D scene (features/view). Its own entry, beside `src/index.ts`, so the rest
- * of the builder (the scripts, the goldens, a fork's Node code) never loads Pixi.
+ * The Pixi 3D view: painted figures in a 3D scene (features/view). Its own entry, beside `src/entries/index.ts`, so the rest
+ * of the painter (the scripts, the goldens, a fork's Node code) never loads Pixi.
  */
 
 export { anchorOf, facing, poseQuaternion, texelOf, viewFrom } from '../features/view/camera'

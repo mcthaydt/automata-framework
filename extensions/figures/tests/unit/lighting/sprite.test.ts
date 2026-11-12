@@ -1,4 +1,4 @@
-// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 24 of the builders-fold plan (the strict flags) replaces each with a check
+// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until the strict flags (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) replace each with a check
 import { beforeAll, describe, expect, it } from 'vitest'
 import { BASE } from '#src/shared/base/base-pair.ts'
 import { Figure } from '#src/shared/figure/figure.ts'
@@ -11,7 +11,7 @@ import { RAMP_OUTLINE, RAMPS } from '#src/shared/paint/duel-ramps.ts'
 import { depthAt } from '#src/shared/paint/fabric.ts'
 import { onRow, tiled } from '#src/shared/paint/row.ts'
 import { dressed } from '../../fixtures/draw'
-import { registerFixtures } from '../paint/fabric-fixtures'
+import { registerFixtures } from '../../fixtures/fabrics'
 
 /**
  * `lightSprite` (c8-lit, spec section 5a): a painted cell lit by the room as a sprite. Drawn on the base woman at

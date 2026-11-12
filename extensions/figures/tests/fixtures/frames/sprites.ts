@@ -1,4 +1,4 @@
-// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 27 of the builders-fold plan (the strict flags) replaces each with a check
+// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until the strict flags (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) replace each with a check
 /**
  * The sprites golden's frames: an md5 per frame of each base member's hero, 8 standing views and walk, at the
  * densities the sprites are kept at, with the default pitch. Shared by the recorder (scripts/golden.ts) and the test

@@ -16,6 +16,7 @@ import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { member, standing } from '../src/shared/figures/door.ts'
+import { repointShowcase } from './showcase-imports.ts'
 
 /** The showcase commit the golden is read from (FigureBuilder's `claude/runway-video`). */
 export const SHOWCASE_COMMIT = 'cb4aa9f40cbaa2894ff7bf3d818db34ca2bde0d6'
@@ -31,7 +32,7 @@ const BODIES: Readonly<Record<string, Readonly<Record<string, number>>>> = {
 }
 const FIT_DIRECTIONS = [0, 5] as const
 const GOLDENS = join(import.meta.dirname, '../tests/fixtures/goldens')
-// The painter is a package of this repository: the showcase's imports are pointed at its own source, by file.
+// The painter is a package of this repository: the showcase's imports are pointed at its own source, by file (showcase-imports.ts).
 const BUILDER = join(import.meta.dirname, '../../figures')
 
 const args = process.argv.slice(2).filter((a) => a !== '--')
@@ -47,7 +48,7 @@ const git = (cwd: string, ...a: string[]) => {
   return done.stdout.trim()
 }
 
-// The showcase's three files, unchanged but for the path to the builder's `src` (they import it as `../../src`): it is made the
+// The showcase's three files, unchanged but for the paths to the builder's `src` (`../../src…`, mapped by showcase-imports.ts): they are made the
 // painter's own, by file, so the showcase registers its fabrics, garments and hair on the very module instance the kit's door
 // loads.
 const work = mkdtempSync(join(tmpdir(), 'runway-showcase-'))
@@ -62,12 +63,7 @@ try {
     })
     if (source.status !== 0)
       throw new Error(`${clone} has no ${SHOWCASE_COMMIT}:demo/runway/${file}.ts: ${source.stderr}`)
-    writeFileSync(
-      join(work, `demo/runway/${file}.ts`),
-      source.stdout
-        .replaceAll("'../../src'", `'${join(BUILDER, 'src/index.ts')}'`)
-        .replaceAll("'../../src/", `'${join(BUILDER, 'src')}/`),
-    )
+    writeFileSync(join(work, `demo/runway/${file}.ts`), repointShowcase(source.stdout, BUILDER))
   }
   // Loading the showcase registers its fabrics, finishes, garments and swatches on the builder, as it does for its own renders.
   const { CAST } = (await import(pathToFileURL(join(work, 'demo/runway/characters.ts')).href)) as {

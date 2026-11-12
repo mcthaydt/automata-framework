@@ -77,15 +77,7 @@ export interface EyeMarks {
   height?: number
 }
 
-declare module '@automata/figures' {
-  interface GarmentKinds {
-    eyeMarks: EyeMarks
-    waistcoat: Waistcoat
-    legs: Stockings
-    belt: Belt
-    cap: Cap
-  }
-}
+// The painter's `GarmentKinds` is widened for these five in `garments.ts`, the one module augmentation outside the door.
 
 /** The cloth of the shirt an outfit wears, the one a vest opens on: a `top` or a `tee`. */
 const shirtOf = (c: Wearing): string | undefined => {

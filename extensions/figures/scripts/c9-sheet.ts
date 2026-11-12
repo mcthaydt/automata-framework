@@ -1,8 +1,8 @@
 /**
- * c9-wardrobe's checkpoint sheets (docs/superpowers/plans/2026-11-11-c9-wardrobe.md), drawn in Node. Free: no API.
+ * c9-wardrobe's checkpoint sheets (docs/archive/figure-painter/c9-wardrobe/2026-11-11-c9-wardrobe.md), drawn in Node. Free: no API.
  *
- *   npm run c9 -- <out> [name…]     writes <out>/<name>.png (1×) and <name>-x8.png for each named sheet (all, if none)
- *   npm run c9 -- <out> --measure   prints the numbers the badge, the watch and the faces are sized from (spec 5.5)
+ *   pnpm --filter @automata/figures c9 <out> [name…]     writes <out>/<name>.png (1×) and <name>-x8.png for each named sheet (all, if none)
+ *   pnpm --filter @automata/figures c9 <out> --measure   prints the numbers the badge, the watch and the faces are sized from (the design, 5.5: docs/archive/figure-painter/c9-wardrobe/2026-11-11-c9-wardrobe-design.md)
  *
  * A sheet is `{ name, rows, views, walk, density }`: one row per entry, its views standing from left to right (0 the
  * front, counter-clockwise by 45°) and then, if `walk`, the poses of its walk (three-quarter front). A row is a character
@@ -32,7 +32,7 @@ import type { Garment } from '../src/shared/outfit/garments'
 import '../tests/fixtures/pins' // registers the `fxPaint` kind: a row repaints body regions with it
 import { HAIR_STYLES, type HairStyle } from '../src/shared/hair/hair'
 import { FALL_PLAIN, sheerTest } from '../tests/fixtures/pins'
-import { shod, useFixtures } from '../tests/unit/outfit/wardrobe-fixtures'
+import { shod, useFixtures } from '../tests/fixtures/wardrobe'
 
 useFixtures()
 
@@ -96,7 +96,7 @@ export const withFall = (name: string, extra: Record<string, unknown>): HairStyl
   ) as HairStyle['pieces'],
 })
 /** A tilted head and loose hair, as sliders and a spring: a head tilted 15°, a drooping posture and a loose hair spring. */
-export const nurse = (def: CharacterDef): CharacterDef => ({
+export const tiltedLoose = (def: CharacterDef): CharacterDef => ({
   ...def,
   sliders: { ...def.sliders, headTilt: 15, posture: 0.52 },
   hair: { stiff: 14, damp: 2.6, trail: 0.55, bounce: 0.02 },
@@ -108,7 +108,7 @@ export const slight = (def: CharacterDef): CharacterDef => ({
 })
 /** The sheets, in the order the plan makes them. */
 export const SHEETS: Sheet[] = [
-  // F2: the shod foot's forms, on a charcoal shoe (the fixture kind `fxShod`, tests/unit/outfit/wardrobe-fixtures.ts).
+  // F2: the shod foot's forms, on a charcoal shoe (the fixture kind `fxShod`, tests/fixtures/wardrobe.ts).
   {
     name: 'shoes',
     rows: pair((def, who) =>
@@ -173,7 +173,7 @@ export const SHEETS: Sheet[] = [
     rows: BASE.slice(1).flatMap((b) =>
       (['head', 'trunk'] as const).map((rest) => ({
         label: `${b.def.id} rest ${rest}`,
-        def: nurse(hairOf(b.def, withFall('longFront', { rest }))),
+        def: tiltedLoose(hairOf(b.def, withFall('longFront', { rest }))),
       })),
     ),
     views: [0, 1, 2, 4],

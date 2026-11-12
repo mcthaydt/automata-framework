@@ -37,6 +37,7 @@ export type Rule =
   | 'alias-in-src'
   | 'browser-import'
   | 'forbidden-import'
+  | 'confined-import'
   | 'parse-error'
 
 export interface Finding {

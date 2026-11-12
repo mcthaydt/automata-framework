@@ -3,7 +3,7 @@ import { dirname, join, relative, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 /**
- * The module boundaries (docs/superpowers/specs/2026-11-05-base-pair-refactor-design.md, "Module boundaries"). The
+ * The module boundaries. The
  * renderer is a pipeline, so its features are layers, lowest first: a module imports only from its own layer and the
  * ones below it (src/shared/math only from itself); a feature's library JSON only from its own feature; nothing in
  * src/ from scripts/ or tests/; no module reaches itself round a cycle (type-only imports count); and no test sits

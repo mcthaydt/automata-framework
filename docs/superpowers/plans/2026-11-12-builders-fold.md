@@ -25,7 +25,7 @@ argues from their measurements. **Tracker:** [`../progress.md`](../progress.md),
 
 ## Tracking
 
-**15 of 28 tasks done (54%)** (tasks 9 to 12 done) (task 20 is conditional and counted only if the Owner chooses it). Audited 2026-11-12
+**16 of 28 tasks done (57%)** (tasks 1 to 13 done, with 4b to 4d) (task 20 is conditional and counted only if the Owner chooses it). Audited 2026-11-12
 ([plan audit](../audits/2026-11-12-builders-fold-plan-audit.md)): its fixes are in the steps below. Numbers 4b to 4d were
 added and 14 was moved to 4b after the Owner's answers of 2026-11-12, so the numbering has letters and a gap. Tick a
 task only when its checks passed in the session that did it; say what did not run.
@@ -471,12 +471,12 @@ From `origin/main`. One draft pull request, opened at the end of task 13. In eve
 **Files:**
 - Create: `docs/provenance/figures-manifest.json`
 
-- [ ] **Step 1: The baseline.** Attach `mcthaydt/FigureBuilder` and `mcthaydt/EnvironmentBuilder` read only first
+- [x] **Step 1: The baseline.** Attach `mcthaydt/FigureBuilder` and `mcthaydt/EnvironmentBuilder` read only first
   ("The archived sources"). `git submodule update --init`, `pnpm install --frozen-lockfile`, then `pnpm check`
   (expect exit 0), `pnpm --filter @automata/character-kit test:unit`,
   `AF_WEBGPU=software pnpm --filter @automata/character-kit test:browser`, `git count-objects -vH`. Time `pnpm check`
   and `pnpm test:unit` with `time`. Write every count and time in the log: they are what later tasks are held to.
-- [ ] **Step 2: The manifest.** With `$FB` at `$PIN`:
+- [x] **Step 2: The manifest.** With `$FB` at `$PIN`:
 
 ```bash
 node -e '
@@ -491,7 +491,7 @@ console.log(files.length)' "$FB" "$PIN"
 ```
 
   Expected output: `134` (47 in `src`, 1 in `base`, 73 in `tests`, 6 in `scripts`, 4 in `viewer`, 3 root files).
-- [ ] **Step 3: Commit.** `git add docs/provenance/figures-manifest.json`, then
+- [x] **Step 3: Commit.** `git add docs/provenance/figures-manifest.json`, then
   `chore(provenance): the figure painter's files at 23f889c8, by checksum`.
 
 **Done when:** the log holds the baseline numbers and the manifest lists 134 files.
@@ -799,7 +799,7 @@ not apply and is not brought: the re-record is made afresh here.
 
 **Goldens it moves, measured:** the plan session (fix on `23f889c8`, goldens and painter tests only): 4 tests in 3
 files. The plan audit (the whole suite, on the c5 picks with step 3b's fix, then the wardrobe merged, Node 24.21):
-**5 tests in 4 files**: the **actors** golden (`base-m`: 10 frames, `base-f`: 8, all `wave`), the **base** golden at
+**5 tests in 4 files**: the **actors** golden (`base-m`: 10 frames, `base-f`: 8: `wave`, `swing`, `punch`, two stands and `script`, 18 keys compared with `23f889c8` by the implementation audit), the **base** golden at
 density 1 (`base-m-hero-d1`: 9 bytes, the first at 6284), the **sprites** golden (`base-m-D1`), and
 `tests/features/stage/sheets.test.ts` ("the stage keeps the base goldens": `base-m hero0 at D1`, 3 texels), which
 reads the base golden's data and so moves with it. The lit and sprite goldens pass. Which of the **kit's** cells move was not measured: step 2 measures it.
@@ -1174,20 +1174,19 @@ prints nothing.
 - [x] **Step 6: The record.** This plan's tracking table and log; `docs/superpowers/progress.md`, workstream 6: what
   moved, what did not and why, the stops met. **What was not run, stated:** WebKit, Firefox, WebGPU on a real GPU,
   anything on arm64, the journeys of the reference game.
-- [ ] **Step 7:** Push; open a draft pull request,
+- [x] **Step 7:** Push; open a draft pull request,
   `feat(figures): the figure painter lives in the framework`. Its body: the Owner's decision quoted, the Owner's words for the workflows (task 4b) and for the
   re-record (task 4d) quoted, the manifest result, the suites and counts, the list of what was not run, and a request to the Owner for one run on
   arm64, on the framework's Node 24.21 (Node 22 and 24 differ in a last bit, task 5):
   `pnpm install && AF_UNIT_FULL=1 pnpm --filter @automata/figures test:unit`.
 
-**Step 7 is not done, by the coordinator's word:** no pull request is opened by the execution sessions; the merge
-session opens it with the final report (the log's last row) as its body.
+**Step 7 was the merge session's, by the coordinator's word:** the execution sessions open no pull request. It opened #661 and merged it (`4a505e86`); its required gate job was red when it merged (the implementation audit's B1).
 
 **Done when:** the pull request is open with every gate's result in it. *(Group 1's gates are all run and recorded; the pull request is the merge session's.)*
 
 ## Group 1b: the painter under the two strict flags (`claude/builders-fold-strict`)
 
-> **Added at task 8 (accepted by the coordinator):** 37 files carry a `// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task N …` line (N is the task of the file's folder: 21 `shared/math` and `shared/body`, 22 `shared/paint` but for `paint.ts`, 23 `paint.ts` and its parts, 24 `shared/lighting` and `shared/motion`, 25 `shared/hair` and `shared/outfit`, 26 `shared/figure` and `shared/base`, 27 `shared/actors`, `shared/stage`, `features/view`, `scripts/` and `viewer/`; the tests follow their folder). Each task removes that line from its folder's files and replaces each `!` with a check; task 27 ends with `grep -rn "biome-ignore-all lint/style/noNonNullAssertion" extensions/figures` printing nothing. The three test files that read a private member by bracket keep their `useLiteralKeys` line.
+> **Added at task 8 (accepted by the coordinator), made true by the implementation audit's stage 6:** 56 files carried a `// biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task N …` line (reworded in stage 6 to "until the strict flags … replace each with a check", because a comment says why and not which plan: the lists under tasks 22 to 27 name the files) (task 8 counted 37: task 9's splits and task 11's new files copied the header). Measured with the lines stripped (`biome lint --only=style/noNonNullAssertion`): **173** `!` in **43** files, and the other 13 carried the line for nothing; those 13 headers are removed (Biome passes without them, no value moved). **43 files carry it now** (N is the task of the file's folder: 21 `shared/math` and `shared/body`, which hold none; 22 `shared/paint`'s `raster.ts`, `row.ts` and their tests; 23 `paint-*.ts`; 24 `shared/lighting` and `shared/motion`; 25 `shared/hair` and `shared/outfit`; 26 `shared/figure`; 27 `shared/actors`, `shared/stage`, `features/view` and the fixtures; the tests follow their folder). Each task removes that line from its files and replaces each `!` with a check; task 27 ends with `grep -rn "biome-ignore-all lint/style/noNonNullAssertion" extensions/figures` printing nothing. The three test files that read a private member by bracket keep their `useLiteralKeys` line. The files by task are listed under each task below.
 
 From `origin/main` after group 1 merged, and before workstream 4's wardrobe branch starts. One draft pull request at
 the end of task 27. The ledger is under "What this plan settles", 3.
@@ -1254,7 +1253,7 @@ it('an index an array must hold reads as the element, and outside it says which 
   printed in milliseconds. Add `"bench": "AF_BENCH=1 vitest run --project bench"` to the package's scripts, as
   `packages/3d` has it. Run it three times and record the medians: the baseline for every folder after.
 - [ ] **Step 4:** Fix the two folders by the rules; the strict project reports 0 errors; the checks of "After each
-  folder"; commit.
+  folder"; commit. (No file of these two folders carries the `noNonNullAssertion` header: they hold no `!`.)
 
 ### Tasks 22 to 26: one folder group each
 
@@ -1263,16 +1262,16 @@ naming the folders:
 
 - [ ] **Task 22:** `src/shared/paint` but for `paint.ts` and the parts task 9 split from it (`raster.ts`,
   `fabric.ts`, `duel-ramps.ts`, `row.ts`). The rasteriser's inner loops are the first place a checked reader costs
-  time: measure before going further.
-- [ ] **Task 23:** `src/shared/paint/paint.ts` and its parts (511 at `23f889c8`, the largest). One commit a part.
-- [ ] **Task 24:** `src/shared/lighting`, `src/shared/motion`.
-- [ ] **Task 25:** `src/shared/hair`, `src/shared/outfit`.
-- [ ] **Task 26:** `src/shared/figure`, `src/shared/base`.
+  time: measure before going further. Header to remove from: `src/shared/paint/raster.ts`, `src/shared/paint/row.ts`, `tests/unit/paint/fabric.test.ts`, `tests/unit/paint/materials.test.ts`.
+- [ ] **Task 23:** `src/shared/paint/paint.ts` and its parts (511 at `23f889c8`, the largest). One commit a part. Header to remove from: `src/shared/paint/paint-budget.ts`, `src/shared/paint/paint-colour.ts`, `src/shared/paint/paint-detail.ts`, `src/shared/paint/paint-hands.ts`, `src/shared/paint/paint-style.ts`, `src/shared/paint/paint-tones.ts` (`paint.ts`, `paint-face.ts` and `paint-stamp.ts` held no `!` and have lost theirs).
+- [ ] **Task 24:** `src/shared/lighting`, `src/shared/motion`. Header to remove from: `src/shared/lighting/light.ts`, `src/shared/lighting/sprite.ts`, `src/shared/motion/motion-gait.ts`, `src/shared/motion/motion-stand.ts`, `tests/unit/lighting/sprite.test.ts`, `tests/unit/motion/form.test.ts`, `tests/unit/motion/stand.test.ts`.
+- [ ] **Task 25:** `src/shared/hair`, `src/shared/outfit`. Header to remove from: `src/shared/outfit/garments.ts`, `tests/unit/hair/hang.test.ts`, `tests/unit/hair/hooks.test.ts`, `tests/unit/hair/options.test.ts`, `tests/unit/hair/standoff.test.ts`, `tests/unit/outfit/faces.test.ts`, `tests/unit/outfit/fit.test.ts`, `tests/unit/outfit/shoe-form.test.ts`.
+- [ ] **Task 26:** `src/shared/figure`, `src/shared/base`. Header to remove from: `src/shared/figure/figure-build.ts`, `src/shared/figure/figure.ts`, `tests/unit/figure/cloth.test.ts`, `tests/unit/figure/eyes.test.ts`.
 
 ### Task 27: `shared/actors`, `shared/stage`, the view; the flags on; the declarations step goes; the pull request
 
 - [ ] **Step 1:** The last folders (`src/shared/actors`, `src/shared/stage`, `src/features/view`, `src/entries`), as
-  above.
+  above. Header to remove from: `src/features/view/cell-sprite.ts`, `src/features/view/stage-view.ts`, `src/shared/actors/actor.ts`, `src/shared/stage/pose.ts`, `src/shared/stage/stage.ts`, `tests/fixtures/view-cases.ts`, `tests/fixtures/view-draw.ts`, `tests/unit/golden/lit.ts`, `tests/unit/golden/sprite.ts`, `tests/unit/golden/sprites.ts`, `tests/unit/stage/depth-cases.test.ts`, `tests/unit/stage/light.test.ts`, `tests/unit/stage/sheets.test.ts`, `tests/unit/view/template.test.ts`.
 - [ ] **Step 2: The flags on for good.** Remove the two `false` lines and their comment from `tsconfig.json`; delete
   `tsconfig.strict.json`; `pnpm --filter @automata/figures typecheck`: 0 errors, tests and scripts included (fix
   what the tests show by the same rules).
@@ -1282,7 +1281,7 @@ naming the folders:
   imports it compile against the painter's source with the framework's base, 0 errors.
 - [ ] **Step 4: No escape was used.** `git diff <the commit before task 21> HEAD -- extensions/figures/src | grep -E
   "^\+" | grep -cE " as [A-Z]|[a-z\])]!\.|[a-z\])]!\[|\?\? 0\b"` prints `0`, and
-  `grep -rn "biome-ignore" extensions/figures/src` shows none that names a strict task.
+  `grep -rn "biome-ignore-all lint/style/noNonNullAssertion" extensions/figures` prints nothing.
 - [ ] **Step 5: The close.** `git merge origin/main`; `pnpm build`; `pnpm api-report`; `pnpm api-index`; the whole
   `pnpm check`; Chromium, software GL: the painter's and the kit's `test:browser`, `pnpm test:journeys:3d`; the
   times against task 21's baseline. The ledger's table filled, every row 0. `progress.md`. **Not run, stated:**
@@ -1552,3 +1551,4 @@ pin.
 | 2026-11-12 | Task 13, steps 1 to 3 and the browser half of step 4 (fifth session) | `origin/main` had nothing new (merge: already up to date). `pnpm build` exit 0 (16 tasks, 24 s). `pnpm api-report`: 6 core packages, 0 API breaks against the base, 0 undeclared; `pnpm api-index`: 1300 exports from 49 entry points, 0 undocumented: **nothing to update** (no published package's exports changed; `git status` clean after both). `pnpm exec changeset status --since=origin/main` (the plain `changeset status` needs a local `main`, which a session branch lacks; the repository's own script passes `--since=origin/main`): no package to bump. **The whole `pnpm check`, uncached (`TURBO_FORCE=true pnpm check`): exit 0, 13m22s** (task 1's baseline: 11m56s cold; this tree has the painter's whole suite in it, 53 files, 723 tests, and the browser suite is not part of `pnpm check`). Chromium with the software adapter on the final tree: the painter's `test:browser` 2 files, 227 tests pass (54 s); the kit's `browser (chromium)` and `webgpu` projects 7 files, 58 tests pass, 3 files skipped by design (the gate's sheets), 25 s. **Not yet run:** `pnpm test:journeys:3d`, the fresh-clone check, `git count-objects` against task 1's, the painter's five clean unit runs and the final record (see the handoff row) |
 | 2026-11-12 | Task 13, step 5 and the handoff at 90 minutes (fifth session) | **The fresh clone passes:** a plain `git clone --branch claude/builders-fold-figures` of the pushed `eedc31cfa` (17 s), `ls .gitmodules vendor/figure-builder vendor/FigureBuilder` finds none of them, `pnpm install --frozen-lockfile` (no manual step), then `pnpm check` exit 0 (13m41s, uncached: a fresh clone has no cache). This is the spec's first "done" line. `git count-objects -vH`: the working repository 347.36 MiB packed, the fresh clone 349.23 MiB; task 1's "pack 275.69 MiB" was taken earlier, with another `main` and perhaps another set of refs, so the two numbers are not measured on the same thing and no growth is claimed from them (the painter's whole history is 1.03 MiB, measured in task 2). **Resume at:** (1) `pnpm test:journeys:3d` (step 4's remaining item; not run: it was not reached); (2) five clean runs of `AF_UNIT_FULL=1 pnpm --filter @automata/figures test:unit` (about 4 minutes each; four quiet runs passed earlier on this branch, 3m48s to 4m01s, and the whole check ran the same tests twice today); (3) the painter's `view-check` is now the browser suite, run today (227 pass, `AF_WEBGPU=software`); (4) then tick task 13 (its steps 1 to 5 and 6 are done but for the journeys and the five runs; step 7's pull request is not opened by the coordinator's word) and send the merge session's report. Scratch worktrees, the filtered clone and the fresh clone were removed |
 | 2026-11-12 | Task 13, the close (sixth session; stage 4, group 1 done) | `origin/main` still `924a26ef7` (merged; nothing to do). Node 24.22.1 (this container's `/opt/node24`; the package asks for 24.21 or later), `pnpm install --frozen-lockfile` exit 0. **`pnpm test:journeys:3d`:** the script runs the `journeys` project's two engines; WebKit does not exist here (`Executable doesn't exist at /opt/pw-browsers/webkit-2359/pw_run.sh`, exit 1 before any test ran), so the Chromium instance was run alone (`vitest run --project 'journeys (chromium)'`, the script's three timeouts): 3 files, 16 tests pass, 32 s; the WebKit instance did not run. Not a failure of the tree: nothing was tried against `origin/main`, because nothing ran to fail. **Five clean runs of `AF_UNIT_FULL=1 pnpm --filter @automata/figures test:unit`, one at a time, nothing else running:** 53 files, 723 tests, all pass, in 232.3 s, 226.1 s, 220.6 s, 216.2 s, 212.8 s (wall clock 3m54s, 3m47s, 3m41s, 3m37s, 3m34s); no failure, no timeout, no wrong value, no md5 or golden moved; `git status` clean after them. **Repository size, measured:** `git rev-list --objects origin/main..HEAD` is 3,068 objects, **2,150,686 bytes on disk (2.05 MiB)** and 22.8 MB uncompressed, in a clone unshallowed for the purpose (the coordinator measured about 2.7 MiB on its own pack; the difference was not investigated; both are far under the 5 MB stop). The ten largest by size on disk: `pnpm-lock.yaml` 126,032; the turned-face sheet `docs/superpowers/audits/2026-11-12-builders-fold-survey/turned-face/actors-base-m.png` 96,277 and `actors-base-f.png` 73,666; this plan 54,658 and 18,263 (two versions); `extensions/figures/src/shared/paint/paint.ts` 49,122; `extensions/figures/src/features/paint/paint.ts` 46,765; `extensions/figures/src/shared/hair/hair.ts` 22,765; `docs/archive/figure-painter/c9-wardrobe/2026-11-11-c9-wardrobe.md` 20,706; `extensions/figures/src/shared/figure/figure.ts` 17,683. **The painter's history arrived at the size the plan expected:** the plan said about 2 MB of growth and a stop above 5 MB (the risks table); this is 2.05 MiB, nothing that is not code or a document came across, and the painter's own history is 1.03 MiB of it (task 2). Task 1's baseline `pack 275.69 MiB` is still not comparable with a later `git count-objects` (another `main`, other refs: this container's fresh full clone with all tags is 360.17 MiB packed), so no growth is claimed from it. **Found while writing the report:** the root `package.json` on this branch no longer has `@pixi/3d` and `pixi.js`: task 4 step 3 removed them on purpose (task 4's row; `pnpm check` and the kit's Chromium suite pass without them); a merge session told to expect them untouched must not. Not run: WebKit (so half of the journeys), Firefox, arm64, a real GPU. No pull request. |
+| 2026-11-12 | Stage 6, the implementation audit's fixes (no subagents) | The records this plan keeps are made true (audit S5): tasks 1 and 13 step 7 ticked, 16 of 28, the strict ledger's `biome-ignore-all` count (56 carried it, 43 have a `!`, 173 in all; the 13 dead headers are removed, the 43 reworded to say why) and the files by task (22 to 27) listed under each task; the 4d key names. The other findings are in [the audit's Fixes section](../audits/2026-11-12-builders-fold-implementation-audit.md): the runway recorder's paths, the submodule invariant, the source names in `src`, `references.test.ts`, `--confine` for the kit's door, one ulp nudge, the helpers in `tests/fixtures`. No golden, recorded cell, md5 or hash moved. Not run: WebKit, Firefox, a real GPU, arm64, `goldens:runway` |

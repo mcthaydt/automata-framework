@@ -6,7 +6,7 @@ import type { StyleFinding } from './style.ts'
 
 /**
  * The ways a plan is cited: a milestone number with an optional decision (an M, digits, a dot and more digits, a
- * dash and a letter with digits), a plan code with an upper-case prefix and a number, a numbered task, a spec or plan named by number, or a
+ * dash and a letter with digits), a plan code with an upper-case prefix and a number, a numbered task, a numbered task of a named plan, a spec or plan named by number, or a
  * section sign. They say which plan, not why.
  */
 export const PLAN_REFERENCE: RegExp = new RegExp(
@@ -21,6 +21,9 @@ export const PLAN_REFERENCE: RegExp = new RegExp(
     // A spec or plan named with a number or a code (prose that merely says "the spec" or "a plan" has none).
     String.raw`\b[Ss]pec\s+(?:\d|[A-Z]{1,2}-?\d)`,
     String.raw`\b[Pp]lan\s+\d+\.\d`,
+    // A numbered task (or a range) of a named plan, and that plan's ledger.
+    String.raw`\b[Tt]asks?\s+\d+(?:\s+(?:to|and)\s+\d+)?\s+of\s+the\s+[\w-]+\s+plan\b`,
+    String.raw`\b\w+-[\w-]+\s+plan(?:'s)?\s+ledger\b`,
   ].join('|'),
 )
 export const PLAN_MESSAGE =

@@ -4,7 +4,14 @@
 // (`demo/runway/wardrobe.ts`, `cb4aa9f`), which was written against an older main: where `Wearing`, `Fit` or `Body` moved, the
 // types here are main's. H2 (`registerOutfitHooks`) is not used: no kind here needs more than a kind's own `build`.
 import { type GarmentKind, GROUP, J, lerp, registerGarment } from '../../shared/figures/door.ts'
-import { registerAccessories } from './accessories.ts'
+import {
+  type Belt,
+  type Cap,
+  type EyeMarks,
+  registerAccessories,
+  type Stockings,
+  type Waistcoat,
+} from './accessories.ts'
 import {
   collarBand,
   frontAt,
@@ -102,6 +109,11 @@ declare module '@automata/figures' {
     jeans: Jeans
     trousers: Trousers
     shoes: Shoes
+    eyeMarks: EyeMarks
+    waistcoat: Waistcoat
+    legs: Stockings
+    belt: Belt
+    cap: Cap
   }
 }
 
