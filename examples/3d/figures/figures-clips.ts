@@ -10,7 +10,7 @@
 // Tier: core
 import '@automata/3d/no-eval'
 import { createPixi3dRenderer, figure, render3dExtension } from '@automata/3d'
-import type { Ease, FigureClipDef, FigureDef, MotionLibrary, Swatch, Vec3 } from '@automata/3d/figures'
+import type { FigureClipDef, FigureDef, MotionLibrary, Swatch, Vec3 } from '@automata/3d/figures'
 import { CameraHeading, cameraView, enterView, START } from '@automata/3d/sim'
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
 
@@ -56,7 +56,7 @@ const poses = {
 } as const
 
 // The fixture clips (figure-clips/*.toml): keys at seconds into the clip, a mask of the parts each moves.
-const key = (t: number, pose: string, ease?: Ease) => ({ t, pose, ease })
+const key = (t: number, pose: string, ease?: FigureClipDef['keys'][number]['ease']) => ({ t, pose, ease })
 const reach: FigureClipDef = {
   ...{ length: 1.4, loop: 'once', mask: ['armR', 'torso'] },
   keys: [key(0, 'free'), key(0.49, 'reach-out', 'inOut'), key(1.008, 'reach-out'), key(1.4, 'free', 'inOut')],
