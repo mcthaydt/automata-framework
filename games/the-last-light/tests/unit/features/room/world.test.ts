@@ -337,7 +337,8 @@ describe('the corridor’s exit sign', () => {
   })
 
   it('glows green and lights the wall round it', () => {
-    expect(pieces.every((piece) => LIBRARY.swatches[piece.surface] !== undefined)).toBe(true)
+    // (A swatch the library lacks is a `problems` entry: the walls' test of unknown swatches covers the sign's two.)
+    expect(WORLD.problems.map((problem) => problem.message)).toEqual([])
     expect(LIBRARY.swatches['exit-green']).toMatchObject({ emit: true })
     const lamp = WORLD.lamps.find((each) => each.prop === 'exit-sign')
     expect(lamp, 'a lamp of the sign’s own').toBeDefined()
