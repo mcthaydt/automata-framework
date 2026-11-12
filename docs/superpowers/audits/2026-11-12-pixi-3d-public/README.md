@@ -8,14 +8,14 @@ package and lifting the rule against deploying 3D builds: "yes, move to the publ
 
 ## Tracking
 
-| Step | What                                                                                                                | State           | Evidence             |
-| ---- | ------------------------------------------------------------------------------------------------------------------- | --------------- | -------------------- |
-| 0    | Verify the premise: is `@pixi/3d` on npmjs.org without a token, and is it the vendored package                      | done 2026-11-12 | [§0](#0-the-premise) |
-| 1    | Inventory of everything the closed beta shaped                                                                      | done 2026-11-12 | [§1](#1-inventory)   |
-| 2    | The move: registry dependency, tarballs gone, rules lifted, docs updated                                            | not started     |                      |
-| 3    | Proof: format, uncached check, build, 3D suites and journeys, the stranger's install, secrets, API report and index | not started     |                      |
+| Step | What | State | Evidence |
+| --- | --- | --- | --- |
+| 0 | Verify the premise: is `@pixi/3d` on npmjs.org without a token, and is it the vendored package | done 2026-11-12 | [§0](#0-the-premise) |
+| 1 | Inventory of everything the closed beta shaped | done 2026-11-12 | [§1](#1-inventory) |
+| 2 | The move: registry dependency, tarballs gone, rules lifted, docs updated | done 2026-11-12 | [§2](#2-the-move) |
+| 3 | Proof: format, uncached check, build, 3D suites and journeys, the stranger's install, secrets, API report and index | not started |  |
 
-Progress: 2 of 4 steps (50%).
+Progress: 3 of 4 steps (75%); step 3 in progress.
 
 ## 0. The premise
 
@@ -59,87 +59,87 @@ under `docs/archive/`, `docs/refactor/` and earlier `docs/superpowers/` audits, 
 
 ### A. Install plumbing
 
-| Where                                                                                                                                                 | What                                                                                                          | Why it exists                                        | Change                                                     |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------- |
-| `vendor/pixi-3d/pixi-3d-0.1.0-beta.3.tgz`                                                                                                             | the tarball 8 packages install                                                                                | the beta was not on npm (`vendor/pixi-3d/README.md`) | delete                                                     |
-| `vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz`                                                                                                             | used by nothing (the README says so)                                                                          | kept as the beta.3 port's reference                  | delete                                                     |
-| `vendor/pixi-3d/README.md`, `LICENSE`                                                                                                                 | the tarballs' record; the licence text is in the npm package                                                  | same                                                 | delete                                                     |
-| `vendor/pixi-3d/release-notes-0.1.0-beta.3.txt`                                                                                                       | beta.3's notes, the port's authority                                                                          | saved from the invite-only release page              | move beside this record (history cites the old path)       |
-| `packages/3d`, `packages/editor-3d`, `games/base-3d`, `extensions/character-kit`, `figures`, `world-kit`, `lcd-panel`, `retro-crisp` (`package.json`) | `"@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.3.tgz"`                                            | the tarball                                          | `"0.1.0-beta.3"` from the registry                         |
-| `pnpm-lock.yaml`                                                                                                                                      | 8 importers and 2 package entries name `file:vendor/pixi-3d/…`                                                | the tarball                                          | `pnpm install`; only `@pixi/3d` entries may move           |
-| `packages/tools/src/shared/create-game/template-3d.ts`                                                                                                | a game made inside the workspace (`linkWorkspace`) gets the tarball; outside, `PIXI_3D_SPEC` (`0.1.0-beta.3`) | the tarball                                          | always `PIXI_3D_SPEC`; its comment loses "the closed beta" |
-| `tooling/consumer-smoke/src/commands.ts` (`pack3d`)                                                                                                   | the 3D stranger's game overrides `@pixi/3d` to the vendored tarball                                           | the tarball                                          | no override: the game installs `@pixi/3d` from npmjs.org   |
-| `tooling/repo-hygiene/tests/unit/workflow-invariants.test.ts:121`                                                                                     | pins `vendor/pixi-3d/**` in `3d.yml`'s path filter                                                            | the folder                                           | drop the entry (test first), with the workflow line        |
-| `.github/workflows/3d.yml:22`                                                                                                                         | `- "vendor/pixi-3d/**"` in the pull-request paths                                                             | the folder                                           | remove the line (its own commit)                           |
-| `.npmrc`, `pnpm-workspace.yaml`, root overrides, patches                                                                                              | none of them names `@pixi/3d`                                                                                 |                                                      | none                                                       |
-| secrets allowlists (`tooling/repo-hygiene/src/secrets.ts` and its config)                                                                             | none names the tarballs                                                                                       |                                                      | none                                                       |
+| Where | What | Why it exists | Change |
+| --- | --- | --- | --- |
+| `vendor/pixi-3d/pixi-3d-0.1.0-beta.3.tgz` | the tarball 8 packages install | the beta was not on npm (`vendor/pixi-3d/README.md`) | delete |
+| `vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz` | used by nothing (the README says so) | kept as the beta.3 port's reference | delete |
+| `vendor/pixi-3d/README.md`, `LICENSE` | the tarballs' record; the licence text is in the npm package | same | delete |
+| `vendor/pixi-3d/release-notes-0.1.0-beta.3.txt` | beta.3's notes, the port's authority | saved from the invite-only release page | move beside this record (history cites the old path) |
+| `packages/3d`, `packages/editor-3d`, `games/base-3d`, `extensions/character-kit`, `figures`, `world-kit`, `lcd-panel`, `retro-crisp` (`package.json`) | `"@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.3.tgz"` | the tarball | `"0.1.0-beta.3"` from the registry |
+| `pnpm-lock.yaml` | 8 importers and 2 package entries name `file:vendor/pixi-3d/…` | the tarball | `pnpm install`; only `@pixi/3d` entries may move |
+| `packages/tools/src/shared/create-game/template-3d.ts` | a game made inside the workspace (`linkWorkspace`) gets the tarball; outside, `PIXI_3D_SPEC` (`0.1.0-beta.3`) | the tarball | always `PIXI_3D_SPEC`; its comment loses "the closed beta" |
+| `tooling/consumer-smoke/src/commands.ts` (`pack3d`) | the 3D stranger's game overrides `@pixi/3d` to the vendored tarball | the tarball | no override: the game installs `@pixi/3d` from npmjs.org |
+| `tooling/repo-hygiene/tests/unit/workflow-invariants.test.ts:121` | pins `vendor/pixi-3d/**` in `3d.yml`'s path filter | the folder | drop the entry (test first), with the workflow line |
+| `.github/workflows/3d.yml:22` | `- "vendor/pixi-3d/**"` in the pull-request paths | the folder | remove the line (its own commit) |
+| `.npmrc`, `pnpm-workspace.yaml`, root overrides, patches | none of them names `@pixi/3d` |  | none |
+| secrets allowlists (`tooling/repo-hygiene/src/secrets.ts` and its config) | none names the tarballs |  | none |
 
 ### B. Packages private because of `@pixi/3d`
 
 Not changed here (the Owner's launch decision). Listed in §4 with what publishing each would need.
 
-| Package                                                                         | How I know                                                                                                                                                                                                                                                       |
-| ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@automata/3d` (`packages/3d`)                                                  | `package.json` description "Private until Pixi 3D is public"; README; `src/entries/index.ts` ("Private while D-1 stands"); `tooling/release/tests/unit/release-list.test.ts` (`@automata/3d` (D-1)); `examples-runner/src/catalog.ts` (`UNPUBLISHED_EXTENSIONS`) |
-| `@automata/editor-3d`                                                           | depends on `@pixi/3d` and `@automata/3d`; the guard on `packages/editor` (`--forbid packages/editor:@pixi/3d,@automata/editor-3d,@automata/3d`) keeps it out of the published 2D editor                                                                          |
-| `@automata/cutscenes`, `character-kit`, `world-kit`, `lcd-panel`, `retro-crisp` | `examples-runner/src/catalog.ts`: "build on `@automata/3d`, so they wait for it"                                                                                                                                                                                 |
-| `@automata/figures`                                                             | `extensions/figures/README.md` ("closed beta… keep it, and every build of the viewer, private"); `closed-beta-guard.test.ts` names it with `@pixi/3d`                                                                                                            |
-| `@af-games/base-3d`                                                             | a game (never published as a package); its _builds_ were private, see C                                                                                                                                                                                          |
+| Package | How I know |
+| --- | --- |
+| `@automata/3d` (`packages/3d`) | `package.json` description "Private until Pixi 3D is public"; README; `src/entries/index.ts` ("Private while D-1 stands"); `tooling/release/tests/unit/release-list.test.ts` (`@automata/3d` (D-1)); `examples-runner/src/catalog.ts` (`UNPUBLISHED_EXTENSIONS`) |
+| `@automata/editor-3d` | depends on `@pixi/3d` and `@automata/3d`; the guard on `packages/editor` (`--forbid packages/editor:@pixi/3d,@automata/editor-3d,@automata/3d`) keeps it out of the published 2D editor |
+| `@automata/cutscenes`, `character-kit`, `world-kit`, `lcd-panel`, `retro-crisp` | `examples-runner/src/catalog.ts`: "build on `@automata/3d`, so they wait for it" |
+| `@automata/figures` | `extensions/figures/README.md` ("closed beta… keep it, and every build of the viewer, private"); `closed-beta-guard.test.ts` names it with `@pixi/3d` |
+| `@af-games/base-3d` | a game (never published as a package); its _builds_ were private, see C |
 
 ### C. Rules that refuse or skip a build that carries `@pixi/3d` (the deploy rule)
 
-| Where                                                                                                                                      | Rule                                                                                                                                                                                                                                                                                            | Change                                                                                                                                                                       |
-| ------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `packages/tools/src/shared/ship/prepare/build-scans.ts` (`scanBuild`)                                                                      | a `public` build that carries `@pixi/3d` fails with `Pixi3dInPublicBuild` (X-b); used by Ruken, itch.io, web and desktop                                                                                                                                                                        | lift: no build is refused for `@pixi/3d`; the `./extras` refusal (no-eval CSP, S7-g) stays                                                                                   |
-| `packages/tools/src/shared/ship/errors.ts`                                                                                                 | `Pixi3dInPublicBuild`; `PrivatePublishNotLocal`'s message gives the beta as the reason                                                                                                                                                                                                          | remove the first; reword the second (a private build is one the author keeps local)                                                                                          |
-| `packages/tools/src/shared/ship/prepare/pixi3d-markers.ts`                                                                                 | header: "the closed-beta guard… when Pixi 3D is public, the core markers' check goes"                                                                                                                                                                                                           | the core markers stay (the published-package guard and the bundle test use them); header says what they are for now                                                          |
-| `prepare-build.ts`, `publish-build.ts`, `cli-args.ts`, `config/ship-config.ts`, `targets/{itch,web,tauri}/prepare-*.ts`, `app/ship-cli.ts` | doc comments and error unions name the closed beta                                                                                                                                                                                                                                              | drop `Pixi3dInPublicBuild` from the unions; reword. `audience` and `publish --private` stay as a choice an author makes (kept off the store), no longer forced by `@pixi/3d` |
-| `games/base-3d/ship.config.ts`                                                                                                             | `audience: 'private'` "the scene carries @pixi/3d, a closed beta (D-1)": CI's `prepare` writes no `ruken.toml`                                                                                                                                                                                  | remove: base-3d prepares as any game                                                                                                                                         |
-| `site/scripts/scan-closed-beta.ts` (last step of the site's `build`)                                                                       | refuses any page carrying `@pixi/3d` or its extras                                                                                                                                                                                                                                              | keep only the extras check (the CSP reason); rename to `scan-pixi3d-extras.ts`                                                                                               |
-| `site/scripts/check-launch.ts` (`pixiPublicProblems`)                                                                                      | the site's deploy waits until `@pixi/3d` is on npmjs.org                                                                                                                                                                                                                                        | remove (it is, and the reason, "its terms allow no public deployment", is gone)                                                                                              |
-| tests that encode the above                                                                                                                | `prepare-build.test.ts` ("stops a public build that contains @pixi/3d"), `build-scans.test.ts`, `prepare-itch.test.ts`, `prepare-web.test.ts`, `prepare-tauri` tests, `publish-build.test.ts`, `site/tests/unit/scripts/scan-closed-beta.test.ts`, `build-script.test.ts`, `check-launch` tests | inverted first: a public build that carries `@pixi/3d` is prepared; one with its extras is still refused                                                                     |
+| Where | Rule | Change |
+| --- | --- | --- |
+| `packages/tools/src/shared/ship/prepare/build-scans.ts` (`scanBuild`) | a `public` build that carries `@pixi/3d` fails with `Pixi3dInPublicBuild` (X-b); used by Ruken, itch.io, web and desktop | lift: no build is refused for `@pixi/3d`; the `./extras` refusal (no-eval CSP, S7-g) stays |
+| `packages/tools/src/shared/ship/errors.ts` | `Pixi3dInPublicBuild`; `PrivatePublishNotLocal`'s message gives the beta as the reason | remove the first; reword the second (a private build is one the author keeps local) |
+| `packages/tools/src/shared/ship/prepare/pixi3d-markers.ts` | header: "the closed-beta guard… when Pixi 3D is public, the core markers' check goes" | the core markers stay (the published-package guard and the bundle test use them); header says what they are for now |
+| `prepare-build.ts`, `publish-build.ts`, `cli-args.ts`, `config/ship-config.ts`, `targets/{itch,web,tauri}/prepare-*.ts`, `app/ship-cli.ts` | doc comments and error unions name the closed beta | drop `Pixi3dInPublicBuild` from the unions; reword. `audience` and `publish --private` stay as a choice an author makes (kept off the store), no longer forced by `@pixi/3d` |
+| `games/base-3d/ship.config.ts` | `audience: 'private'` "the scene carries @pixi/3d, a closed beta (D-1)": CI's `prepare` writes no `ruken.toml` | remove: base-3d prepares as any game |
+| `site/scripts/scan-closed-beta.ts` (last step of the site's `build`) | refuses any page carrying `@pixi/3d` or its extras | keep only the extras check (the CSP reason); rename to `scan-pixi3d-extras.ts` |
+| `site/scripts/check-launch.ts` (`pixiPublicProblems`) | the site's deploy waits until `@pixi/3d` is on npmjs.org | remove (it is, and the reason, "its terms allow no public deployment", is gone) |
+| tests that encode the above | `prepare-build.test.ts` ("stops a public build that contains @pixi/3d"), `build-scans.test.ts`, `prepare-itch.test.ts`, `prepare-web.test.ts`, `prepare-tauri` tests, `publish-build.test.ts`, `site/tests/unit/scripts/scan-closed-beta.test.ts`, `build-script.test.ts`, `check-launch` tests | inverted first: a public build that carries `@pixi/3d` is prepared; one with its extras is still refused |
 
 ### D. Rules about _published packages_ (kept; the Owner's launch decision)
 
 These keep `@pixi/3d` out of what AF publishes to npm, not out of games. They stay until the Owner decides which 3D packages ship;
 their wording loses "closed beta".
 
-| Where                                                                                   | Rule                                                                                                                                  |
-| --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| root `package.json` `boundaries`                                                        | `--forbid <every published package>:@pixi/3d,@automata/figures`; `--forbid packages/editor:@pixi/3d,@automata/editor-3d,@automata/3d` |
-| `tooling/release/tests/unit/closed-beta-guard.test.ts`                                  | every publishable package is in that `--forbid` list                                                                                  |
-| `tooling/release/tests/unit/release-list.test.ts`                                       | `@automata/3d` is not publishable (D-1)                                                                                               |
-| `packages/tools/scripts/copy-editor.ts` (+ test)                                        | `-tools`' build refuses to copy an editor build that carries `@pixi/3d` ("the private Pixi 3D beta… cannot be published")             |
-| `packages/tools/src/shared/create-game/three-d-gate.ts` (+ test), `stranger-3d.test.ts` | `create-game --template 3d` is behind `AF_BETA_3D=1` outside the workspace because `@automata/3d` is not on npm                       |
-| `site/playground/build.ts`, `site/playground/src/playground-catalog.ts`                 | the playground leaves out unpublished extensions' examples and The Last Light's models                                                |
+| Where | Rule |
+| --- | --- |
+| root `package.json` `boundaries` | `--forbid <every published package>:@pixi/3d,@automata/figures`; `--forbid packages/editor:@pixi/3d,@automata/editor-3d,@automata/3d` |
+| `tooling/release/tests/unit/closed-beta-guard.test.ts` | every publishable package is in that `--forbid` list |
+| `tooling/release/tests/unit/release-list.test.ts` | `@automata/3d` is not publishable (D-1) |
+| `packages/tools/scripts/copy-editor.ts` (+ test) | `-tools`' build refuses to copy an editor build that carries `@pixi/3d` ("the private Pixi 3D beta… cannot be published") |
+| `packages/tools/src/shared/create-game/three-d-gate.ts` (+ test), `stranger-3d.test.ts` | `create-game --template 3d` is behind `AF_BETA_3D=1` outside the workspace because `@automata/3d` is not on npm |
+| `site/playground/build.ts`, `site/playground/src/playground-catalog.ts` | the playground leaves out unpublished extensions' examples and The Last Light's models |
 
 ### E. Words that say 3D is private, cannot be deployed or needs the tarball
 
-| Where                                                                                                                               | Change                                                                                                     |
-| ----------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `docs/guides/3d.md` (banner, "Publishing")                                                                                          | 3D builds publish like 2D ones; `@automata/3d` is not on npm yet, so the template is behind `AF_BETA_3D=1` |
-| `docs/guides/publish-to-web.md:18`                                                                                                  | drop "the private Pixi 3D beta" from what the scan refuses                                                 |
-| `docs/README.md:16`                                                                                                                 | `packages/3d` "not published yet" in place of "private until Pixi 3D is public"                            |
-| `docs/runbook.md` (step 6, the `check:launch` list)                                                                                 | Pixi 3D is public; the step is done                                                                        |
-| `docs/versions.md` (`@pixi/3d`, `pixi.js` rows), `docs/stack.md` (`pnpm docs:stack`)                                                | from npmjs.org, not the vendored tarball                                                                   |
-| `docs/adr/0002-pixi-for-2d-and-3d.md:20`                                                                                            | an amendment line: public on npm, MIT, the deploy rule lifted                                              |
-| `docs/adr/0007-3d-look.md:98`                                                                                                       | history; left                                                                                              |
-| `packages/3d/README.md`, `packages/3d/package.json` (description), `src/entries/index.ts`, `src/entries/camera-view.ts`             | not published yet; no "closed beta" or "vendored"                                                          |
-| `extensions/figures/README.md:12`                                                                                                   | from npm; the package stays private (the Owner's)                                                          |
-| `tooling/examples-runner/src/catalog.ts` (+ test comment), `tooling/consumer-smoke/src/commands.ts`, `stranger-3d.test.ts` comments | "not published yet", not "until Pixi 3D is public"                                                         |
-| `agents/automata/skills/automata-api/reference/api.md`                                                                              | generated (`pnpm api-index --write`) from the doc comments above                                           |
-| `docs/superpowers/progress.md:284`                                                                                                  | the refusal is lifted                                                                                      |
-| `docs/provenance/sources.md:647`                                                                                                    | history of where The Last Light's copy came from; left                                                     |
+| Where | Change |
+| --- | --- |
+| `docs/guides/3d.md` (banner, "Publishing") | 3D builds publish like 2D ones; `@automata/3d` is not on npm yet, so the template is behind `AF_BETA_3D=1` |
+| `docs/guides/publish-to-web.md:18` | drop "the private Pixi 3D beta" from what the scan refuses |
+| `docs/README.md:16` | `packages/3d` "not published yet" in place of "private until Pixi 3D is public" |
+| `docs/runbook.md` (step 6, the `check:launch` list) | Pixi 3D is public; the step is done |
+| `docs/versions.md` (`@pixi/3d`, `pixi.js` rows), `docs/stack.md` (`pnpm docs:stack`) | from npmjs.org, not the vendored tarball |
+| `docs/adr/0002-pixi-for-2d-and-3d.md:20` | an amendment line: public on npm, MIT, the deploy rule lifted |
+| `docs/adr/0007-3d-look.md:98` | history; left |
+| `packages/3d/README.md`, `packages/3d/package.json` (description), `src/entries/index.ts`, `src/entries/camera-view.ts` | not published yet; no "closed beta" or "vendored" |
+| `extensions/figures/README.md:12` | from npm; the package stays private (the Owner's) |
+| `tooling/examples-runner/src/catalog.ts` (+ test comment), `tooling/consumer-smoke/src/commands.ts`, `stranger-3d.test.ts` comments | "not published yet", not "until Pixi 3D is public" |
+| `agents/automata/skills/automata-api/reference/api.md` | generated (`pnpm api-index --write`) from the doc comments above |
+| `docs/superpowers/progress.md:284` | the refusal is lifted |
+| `docs/provenance/sources.md:647` | history of where The Last Light's copy came from; left |
 
 ### F. Workflows (read only; changed only where named)
 
-| File:line                                               | Now                                                                               | Change                                                      |
-| ------------------------------------------------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| `.github/workflows/3d.yml:22`                           | `- "vendor/pixi-3d/**"`                                                           | remove (the folder is gone)                                 |
-| `.github/workflows/site.yml:9-10`                       | comment: `check:launch` refuses "Pixi 3D not public"                              | drop that clause                                            |
-| `.github/workflows/site.yml:59-60`                      | comment: "The build ends with the closed-beta scan… a Pixi 3D that is not public" | "the Pixi 3D extras scan"; drop the Pixi clause             |
-| `.github/workflows/game-ci.yml:57`                      | `automata ship prepare --target ruken`                                            | none: with base-3d's `audience` gone it writes `ruken.toml` |
-| none fetches a tarball or uses a private-registry token |                                                                                   |                                                             |
+| File:line | Now | Change |
+| --- | --- | --- |
+| `.github/workflows/3d.yml:22` | `- "vendor/pixi-3d/**"` | remove (the folder is gone) |
+| `.github/workflows/site.yml:9-10` | comment: `check:launch` refuses "Pixi 3D not public" | drop that clause |
+| `.github/workflows/site.yml:59-60` | comment: "The build ends with the closed-beta scan… a Pixi 3D that is not public" | "the Pixi 3D extras scan"; drop the Pixi clause |
+| `.github/workflows/game-ci.yml:57` | `automata ship prepare --target ruken` | none: with base-3d's `audience` gone it writes `ruken.toml` |
+| none fetches a tarball or uses a private-registry token |  |  |
 
 Size: 9 install sites (8 manifests and the lockfile) plus the template and the smoke; 2 tarballs; 1 build rule in `ship`
 (four targets), 1 game config, 2 site gates; 6 package-publishing guards kept; 16 texts; 3 workflow lines (one path, two comments).
@@ -147,3 +147,39 @@ Size: 9 install sites (8 manifests and the lockfile) plus the template and the s
 Surprising: the deploy restriction was never in the licence (MIT, the same text then and now); it was the release page's
 banner, which the public README drops. `check:launch` already passes on its own (it asks npmjs.org whether `@pixi/3d` exists),
 while the site's scan and `ship`'s scan read the built bytes, so they would have refused 3D forever without a code change.
+
+## 2. The move
+
+Every change quotes the Owner's second sentence in its commit.
+
+| Commit | What |
+| --- | --- |
+| `545226cd` | The eight manifests pin `"@pixi/3d": "0.1.0-beta.3"` from the registry. `pnpm install`: the lockfile diff is `@pixi/3d` alone (8 importers' `specifier`/`version`, its package entry now `resolution: {integrity: sha512-2k34FOL9…qV7g==}` — the registry's — and its snapshot; `meshoptimizer` and `pixi.js` unchanged). `vendor/pixi-3d/` deleted (both tarballs, `README.md`, `LICENSE`); beta.3's release notes moved here (`release-notes-0.1.0-beta.3.txt`). `create-game --template 3d` pins `PIXI_3D_SPEC` inside the workspace too (test first: it failed on the `file:` spec). The 3D stranger's journey no longer overrides `@pixi/3d`, and asserts from the game's lockfile that it came from the registry |
+| `7d18c2a3` | Workflow: `3d.yml` loses `- "vendor/pixi-3d/**"`. Its invariant test no longer pins the path, and a new case fails on any path filter naming a missing folder (it failed on `vendor/pixi-3d/` first) |
+| `a0e77233` | The deploy rule: `scanBuild` no longer refuses `@pixi/3d`; `Pixi3dInPublicBuild` is gone from `errors.ts` and every target's error union. `@pixi/3d/extras` is still refused (no-eval). Tests inverted first (five failed on `Pixi3dInPublicBuild`): a public Ruken prepare writes `ruken.toml`, itch.io zips, the web passes, a public publish uploads. The dead `audience` field left the scan and prepare inputs; `ShipConfig.audience` and `publish --private` stay as an author's choice, worded without Pixi 3D. `games/base-3d` drops `audience: 'private'` (its ship-config test failed first). `copy-editor` kept, reworded. Changeset `ship-pixi-3d-public.md` (`@automata/tools`, patch) |
+| `e8b177fd` | The site: `scan-closed-beta.ts` → `scan-pixi3d-extras.ts` (refuses only the extras; the site's CSP forbids eval, QB.4); `check:launch` no longer asks for Pixi 3D. Tests first (missing module, old build step) |
+| `d098771f` | Workflow: `site.yml`'s two comments (no step changes) |
+| `f68edecc` | The texts of §1 E: guides, READMEs, ADR 0002 (an amendment line), runbook, versions, comments. History left |
+| `308458d9` | `pnpm api-index --write`: the agent API reference follows `ShipConfig.audience`'s doc comment |
+
+The workflow diffs, in full:
+
+```diff
+--- a/.github/workflows/3d.yml
++++ b/.github/workflows/3d.yml
+@@ -19,7 +19,6 @@ on:
+       - "games/base-3d/**"
+       - "examples/3d/**"
+-      - "vendor/pixi-3d/**"
+       - "agents/**"
+--- a/.github/workflows/site.yml
++++ b/.github/workflows/site.yml
+-# `check:launch` (a personal address, Pixi 3D not public, a private repository and a domain with no mail all refuse the
+-# deploy), uploads `site/build/` with wrangler, and asks the live host for the headers the site means to send.
++# `check:launch` (a personal address, a private repository and a domain with no mail all refuse the deploy), uploads
++# `site/build/` with wrangler, and asks the live host for the headers the site means to send.
+-      # The build ends with the closed-beta scan; check:site holds every page and the headers file to the site's rules;
+-      # check:launch refuses a personal mailbox, a missing mail record, a private repository and a Pixi 3D that is not public.
++      # The build ends with the Pixi 3D extras scan; check:site holds every page and the headers file to the site's rules;
++      # check:launch refuses a personal mailbox, a missing mail record and a private repository.
+```

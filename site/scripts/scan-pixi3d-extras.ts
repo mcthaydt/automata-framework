@@ -1,6 +1,6 @@
 // The last step of `pnpm build`: no page of the site may carry Pixi 3D's extras. `@pixi/3d` itself is public (npmjs.org,
 // MIT) and a page may draw with it, but its `./extras` entry probes `new Function` when it loads, and the site's CSP
-// allows no eval (QB.4), so a build with it fails here rather than in a visitor's browser. The markers and the walk
+// allows no eval, so a build with it fails here rather than in a visitor's browser. The markers and the walk
 // are the build tools' own (`findPixi3d`), the same scan `automata ship` runs on a game; the site depends on the
 // tools, never the other way round.
 import { resolve } from 'node:path'
