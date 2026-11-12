@@ -1,5 +1,5 @@
-// EnvironmentBuilder's maps, converted once into `/2` (spec 9). The fixture is `maps.json` at 6d82a52, with the bedroom’s `reads` from f7c5356 (the one change the source made to a
-// map file after that).
+// EnvironmentBuilder's maps, converted once into `/2` (spec 9). The fixture is `maps.json` at 6d82a52, with
+// the bedroom’s `reads` from f7c5356 (the one change the source made to a map file after that).
 
 import { afSector2Schema } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
