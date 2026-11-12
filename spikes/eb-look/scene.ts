@@ -32,6 +32,8 @@ import { BASE_PAIR, BASE_PAIR_SWATCHES, BASE_SCENES, baseLibrary } from '@automa
 import { figuresExtension, type Gait } from '@automata/3d/figures'
 import { BASE as PAINTED_BASE, characterKitExtension, paintedFigure } from '@automata/character-kit'
 import { defineComponent, defineGame, definePlugin, startGame } from '@automata/framework'
+import { addLcdPanelPass } from '@automata/lcd-panel/pass'
+import { addRetroPass } from '@automata/retro-crisp/pass'
 import { albedoTiles, dressedBaseScenes, worldKitExtension, worldKitLibrary } from '@automata/world-kit'
 import { GlowEffect, ParticlesEffect, ReflectEffect, ShaftsEffect, shaftLamps, type Emitter } from '@automata/world-kit/sky'
 import { detectVideoAlphaMode, isWebGLSupported } from 'pixi.js'
@@ -52,6 +54,10 @@ const pref = q.get('pref') === 'webgpu' ? 'webgpu' : 'webgl'
 // only the pieces that bake light, or only those a state can move (doors, props, leaves). ?figures=painted draws the cast as
 // the character kit's painted figures (the builder's own pair, lit by the room) instead of core's meshes.
 const on = (key: string) => q.get(key) !== '0'
+// ?lcd=1 and ?retro=1 turn on the LCD panel and the retro grade the way a game does: one call each, before the renderer is made, with
+// the old game's own numbers (the clinic profiles, which `{}` is). The retro pass goes before core's snap whatever the order; the panel after.
+if (q.get('retro') === '1') addRetroPass({ profile: {} })
+if (q.get('lcd') === '1') addLcdPanelPass({ profile: {} })
 // ?shadow=0 turns off a figure's cast shadow on the floor (the look's `shadow` switch); ?outline=1 turns the coloured outline on
 // (it is off in the source's base look).
 const look = on('look')

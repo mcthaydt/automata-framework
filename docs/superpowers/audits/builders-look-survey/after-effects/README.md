@@ -76,7 +76,25 @@ AF with no effects, with the effects (shafts), and with the coloured outline ([`
 
 ## 4. LCD panel and retro grade at the old game's picture sizes
 
-No sheet yet. They are tested in real Chromium pixels at 640 x 360 and 640 x 480
+**The sheet the Owner asked for: [`look-640x480.png`](look-640x480.png)** (numbers in [`look-640x480.json`](look-640x480.json)). The dressed interior's room view at
+640 x 480, density 1, true size (`crisp=0`), `rig=1`, painted pair, three panels, each at the canvas's own size (the window is the picture, one pixel
+a pixel, so the LCD's mesh is not resampled) with reduced motion asked of the window (the retro film holds still, so a re-shot frame is the same):
+
+| Panel | What a game says | Mean luma (0 to 255) | Colours |
+|---|---|---|---|
+| effects off | nothing | 54.1 | 74 |
+| the LCD panel | `addLcdPanelPass()`: `LCD_CLINIC`, the old game's numbers | 45.9 | 31055 |
+| the LCD panel and the retro grade | `addRetroPass()` too: `RETRO_CLINIC` | 43.9 | 32433 |
+
+`shoot.mjs` with `LOOK_ONLY=1` makes it (the spike's `?lcd=1` and `?retro=1` call the two functions as a game does). Both frames' picture area (the
+24 rows above and below are core's 5% letterbox bars, which the spike leaves on and a game sets to 0) reads 55.4, 46.3 and 44.1. **Against the old game**
+(`origin/claude/last-light-prologue`'s `2026-11-12-last-light-prologue-first-draw/`, read only): its prologue hall at 1024 x 768 reads 28.9 with its LCD
+and 31.6 without it, and its clinic ward baseline 27.6; ours with both passes on reads 43.9 to 44.1, about 1.5 times as bright. **That is not a like for
+like number:** it is a different room (this is the base scene's dressed waiting room, lit by its day window and one pendant; theirs are the hall and the
+ward at night lamps), so what it says is only that the two passes darken a frame by 19 % (the LCD alone 15 %) as the old game's LCD does (its hall:
+31.6 to 28.9, 9 %; its grade also darkens, by the clinic's `fade` and `vignette`). The old game's own frame of this room does not exist.
+
+The LCD panel and the retro grade are also tested in real Chromium pixels at 640 x 360 and 640 x 480
 (`extensions/lcd-panel/tests/browser/lcd-field-sizes.test.ts`, `extensions/retro-crisp/tests/browser/retro-field-sizes.test.ts`): the LCD mesh and stripes
 show over a flat colour at both, a zeroed panel and the neutral retro profile leave the picture alone, the clinic's grade moves it and the snap
 puts every colour back on the palette. The clinic's numbers match the old game at `92e6704` (`src/render/lcd-panel.ts` `LCD_PANEL`, `LCD_CELL` 2;
