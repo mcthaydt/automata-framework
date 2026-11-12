@@ -57,7 +57,7 @@ export interface Gait {
   idleLoop?: number
   /** How many poses the idle holds across its loop (a pixel artist's few idle frames); left out, one a pose step. */
   idlePoses?: number
-  /** Whether the feet shuffle through a turn on the spot (false: a pivot, the Nurse's). */
+  /** Whether the feet shuffle through a turn on the spot (false: a pivot on the spot). */
   shuffle?: boolean
   /** How much of the torso's forward bend the arms take back so they hang plumb (0.75 for the Porter: the elbow bend carries the hands on forward); 0 by default. */
   plumb?: number

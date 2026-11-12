@@ -236,7 +236,7 @@ export function keyLight(ctx: AfterFaceForm) {
     style,
   } = ctx
   // The key light on each texel, on its smoothed normal. Hair in clumps along its strands, as the atlas paints it: noise
-  // stretched down the hair, fixed to its surface; cloth's fine folds, the same noise (the Nurse's uniform hangs in
+  // stretched down the hair, fixed to its surface; cloth's fine folds, the same noise (a long uniform hangs in
   // them). Cloth hangs in folds, not pipes: a noise on its own surface, long down it and on a slant, moves the terminator
   // a texel or two along a sleeve or a leg, so its tone bands run out in tapering wedges and change width as cloth's do
   // (skin and hair keep their form; small parts barely change).

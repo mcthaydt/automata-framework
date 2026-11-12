@@ -19,7 +19,7 @@ import { FALL_PLAIN } from '../../fixtures/pins'
  * The stand-off model (hair.ts, `Fall.rest`): long hair that lies on the trunk stays put when the head pitches or cocks.
  * With `rest: 'trunk'`, a clump's points below the shoulder ride the chest, those between the jaw and the shoulder blend,
  * and the hair bones' swing fades out by the shoulder. Drawn on both base figures in a long fall (to 1.6, half of it in
- * front), posed by a held stand's head (pitch ±0.4, roll ±0.3 rad), by the Nurse's tilt, posture and loose hair spring
+ * front), posed by a held stand's head (pitch ±0.4, roll ±0.3 rad), by a tilted head, a drooping posture and a loose hair spring
  * (the case that looped: the hair bones roll against the tilt and trail in a walk), standing and over a walk.
  */
 const FALL = { front: 0.5, length: 1.6 }
@@ -226,7 +226,7 @@ describe('long hair that rests on the trunk', () => {
     }
   })
   for (const i of [0, 1]) {
-    it(`${BASE[i].def.id}: the Nurse's tilt, posture and loose spring, standing, never lets trunk hair into the body or off it`, () => {
+    it(`${BASE[i].def.id}: a tilted head, a drooping posture and a loose spring, standing, never lets trunk hair into the body or off it`, () => {
       const def = wear(i, 'trunk', NURSE, SPRING)
       const s0 = stray(pose(def, { frames: 90 }), def)
       expect(s0.into, 'standing: into').toBeLessThanOrEqual(0.001)
@@ -235,7 +235,7 @@ describe('long hair that rests on the trunk', () => {
     // The walk is one run of frames (the spring carries over from one to the next), so each block steps the whole
     // walk from its start, which is cheap, and measures only its own thirty frames.
     for (let from = 0; from < 150; from += 30)
-      it(`${BASE[i].def.id}: the Nurse's tilt, posture and loose spring, over walk frames ${from} to ${from + 29}, never lets trunk hair into the body or off it`, () => {
+      it(`${BASE[i].def.id}: a tilted head, a drooping posture and a loose spring, over walk frames ${from} to ${from + 29}, never lets trunk hair into the body or off it`, () => {
         const def = wear(i, 'trunk', NURSE, SPRING)
         const walker = pose(def, { walk: true, frames: 1 })
         for (let n = 0; n < from + 30; n++) {

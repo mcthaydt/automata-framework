@@ -95,7 +95,7 @@ export const withFall = (name: string, extra: Record<string, unknown>): HairStyl
     'fall' in p ? { fall: { ...(p as { fall: object }).fall, ...extra } } : p,
   ) as HairStyle['pieces'],
 })
-/** The Nurse's head and hair, as sliders and a spring (no character is named in base): a head tilted 15°, a drooping posture and a loose hair spring. */
+/** A tilted head and loose hair, as sliders and a spring: a head tilted 15°, a drooping posture and a loose hair spring. */
 export const nurse = (def: CharacterDef): CharacterDef => ({
   ...def,
   sliders: { ...def.sliders, headTilt: 15, posture: 0.52 },
@@ -167,7 +167,7 @@ export const SHEETS: Sheet[] = [
     walk: true,
     density: 2,
   },
-  // Gap 4 (the Nurse's loop): longFront on a head tilted 15°, posture 0.52, the loose hair spring, rest: head against rest: trunk, standing and walking.
+  // Gap 4 (the tilted-head loop): longFront on a head tilted 15°, posture 0.52, the loose hair spring, rest: head against rest: trunk, standing and walking.
   {
     name: 'standoff',
     rows: BASE.slice(1).flatMap((b) =>

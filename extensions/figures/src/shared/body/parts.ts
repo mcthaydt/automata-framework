@@ -48,7 +48,7 @@ export interface Material {
    * as `mix` is (paint.ts). With `edge` 0 or absent the painter runs today's code. */
   mix?: { from: string[]; to: string[]; at: number; edge?: number }
   /** A stain (paint.ts): from `hem` up to `below` (m, in the surface's rest space) a texel takes this ramp, surely at the
-   * hem and ever less often up to `below`, in runs that climb like drips (the Nurse's hem); on trousers and a seat, a
+   * hem and ever less often up to `below`, in runs that climb like drips (a uniform's hem); on trousers and a seat, a
    * wash instead (a fade on the thighs' fronts, whiskers at the hip and behind the knee). */
   stain?: { paint: string[]; hem: number; below: number }
   /** Iridescent (paint.ts): its tone runs along its paint ramp (cyan → violet, light → deep) by how each texel turns
