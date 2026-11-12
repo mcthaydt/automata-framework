@@ -1,11 +1,14 @@
-import { expect, test } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
+import type { LookState } from '#src/app/look-passes.ts'
 import { begin, stateOf, waitFor } from './driver.ts'
 
 // The old game's picture: its LCD panel and its retro grade are on in the opening cutscene and in play, and the grade's film (grain,
 // dust, scratch) holds still for a player whose system asks for less motion. It reads the passes the renderer made through the
 // development build's hook, and waits on the game's own state, never on a sleep.
 
-const looks = (page: import('@playwright/test').Page) => page.evaluate(() => globalThis.__lastLightLook?.())
+// The hook's declared type (`LookState` in `look-passes.ts`, whose `declare global` types `globalThis.__lastLightLook`), not `any`.
+const looks = (page: Page): Promise<LookState | undefined> =>
+  page.evaluate(() => globalThis.__lastLightLook?.())
 
 test('the LCD panel and the retro grade are on in the opening and in play', async ({ page }) => {
   await begin(page)
