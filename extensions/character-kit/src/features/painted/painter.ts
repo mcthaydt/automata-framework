@@ -14,7 +14,7 @@ import {
   type View,
 } from '../../shared/figure-builder/door.ts'
 import { litCells } from './lit-cells.ts'
-import type { RoomLight } from './room-light.ts'
+import type { Exposure, RoomLight } from './room-light.ts'
 import type { PaintedState } from './state.ts'
 
 /** An eighth of a turn: the painter draws the nearest of 8 directions, so a stand needs only 8 facings. */
@@ -30,8 +30,11 @@ export interface PaintInput {
   readonly state: PaintedState
   /** The view the camera gives it this frame. */
   readonly view: View
-  /** The room's light where it stands, when the figure is lit (`lit-cells.ts`); unlit without one. */
-  readonly light?: RoomLight | undefined
+  /**
+   * The room's light where it stands, when the figure is lit (`lit-cells.ts`); unlit without one. A function is given the trial of
+   * this frame's figure, how bright it shows lit by a candidate light, to choose the light by (the exposure, `room-light.ts`).
+   */
+  readonly light?: RoomLight | ((shownAt: Exposure['shownAt']) => RoomLight | undefined) | undefined
 }
 
 export class Painter {
@@ -58,7 +61,9 @@ export class Painter {
   }
 
   /** The figure's cell, lit by the room when there is one: its `painted` stays the unlit cell either way. */
-  private cell(figure: Figure, light: RoomLight | undefined): Cell {
+  private cell(figure: Figure, input: PaintInput['light']): Cell {
+    const light =
+      typeof input === 'function' ? input((candidate) => this.cells.shown(figure, candidate)) : input
     return light === undefined ? cellOf(figure) : this.cells.lit(figure, light)
   }
 

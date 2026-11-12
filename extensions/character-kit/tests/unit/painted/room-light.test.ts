@@ -243,27 +243,49 @@ describe('roomLight in the base exterior, by day', () => {
 })
 
 describe('roomLight exposed toward the floor it stands on (SceneLight.groundLuma)', () => {
-  const sixThen = (luma: number) => ({ ground: () => luma, figure: 0.5 })
+  /**
+   * The figure as the lit cell shows it: `painted` is its mean luma at the flat light's step 0, and each whole step moves it a `STEP`
+   * (1.17) ratio, as `lightSprite` does. `shownAt` is asked with the candidate light, so the key's step is what is trialled.
+   */
+  const shownBy = (painted: number) => (light: { readonly key: string }) =>
+    painted * 1.17 ** stepsOf(light.key)
+  const exposed = (floor: number, painted: number) => ({ ground: () => floor, shownAt: shownBy(painted) })
 
   it('holds a figure under 1.1 times its floor’s shown luma by whole steps down: a 0.5 figure on a 0.2 floor loses six steps', () => {
     // 0.5 / (1.1 × 0.2) = 2.27 and the light's step is a ratio of 1.17: ln 2.27 / ln 1.17 = 5.2, so six whole steps.
-    expect(stepsOf(roomLight(grey(1), undefined, FEET, 0, sixThen(0.2)).key)).toBe(-6)
+    expect(stepsOf(roomLight(grey(1), undefined, FEET, 0, exposed(0.2, 0.5)).key)).toBe(-6)
   })
 
   it('leaves a figure that is not hot as it was: a 0.5 figure on a 0.5 floor keeps its painted cell', () => {
-    expect(stepsOf(roomLight(grey(1), undefined, FEET, 0, sixThen(0.5)).key)).toBe(0)
+    expect(stepsOf(roomLight(grey(1), undefined, FEET, 0, exposed(0.5, 0.5)).key)).toBe(0)
   })
 
   it('goes down to the window and no further: the figure just under 1.1 times the floor is not taken a step more', () => {
     // 0.5 / 0.4545 = 1.1 exactly is not hot; a hair under the floor that makes it so takes one step.
-    expect(stepsOf(roomLight(grey(1), undefined, FEET, 0, sixThen(0.5 / 1.1)).key)).toBe(0)
-    expect(stepsOf(roomLight(grey(1), undefined, FEET, 0, sixThen(0.5 / 1.1 - 0.001)).key)).toBe(-1)
+    expect(stepsOf(roomLight(grey(1), undefined, FEET, 0, exposed(0.5 / 1.1, 0.5)).key)).toBe(0)
+    expect(stepsOf(roomLight(grey(1), undefined, FEET, 0, exposed(0.5 / 1.1 - 0.001, 0.5)).key)).toBe(-1)
+  })
+
+  it('answers "hot" for the dressed interior: the man the frame shows at 0.421 over a floor of 0.353 (1.19) is dimmed into the window', () => {
+    // The first measure of exposure on that view: the estimate from the painted cell's luma read under the frame and left him at 1.19
+    // (the builder's window is 1.1). The trial lights the cell at each candidate and takes what it shows.
+    const asked: number[] = []
+    const shownAt = (light: { readonly key: string }) => {
+      asked.push(stepsOf(light.key))
+      return shownBy(0.421)(light)
+    }
+    const steps = stepsOf(roomLight(grey(1), undefined, FEET, 0, { ground: () => 0.353, shownAt }).key)
+    expect(steps).toBe(-1)
+    expect(0.421 * 1.17 ** steps).toBeLessThanOrEqual(1.1 * 0.353)
+    // One step less and he is hot: it went down no further than it had to. Each trial was a whole candidate, from the held step down.
+    expect(0.421 * 1.17 ** (steps + 1)).toBeGreaterThan(1.1 * 0.353)
+    expect(asked).toEqual([0, -1])
   })
 
   it('reads the floor round the feet, at the feet’s own height, in four places', () => {
     const asked: [number, number, number][] = []
     roomLight(grey(1), undefined, [2, 0.12, 3], 0, {
-      figure: 0.5,
+      shownAt: () => 0.5,
       ground: (x, z, y) => {
         asked.push([x, z, y])
         return 0.5
@@ -281,18 +303,36 @@ describe('roomLight exposed toward the floor it stands on (SceneLight.groundLuma
     )
   })
 
-  it('falls back to the ring of the tint where the room has baked no floor under the feet', () => {
+  it('falls back to the ring of the tint where the room has baked no floor under the feet, and trials nothing', () => {
     const pool: Tint = (_x, y) => (y > 0.5 ? [1.6, 1.6, 1.6] : [0.5, 0.5, 0.5])
-    const none = { ground: () => undefined, figure: 0.5 }
+    let trials = 0
+    const none = {
+      ground: () => undefined,
+      shownAt: () => {
+        trials += 1
+        return 0.5
+      },
+    }
     expect(roomLight(pool, undefined, FEET, 0, none).key).toBe(roomLight(pool, undefined, FEET, 0).key)
+    expect(trials).toBe(0)
   })
 
   it('never lights a figure more than the tint’s own ring would: a bright floor does not undo the hold', () => {
     // A pool on a dark ring: the tint's rule dims the figure to one step over the ring. A floor that shows bright (luma 0.9) alone
-    // would leave it at its painted cell; the stricter of the two stands.
+    // would leave it at its painted cell; the stricter of the two stands, and the trial starts from the ring's hold.
     const pool: Tint = (_x, y) => (y > 0.5 ? [1.6, 1.6, 1.6] : [0.5, 0.5, 0.5])
-    const bright = { ground: () => 0.9, figure: 0.5 }
-    expect(roomLight(pool, undefined, FEET, 0, bright).key).toBe(roomLight(pool, undefined, FEET, 0).key)
+    expect(roomLight(pool, undefined, FEET, 0, exposed(0.9, 0.5)).key).toBe(
+      roomLight(pool, undefined, FEET, 0).key,
+    )
+  })
+
+  it('takes a figure that shows nothing (no opaque texel) as it is, and stops a figure that never dims at a bound', () => {
+    expect(
+      stepsOf(roomLight(grey(1), undefined, FEET, 0, { ground: () => 0.2, shownAt: () => undefined }).key),
+    ).toBe(0)
+    // A trial that stays hot however far down it goes must not loop for ever.
+    const stuck = stepsOf(roomLight(grey(1), undefined, FEET, 0, { ground: () => 0.2, shownAt: () => 1 }).key)
+    expect(stuck).toBe(-ROOM_LIGHT.dimmest)
   })
 
   it('is the same key without an exposure, as before', () => {

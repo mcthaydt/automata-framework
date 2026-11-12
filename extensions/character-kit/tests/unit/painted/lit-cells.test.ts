@@ -1,7 +1,7 @@
 // The lit cells of one painted figure (lit-cells.ts): a lit cell is made once for a painted cell and a quantised light, and a
 // hit brings back nothing of an old frame but the lit colours.
 import { describe, expect, it } from 'vitest'
-import { LIT_CELLS, litCells } from '#src/features/painted/lit-cells.ts'
+import { LIT_CELLS, litCells, shownLuma } from '#src/features/painted/lit-cells.ts'
 import { roomLight, type Tint } from '#src/features/painted/room-light.ts'
 import { BASE, Figure, member, SPRITE_PITCH, type V3 } from '#src/shared/figure-builder/door.ts'
 
@@ -76,5 +76,22 @@ describe('litCells', () => {
     expect(cell.painted).toBe(figure.painted)
     expect(cell.rgba).not.toBe(cell.painted)
     expect(same(cell.rgba, cell.painted)).toBe(false)
+  })
+
+  it('shows the figure’s luma as the lit cell has it, a step dimmer a ratio of 1.17 lower, and lights each candidate once', () => {
+    const cells = litCells()
+    const figure = standing()
+    const flat = (v: number) => light(() => [v, v, v])
+    const level = cells.shown(figure, flat(1))
+    const down2 = cells.shown(figure, flat(0.7))
+    expect(level).toBeGreaterThan(0.05)
+    expect(level).toBeLessThan(1)
+    // Two whole steps down (the grey 0.7 room): the lit colours move by the DUEL ratio, within a byte's rounding and the ramps' own.
+    expect((down2 as number) / (level as number)).toBeCloseTo(1 / 1.17 ** 2, 1)
+    // The trial's cell is the cache's: asking again lights nothing, and the same light's `lit` gives the same buffer.
+    expect(cells.size).toBe(2)
+    expect(cells.shown(figure, flat(1))).toBe(level)
+    expect(cells.size).toBe(2)
+    expect(shownLuma(cells.lit(figure, flat(1)))).toBe(level)
   })
 })

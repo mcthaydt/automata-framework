@@ -10,6 +10,22 @@ import type { RoomLight } from './room-light.ts'
 /** How many lit cells one figure keeps (about 3 MB at D2): a walk cycle through a few light steps. */
 export const LIT_CELLS = 32
 
+/**
+ * How bright a figure shows: the mean luma (0 to 1) of a cell's opaque texels, as the screen weighs the channels. `undefined` for
+ * a cell with nothing opaque in it. Exposure holds this, of the lit cell, against the floor the figure stands on.
+ */
+export function shownLuma(cell: Pick<Cell, 'rgba'>): number | undefined {
+  const { rgba } = cell
+  let sum = 0
+  let count = 0
+  for (let k = 0; k < rgba.length; k += 4) {
+    if ((rgba[k + 3] ?? 0) < 128) continue
+    sum += 0.2126 * (rgba[k] ?? 0) + 0.7152 * (rgba[k + 1] ?? 0) + 0.0722 * (rgba[k + 2] ?? 0)
+    count += 1
+  }
+  return count === 0 ? undefined : sum / count / 255
+}
+
 export interface LitCells {
   /**
    * The figure's cell lit by `light`: its `painted`, `normals`, `depth`, `weave`, `anchor` and `direction` are this frame's, its
@@ -17,6 +33,11 @@ export interface LitCells {
    * holds the lit buffer and its key only, so nothing stale can come back with a hit.
    */
   lit(figure: Figure, light: RoomLight): Cell
+  /**
+   * How bright the figure shows when `light` is on it (`shownLuma` of `lit`): the builder's trial of an exposure step. It lights
+   * through this cache, so a candidate that is kept is lit once, and no frame is read back from the GPU.
+   */
+  shown(figure: Figure, light: RoomLight): number | undefined
   /** How many lit cells are kept. */
   readonly size: number
 }
@@ -39,6 +60,9 @@ export function litCells(limit = LIT_CELLS): LitCells {
         if (kept.size > limit && oldest.done !== true) kept.delete(oldest.value)
       }
       return { ...unlit, rgba: hit.rgba, key: hit.key }
+    },
+    shown(figure, light) {
+      return shownLuma(this.lit(figure, light))
     },
     get size() {
       return kept.size
