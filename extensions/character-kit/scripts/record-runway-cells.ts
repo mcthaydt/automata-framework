@@ -31,7 +31,8 @@ const BODIES: Readonly<Record<string, Readonly<Record<string, number>>>> = {
 }
 const FIT_DIRECTIONS = [0, 5] as const
 const GOLDENS = join(import.meta.dirname, '../tests/fixtures/goldens')
-const BUILDER = join(import.meta.dirname, '../../../vendor/FigureBuilder')
+// The painter is a package of this repository: the showcase's imports are pointed at its own source, by file.
+const BUILDER = join(import.meta.dirname, '../../figures')
 
 const args = process.argv.slice(2).filter((a) => a !== '--')
 const flag = args.indexOf('--out')
@@ -47,7 +48,7 @@ const git = (cwd: string, ...a: string[]) => {
 }
 
 // The showcase's three files, unchanged but for the path to the builder's `src` (they import it as `../../src`): it is made the
-// submodule's own, by file, so the showcase registers its fabrics, garments and hair on the very module instance the kit's door
+// painter's own, by file, so the showcase registers its fabrics, garments and hair on the very module instance the kit's door
 // loads.
 const work = mkdtempSync(join(tmpdir(), 'runway-showcase-'))
 try {
