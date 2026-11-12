@@ -1,6 +1,8 @@
+import { isArm, isLeg } from './paint-budget'
 import { facePlane, onForm } from './paint-face'
 import type { AfterPrepare } from './paint-prepare'
 import { FACE_DEEP, FACE_KEY, FACE_SEAM, KEY, LIGHT } from './paint-style'
+import { noise3 } from './raster'
 
 /**
  * The throat under the jaw (a short gap of empty texels between the head's skin and the neck's takes the neck),
@@ -207,3 +209,136 @@ export function faceForm(ctx: AfterSmoothSurfaces) {
 
 /** The context once `faceForm` has run. */
 export type AfterFaceForm = AfterSmoothSurfaces & ReturnType<typeof faceForm>
+
+/**
+ * The key light on each texel (the hair's clumps, a limb's swell along its bone, cloth's folds) and the tone
+ * thresholds of the large surfaces, so a hoodie turned to the key still has a shadow and a forearm's light sits on
+ * the planes that face it.
+ */
+export function keyLight(ctx: AfterFaceForm) {
+  const {
+    D,
+    bends,
+    darkRamp,
+    faceLit,
+    faceTh,
+    group,
+    hairy,
+    isFace,
+    lightOf,
+    material,
+    materials,
+    n,
+    part,
+    place,
+    skin,
+    skinny,
+    style,
+  } = ctx
+  // The key light on each texel, on its smoothed normal. Hair in clumps along its strands, as the atlas paints it: noise
+  // stretched down the hair, fixed to its surface; cloth's fine folds, the same noise (the Nurse's uniform hangs in
+  // them). Cloth hangs in folds, not pipes: a noise on its own surface, long down it and on a slant, moves the terminator
+  // a texel or two along a sleeve or a leg, so its tone bands run out in tapering wedges and change width as cloth's do
+  // (skin and hair keep their form; small parts barely change).
+  const lit = new Float32Array(n),
+    grains = new Float32Array(n),
+    P = place
+  // A bare limb (skin on an arm or a leg) is modelled along its bone, not only round it: its light pools a third of the
+  // way down each part (the deltoid, the forearm's swell, a hand's knuckles) and falls off to the next joint (the wrist,
+  // the fingertips), so a forearm is a form that swells and narrows, not a ribbon of two stripes. `s` runs 0→1 down the
+  // part's rest length (limbs hang at rest). A dark ramp's sleeve or leg too: black shows its form by its light alone,
+  // so that light wraps round each part and turns away at the joint (the elbow, the knee), its terminator crossing the
+  // limb there rather than running down it in three columns.
+  const limbSpan = new Map<number, [number, number]>()
+  const alongBone = (mi: number) => skinny[mi] || darkRamp[mi]
+  for (let k = 0; k < n; k++)
+    if (material[k] >= 0 && alongBone(material[k]) && (isArm(group[k]) || isLeg(group[k]))) {
+      const y = P[k * 3 + 1],
+        r = limbSpan.get(part[k])
+      if (r) {
+        r[0] = Math.min(r[0], y)
+        r[1] = Math.max(r[1], y)
+      } else limbSpan.set(part[k], [y, y])
+    }
+  /** How far down its bone a limb's texel lies, 0 at the joint over it to 1 at the next: by the limb's joints (`bends`)
+   * where its part lies between them (a sleeve from the shoulder to the wrist turns at the elbow), else down its part. */
+  const downBone = (k: number, span: [number, number]) => {
+    const j = bends[group[k]],
+      y = P[k * 3 + 1]
+    if (j && span[0] >= j[j.length - 1] - 0.02 && span[1] <= j[0] + 0.15)
+      for (let i = 0; i < j.length - 1; i++)
+        if (y >= j[i + 1] || i === j.length - 2)
+          return Math.max(0, Math.min(1, (j[i] - y) / (j[i] - j[i + 1])))
+    return (span[1] - y) / (span[1] - span[0])
+  }
+  for (let k = 0; k < n; k++) {
+    const mi = material[k]
+    if (mi < 0) continue
+    const m = materials[mi],
+      q3 = k * 3,
+      streaks = m.strands ? style.strands : (m.streaks ?? 0)
+    let f = isFace(k) ? faceLit[k] : lightOf(k)
+    if (streaks) {
+      grains[k] = (noise3(P[q3] * 34, P[q3 + 1] * 9, P[q3 + 2] * 34) - 0.5) * streaks
+      f += grains[k]
+    }
+    const span = alongBone(mi) ? limbSpan.get(part[k]) : undefined
+    if (span && span[1] - span[0] > 0.01)
+      f += (skinny[mi] ? 0.14 : 0.3) * Math.cos(Math.PI * (downBone(k, span) - 0.3))
+    if (style.folds && mi !== skin && !m.strands && part[k] !== FACE_SEAM)
+      f +=
+        (darkRamp[mi] ? 0.5 : 1) *
+        (noise3((P[q3] + P[q3 + 1] * 0.6) * 12, P[q3 + 1] * 2.5, (P[q3 + 2] - P[q3 + 1] * 0.4) * 12) - 0.5) *
+        style.folds
+    lit[k] = f
+  }
+  /** A surface the painter models as a whole: a garment's or the body's part, in one material (not the face, the hair,
+   * a mark or a flat material). */
+  const modelled = (k: number) =>
+    material[k] >= 0 &&
+    part[k] >= 0 &&
+    part[k] !== FACE_SEAM &&
+    !hairy(part[k]) &&
+    !materials[material[k]].flat &&
+    !materials[material[k]].strands
+  const surfaceOf = (k: number) => part[k] * 4096 + material[k]
+  // Large surfaces model whichever way they turn, as the face does: a garment or a limb of `surface[2]` texels or more
+  // (times the density squared) keeps at least `surface[0]` of itself in shadow, its terminator the form's own (its
+  // least-lit texels), and at most `surface[1]` in its light tone; so a hoodie turned to the key is never two light tones
+  // with no form, and a forearm's light sits on the planes that face the key, not down its length.
+  const surfTh = new Map<number, [number, number, number]>()
+  {
+    const by = new Map<number, number[]>()
+    for (let k = 0; k < n; k++)
+      if (modelled(k)) {
+        const key = surfaceOf(k)
+        let a = by.get(key)
+        if (!a) {
+          a = []
+          by.set(key, a)
+        }
+        a.push(lit[k])
+      }
+    for (const [key, fs] of by) {
+      // A bare limb's part models whatever its size, so a thin forearm still has its light, mid and shadow.
+      if (fs.length < style.surface[2] * D * D && !limbSpan.has(Math.floor(key / 4096))) continue
+      fs.sort((a, b) => a - b)
+      const th = materials[key % 4096].tones ?? style.tones,
+        at = (p: number) => fs[Math.min(fs.length - 1, Math.floor(fs.length * p))]
+      // A dark ramp's light is a plane of its own, a quarter of it on the side that faces the key (black has three
+      // values, and its light is the one that shows its form), its shadow the far third.
+      const dk = darkRamp[key % 4096],
+        t1 = Math.max(th[1], at(dk ? 0.3 : style.surface[0])),
+        t0 = dk ? Math.max(t1 + 0.02, at(0.75)) : Math.max(th[0], at(1 - style.surface[1]), t1 + 0.02)
+      surfTh.set(key, [t0, t1, Math.min(th[2], t1 - 0.02)])
+    }
+  }
+  const thOf = (k: number): readonly number[] =>
+    faceTh && material[k] === skin && part[k] === FACE_SEAM
+      ? faceTh
+      : (surfTh.get(surfaceOf(k)) ?? materials[material[k]].tones ?? style.tones)
+  return { lit, grains, P, modelled, surfaceOf, thOf }
+}
+
+/** The context once `keyLight` has run. */
+export type AfterKeyLight = AfterFaceForm & ReturnType<typeof keyLight>
