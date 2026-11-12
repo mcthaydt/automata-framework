@@ -6,7 +6,10 @@ import { settleLayout } from '@automata/framework/testing'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import { createLevels2d } from '#src/app/suite/levels-2d/levels-2d-suite-editor.ts'
-import { EDITOR_LIST_PATH } from '#src/features/suite/core/index.ts'
+import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '#src/features/suite/core/index.ts'
+import { type SuiteHandle, startSuite } from '#src/features/suite/shell/boot.ts'
+import { createSuite } from '#src/features/suite/shell/create-suite.ts'
+import { createMemoryPorts } from '#src/shared/kit/ports/memory/memory-ports.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import type { GamePublish } from '#src/shared/kit/storage/publish-client.ts'
 import { type EditorSize, SIZES } from '#src/testing/kit/layout-sizes.ts'
@@ -14,7 +17,13 @@ import { editorTargets } from '#src/testing/kit/targets.ts'
 import { fixtureEditor } from '#src/testing/suite/fixture-editor.ts'
 import platformer from '#src/testing/suite/fixtures/platformer.af2d.json?raw'
 import StandInLevelCanvas from '#src/testing/suite/StandInLevelCanvas.svelte'
-import { editorList, noPageScroll, type OpenedSuite, openSuite } from '#src/testing/suite/suite-layout.ts'
+import {
+  chooseEditor,
+  editorList,
+  noPageScroll,
+  type OpenedSuite,
+  openSuite,
+} from '#src/testing/suite/suite-layout.ts'
 
 // The header with the production CSS in real browsers at every size: Play and Publish are never cut off (Publish 48 px
 // with touch), Undo and Redo are whole targets, the problem count keeps its number, and only the title gives way. The
@@ -100,7 +109,12 @@ describe.each([...SIZES, NARROW_PHONE])('The header at $name ($width x $height)'
       targets.primary,
     )
     for (const name of ['Undo', 'Redo']) wholeInView(byName('button', name), name)
-    if (size.mode !== 'compact') wholeInView(byName('button', 'Not checked yet'), 'The problem count')
+    // With nothing to count the count is not drawn under 900 px (F5: a tick with no word beside "Saved" reads as a
+    // second "saved"), and a phone keeps it inside the title's sheet. From 900 px it shows its words, even at none.
+    const count = document.querySelector<HTMLElement>('[data-region="topbar"] .count')
+    if (size.mode !== 'compact' && size.width >= 900)
+      wholeInView(byName('button', 'Not checked yet'), 'The problem count')
+    else expect(count, 'no problem count with no number to show').toBeNull()
     expect(document.querySelectorAll('[data-region="topbar"] [data-kind="primary"]')).toHaveLength(1)
     noPageScroll()
     await page.screenshot({ path: `.vitest/shots/suite-header-${size.name}.png` })
@@ -120,3 +134,76 @@ describe.each([...SIZES, NARROW_PHONE])('The header at $name ($width x $height)'
     noPageScroll()
   })
 })
+
+// The count's number is what F5 keeps under 900 px: with a problem to count the header shows "1" whole and the words
+// stay its accessible name. A phone keeps the count inside the title's sheet (`suite-edit.test.ts` covers that), so
+// this runs at the sizes that draw it in the bar.
+const LIST = `format = "af-editors/1"
+[[file]]
+glob = "content/tuning.toml"
+editor = "tuner"
+modes = ["edit"]
+gates = []
+checks = ["lint"]
+
+[[check]]
+id = "lint"
+when = "after"
+run = ["lint"]
+`
+
+describe.each(SIZES.filter((size) => size.mode !== 'compact'))(
+  'The problem count at $name ($width x $height)',
+  (size) => {
+    let started: SuiteHandle | undefined
+    let target: HTMLElement | undefined
+    afterEach(async () => {
+      await started?.dispose()
+      target?.remove()
+    })
+
+    test('with a problem to count shows its number whole under 900 px, and its words as the name', async () => {
+      await page.viewport(size.width, size.height)
+      const load = loadEditorList(LIST)
+      if (!load.ok) throw new Error(JSON.stringify(load.problems))
+      const memory = await createMemoryPorts({
+        files: { [EDITOR_LIST_PATH]: LIST, 'content/tuning.toml': 'MAX_MOVE_SPEED = 7\n' },
+        classify: (path) => workspaceFile(load.list, path),
+        checks: [
+          {
+            id: 'lint',
+            when: 'after',
+            run: ['lint'],
+            joins: [],
+            measure: false,
+            respond: () => ({
+              status: 'fail',
+              findings: [{ path: 'content/tuning.toml', line: 1, severity: 'error', message: 'Too fast.' }],
+              output: '',
+            }),
+          },
+        ],
+      })
+      target = document.body.appendChild(document.createElement('div'))
+      target.id = 'app'
+      started = await startSuite(target, {
+        window,
+        document,
+        ports: memory.ports,
+        suite: createSuite({ editors: [fixtureEditor as SuiteEditor<unknown>] }),
+      })
+      await settleLayout()
+      await chooseEditor()
+      await expect.poll(() => document.querySelector('[data-testid="fixture-text"]')).not.toBeNull()
+      // The first edit runs the `after` check, which fails with one finding.
+      byName('button', 'Raise speed').click()
+      await expect.poll(() => document.querySelector('[data-region="topbar"] .count')).not.toBeNull()
+      await settleLayout()
+      const count = document.querySelector<HTMLElement>('[data-region="topbar"] .count') as HTMLElement
+      wholeInView(count, 'The problem count')
+      expect(count.getAttribute('aria-label')).toBe('1 problem')
+      expect(count.textContent?.replace(/\s+/g, ' ').trim()).toBe(size.width < 900 ? '1' : '1 problem')
+      noPageScroll()
+    })
+  },
+)
