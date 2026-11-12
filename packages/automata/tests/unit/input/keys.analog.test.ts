@@ -75,6 +75,26 @@ describe('keys({ analog })', () => {
     expect(inputs(turn()).touchStick).toBe(false)
   })
 
+  it('inputs() accepts maps whose only touch input is a stick and a drag, with no button', () => {
+    const move = keys(
+      Move,
+      { KeyW: { x: 1 } },
+      { touch: false, analog: { touchStick: true, read: (r) => ({ x: r.stick('left').x }) } },
+    )
+    const camera = keys(
+      Turn,
+      { KeyQ: { units: -1 } },
+      { touch: false, analog: { drag: true, read: (r) => ({ units: r.cameraDrag() }) } },
+    )
+    expect(() => inputs(move, camera)).not.toThrow()
+    expect(inputs(move, camera).touchStick).toBe(true)
+  })
+
+  it('inputs() still refuses maps with nothing at all to touch', () => {
+    const plain = keys(Move, { KeyW: { x: 1 } }, { touch: false })
+    expect(() => inputs(plain)).toThrow('has nothing to touch')
+  })
+
   it('inputs() passes the reading to every map', () => {
     const left = keys(Move, {}, { analog: { read: () => ({ x: 7 }) } })
     const merged = inputs(left, turn())
