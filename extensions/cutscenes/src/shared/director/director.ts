@@ -4,7 +4,7 @@
 
 import type { PlacedScript } from '../sim/anchors'
 import type { CueKey, V3 } from '../sim/cutscene.schema'
-import type { SceneState } from './scene-state'
+import type { CameraFrame, SceneState } from './scene-state'
 import {
   actorAt,
   cameraAt,
@@ -29,6 +29,11 @@ export type StartClip = (who: string, clip: string, at: number) => void
 export interface Director {
   /** The scene at `t` seconds. Starts every cue at or before `t` that has not started yet. */
   stateAt(t: number): SceneState
+  /**
+   * The camera at `t`, as `stateAt` would give it, and nothing else: no cue starts and the director's clock does not move, so a host may
+   * look ahead (to ready a figure for the next shot's zoom) without disturbing the scene it is playing. Pure.
+   */
+  cameraAt(t: number): CameraFrame
 }
 
 /**
@@ -59,10 +64,13 @@ export function createDirector(script: PlacedScript, startClip: StartClip): Dire
       startCues(t)
       return stateOf(script, sequence, t)
     },
+    cameraAt(t) {
+      return cameraOf(script, sequence, t)
+    },
   }
 }
 
-function stateOf(script: PlacedScript, sequence: Sequence, t: number): SceneState {
+function cameraOf(script: PlacedScript, sequence: Sequence, t: number): CameraFrame {
   const pose = cameraAt(sequence, t)
   const amp = shakeAt(script, t)
   const shaken = (v: V3, axis: number): V3 => [
@@ -70,13 +78,13 @@ function stateOf(script: PlacedScript, sequence: Sequence, t: number): SceneStat
     (v[1] as number) + tremble(t, axis + 1) * amp,
     (v[2] as number) + tremble(t, axis + 2) * amp,
   ]
+  return { pos: shaken(pose.pos, 0), look: shaken(pose.look, 3), fov: fovOf(pose.lens) }
+}
+
+function stateOf(script: PlacedScript, sequence: Sequence, t: number): SceneState {
   const reached = (script.states ?? []).filter((x) => t >= x.t)
   return {
-    camera: {
-      pos: shaken(pose.pos, 0),
-      look: shaken(pose.look, 3),
-      fov: fovOf(pose.lens),
-    },
+    camera: cameraOf(script, sequence, t),
     actors: Object.fromEntries([...sequence.actors].map(([who, keys]) => [who, actorAt(keys, t)])),
     caption: (script.caption ?? []).find((c) => t >= c.t && t < c.until) ?? null,
     flicker: (script.flicker ?? []).some(([from, to]) => t >= from && t < to),

@@ -22,6 +22,22 @@ const base: PlacedScript = {
 }
 const actors = (...actor: NonNullable<PlacedScript['actor']>): PlacedScript => ({ ...base, actor })
 
+describe('director: a look ahead at the camera', () => {
+  const cued: PlacedScript = { ...base, cues: [{ at: 1, who: 'ada', clip: 'wave' }] }
+  it('says the camera at a time without starting a cue or moving the director’s clock', () => {
+    const started: string[] = []
+    const director = createDirector(cued, (who, clip) => started.push(`${who}:${clip}`))
+    const ahead = director.cameraAt(3)
+    expect(started).toEqual([])
+    expect(ahead).toEqual(createDirector(cued, noop).stateAt(3).camera)
+    // The clock is untouched: the cue still starts once, when the scene gets there.
+    director.stateAt(0.5)
+    expect(started).toEqual([])
+    director.stateAt(1.5)
+    expect(started).toEqual(['ada:wave'])
+  })
+})
+
 describe('director: time and the camera', () => {
   it('is done at the duration and not before, and every frame is finite', () => {
     expect(evaluate(base, 0).done).toBe(false)
