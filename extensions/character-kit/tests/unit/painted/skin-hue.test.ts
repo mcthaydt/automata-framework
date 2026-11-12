@@ -2,11 +2,21 @@
 // (27) darkens into mauve and purple (554769, 765d73, 977488), and the lit sprite tints toward the room's colour, so a dim cool room
 // turned the painter's pink skin lavender: a skin texel's hue moved by 25 degrees or more where a warm row's steps hold it.
 import { describe, expect, it } from 'vitest'
+import { FASHION_SWATCHES } from '#src/features/fashion/swatches.ts'
 import { litCells } from '#src/features/painted/lit-cells.ts'
 import { Painter } from '#src/features/painted/painter.ts'
 import { roomLight, type Tint } from '#src/features/painted/room-light.ts'
-import { skinColours } from '#src/features/painted/skin-hue.ts'
-import { BASE, type CharacterDef, Figure, member, SPRITE_PITCH, type V3 } from '#src/shared/figures/door.ts'
+import { holdSkinHue, skinColours } from '#src/features/painted/skin-hue.ts'
+import {
+  BASE,
+  type CharacterDef,
+  Figure,
+  member,
+  RAMPS,
+  SPRITE_PITCH,
+  SWATCHES,
+  type V3,
+} from '#src/shared/figures/door.ts'
 
 const FEET: V3 = [0, 0, 0]
 const base = (BASE.find((b) => b.def.id === 'base-f') as { def: CharacterDef }).def
@@ -85,12 +95,20 @@ describe('a face in a dim cool room', () => {
     expect(moved.length).toBeGreaterThan(0)
   })
 
-  it('keeps its skin hue with it: no skin texel moves 20 degrees of hue, at three densities and two lights', () => {
+  // A texel may take its swatch's own darker tone (the highlight #ebbd9d at 56 degrees darkens to #d5a39a at 30, as the painter's own
+  // shading does), so the bound is the swatch's hue span (five degrees either side), not the texel's own hue: the lavender it once
+  // took (row 27's 977488 at -16 degrees, 765d73 below) lies well outside it, toward purple.
+  it('keeps its skin hue with it: no skin texel leaves the hues its swatch paints, at three densities and two lights', () => {
+    const hues = [...SKIN].map(hueOf)
+    const [lo, hi] = [Math.min(...hues) - 5, Math.max(...hues) + 5]
     for (const density of [1, 2, 4] as const)
       for (const tint of [cool, dimmer]) {
         const skin = skinUnder(tint, true, density)
         expect(skin.length).toBeGreaterThan(50)
-        for (const t of skin) expect(apart(hueOf(t.was), hueOf(t.now))).toBeLessThan(20)
+        for (const t of skin) {
+          expect(hueOf(t.now)).toBeGreaterThanOrEqual(lo)
+          expect(hueOf(t.now)).toBeLessThanOrEqual(hi)
+        }
       }
   })
 
@@ -127,5 +145,65 @@ describe('the painter, with the option', () => {
     const again = new Painter(fair, 2, { holdSkinHue: false }).paint(frame(light)).rgba
     expect(Buffer.compare(Buffer.from(plain), Buffer.from(held))).not.toBe(0)
     expect(Buffer.compare(Buffer.from(plain), Buffer.from(again))).toBe(0)
+  })
+})
+
+// A lit skin tone a step or three darker must stay skin. Each swatch's paint is its own ramp, light to dark, and every one turns redder
+// as it darkens (skinWarm 67 to 28 degrees of OKLab hue, skinGolden 81 to 30); a texel the room darkens must land on that ramp, not on
+// a grey-beige DUEL step of the same lightness. The old metric held the texel's own hue at the darker lightness with a chroma in
+// proportion to it, weighed chroma at a quarter, and took the grey: Ada's nose highlight #edb67c a step down played #c0a588, her skin
+// #ce9770 two steps down #857565 (the grey nose and forehead in play).
+describe('every skin swatch the kit ships, a lit tone dimmed by one, two and three steps', () => {
+  const skins = Object.entries({ ...SWATCHES, ...FASHION_SWATCHES }).filter(([name]) =>
+    name.startsWith('skin'),
+  )
+  const lch = (c: string) => {
+    const [L, a, b] = oklab(c)
+    return { L, C: Math.hypot(a, b), h: hueOf(c) }
+  }
+  /** A one-texel sprite. */
+  const texel = (c: number) => new Uint8ClampedArray([c >> 16, (c >> 8) & 255, c & 255, 255])
+  /** What the held skin plays when the room moves a texel painted `was` down its own DUEL row to `dim`. */
+  const held = (was: number, dim: number, skin: ReadonlySet<number>) => {
+    const out = holdSkinHue(texel(was), texel(dim), texel(dim), skin)
+    return hex(out, 0)
+  }
+  /** Each painted tone with the DUEL steps one, two and three below it on its own row (step 0 is the painter's ink). */
+  const dimmed = (paint: readonly number[]) =>
+    paint.flatMap((was) => {
+      const row = RAMPS.find((r) => r.includes(was)) as readonly number[]
+      const i = row.indexOf(was)
+      return [1, 2, 3].filter((k) => i - k >= 1).map((k) => ({ was, k, dim: row[i - k] as number }))
+    })
+
+  it('ships the six skins, light to deep', () => {
+    expect(skins.map(([name]) => name).sort()).toEqual(
+      ['skinBrown', 'skinDeep', 'skinGolden', 'skinPale', 'skinTan', 'skinWarm'].sort(),
+    )
+  })
+
+  it('stays on the swatch’s own warm ramp: its hue within the swatch’s span (15 degrees either side), its chroma at least .6 of the painted', () => {
+    const off: string[] = []
+    for (const [name, swatch] of skins) {
+      const paint = (swatch.paint ?? []).map((c) => Number.parseInt(c.slice(1), 16))
+      const hues = paint.map((c) => lch(c.toString(16).padStart(6, '0')).h)
+      const [lo, hi] = [Math.min(...hues) - 15, Math.max(...hues) + 15]
+      for (const { was, k, dim } of dimmed(paint)) {
+        const from = was.toString(16).padStart(6, '0')
+        const now = held(was, dim, new Set(paint))
+        const [p, q] = [lch(from), lch(now)]
+        if (q.h < lo || q.h > hi || q.C < 0.6 * p.C) off.push(`${name} #${from} -${k}: #${now}`)
+      }
+    }
+    expect(off).toEqual([])
+  })
+
+  it('takes Ada’s nose highlight and her skin a step down to warm skin, not the grey-beige steps', () => {
+    const warm = new Set(
+      ['#edb67c', '#ce9770', '#bd7d64', '#a76057'].map((c) => Number.parseInt(c.slice(1), 16)),
+    )
+    expect(held(0xedb67c, 0xce9770, warm)).not.toBe('c0a588')
+    expect(held(0xce9770, 0xa76057, warm)).not.toBe('857565')
+    expect(lch(held(0xedb67c, 0xce9770, warm)).C).toBeGreaterThan(0.6 * lch('edb67c').C)
   })
 })

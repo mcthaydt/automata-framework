@@ -1,7 +1,8 @@
 // A face keeps its skin hue in a dim or a cool room. The lit sprite moves each texel along its own DUEL row, and the skin's rows
 // darken into mauve and purple (row 27: 554769, 765d73, 977488), and it tints toward the room's colour as well, so the painter's pink
-// skin turned lavender in the ward. Here each skin texel the room changes is taken from the DUEL colour nearest its own hue at the
-// shade the room gives it, from no tint of the room's colour; a texel it leaves as painted stays so.
+// skin turned lavender in the ward. Here each skin texel the room changes is taken from the DUEL colour nearest its skin's own ramp (its
+// swatch's painted tones, which redden as they darken) at the shade the room gives it, from no tint of the room's colour, never a
+// grey-beige step of the same lightness; a texel it leaves as painted stays so.
 import { type CharacterDef, RAMPS, SWATCHES } from '../../shared/figures/door.ts'
 
 type Lab = readonly [number, number, number]
@@ -49,31 +50,72 @@ export function skinColours(def: CharacterDef): readonly number[] {
 /** How much a hue's arc weighs against the lightness: a step that matches the shade but not the colour loses to one that matches both. */
 const HUE = 6
 
-const darkened = new Map<number, number>()
 /**
- * The DUEL colour a skin colour `was` takes when the room moves it to `lit`'s lightness: the nearest of every row's steps to the
- * target with `was`'s hue and a chroma in proportion to the lightness.
+ * The mean lightness between neighbouring steps of a DUEL row: the unit a skin's lost colour is counted in. A texel that misses the room's
+ * light by a step still reads as the same skin a shade off; one that loses all its colour reads as grey cloth. So losing the whole of the
+ * target's chroma costs one step of lightness, whatever the skin: a pale skin's faint colour is guarded as much as a deep skin's.
  */
-function warmer(was: number, lit: number): number {
-  const key = was * 16777216 + lit
-  let hit = darkened.get(key)
+const STEP = (() => {
+  const gaps = RAMPS.flatMap((row) =>
+    row.slice(2).map((rgb, i) => oklab(rgb)[0] - oklab(row[i + 1] as number)[0]),
+  )
+  return gaps.reduce((s, g) => s + g, 0) / gaps.length
+})()
+
+/** A skin's own ramp: its painted colours in OKLab, darkest first. */
+type Ramp = readonly Lab[]
+const ramps = new WeakMap<ReadonlySet<number>, { ramp: Ramp; darkened: Map<number, number> }>()
+function rampOf(skin: ReadonlySet<number>) {
+  let hit = ramps.get(skin)
+  if (!hit) {
+    hit = { ramp: [...skin].map(oklab).sort((p, q) => p[0] - q[0]), darkened: new Map() }
+    ramps.set(skin, hit)
+  }
+  return hit
+}
+
+/**
+ * The colour (a, b) a skin has at lightness `L` on its own ramp: between two of its painted tones, the mix of them; past its lightest or its
+ * darkest, that tone's colour. Every swatch turns redder as it darkens (skinWarm 67 to 28 degrees of hue, skinGolden 81 to 30), as skin does
+ * in shadow, so a highlight's yellow held at a shadow's lightness asks for a colour no skin has, and DUEL answers with an olive or a grey.
+ */
+function along(ramp: Ramp, L: number): readonly [number, number] {
+  const first = ramp[0] as Lab
+  if (L <= first[0]) return [first[1], first[2]]
+  for (let i = 1; i < ramp.length; i++) {
+    const [u, v] = [ramp[i - 1] as Lab, ramp[i] as Lab]
+    if (L > v[0]) continue
+    const t = v[0] > u[0] ? (L - u[0]) / (v[0] - u[0]) : 0
+    return [u[1] + t * (v[1] - u[1]), u[2] + t * (v[2] - u[2])]
+  }
+  const last = ramp[ramp.length - 1] as Lab
+  return [last[1], last[2]]
+}
+
+/**
+ * The DUEL colour a skin texel takes when the room moves it to `lit`'s lightness: the nearest of every row's steps to the skin's own ramp at
+ * that lightness, counting the lightness missed, the share of the ramp's chroma lost (in `STEP`s) and the hue's arc (weighed by `HUE`).
+ */
+function warmer(lit: number, skin: ReadonlySet<number>): number {
+  const { ramp, darkened } = rampOf(skin)
+  let hit = darkened.get(lit)
   if (hit !== undefined) return hit
-  const [wL, wA, wB] = oklab(was)
   const L = oklab(lit)[0]
-  const scale = wL > 0 ? L / wL : 1
-  const [tC, tH] = [Math.hypot(wA, wB) * scale, Math.atan2(wB, wA)]
+  const [a, b] = along(ramp, L)
+  const [tC, tH] = [Math.hypot(a, b), Math.atan2(b, a)]
   let near = Number.POSITIVE_INFINITY
   hit = lit
   for (const p of PALETTE) {
     const dh = Math.abs(Math.atan2(p.lab[2], p.lab[1]) - tH)
     const arc = tC * Math.min(dh, 2 * Math.PI - dh)
-    const d = (p.lab[0] - L) ** 2 + HUE * arc ** 2 + 0.25 * (Math.hypot(p.lab[1], p.lab[2]) - tC) ** 2
+    const lost = tC > 0 ? (Math.hypot(p.lab[1], p.lab[2]) - tC) / tC : 0
+    const d = (p.lab[0] - L) ** 2 + (STEP * lost) ** 2 + HUE * arc ** 2
     if (d < near) {
       near = d
       hit = p.rgb
     }
   }
-  darkened.set(key, hit)
+  darkened.set(lit, hit)
   return hit
 }
 
@@ -82,7 +124,8 @@ const at = (px: Uint8ClampedArray, o: number): number =>
 
 /**
  * `lit` (the lit sprite's colours for `painted`) with each texel of a skin colour held to its hue: `neutral` is the same light with no
- * colour of its own, so the room's tint never reaches the skin, and a skin texel `neutral` changes takes the shade of its own hue at that lightness. Changes
+ * colour of its own, so the room's tint never reaches the skin, and a skin texel `neutral` changes takes the skin's own ramp at that lightness
+ * (the painted colours of `skin`, light to dark, are that ramp). Changes
  * `lit` in place and returns it.
  */
 export function holdSkinHue(
@@ -96,7 +139,7 @@ export function holdSkinHue(
     const was = at(painted, o)
     if (!skin.has(was)) continue
     const now = at(neutral, o)
-    const out = now === was ? was : warmer(was, now)
+    const out = now === was ? was : warmer(now, skin)
     lit[o] = (out >> 16) & 255
     lit[o + 1] = (out >> 8) & 255
     lit[o + 2] = out & 255
