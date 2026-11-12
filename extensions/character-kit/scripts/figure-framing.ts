@@ -27,6 +27,8 @@ export interface Framing {
   readonly tilt: number
   readonly field: readonly [number, number]
   readonly density: 1 | 2
+  /** Her height in metres (the cast's 154 cm by default, the rebuilt Ada's 162). */
+  readonly her?: number
   /** Where her face is in the 1024 by 768 frame (read off it), for the x4 crop. */
   readonly face: readonly [number, number]
 }
@@ -43,7 +45,7 @@ export function numbersOf(f: Framing) {
   const tilt = (f.tilt * Math.PI) / 180
   const scale = WINDOW[0] / f.field[0]
   return {
-    herRows: Math.round(HER * Math.cos(tilt) * lines),
+    herRows: Math.round((f.her ?? HER) * Math.cos(tilt) * lines),
     across,
     deep: hvis / Math.sin(tilt),
     lines,
@@ -58,7 +60,7 @@ export function numbersOf(f: Framing) {
 }
 
 function frame(dir: string, id: string): Raster {
-  return decodePng(readFileSync(join(dir, `${id}.png`)))
+  return decodePng(readFileSync(join(dir, `round8-frame-${id}.png`)))
 }
 
 export function sheet(dir: string, framings: readonly Framing[]): Raster {
@@ -67,7 +69,7 @@ export function sheet(dir: string, framings: readonly Framing[]): Raster {
     const shot = frame(dir, f.id)
     const face = crop(shot, Math.round(f.face[0] - 40), Math.round(f.face[1] - 32), 80, 64)
     return {
-      picture: captioned(downscale(shot, 0.5), [`${f.id.toUpperCase()}: ${f.name.toUpperCase()}`]),
+      picture: captioned(downscale(shot, 0.5), [`${f.id.slice(0, 2).toUpperCase()} ${f.name.toUpperCase()}`]),
       face: captioned(enlarge(face, 4), [`HER FACE X4, ${n.herRows} ROWS TALL`]),
     }
   })
@@ -89,9 +91,9 @@ export function sheet(dir: string, framings: readonly Framing[]): Raster {
     ],
     ['LCD CELL (SCREEN PX)', ...framings.map((f) => `${numbersOf(f).lcd}`)],
     ['FIELD PIXELS (COST)', ...framings.map((f) => `${(numbersOf(f).pixels / 1000).toFixed(0)}K`)],
-    ['FIGURE TEXELS / FIELD PX', ...framings.map((f) => `${numbersOf(f).figureTexelsPerFieldPixel}`)],
+    ['FIGURE TEXELS PER FIELD PX', ...framings.map((f) => `${numbersOf(f).figureTexelsPerFieldPixel}`)],
   ]
-  const labelW = 340
+  const labelW = 400
   const lineH = textHeight(2) + 8
   const W = labelW + cols.reduce((a, b) => a + b + 8, 0)
   const H = top + faceH + 24 + rows.length * lineH + 16
@@ -117,14 +119,91 @@ export function sheet(dir: string, framings: readonly Framing[]): Raster {
 
 export const FRAMINGS: readonly Framing[] = [
   {
-    id: 'f1',
+    id: 'f1-today',
     name: 'today',
     lens: 50,
     distance: 16.6,
     tilt: 30,
     field: [512, 384],
     density: 1,
-    face: [512, 330],
+    face: [566, 292],
+  },
+  {
+    id: 'f2-lens100',
+    name: '100 mm lens',
+    lens: 100,
+    distance: 16.6,
+    tilt: 30,
+    field: [512, 384],
+    density: 2,
+    face: [612, 238],
+  },
+  {
+    id: 'f3-field1024',
+    name: 'field 1024x768',
+    lens: 50,
+    distance: 16.6,
+    tilt: 30,
+    field: [1024, 768],
+    density: 2,
+    face: [562, 300],
+  },
+  {
+    id: 'f4-mixed',
+    name: 'mixed density',
+    lens: 50,
+    distance: 16.6,
+    tilt: 30,
+    field: [512, 384],
+    density: 2,
+    face: [560, 292],
+  },
+  {
+    id: 'f5-lens70-tilt25',
+    name: '70 mm, tilt 25',
+    lens: 70,
+    distance: 16.6,
+    tilt: 25,
+    field: [512, 384],
+    density: 2,
+    face: [586, 286],
+  },
+]
+
+/** The same views with the rebuilt Ada of round 8 (`?ada=b` in the study patch): mixed density at today's field, a 100 mm lens, the 1024 by 768 field. */
+export const FRAMINGS_B: readonly Framing[] = [
+  {
+    id: 'b1-today',
+    name: 'rebuilt: today field, density 2 (mixed)',
+    lens: 50,
+    distance: 16.6,
+    tilt: 30,
+    field: [512, 384],
+    density: 2,
+    her: 1.62,
+    face: [568, 310],
+  },
+  {
+    id: 'b2-lens100',
+    name: 'rebuilt: 100 mm lens',
+    lens: 100,
+    distance: 16.6,
+    tilt: 30,
+    field: [512, 384],
+    density: 2,
+    her: 1.62,
+    face: [516, 232],
+  },
+  {
+    id: 'b3-field1024',
+    name: 'rebuilt: field 1024x768',
+    lens: 50,
+    distance: 16.6,
+    tilt: 30,
+    field: [1024, 768],
+    density: 2,
+    her: 1.62,
+    face: [562, 316],
   },
 ]
 
@@ -132,4 +211,5 @@ if (process.argv[1]?.endsWith('figure-framing.ts')) {
   const [dir, out] = process.argv.slice(2)
   if (dir === undefined || out === undefined) throw new Error('usage: figure-framing <frames-dir> <out-file>')
   writeFileSync(out, encodePng(sheet(dir, FRAMINGS)))
+  writeFileSync(out.replace(/\.png$/, '-b.png'), encodePng(sheet(dir, FRAMINGS_B)))
 }

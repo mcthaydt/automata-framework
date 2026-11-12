@@ -599,6 +599,54 @@ reference's face, **density 1 (x4) beside density 2 (x2), the same size on scree
 - **What a smaller figure costs (the cost row of the sheet):** at density 1 her head is 9 rows and the face is two dots and a mouth texel; the drawing of
   the face, the cuffs, the V of the waistcoat and the boots' heel exist only from density 2.
 
+### C and D. The framing study
+
+In-game frames at 1024 x 768, Ada standing in the hall's middle facing the camera, in the ward's merge (`origin/claude/last-light-prologue` at `baa73132e`
+merged first, clean; `origin/main` already in). The game's source is **unchanged on this branch**: the frames are shot under a study patch
+([`framing-study.patch`](framing-study.patch): the lens, the field, the tilt, the distance and the figure's density from the query, `?ada=b` for the rebuilt Ada, and
+the shoot test `tests/e2e/framing.test.ts`), applied only to shoot and reverted. Chromium on this container's software GL, one worker; the frames are the real game.
+Sheets: **[`round8-framing-sheet.png`](round8-framing-sheet.png)** (today's Ada, the five framings, her face at x4 under each, the numbers) and
+**[`round8-framing-sheet-b.png`](round8-framing-sheet-b.png)** (the adopted rebuilt Ada B in three of them); the frames themselves are `round8-frame-*.png`.
+Numbers are the camera's own (`figure-framing.ts`: the vertical field at the focus is `distance x 24 / lens`; her rows are her height x cos(tilt) x the field's lines a metre).
+
+| | 1 today | 2 a 100 mm lens | 3 a 1024 x 768 field | 4 mixed density | 5 a 70 mm lens, tilt 25 |
+| --- | --- | --- | --- | --- | --- |
+| what changes | nothing | the lens (50 to 100 mm) | the field, shown at 1x; her at density 2 | her painted at density 2 on today's field | lens 70 mm, tilt 25, density 2 |
+| field, shown at | 512 x 384, 2x | 512 x 384, 2x | 1024 x 768, 1x | 512 x 384, 2x | 512 x 384, 2x |
+| her rows (figure density) | 64 (1) | **129 (2)** | **129 (2)** | 64 (2) | 94 (2) |
+| metres of room, across x deep | 10.6 x 15.9 | **5.3 x 8.0** | 10.6 x 15.9 | 10.6 x 15.9 | 7.6 x 13.5 |
+| floor texels a metre, across, deep | 48, 24 | 96, 48 | 96, 48 | 48, 24 | 67, 29 |
+| the LCD cell, in screen pixels | 2 | 2 | **1** | 2 | 2 |
+| field pixels drawn | 197 K | 197 K | **786 K** | 197 K | 197 K |
+| figure texels per field pixel | 0.77 | 0.77 | 0.77 | **1.54** | 1.10 |
+
+What the frames show (today's Ada, and B in the second sheet):
+1. **Today.** Her head is 10 rows; at the shot's size the face is two dark dots and the bob a blob. This is what every round so far fought.
+2. **A 100 mm lens** (the same distance and field, the view halved): she is 129 rows and her head 20, the **only frame where a face, the fringe and the bob read**
+   (B: eyes with their whites, a brow, nose and mouth, the hair a rounded mass). The cost is the room: 5.3 m across and 8 m deep, she crosses the screen in 1.8 s at her 3 m/s where she took
+   3.5 s, the doorways are off the frame, and the hall's fixed shot (`follow` .12) would lose her at the room's edges: a lock-on follow is needed (I tried `follow` 1 through the
+   query and the game refused to boot, which I did not investigate). In a horror game seeing less can be right; the old `peek` (the camera leans toward a doorway) already exists and a
+   minimap would be the other cure. Lenses from 85 mm up keep it.
+3. **A finer field, the same view**: the room is as wide as today and she is as big on the screen, but every pixel is half: the face is the second sharpest and her head 20 screen pixels
+   (B: eyes and a mouth, small); the pixel look is gone: the LCD cell is 1 screen pixel (the grid is a fine mesh, not the 2-pixel one), the floor's tiles and the lamp are
+   smooth, not chunky. The floor needed no new texture at 96 lines a metre (judged by eye: no blur or stretch; I did not measure the tile file's own texel density); the cost
+   is 4 times the field's pixels (the shoot took 4.2 minutes where the others took 1.5 to 1.6 in this software renderer: a crude sign, not a benchmark).
+4. **Mixed density** (the room at today's texel size, her painted at density 2 on the same quad): her texel is 0.65 of a field pixel, so the field resamples her: **no gain**, and
+   the face is blurred. The painter's detail only shows when one figure texel is about a field pixel; a figure finer than the room needs its own, finer render target
+   (a second pass at twice the field) in the framework.
+5. **A 70 mm lens at 25 degrees tilt**: her 94 rows, the room 7.6 by 13.5 m; the lower tilt shows more of her face and the walls and keeps most of the room. Her head is 15 rows
+   and her face is a smudge with eyes: **the floor of what the face needs is about 110 to 125 rows**; below that only the eyes read, and the bob is a mass of 28 rows wide only from 125 rows up.
+
+What else each touches: **movement feel** (a nearer view feels faster; the follow's lag and dead zone want retuning); **cutscene close shots** (they use the camera's own lens at density 1:
+a close-up wants density 2 or 4, which the kit's `paintedFigure` takes (`density` 1, 2 or 4), at a cutscene key); **the field-from-window rule** (`src/app/field.ts`: `FIELD_CAP` 640 x 480 and the
+whole-scale rule would have to allow 1024 x 768 for frame 3; frame 2 touches nothing there); **the camera** (`LENS_MM` in `packages/3d/src/features/camera/fov.ts` is one lens for every view; a view's
+`distance` is authored from 3 to 20 m and its tilt 25 to 40, so a nearer camera of 8 m is within range where a longer lens is not a view field yet); **the figure quad's density** (`PLAY_FIGURE` in `cast.ts`);
+**the room's textures** (judged fine to about 100 lines a metre, above that they would need more texels). The room's colour grade also turns her skin a purple-pink in every frame: a painter tone issue (list item 2).
+What I did not run: WebKit, Firefox and the GPU runner (this container has Chromium on software GL only); the sim's parity (no sim code changed); the 3D journeys.
+
+**Recommendation (D).** Take the 100 mm family: a lens of 85 to 100 mm with her painted at density 2 (her 110 to 135 rows, her head 18 to 20 rows) is the only framing here where her face, the fringe and the bob read, it keeps the 2x field and
+the chunky room, and it costs the room's width (5 to 8 m), so it needs a lock-on follow and the peek or a minimap. The finer field keeps the whole room but gives up the pixel look and costs 4 times the pixels; mixed density gains nothing until a finer figure pass exists.
+
 ## Waiting for the painter (the fold, `claude/builders-fold-figures`)
 
 Kept here as it grows, **ranked by what each buys at the size she is played** (the first two are the face the Owner asked for; they are the first
@@ -623,6 +671,7 @@ painter task after the fold merges). Each needs painter code, which this branch 
 
 ## Log
 
+- Round 8 (C, D): five framings and three with the rebuilt Ada shot in the game under a study patch, the contact sheets, the recommendation.
 - Round 8 (B, first round): `ada-rebuilt.ts` (the base woman to the spec), `figure-rebuild.ts` and its sheet, the test of her proportions and eyes (`ada-rebuilt.test.ts`).
 - Round 8 (A): the reference board of the generated images, the look spec and the turnaround's numbers (`figure-reference.ts`, its test first).
 - Round 7: the kit's `eyeMarks` garment (`eye-marks.test.ts` first), Ada's eyes two tall and four apart; the proportions helper and its table (`proportions.test.ts` first), Ada brought to the old game's numbers (height 154, legs .3, hips 1, `genes.head` .28; `cast.test.ts` first), the painter list ranked. The Owner's change of target recorded.
