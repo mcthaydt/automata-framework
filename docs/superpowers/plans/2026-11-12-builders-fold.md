@@ -25,7 +25,7 @@ argues from their measurements. **Tracker:** [`../progress.md`](../progress.md),
 
 ## Tracking
 
-**5 of 28 tasks done (18%)** (task 20 is conditional and counted only if the Owner chooses it). Audited 2026-11-12
+**6 of 28 tasks done (21%)** (task 20 is conditional and counted only if the Owner chooses it). Audited 2026-11-12
 ([plan audit](../audits/2026-11-12-builders-fold-plan-audit.md)): its fixes are in the steps below. Numbers 4b to 4d were
 added and 14 was moved to 4b after the Owner's answers of 2026-11-12, so the numbering has letters and a gap. Tick a
 task only when its checks passed in the session that did it; say what did not run.
@@ -37,7 +37,7 @@ task only when its checks passed in the session that did it; say what did not ru
 | 3 | The character kit's door points at the package | `claude/builders-fold-figures` | done | `refactor(character-kit): the door imports the painter as a workspace package`: door test 5 of 5 (three specifier cases watched failing first), boundaries 0 findings, closed-beta guard passes, stale-types and missing-types checks green; kit unit 28 files, 229 tests (228 and the new case); kit browser (Chromium) 58 pass, 3 files skipped, as the baseline; no recorded file rewritten; `pnpm check` exit 0 (2m23s) |
 | 4 | The submodule and its wrapper go | `claude/builders-fold-figures` | done | `93f7e6ba3`: `git submodule status` prints nothing; a fresh clone (plain `git clone`, `pnpm install --frozen-lockfile`) passes `pnpm check` (66 tasks, 14m53s, nothing else typed); `pnpm check` in the tree 15m54s uncached; kit Chromium 58 pass without the root's Pixi; the hygiene invariants pass; `git diff --stat origin/main -- .github` empty |
 | 4b | The workflows lose the submodule step (the Owner's word given) | `claude/builders-fold-figures` | done | `323a971d9`: the Owner's words quoted in the commit body ("remove the submodule checkout and SUBMODULES_TOKEN from the workflows"); the new invariant test failed first (the 73 lines), passes; hygiene unit 157 tests; `pnpm check` exit 0 (66 tasks); no `SUBMODULES_TOKEN` or `checkout-submodules` left under `.github`, `tooling` or the runbook; actionlint not run (no Docker daemon here) |
-| 4c | The c5-finish fixes come across | `claude/builders-fold-figures` | todo | |
+| 4c | The c5-finish fixes come across | `claude/builders-fold-figures` | done | Six cherry-picks (`82c11508a` S1, `a799dc290` S2, `eb02942d2` N1, `6f63f4e3d` N2, `35ba7296a` N5, `3f058313f` N4) and `cc3626b84` (step 3b); after the five: 47 files, 577 tests, no golden moved; after step 3b: 47 files, 578 tests, typecheck 0 errors; kit unit 229 tests, kit Chromium 58 pass as the baseline, no recorded file rewritten; `pnpm check` exit 0 (3m27s) |
 | 4d | A turned face keeps both eyes: the fix, the sheet, the Owner's eye, the re-record | `claude/builders-fold-figures` | todo | |
 | 5 | The wardrobe branch arrives as its own commits | `claude/builders-fold-figures` | todo | |
 | 6 | Conform: one mechanical commit for format, one for lint's automatic fixes | `claude/builders-fold-figures` | todo | |
@@ -754,18 +754,18 @@ in place of two values a texel (N4). Files: `paint/paint.ts`, `paint/fabric.ts`,
 the painter's tests pass (11 files, 163 tests). **No golden is expected to move, and none may**: the base pair wear
 no gloss and no fabric. N4 was not measured (it needs the hand resolution below).
 
-- [ ] **Step 1: The five that apply cleanly.**
+- [x] **Step 1: The five that apply cleanly.**
   `git log --reverse --format='%h %s' painter-history/main..painter-history/claude/c5-finish-fixes` gives the six
   filtered commits (expected S1 `27a8fa8`, S2 `8dfb448`, N1 `a293d24`, N2 `b3cdafb`, N5 `eaebfbf`, N4 `37cf985`; the
   commit map has the old ones: `7bd4fac`, `d5205bd`, `d77244c`, `6fff4fa`, `4ded644`, `e97df55`). `git cherry-pick -x`
   the first five, in that order. Expected: no conflict.
-- [ ] **Step 2:** The whole suite: all pass, the five goldens among them. A moved golden is a stop.
-- [ ] **Step 3: N4** (old id `e97df55`). `git cherry-pick -x` it. **One conflict is expected**, one hunk of
+- [x] **Step 2:** The whole suite: all pass, the five goldens among them. A moved golden is a stop.
+- [x] **Step 3: N4** (old id `e97df55`). `git cherry-pick -x` it. **One conflict is expected**, one hunk of
   `extensions/figures/src/features/figure/figure.ts`, where the cell cache is stored: `main` has since added `depth`
   to the cached cell, and the fix replaces the weave's `lo` and `hi` with `depths`. Keep both: the fix's `weave`
   line (`depths: wv.depths.slice()`, no `lo`, no `hi`) and `main`'s `depth: this.depth.slice(a, b)` in the cached
   object. Any other conflict is a stop.
-- [ ] **Step 3b: N4 meets `lighting/sprite.ts`.** `main` added `src/features/lighting/sprite.ts` (c8-lit) after the
+- [x] **Step 3b: N4 meets `lighting/sprite.ts`.** `main` added `src/features/lighting/sprite.ts` (c8-lit) after the
   branch was cut, and git merges it cleanly, but it still reads the old `Weave`: `weave.lo[k]` and `weave.hi[k]` at line
   194 and `weave.on[k] === 1` at lines 100 and 175, and `tests/features/lighting/sprite.test.ts:164` reads `w.lo[k]`
   and `w.hi[k]` (measured by the plan audit: 4 `TS2339` errors after N4). The type errors are loud; the two `=== 1` are
@@ -780,10 +780,10 @@ no gloss and no fabric. N4 was not measured (it needs the hand resolution below)
      both lines; line 194 becomes `tiled(col, weave!.labels[k], ...depthAt(weave!, k))`, as N4 wrote `light.ts`.
   3. The file PASSES; `pnpm --filter @automata/figures typecheck` reports none of the four; the five goldens pass.
      Commit `fix(figures): the sprite light reads the weave's depth table`, its body naming N4 and c8-lit.
-- [ ] **Step 4:** `pnpm --filter @automata/figures typecheck`; the whole suite (record the new test count); the
+- [x] **Step 4:** `pnpm --filter @automata/figures typecheck`; the whole suite (record the new test count); the
   kit's unit suite and Chromium suite at the baseline's counts with `git status` clean (the kit registers fabrics, so
   the weave's change reaches it: a moved kit cell is a stop and a question, not a re-record).
-- [ ] **Step 5:** `pnpm check`. The cherry-picks are the commits; add no squash.
+- [x] **Step 5:** `pnpm check`. The cherry-picks are the commits; add no squash.
 
 **Done when:** six commits of the branch and step 3b's are in `git log -- extensions/figures`, and no golden of the
 painter or the kit moved.
@@ -1525,3 +1525,4 @@ pin.
 | 2026-11-12 | Task 3 | The door's three specifiers, the kit's dependency, the 13 `--forbid` entries and the closed-beta guard point at `@automata/figures`; one new case (the package has three exports and no wildcard). The "Pixi-free entries" case passed vacuously in the plan's form (no specifier matched), so it now asserts the exact specifier set and fails first. **Two things the plan did not name:** `src/features/fashion/garments.ts` augments `declare module 'figure-builder'` (now `'@automata/figures'`), and `turbo.json`'s `@automata/figures#typecheck` needs `"outputs": ["types/**"]`, else a turbo cache hit does not restore `types/` and a consumer type-checks the painter's source under the strict flags (seen: `examples-3d` and the kit failed with `TS2532` with `types/` removed and the cached typecheck). With the outputs, `rm -rf extensions/figures/types && pnpm typecheck` passes on a miss and on a hit. Not run: WebKit, Firefox, arm64 |
 | 2026-11-12 | Task 4 | Submodule, gitlink, wrapper, `.gitmodules`, workspace entry, Biome and knip and `.gitignore` entries gone. The root's `@pixi/3d` and `pixi.js` are out and stay out (`pnpm check` exit 0 and the kit's Chromium suite pass without them). The submodule script exits 0 with and without a token. A fresh clone with the declarations built by `prepare` passes `pnpm check`. `scripts/record-runway-cells.ts` named `vendor/FigureBuilder` in code: it now points at `extensions/figures` (a hand-run recorder; its comments are for task 12). What still names the submodule: the kit's comments (task 12), `gate.ts`'s error text (task 12) and the workflows and their invariants (task 4b). Not run: WebKit, Firefox, arm64 |
 | 2026-11-12 | Task 4b | Eight workflow files, the script and its test, rule 6 and 7 of the invariants and the runbook row. The new case ("name no submodule step and no submodule token") was watched failing for the right reason first. Every file parses as YAML; `pnpm lint:actions` could not run (Docker's daemon is not available here), so actionlint is **not run**. For the pull request's text: the Owner, 2026-11-12, "remove the submodule checkout and SUBMODULES_TOKEN from the workflows". The `SUBMODULES_TOKEN` secret is the Owner's to delete once no open branch predates this commit (a branch that has not merged `main` past it still runs the old step, which warns and empties the submodule, and its install fails) |
+| 2026-11-12 | Task 4c | The five apply with no conflict (47 files, 577 tests, all five goldens, the identity pins and the kit pass). N4 had the one expected conflict (one hunk of `figure.ts`; kept the fix's `weave` line and main's `depth`), and the commit hook refused it (its `lighting/sprite.ts` reads the old Weave), so N4 was committed with `LEFTHOOK=0`, said here and in the ledger: the next commit fixes it. Step 3b: the new case (two fabrics of different depth, lit) failed with the TypeError of the old shape; with only the `=== 1` left unfixed it fails with an assertion on a depth-2 texel, so it sees the silent bug; then `sprite.ts` reads `on !== 0` and `depthAt` (commit through the hook). No golden of the painter or the kit moved. Not run: WebKit, Firefox, arm64 |
