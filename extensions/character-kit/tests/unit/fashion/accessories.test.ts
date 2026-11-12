@@ -7,14 +7,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { HEADWEAR } from '#src/features/fashion/headwear.ts'
 import { registerFashion } from '#src/features/fashion/register-fashion.ts'
 import { FASHION_SWATCHES } from '#src/features/fashion/swatches.ts'
-import {
-  BASE,
-  type CharacterDef,
-  cellOf,
-  Figure,
-  type Material,
-  member,
-} from '#src/shared/figure-builder/door.ts'
+import { BASE, type CharacterDef, cellOf, Figure, type Material, member } from '#src/shared/figures/door.ts'
 
 registerFashion()
 

@@ -1,7 +1,7 @@
 // The figure's frames as a sheet reads them: its eight standing views, its walk's poses, and the silhouette's width row by row
 // (shoulder, waist and hip in texels), all painted in Node by the figure builder's own painter.
 import { describe, expect, it, vi } from 'vitest'
-import { BASE, type CharacterDef } from '#src/shared/figure-builder/door.ts'
+import { BASE, type CharacterDef } from '#src/shared/figures/door.ts'
 import {
   type PaintedCell,
   paintedCell,

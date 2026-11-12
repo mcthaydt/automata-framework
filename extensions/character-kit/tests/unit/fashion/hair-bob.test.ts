@@ -3,13 +3,7 @@
 // plays a figure (density 1, 4 views) and measured at density 2 from the front (its widest row, how low the fringe comes).
 import { describe, expect, it, vi } from 'vitest'
 import { registerFashion } from '#src/features/fashion/register-fashion.ts'
-import {
-  BASE,
-  type CharacterDef,
-  HAIR_STYLES,
-  type Material,
-  SWATCHES,
-} from '#src/shared/figure-builder/door.ts'
+import { BASE, type CharacterDef, HAIR_STYLES, type Material, SWATCHES } from '#src/shared/figures/door.ts'
 import { type PaintedCell, paintedCell, rowWidths, texelsOfSwatch } from '#src/testing/painted-cell.ts'
 
 registerFashion()
@@ -95,26 +89,26 @@ function front(def: CharacterDef) {
 describe('a bob with a fringe', () => {
   const helmet = bob('smoothBob')
 
-  for (const style of ['bobFringe', 'bobFringeFull', 'bobFringeShort']) {
+  for (const style of ['bobFringeEar', 'bobFringeFull', 'bobFringeShort']) {
     it(`${style} is a style of the painted wardrobe`, () => {
       expect(HAIR_STYLES[style]).toBeDefined()
     })
   }
 
   it('has more hair at the play size than the helmet bob (the old bob had twice the helmet’s texels)', () => {
-    expect(playTexels(bob('bobFringe'))).toBeGreaterThan(playTexels(helmet) * 1.25)
+    expect(playTexels(bob('bobFringeEar'))).toBeGreaterThan(playTexels(helmet) * 1.25)
   })
 
   it('has volume at the ear: its widest row is wider than the helmet’s', () => {
-    expect(front(bob('bobFringe')).widest).toBeGreaterThanOrEqual(front(helmet).widest + 2)
+    expect(front(bob('bobFringeEar')).widest).toBeGreaterThanOrEqual(front(helmet).widest + 2)
   })
 
   it('has a fringe: the face’s skin starts lower, under the hair over the brow', () => {
-    expect(front(bob('bobFringe')).forehead).toBeGreaterThanOrEqual(front(helmet).forehead + 2)
+    expect(front(bob('bobFringeEar')).forehead).toBeGreaterThanOrEqual(front(helmet).forehead + 2)
   })
 
   it('has a fuller version, with more hair than the plain one', () => {
-    expect(playTexels(bob('bobFringeFull'))).toBeGreaterThan(playTexels(bob('bobFringe')))
+    expect(playTexels(bob('bobFringeFull'))).toBeGreaterThan(playTexels(bob('bobFringeEar')))
   })
 })
 

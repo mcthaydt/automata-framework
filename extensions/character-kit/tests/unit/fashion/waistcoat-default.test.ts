@@ -4,7 +4,7 @@
 // (`a76c7863`), where the waistcoat was the torso grown a flat 1.6 clearances from the neck to the belt.
 import { createHash } from 'node:crypto'
 import { describe, expect, it, vi } from 'vitest'
-import { BASE } from '#src/shared/figure-builder/door.ts'
+import { BASE } from '#src/shared/figures/door.ts'
 import { paintedStand } from '#src/testing/painted-cell.ts'
 
 vi.setConfig({ testTimeout: 60_000 })

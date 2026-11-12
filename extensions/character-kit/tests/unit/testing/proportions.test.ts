@@ -1,7 +1,7 @@
 // A figure's proportions read from its painted cell: head count, neck, trunk and legs in rows, shoulder, waist and hip widths, and
 // where the legs start. A synthetic figure checks every number exactly; two real figures check the helper against the painter.
 import { describe, expect, it, vi } from 'vitest'
-import { BASE, type CharacterDef } from '#src/shared/figure-builder/door.ts'
+import { BASE, type CharacterDef } from '#src/shared/figures/door.ts'
 import type { PaintedCell } from '#src/testing/painted-cell.ts'
 import { bald, proportions, proportionsOfCells, riggedHeights } from '#src/testing/proportions.ts'
 

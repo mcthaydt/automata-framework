@@ -2,7 +2,7 @@
 // did). The generated images' waistcoat shows a short V over the chest and two rows of buttons under it.
 import { describe, expect, it, vi } from 'vitest'
 import { registerFashion } from '#src/features/fashion/register-fashion.ts'
-import { BASE, type CharacterDef } from '#src/shared/figure-builder/door.ts'
+import { BASE, type CharacterDef } from '#src/shared/figures/door.ts'
 import { paintedCell } from '#src/testing/painted-cell.ts'
 
 registerFashion()

@@ -1,7 +1,7 @@
 // A boot's shaft length as an option of the `shoes` garment: `shaft` is how far up the shin the leather rises (a share of the shin's length up from the ankle, 0.42 as it always was). The generated images' boots are ankle boots, a seventh of her height; the default draws as before.
 import { describe, expect, it, vi } from 'vitest'
 import { registerFashion } from '#src/features/fashion/register-fashion.ts'
-import { BASE, type CharacterDef, type Material } from '#src/shared/figure-builder/door.ts'
+import { BASE, type CharacterDef, type Material } from '#src/shared/figures/door.ts'
 import { paintedCell, rowWidths } from '#src/testing/painted-cell.ts'
 
 registerFashion()

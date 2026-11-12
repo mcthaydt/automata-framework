@@ -17,7 +17,7 @@ import { BASE_SCENES, baseLibrary } from '@automata/3d/base'
 import { describe, expect, it } from 'vitest'
 import { litCells } from '#src/features/painted/lit-cells.ts'
 import { roomLight } from '#src/features/painted/room-light.ts'
-import { BASE, cellOf, Figure, member, SPRITE_PITCH, type V3 } from '#src/shared/figure-builder/door.ts'
+import { BASE, cellOf, Figure, member, SPRITE_PITCH, type V3 } from '#src/shared/figures/door.ts'
 
 const { performance } = globalThis as unknown as { performance: { now(): number } }
 

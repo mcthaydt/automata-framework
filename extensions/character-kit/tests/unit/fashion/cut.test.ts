@@ -5,7 +5,7 @@
 import { describe, expect, it } from 'vitest'
 import { registerFashion } from '#src/features/fashion/register-fashion.ts'
 import { FASHION_SWATCHES } from '#src/features/fashion/swatches.ts'
-import { BASE, type CharacterDef, type Material } from '#src/shared/figure-builder/door.ts'
+import { BASE, type CharacterDef, type Material } from '#src/shared/figures/door.ts'
 import { paintedCell, rowGaps, rowWidths, silhouette } from '#src/testing/painted-cell.ts'
 
 registerFashion()

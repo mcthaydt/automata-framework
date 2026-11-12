@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest'
 import { registerFashion } from '#src/features/fashion/register-fashion.ts'
 import { RUNWAY_CAST } from '#src/features/fashion/runway-cast.ts'
-import { member, standing } from '#src/shared/figure-builder/door.ts'
+import { member, standing } from '#src/shared/figures/door.ts'
 import { cellMd5 } from '../../fixtures/cell-miss.ts'
 import { RUNWAY_GOLDEN } from '../../fixtures/runway-golden.ts'
 import { nudged } from '../../fixtures/ulp.ts'

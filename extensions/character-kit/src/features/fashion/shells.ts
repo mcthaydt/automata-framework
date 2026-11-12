@@ -22,7 +22,7 @@ import {
   superquadric,
   type Wearing,
   weights,
-} from '../../shared/figure-builder/door.ts'
+} from '../../shared/figures/door.ts'
 
 type Vec3 = readonly [number, number, number]
 const at3 = (v: Vec3 | undefined): Vec3 => v ?? [0, 0, 0]

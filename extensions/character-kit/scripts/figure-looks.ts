@@ -8,7 +8,7 @@ import { OLD_UNCANNY } from '../../../games/the-last-light/src/features/figures/
 import type { CharacterDef } from '../src/entries/index.ts'
 import { FASHION_HAIR } from '../src/features/fashion/hair.ts'
 import { registerFashion } from '../src/features/fashion/register-fashion.ts'
-import { BASE, HAIR_STYLES } from '../src/shared/figure-builder/door.ts'
+import { BASE, HAIR_STYLES } from '../src/shared/figures/door.ts'
 
 /** One version of a character: what it is called on the sheet, what differs, its data, and optionally the variant it is counted against. */
 export interface Variant {
@@ -277,8 +277,8 @@ const round3hair = (() => {
     { label: 'BEFORE', note: `${who}: the helmet bob (smoothBob)`, def: withHair(def, 'smoothBob') },
     {
       label: 'A',
-      note: 'bobFringe: a fringe over the brow, volume at the ear',
-      def: withHair(def, 'bobFringe'),
+      note: 'bobFringeEar: a fringe over the brow, volume at the ear',
+      def: withHair(def, 'bobFringeEar'),
     },
     {
       label: 'B',

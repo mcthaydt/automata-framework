@@ -13,7 +13,7 @@ import {
   RAMPS,
   SPRITE_PITCH,
   type V3,
-} from '#src/shared/figure-builder/door.ts'
+} from '#src/shared/figures/door.ts'
 
 const FEET: V3 = [0, 0, 0]
 const woman = BASE.find((b) => b.def.id === 'base-f')?.def

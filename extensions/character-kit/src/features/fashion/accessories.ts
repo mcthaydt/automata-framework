@@ -22,7 +22,7 @@ import {
   smooth,
   superquadric,
   type Wearing,
-} from '../../shared/figure-builder/door.ts'
+} from '../../shared/figures/door.ts'
 import { HEADWEAR } from './headwear.ts'
 import { frontAt, grown, heights, opening, piece, SHOULDER_RINGS, shell, skins } from './shells.ts'
 
@@ -77,7 +77,7 @@ export interface EyeMarks {
   height?: number
 }
 
-declare module 'figure-builder' {
+declare module '@automata/figures' {
   interface GarmentKinds {
     eyeMarks: EyeMarks
     waistcoat: Waistcoat

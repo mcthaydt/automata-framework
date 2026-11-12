@@ -11,7 +11,7 @@ import {
   proportions,
   proportionsOfCells,
 } from '../src/entries/testing.ts'
-import { BASE, type CharacterDef } from '../src/shared/figure-builder/door.ts'
+import { BASE, type CharacterDef } from '../src/shared/figures/door.ts'
 import { oldCell, SUBJECTS, type Subject } from './figure-sheet.ts'
 
 const f2 = (n: number | undefined) => (n === undefined || !Number.isFinite(n) ? '-' : n.toFixed(2))

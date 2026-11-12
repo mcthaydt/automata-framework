@@ -3,7 +3,7 @@ import { DEMO_CAST } from '#src/features/fashion/demo-cast.ts'
 import type { Model } from '#src/features/fashion/model.ts'
 import { registerFashion } from '#src/features/fashion/register-fashion.ts'
 import { RUNWAY_CAST } from '#src/features/fashion/runway-cast.ts'
-import { BASE, member, POSES, standing } from '#src/shared/figure-builder/door.ts'
+import { BASE, member, POSES, standing } from '#src/shared/figures/door.ts'
 
 registerFashion()
 

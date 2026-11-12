@@ -3,7 +3,7 @@
 // outfit, nothing else) so a bob does not count as skull; the joints' heights come from the rig's own numbers, since a front view
 // cannot show where two legs that touch begin. Every figure is read the same way, so two rounds of the same character compare.
 
-import { type CharacterDef, member } from '../shared/figure-builder/door.ts'
+import { type CharacterDef, member } from '../shared/figures/door.ts'
 import { type PaintedCell, paintedCell, rowWidths } from './painted-cell.ts'
 
 /** The rig's own joint heights as shares of the standing height, from the figure's genes (a figure at rest: no stand, no stoop). */

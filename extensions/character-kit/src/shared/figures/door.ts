@@ -1,0 +1,69 @@
+// The door to the figure painter (`@automata/figures`, a private package of this repository, changed in place), the half
+// that is plain TypeScript: its `index` and `kit` entries, safe in Node. The figures are its own: it generates, poses and
+// paints them, and this kit shows the cells it paints. Every module reaches the painter through this file (and
+// `door-view.ts`, the half that loads Pixi) and nowhere else (tests/unit/shared/door.test.ts). The door stays so the kit
+// takes only the names it uses, and a change in the painter breaks these files first.
+//
+// It takes the painter's stage contract (extensions/figures/docs/contract.md, `STAGE_VERSION` 1) as the kit's placement
+// and the wardrobe need it, and no more: a name is added here by the change that first uses it.
+export {
+  BASE,
+  type Backdrop,
+  type CameraPose,
+  type CastMember,
+  type Cell,
+  type CharacterDef,
+  cellOf,
+  compose,
+  type Fabric,
+  Figure,
+  type Fit,
+  flatSteps,
+  type Garment,
+  type GarmentKind,
+  HAIR_STYLES,
+  type HairFinish,
+  type HairStyle,
+  lightSprite,
+  type Material,
+  member,
+  type Part,
+  POSES,
+  project,
+  RAMPS,
+  registerFabric,
+  registerFinish,
+  registerGarment,
+  ScriptedActor,
+  type Side,
+  SPRITE_PITCH,
+  SPRITE_STYLE,
+  type SpriteLighting,
+  STAGE_VERSION,
+  type StageFrame,
+  type StageSprite,
+  SWATCHES,
+  stageFrame,
+  standing,
+  TIE_BIAS,
+  texelDepths,
+  type V3,
+  type View,
+  viewOf,
+  type Wearing,
+  walking,
+  zoomOf,
+} from '@automata/figures'
+// The painter's toolkit: what a garment kind of the kit's own is built from (H1).
+export {
+  axisAngle,
+  GROUP,
+  J,
+  type Limb,
+  lerp,
+  limb,
+  type Ring,
+  smooth,
+  superquadric,
+  weights,
+} from '@automata/figures/kit'

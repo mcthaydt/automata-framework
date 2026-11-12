@@ -2,7 +2,7 @@
 // today's cast entry. Data only: sliders, genes, a face shape, hair, an outfit and swatches. It is a study: the game's cast file is
 // unchanged, and the Owner picks whether this replaces it.
 import { ADA_SWATCHES } from '../../../games/the-last-light/src/features/figures/old-swatches.ts'
-import { BASE, type CharacterDef } from '../src/shared/figure-builder/door.ts'
+import { BASE, type CharacterDef } from '../src/shared/figures/door.ts'
 
 type Swatches = NonNullable<CharacterDef['swatches']>
 

@@ -3,14 +3,7 @@
 // dropped without a word; the picture is where it shows).
 
 import { registerFashion } from '../features/fashion/register-fashion.ts'
-import {
-  type CharacterDef,
-  cellOf,
-  Figure,
-  member,
-  SWATCHES,
-  walking,
-} from '../shared/figure-builder/door.ts'
+import { type CharacterDef, cellOf, Figure, member, SWATCHES, walking } from '../shared/figures/door.ts'
 
 /** The painter's pitch: the builder's own camera looks down 18 degrees whatever the game's does. */
 const PITCH = (18 * Math.PI) / 180

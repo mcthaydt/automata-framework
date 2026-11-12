@@ -3,7 +3,7 @@
 // 2, each cell's SHA-1 (first 12 hex digits) recorded from the commit before the option (`fc2cf92c` and its waistcoat's options).
 import { createHash } from 'node:crypto'
 import { describe, expect, it, vi } from 'vitest'
-import { BASE } from '#src/shared/figure-builder/door.ts'
+import { BASE } from '#src/shared/figures/door.ts'
 import { paintedStand } from '#src/testing/painted-cell.ts'
 
 vi.setConfig({ testTimeout: 60_000 })

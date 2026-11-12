@@ -2,7 +2,7 @@
 // shells, rows, tails, falls, a bun: no piece of the kit's own, so H3 is not used). Data only. Ported from FigureBuilder's
 // `claude/runway-video` (`demo/runway/library.ts`, `cb4aa9f`), which is `claude/demo-characters` `8fb0242` plus the styles
 // that hang.
-import type { HairFinish, HairStyle } from '../../shared/figure-builder/door.ts'
+import type { HairFinish, HairStyle } from '../../shared/figures/door.ts'
 
 /** A smooth finish: straight hair with a gloss, the key reaching down its form further than a coil's. */
 export const SILK: HairFinish = { tones: [0.6, 0.15, -0.55], matte: false }
@@ -298,7 +298,7 @@ export const FASHION_HAIR: Readonly<Record<string, HairStyle>> = {
   },
   // A bob with a fringe: the shell lifted off the skull and brought down over the brow, the hair falling to the chin with its mass standing
   // out at the ear (the old game's bob; the helmet `smoothBob` has neither).
-  bobFringe: {
+  bobFringeEar: {
     about: 'A chin-length bob with a fringe over the brow and volume at the ear.',
     finish: 'smooth',
     pieces: [

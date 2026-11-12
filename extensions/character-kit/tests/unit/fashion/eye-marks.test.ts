@@ -3,7 +3,7 @@
 // figures' eyes (two texels tall, four apart) as data. Read from the picture: the texels of the eyes' own colour, by eye.
 import { describe, expect, it, vi } from 'vitest'
 import { registerFashion } from '#src/features/fashion/register-fashion.ts'
-import { BASE, type CharacterDef, type Material } from '#src/shared/figure-builder/door.ts'
+import { BASE, type CharacterDef, type Material } from '#src/shared/figures/door.ts'
 import { paintedCell } from '#src/testing/painted-cell.ts'
 
 vi.setConfig({ testTimeout: 60_000 })

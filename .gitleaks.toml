@@ -26,3 +26,14 @@ commits = [
   "c8231955d9ee13490cfd48e255bec8dbcd825bab",
   "350bc5c0e6b8e1a1acb859dffacfa4e77a5c89e2",
 ]
+
+[[allowlists]]
+description = """Content hashes in two generated records: every value in games/emberwick/words-sources.json is the sha256
+of a source catalog's words (its ids keys_jump, keys_move and keys_pause carry the word key), and
+docs/provenance/figures-manifest.json lists one sha256 per painter file (one path there is tests/api.test.ts).
+generic-api-key reads the word key beside 64 hex digits. Only a line that is a 64-digit hex value in one of these two
+files is let through."""
+condition = "AND"
+regexTarget = "line"
+regexes = ['''"\s*:\s*"[0-9a-f]{64}"''']
+paths = ['''^games/emberwick/words-sources\.json$''', '''^docs/provenance/figures-manifest\.json$''']
