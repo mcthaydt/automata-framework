@@ -76,8 +76,9 @@ export const ADA: CharacterDef = {
 /**
  * The night nurse, the figure the creature is: tall and thin with arms too long, her head cocked, in a worn white uniform
  * (`nurse.json`): top and skirt in ward white with the skirt's hem stained, dark stockings, heavy shoes, a belt, a nurse's cap with
- * its cross, black hair. She has no eyes of her own: the old figure is faceless at the play size. Her hair is the kit's long fall in
- * place of the old `curtain`, and her skirt hangs without the old folds (`HELD`).
+ * its cross, black hair. She has no eyes of her own: the old figure is faceless at the play size. Her hair is the kit's `fallCurtain`, a
+ * scalp shell whose hairline comes down over her face, in place of the old `curtain` (which hangs free of it, `HELD`), her cap sits flat on
+ * her brow as the old one does, and her skirt hangs without the old folds (`HELD`).
  */
 export const NIGHT_NURSE: CharacterDef = {
   id: 'nurse',
@@ -118,8 +119,8 @@ export const NIGHT_NURSE: CharacterDef = {
       { legs: 'stockingDark' },
       { shoes: 'heavyShoe' },
       { belt: 'wardWhiteShade' },
-      { hair: 'inkBlack', style: 'fallLong' },
-      { cap: 'capWhite', style: 'nurse', mark: 'cross' },
+      { hair: 'inkBlack', style: 'fallCurtain' },
+      { cap: 'capWhite', style: 'nurseBrow', mark: 'cross' },
     ],
   },
 }
@@ -135,8 +136,9 @@ export interface Held {
 export const HELD: readonly Held[] = [
   {
     old: 'the nurse’s curtain hair over her face',
-    why: 'the builder’s hair pieces lay clumps from a hairline and let them fall to the sides and back; none hangs a panel across the face, which needs a hair piece of its own (the old `curtain` is a shell over the head and face)',
-    instead: 'the kit’s long fall, so her face shows',
+    why: 'the builder’s hair pieces lay clumps from a hairline and let them fall to the sides and back; none hangs a panel in front of the face, free of it, which needs a hair piece of its own (the old `curtain` is a shell over the head and face)',
+    instead:
+      'the kit’s `fallCurtain`: a scalp shell whose hairline comes down to her mouth, so her face is hair from the front, with the long fall behind; it hugs the face and does not hang over the chest',
   },
   {
     old: 'the folds of the nurse’s skirt',

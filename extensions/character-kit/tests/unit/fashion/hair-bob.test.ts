@@ -141,3 +141,21 @@ describe('a bob with a blunt hem at the nape', () => {
     expect(front(bob('bobFringeBlunt')).widest).toBeGreaterThanOrEqual(front(full).widest - 1)
   })
 })
+
+describe('hair that hangs over the face', () => {
+  /** The skin the face shows from the front at the play size, in the head's rows. */
+  const face = (def: CharacterDef): number => texelsOfSwatch(def, headOf(def, 0, 1), 'fair')
+
+  it('is a style of the painted wardrobe', () => {
+    expect(HAIR_STYLES.fallCurtain).toBeDefined()
+  })
+
+  it('hides the face: far less skin shows from the front than under the long fall that hangs behind', () => {
+    expect(face(bob('fallCurtain'))).toBeLessThanOrEqual(face(bob('fallLong')) * 0.6)
+  })
+
+  it('is hair, not a hole: it has more hair from the front than the long fall', () => {
+    const hair = (def: CharacterDef) => texelsOfSwatch(def, headOf(def, 0, 1), 'auburn')
+    expect(hair(bob('fallCurtain'))).toBeGreaterThan(hair(bob('fallLong')))
+  })
+})

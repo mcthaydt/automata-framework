@@ -52,6 +52,8 @@ export interface FashionSkirt {
   skirt: string
   length: number
   flare?: number
+  /** The clearance (in texels of cloth) the skirt stands off the body at the waist and the hips: 2 when left out, 0.5 for a skirt close to the body. */
+  ease?: number
   /** A swatch whose paint stains the hem, climbing `stainHeight` (a share of the figure's height) from it. */
   stain?: string
   stainHeight?: number
@@ -215,7 +217,7 @@ export function registerGarments(): void {
       return {
         parts: [
           tail(c, cloth, h.waist - 0.02 * h.k, i.length, {
-            ease: 2,
+            ease: i.ease ?? 2,
             ...(i.flare === undefined ? {} : { flare: i.flare }),
           }),
         ],

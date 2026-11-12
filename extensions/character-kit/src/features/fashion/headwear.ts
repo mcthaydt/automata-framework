@@ -51,6 +51,29 @@ export const HEADWEAR: Readonly<Record<string, Headwear>> = {
       ],
     },
   },
+  // The same cap worn as the old figure wears it: a flat band low across the brow, its face forward, not a bowl on the crown. The cross is on
+  // its face.
+  nurseBrow: {
+    pieces: [
+      {
+        at: [0, 0.9, 0.55],
+        r: [1.1, 0, 0.5],
+        rk: [0, 0.07, 0],
+        e: [0.3, 0.4],
+        taper: [1, 0.9],
+        pitch: 0.55,
+      },
+    ],
+    mark: {
+      at: [0, 0.95, 0.85],
+      atk: [0, 0.055, 0],
+      normal: [0, 0.9, 0.45],
+      sizes: [
+        [1, 3],
+        [3, 1],
+      ],
+    },
+  },
   // A peaked service cap: a band, a flat crown a little wider than it and a stiff visor over the brow.
   peakedCap: {
     pieces: [

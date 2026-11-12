@@ -384,8 +384,63 @@ const round4ada = (() => {
   return { ada }
 })()
 
+/** Round 5: the night nurse, one change at a time over round 1's adopted data (her cut, the skirt and belt, is the Owner's and stays). */
+const round5nurse = (() => {
+  registerFashion()
+  type Item = Record<string, unknown>
+  /** The nurse with each outfit item of a kind merged with `patch[kind]`, and her gait overrides patched. */
+  const nurse = (patch: Record<string, Item> = {}, gait: Record<string, number> = {}): CharacterDef => ({
+    ...NIGHT_NURSE,
+    gaitOverrides: { ...NIGHT_NURSE.gaitOverrides, ...gait },
+    outfits: {
+      uniform: (NIGHT_NURSE.outfits.uniform ?? []).map((garment) => {
+        const item = garment as unknown as Item
+        const kind = Object.keys(item)[0] as string
+        return (patch[kind] === undefined ? item : { ...item, ...patch[kind] }) as never
+      }),
+    },
+  })
+  /** The nurse as round 1 left her: the crown cap and the long fall behind. */
+  const before = nurse({ hair: { style: 'fallLong' }, cap: { style: 'nurse' } })
+  const hidden = { hair: { style: 'fallCurtain' }, cap: { style: 'nurseBrow' } }
+  const variants: Variant[] = [
+    {
+      label: 'BEFORE',
+      note: 'round 1: her cap a bowl on the crown, her face a blank mask under it',
+      def: before,
+    },
+    {
+      label: 'A (ADOPTED)',
+      note: 'her hair over her face to the mouth (fallCurtain), her cap flat and low on the brow (nurseBrow)',
+      def: NIGHT_NURSE,
+    },
+    {
+      label: 'B',
+      note: 'A with her arms hung closer and forward (armOut .03, standElbow .3)',
+      def: nurse(hidden, { armOut: 0.03, standElbow: 0.3 }),
+    },
+    {
+      label: 'C',
+      note: 'A with a skirt close at the waist (ease .5): the waist row is 18, not 20 (her cut is for the Owner)',
+      def: nurse({ ...hidden, skirt: { ease: 0.5 } }),
+    },
+    {
+      label: 'D',
+      note: 'A with only the cap changed back: her hair over her face under a bowl cap',
+      def: nurse({ ...hidden, cap: { style: 'nurse' } }),
+    },
+    {
+      label: 'E',
+      note: 'A with long sleeves (the old file says short; the old pictures show the sleeve to the wrist and no skin on the forearm)',
+      def: nurse({ ...hidden, top: { sleeves: 'long' } }),
+    },
+  ]
+  return { nurse: variants }
+})()
+
 export const LOOKS: Readonly<Record<string, readonly Variant[]>> = {
   'round4-ada': round4ada.ada,
+  'round5-nurse': round5nurse.nurse,
   'round1-ada': round1.ada,
   'round1-nurse': round1.nurse,
   'round2-ada': round2.ada,

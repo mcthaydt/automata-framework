@@ -50,6 +50,18 @@ const hangHigh = [
   [2.3, -0.2],
   [3.1416, -0.2],
 ]
+/** A hairline that comes down over the face: the front at the mouth (-0.55), the sides and the back as the natural line has them. */
+const curtainLine = [
+  [0, -0.55],
+  [0.5, -0.55],
+  [0.85, -0.55],
+  [1.15, 0.0],
+  [1.3, -0.12],
+  [1.5, 0.1],
+  [1.9, 0.0],
+  [2.5, -0.45],
+  [3.1416, -0.6],
+]
 const crown = {
   scalp: {
     from: line,
@@ -182,6 +194,16 @@ export const FASHION_HAIR: Readonly<Record<string, HairStyle>> = {
     finish: 'silk',
     pieces: [
       crown,
+      { fall: { from: hang, part: 0, count: 20, length: 1, curl: 0, volume: 0.1, rope: { r: 0.14 } } },
+    ],
+  },
+  // Long hair with its front hairline brought down over the face to the mouth, so from the front the face is a panel of hair and from the side
+  // a curtain at the cheek (the old game's `curtain`, as far as a scalp shell can: it does not hang free of the face).
+  fallCurtain: {
+    about: 'Long straight hair hanging over the face to the mouth, and down the back to the shoulder blades.',
+    finish: 'silk',
+    pieces: [
+      { scalp: { ...crown.scalp, from: curtainLine, lift: 0.14 } },
       { fall: { from: hang, part: 0, count: 20, length: 1, curl: 0, volume: 0.1, rope: { r: 0.14 } } },
     ],
   },

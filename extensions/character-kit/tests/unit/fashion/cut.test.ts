@@ -173,3 +173,15 @@ describe('legs set a gap', () => {
     })
   }
 })
+
+describe('a skirt’s ease', () => {
+  const skirt = (o: object) => rowsOf(wearing([{ skirt: 'vest', length: 0.42, ...o }]), 'vest')
+
+  it('is the clearance at its waist: a tight skirt is narrower there than a loose one', () => {
+    expect(widest(skirt({ ease: 0.5 }), 0, 0.15)).toBeLessThan(widest(skirt({ ease: 2 }), 0, 0.15))
+  })
+
+  it('is 2 clearances when the skirt names none, as it was drawn before', () => {
+    expect(skirt({}).widths).toEqual(skirt({ ease: 2 }).widths)
+  })
+})

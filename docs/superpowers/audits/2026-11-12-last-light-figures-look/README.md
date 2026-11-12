@@ -9,8 +9,8 @@ up by `pnpm --filter @automata/character-kit sheet <out-dir> <round> --old <old-
 old painter, which our painter descends from; Ada row 7, nurse row 3) and the **approved hand-painted atlas** (Ada row 1, nurse row
 1), which is what the old game actually shipped and what "looking good" meant there.
 
-Progress: **round 4 done** (Ada, about 70 % of the whole job): her fringe, open waistcoat, legs and the back of her bob worked as
-generators and data; the in-game pair for her next; **round 5 (the night nurse) not started**. Round 3: Ada's face, stand and hair adopted, the nurse's cut open. Round 0 look before touching, round 1 data, round 2 painted garments as generators,
+Progress: **rounds 4 and 5 done** (about 90 %): Ada's fringe, open waistcoat, legs and the back of her bob worked as generators and data, with the in-game pair;
+the night nurse's face, cap and (as an option) waist. Left: the Owner's picks and the painter's list. Round 3: Ada's face, stand and hair adopted, the nurse's cut open. Round 0 look before touching, round 1 data, round 2 painted garments as generators,
 round 3 the nurse's cut (choices open), and the list for the painter, kept as it goes. Left: the Owner's picks, hair as data if the
 Owner allows it, the in-game frame.
 
@@ -348,6 +348,53 @@ with the strip of shirt and the lowered neckline readable at that size.
 of both clean; biome on the files touched (its seven warnings are the existing `3.1416` literals). No golden moved: the kit's runway cells
 and core goldens pass, and the pinned cells of the base pair for the waistcoat and for the three leg cuts are unchanged.
 
+## Round 5: the night nurse
+
+Merged `origin/claude/last-light-prologue` first (nothing new). Sheets: [`round5-nurse-variants-play.png`](round5-nurse-variants-play.png) (the two old
+rows, then BEFORE, A (adopted), B, C, D, E: four stands and four walk poses each, texels ×4), [`-detail`](round5-nurse-variants-detail.png) (density
+2) and [`-numbers.txt`](round5-nurse-variants-numbers.txt); the adopted nurse alone, with the old figures' numbers:
+[`round5-nurse-play.png`](round5-nurse-play.png), [`-detail`](round5-nurse-detail.png), [`-numbers.txt`](round5-nurse-numbers.txt). The variants are
+`round5-nurse` in `figure-looks.ts`. Her cut (the skirt, the belt) stays the Owner's: nothing of it is adopted.
+
+| | BEFORE | **A (adopted)** | old |
+| --- | --- | --- | --- |
+| skin in the rows of her head, front, play size (`pale` texels) | 24 | **at most 8** (the test) | none shows: the hair is a panel over the face |
+| `pale` texels over the whole figure | 73 | **51** | |
+| hair texels (`inkBlack`) | 35 | **62** | |
+| height in texels (210 cm) | 80 | **78** (the cap sits lower) | 71 procedural, 75 atlas |
+| shoulder / waist / hip | 18 / 20 / 22 | 18 / 20 / 22 | 18 / 18 / 22 procedural, 20 / 23 / 26 atlas |
+
+**What changed (adopted).**
+- **Her face.** `fallCurtain`, a kit hair style of the builder's own pieces: the long fall behind, and a scalp shell whose front hairline is
+  brought down to the mouth (-0.55 on the skull, lifted .14), so from the front her face is black hair and from the side a curtain at the
+  cheek. `hair-bob.test.ts` (written first, failing on the missing style): far less skin shows from the front than under `fallLong`, and more
+  hair. The cast test `hides the night nurse's face under her hair` was written first and failed at 24 skin texels. **It is a shell on the head, not
+  the old `curtain`**: it hugs the face and ends at the chin, where the old hair hangs over the chest to the skirt. I tried a fall from the
+  lowered hairline (four lines and lengths): the builder's falls hang behind the figure whatever their hairline, so the curtain over the chest
+  stays on the painter's list.
+- **Her cap.** `nurseBrow` in the headwear table (data): a flat band low and forward across the brow, the cross on its face, where the
+  `nurse` style is a pitched disc on the crown (a beret). The test is on the table (lower and further forward, the mark kept, it paints); the
+  picture was judged on the sheet: it is nearer the old figures' cap, which is a small flat band in front, and it takes two rows off her height
+  (80 to 78, nearer to the old 71 and 75).
+- Her `HELD` entries and `asDrawn` were changed with the cast data: `curtain` is now `fallCurtain`, `nurse` the cap `nurseBrow`.
+
+**Open for the Owner (not adopted):** B, her arms closer and forward (`armOut` .03, `standElbow` .3): the picture does not move at play size, so
+it is not worth a change to the data. C, a skirt close at the waist: **a generator option on the skirt, `ease`** (the clearance at the waist and
+hips, 2 when left out, as it was; `cut.test.ts` first, failing; the base pair's skirts did not move) at .5 gives a waist of 18 and a hip of 20
+(old procedural 18 / 22, atlas 23 / 26) and takes the box out of her top, but it is her cut. D, the new hair under the old bowl cap, to see the
+cap alone. E, long sleeves (the old file says short; the old pictures show a sleeve to the wrist, and the forearm's skin is what makes her
+arms read as an A): a taste call and a departure from the old outfit.
+
+**Nearer to:** the **atlas** in the face (hair over it) and the cap; the **procedural** in the silhouette (a straight, tall, thin figure). What
+still separates ours from both: she stands upright (the old figures stoop: 71 and 75 rows for 210 cm), her hair ends at the chin, her skirt is a
+smooth bell with a clean hem, and her top is a box.
+
+### Verification (round 5)
+
+`pnpm --filter @automata/character-kit test:unit`: 36 files, 289 tests; the game's `vitest --project unit`: 51 files, 365 tests; typecheck of both
+clean. No golden moved: `skirt-default.test.ts` pins the base pair's two skirts (flared, and long and plain), eight views each, recorded from the
+commit before `ease`, and the runway's and core's goldens pass.
+
 ## Waiting for the painter (the fold, `claude/builders-fold-figures`)
 
 Kept here as it grows. Each needs a hair piece, a gait entry or a pose in the painter, which this branch does not patch.
@@ -355,10 +402,10 @@ Kept here as it grows. Each needs a hair piece, a gait entry or a pose in the pa
 | Needs the painter | Why | What it would improve |
 | --- | --- | --- |
 | The old `bob`'s turned-under hem and parting | `bobFringeFull` and `bobFringeBlunt` (kit styles of the builder's pieces) have the fringe and the mass at the ear; from behind the hair still narrows to the nape (28 wide to 10), where the old bob's hem is as wide as the ears, and no piece turns it under or parts it | the last of Ada's hair: the old bob's shape |
-| The nurse's `curtain` | no piece hangs a panel across the face | the uncanny: her face hidden, not a blank mask under the cap |
+| The nurse's `curtain` | no piece hangs a panel in front of the face free of it, and the builder's falls hang behind the figure whatever their hairline (tried four) | the uncanny: hair over her chest and down to the skirt, not a shell on the head that ends at the chin (`fallCurtain`, adopted) |
 | A stooping stand | the stand holds a figure upright whatever the sliders (round 1, variant B) | her old shape: 71 rows for 210 cm, leaning down |
 | Skirt pleats (`folds`) | the painted skirt is a smooth profile of rings | the torn, hanging hem |
-| A cap that sits as the old one: a flat band over the brow | the headwear table's cap is a bowl | the nurse's head |
+| A cap that is as the old one exactly | the kit's `nurseBrow` is a flat band low on the brow (adopted); the old cap's exact shape (read from its sheet: a small flat white band with the cross, set at the front) is a hand-tuned piece; ours is a superquadric band | the last of her head |
 | A brisk, leaning stand and pose for Ada standing | the stand is the builder's relaxed one: feet together, arms at the sides | her first-night posture |
 | The decal face's eyes | the decal eyes are one texel each, two apart (the old figures': two texels tall, four to six apart, black) | Ada's face at play size: bigger, wider-set eyes |
 | A wider stand | the relaxed stand draws the weight foot in 25 % and keeps the other near it, so two legs touch at play size; Ada's hips slider is at .9 to open them (the hip row grows two texels) | legs that stand apart without a wider pelvis |
@@ -366,6 +413,7 @@ Kept here as it grows. Each needs a hair piece, a gait entry or a pose in the pa
 
 ## Log
 
+- Round 5: `fallCurtain` hair and `nurseBrow` cap in the kit's tables, a skirt `ease` option, the nurse wears the first two (`cast.test.ts` first: her face at most 8 skin texels in her head's rows); `round5-nurse` looks and sheets.
 - Round 4: the fringe's height as one number (0.3), the waistcoat's `open`, `chest`, `hem` and `neckline`, `gap` on the jeans and trousers, `bobFringeBlunt`, `rowGaps`; Ada's eye test widened, her waistcoat, jeans and hips slider set; `legs-default.test.ts`; the variants script writes its own numbers.
 - Round 3: the kit's `bobFringe`, `bobFringeFull` and `bobFringeShort` hair styles (`hair-bob.test.ts` first), Ada wears `bobFringeFull`; Ada's `face.drawn: false` (eyes at play size), her stance and arm from the old brisk gait, the eyes test, the nurse's cut sheeted.
 - Round 2: waistcoat `fit`, `length` and `armhole` and legs' `taper` in the kit's garments (`accessories.ts`, `shells.ts`, `garments.ts`),
