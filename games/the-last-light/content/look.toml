@@ -3,22 +3,27 @@
 # range is refused when the game builds). No editor opens this file yet (the editor gaps ledger, row 18).
 [retro]
 
-# The old game drew its LCD panel on the screen's own pixels: a cell of 2 screen pixels, a mesh of 4. Ours is drawn on the field, which
-# the window shows at a whole scale (2x at 1024 by 768), so the same 2-pixel cell is one field pixel. A 4-pixel mesh would be 2 field
-# pixels, the Nyquist limit, where the pass fades the mesh out; 3 field pixels (6 on the screen) is the finest it can draw.
+# The old game drew its LCD panel on the screen's own pixels: a cell of 2 screen pixels, a mesh of 4. Ours keeps the field pass for the
+# panel's halation and vignette and draws the mesh, stripes and scanlines at the screen's pixels ([lcdScreen]): a field pixel is 2 screen
+# pixels at 1024 by 768, so the field could not draw a 4-pixel mesh (2 field pixels, the Nyquist limit) and its finest, 3, crossed every
+# texel of a face. The colour split is off, since it fringes the eyes' whites red and blue.
 [lcd]
 cell = 1
-# Session 16: at the old strengths (mesh .3, stripes .3, scanlines .3, colour split .25) the panel crosses every texel of a face (a texel is two
-# field pixels, the mesh's period three) and the brows, whites and mouth are lost under it. Held down to a third, so the panel is still there and a
-# face is still read; the colour split is off, since it fringes the eyes' whites red and blue.
-grid = 0.12
-subpixels = 0.1
-scanlines = 0.12
+grid = 0
+subpixels = 0
+scanlines = 0
 aberration = 0
-# The panel's gain gives back the light its mesh absorbs; the old 1.55 was for the full-strength mesh, and over the mesh held to a third it
-# lifted every dark and washed the skin pale pink (the ada session's veil crops). 1.28 is measured: a face averages what it does with the
-# panel off ((129, 94, 80) at 1024 by 768); 1 leaves it 12% darker, 1.55 10% lighter.
-brightness = 1.28
+brightness = 1
+
+# The panel's mesh and scanlines at the old strengths (.3), a line on the last screen pixel of each 4-pixel cell. A figure texel is 2 field
+# pixels, 4 screen pixels, and figures stand on their texel lattice (`PLAY_FIGURE.grid`), so every line falls between texels (session 16 had
+# held the field's mesh to a third to spare her face). The RGB stripes are off: at .3 they tint each texel's columns red, green and blue, and a
+# face reads as a woven grid (the ada frames folder, s2). `brightness` gives back the light the lines take, measured in play: her face then
+# averages what it does with no screen mesh ((150, 114, 96) at 1024 by 768; 1 leaves it at (124, 94, 79)).
+[lcdScreen]
+cellPixels = 4
+subpixels = 0
+brightness = 1.46
 
 # The old game multiplied a texel's linear colour by its light and showed the product as it was; the framework's `srgb` light multiplies the
 # sRGB colour, so the old game's lamp numbers draw about twice as bright (a mid grey is 0.5 in sRGB and 0.21 in linear light). `lamps` is a gain on

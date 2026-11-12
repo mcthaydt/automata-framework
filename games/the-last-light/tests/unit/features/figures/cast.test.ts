@@ -477,6 +477,7 @@ describe('how a figure is painted in play', () => {
   it('is the painter’s density 2 at whole pixels: a texel is a whole number of field pixels, whatever the camera’s zoom, and the skin keeps its hue in the ward’s cool light', () => {
     // A face reads at density 2 (the painter's note: faces that read at D2): its brows and lids are one or two texels thick at every density,
     // so a finer paint makes them hair-thin lines, and a coarser one dots. The camera is set so a texel is one field pixel (the level's views).
-    expect(PLAY_FIGURE).toEqual({ crisp: true, density: 2, holdSkinHue: true, dimmest: 1 })
+    // On its texel lattice (`grid`), so the LCD panel's screen mesh, one texel a cell, draws its lines between her texels.
+    expect(PLAY_FIGURE).toEqual({ crisp: true, density: 2, holdSkinHue: true, dimmest: 1, grid: true })
   })
 })

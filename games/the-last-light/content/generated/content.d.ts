@@ -737,6 +737,15 @@ declare module 'virtual:automata/content' {
       readonly subpixels: number
       readonly vignette: boolean
     }
+    readonly lcdScreen?: {
+      readonly balance: number
+      readonly brightness: number
+      readonly cellPixels: number
+      readonly grid: number
+      readonly layout: 'rgb' | 'bgr'
+      readonly scanlines: number
+      readonly subpixels: number
+    }
     readonly light: {
       readonly contact: number
       readonly lamps: number

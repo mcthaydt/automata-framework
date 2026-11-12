@@ -16,8 +16,10 @@ import { ADA_LOOK_SWATCHES, ADA_SWATCHES, NURSE_SWATCHES } from './old-swatches.
  * At whole pixels (`crisp`): a texel is a whole number of field pixels, never a fraction, so the picture is chunky and clean. The
  * camera is set so that number is 1 in play (the level's views: a 80 mm lens, about 74 field pixels a metre at the figure), and the
  * close-up's shot is framed so it is 2, 3 or 4. The skin keeps its hue in the ward's dim cool light (`holdSkinHue`): Ada was lavender in it.
+ * On its texel lattice (`grid`): a texel starts on a whole texel of the field, so the LCD panel's screen mesh (one texel a cell, `look.toml`'s
+ * `[lcdScreen]`) draws its lines between her texels, never across them.
  */
-export const PLAY_FIGURE = { crisp: true, density: 2, holdSkinHue: true, dimmest: 1 } as const
+export const PLAY_FIGURE = { crisp: true, density: 2, holdSkinHue: true, dimmest: 1, grid: true } as const
 
 /**
  * Ada Voss, the staff nurse on her first night. The prologue puts her in her street clothes (the old character file's `story`:
