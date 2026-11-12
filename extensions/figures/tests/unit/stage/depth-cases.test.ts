@@ -1,11 +1,11 @@
 // biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 27 of the builders-fold plan (the strict flags) replaces each with a check
 import { describe, expect, it } from 'vitest'
 import { compose, gameplay, type StageFrame } from '#src/entries/index.ts'
-import { CASES, wallBackdrop } from '../../../viewer/cases'
+import { CASES, wallBackdrop } from '../../fixtures/view-cases.ts'
 import { coloursOf } from './fixtures'
 
 /**
- * The per-texel depth cases view-check draws on the GPU (viewer/cases.ts), asked of the CPU reference: that each really
+ * The per-texel depth cases the browser suite draws on the GPU (tests/fixtures/view-cases.ts), asked of the CPU reference: that each really
  * exercises what it is named for, so a GPU that merely matched `compose` on an empty frame could not pass them.
  */
 /** The old rule: each sprite wholly over the earlier, in the frame's order. */

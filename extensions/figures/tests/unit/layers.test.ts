@@ -106,6 +106,7 @@ describe('module boundaries', () => {
         m.endsWith('.ts') &&
         !m.startsWith('src/features/view/') &&
         !m.startsWith('viewer/') &&
+        m !== 'tests/fixtures/view-draw.ts' && // the browser suite's page draws through Pixi
         m !== 'tests/unit/layers.test.ts',
     ) // this file holds the pattern's own samples
     expect(files.length).toBeGreaterThan(60) // the walk found the tree, not nothing

@@ -1,11 +1,11 @@
-import { type CastMember, evaluate, Figure } from '../src/entries'
-import { standOf } from '../src/shared/figure/cast'
-import { view } from '../src/shared/figure/frames'
+import { type CastMember, evaluate, Figure } from '#src/entries/index.ts'
+import { standOf } from '#src/shared/figure/cast.ts'
+import { view } from '#src/shared/figure/frames.ts'
 
 /**
  * The review sheets' stepping with the `Figure` kept: `standing`, `walking` and `hero` of shared/figure/frames.ts,
  * replayed so a caller sees the figure at the moment the sheet keeps each frame. The contract's tests
- * (tests/unit/stage/sheets.test.ts) and the view's check cases (viewer/cases.ts) share it, so the GPU case and the
+ * (tests/unit/stage/sheets.test.ts) and the view's check cases (tests/fixtures/view-cases.ts) share it, so the GPU case and the
  * golden test draw the same frames. Node-free and Pixi-free: it runs in the browser and in Node.
  *
  * `each(kind, index, figure)` is called with `'turn'` 0–7, `'walk'` 0–(poses − 1) and `'hero'` 0; the figure is the

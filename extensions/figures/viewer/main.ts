@@ -12,19 +12,15 @@
  *   /?free          the free orbit camera, a debugging aid: drag to orbit, wheel to zoom, W to walk, ←/→ to turn the
  *                   figures; `?az=&pitch=&dist=&facing=` (degrees, metres) start the camera and the figures there,
  *                   `&walk` walking
- *   /?case=NAME     one named check frame (viewer/cases.ts) drawn through `StageView` on a canvas of its pose's size;
- *                   `&twice` draws it a second time from a rebuilt frame. What `scripts/view-check.ts` compares with
- *                   `compose`. It sets `document.body.dataset.ready` once drawn.
- *   /?check=D       one base figure in view D of the 8 (and `&who=1` for base-f) under an orthographic camera at the
- *                   sheets' 18°, one texel to one pixel, on a 128 × 192 canvas: what `scripts/view-check.ts` compares
- *                   with the sheets' cell, texel for texel. It sets `document.body.dataset.ready` once drawn.
+ *
+ * The checks that the GPU draws what the painter painted are not here: they are a browser suite (tests/browser/), which
+ * draws the same frames in a page of its own.
  */
 import '@pixi/3d'
-import { CubeGeometry, FlatMaterial, Mesh3D, PlaneGeometry, View3D } from '@pixi/3d'
-import { Application, BufferImageSource, Texture } from 'pixi.js'
+import { CubeGeometry, FlatMaterial, Mesh3D, View3D } from '@pixi/3d'
+import { Application } from 'pixi.js'
 import { type ActorScript, BASE, gameplay, member, ScriptedActor, stageFrame, type V3 } from '../src/entries'
 import { FigureSprite, StageView } from '../src/entries/view'
-import { CASES } from './cases'
 
 const params = new URLSearchParams(location.search)
 const deg = Math.PI / 180
@@ -33,34 +29,7 @@ const help = (text: string) => {
   const el = document.getElementById('help')
   if (el) el.textContent = text
 }
-/** `?renderer=webgpu` draws through Pixi's WebGPU renderer (view-check runs every case under both); WebGL is the default. */
-const preference = params.get('renderer') === 'webgpu' ? 'webgpu' : 'webgl'
-/** The canvas as presented, copied in the task that drew it: a WebGPU canvas keeps no drawing buffer past that task. */
-const present = (app: Application) => {
-  const c = app.canvas as HTMLCanvasElement,
-    copy = document.createElement('canvas')
-  copy.width = c.width
-  copy.height = c.height
-  const g = copy.getContext('2d')!
-  g.drawImage(c, 0, 0)
-  const d = g.getImageData(0, 0, c.width, c.height).data
-  let bin = ''
-  for (let i = 0; i < d.length; i += 0x8000) bin += String.fromCharCode(...d.subarray(i, i + 0x8000))
-  ;(window as unknown as { __frame?: { w: number; h: number; b64: string } }).__frame = {
-    w: c.width,
-    h: c.height,
-    b64: btoa(bin),
-  }
-}
-const settle = (app: Application) => {
-  app.render()
-  requestAnimationFrame(() => {
-    app.render()
-    if (preference === 'webgpu') present(app)
-    document.body.dataset.ready = 'true'
-  })
-}
-/** A transparent, unsmoothed canvas that keeps its drawing buffer, so it can be read back. */
+/** A transparent, unsmoothed canvas that keeps its drawing buffer. */
 const startApp = async (w: number, h: number, background?: number) => {
   const app = new Application()
   await app.init({
@@ -68,7 +37,7 @@ const startApp = async (w: number, h: number, background?: number) => {
     height: h,
     background,
     backgroundAlpha: background === undefined ? 0 : 1,
-    preference,
+    preference: 'webgl',
     antialias: false,
     resolution: 1,
     autoDensity: false,
@@ -76,68 +45,6 @@ const startApp = async (w: number, h: number, background?: number) => {
   })
   document.body.appendChild(app.canvas)
   return app
-}
-
-/** `?case=NAME`: a named stage frame, drawn through StageView (the GPU side of view-check's comparison). */
-async function caseMain(name: string) {
-  const c = CASES[name]
-  if (!c) throw new Error(`no case ${name}`)
-  let frame = c.frame()
-  const [w, h] = frame.camera.size,
-    app = await startApp(w, h),
-    stage = new StageView([w, h], c.range)
-  app.stage.addChild(stage.view)
-  if (c.wall) {
-    // the case's wall, in the scene beside the figures: a plane facing +z, one colour through the same texture path as a cell
-    const { z, x, y, rgba } = c.wall,
-      source = new BufferImageSource({
-        resource: new Uint8Array(rgba),
-        width: 1,
-        height: 1,
-        format: 'rgba8unorm',
-        scaleMode: 'nearest',
-        alphaMode: 'no-premultiply-alpha',
-      })
-    const mesh = new Mesh3D({
-      geometry: new PlaneGeometry({ width: x[1] - x[0], height: y[1] - y[0] }),
-      material: new FlatMaterial({ baseColorTexture: new Texture({ source }) }),
-    })
-    mesh.position.set((x[0] + x[1]) / 2, (y[0] + y[1]) / 2, z)
-    stage.view.root.addChild(mesh)
-  }
-  stage.draw(frame)
-  app.render()
-  document.body.dataset.renderer = app.renderer.name // view-check asserts a WebGPU page really got WebGPU
-  document.body.dataset.perTexelDepth = String(stage.perTexelDepth) // view-check asserts the first render found WebGL
-  if (params.has('twice')) {
-    frame = c.frame()
-    stage.draw(frame)
-  }
-  settle(app)
-}
-
-/** `?check=D`: one figure, as the sheets draw it, under an orthographic camera (view-check's standing views). */
-async function checkMain(check: string) {
-  const cast = member(BASE[Number(params.get('who') ?? 0)].def, DENSITY),
-    [cw, ch] = cast.cell,
-    ppm = ch / cast.metres
-  const app = await startApp(cw, ch),
-    view = new View3D({ width: cw, height: ch, toneMapping: 'none' })
-  app.stage.addChild(view)
-  // One figure, as the sheets draw it: facing view D, the camera on +z at 18°, orthographic, a texel a pixel.
-  const fig = new FigureSprite(cast)
-  view.root.addChild(fig.sprite)
-  const pitch = 18 * deg,
-    aim = (ch / 2 - cast.feet) / ppm / Math.cos(pitch)
-  const target: V3 = [0, aim, 0],
-    eye: V3 = [0, aim + 20 * Math.sin(pitch), 20 * Math.cos(pitch)]
-  view.camera.mode = 'orthographic'
-  view.camera.orthographicSize = cw / 2 / ppm
-  view.camera.position.set(...eye)
-  view.camera.lookAt({ x: target[0], y: target[1], z: target[2] })
-  for (let i = 0; i < 3; i++)
-    fig.update(1 / 60, { facing: (Number(check) * Math.PI) / 4, moving: false, eye, target })
-  settle(app)
 }
 
 /** `/`: The Last Light's gameplay camera on the base pair, crisp figures by default, true scale to compare. */
@@ -251,9 +158,5 @@ async function freeMain() {
   })
 }
 
-const check = params.get('check'),
-  name = params.get('case')
-if (name !== null) caseMain(name)
-else if (check !== null) checkMain(check)
-else if (params.has('free')) freeMain()
+if (params.has('free')) freeMain()
 else gameplayMain()

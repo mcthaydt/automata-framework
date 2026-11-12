@@ -18,14 +18,15 @@ import {
   stageFrame,
   TIMES,
   type V3,
-} from '../src/entries'
-import { type SheetKind, sheetFigures } from './sheets'
+} from '#src/entries/index.ts'
+import { type SheetKind, sheetFigures } from './view-sheets.ts'
 
 /**
- * The named check frames, shared by the viewer's `?case=` page (which draws one through `StageView`) and by
- * `scripts/view-check.ts` (which compares the GPU's readback with `compose` of the same frame). Every actor is a base
- * figure and every script a fixed literal here, so `stageFrame`'s determinism makes the page and the script build the
- * same frame. It imports only `../src` and `./sheets`: it runs in the browser and in Node, with no Pixi.
+ * The named check frames, shared by the browser suite (tests/browser, which draws each through `StageView` and compares
+ * the GPU's readback with `compose` of the same frame) and by the unit tests that ask the CPU reference what each case
+ * exercises (tests/unit/stage/depth-cases.test.ts). Every actor is a base figure and every script a fixed literal here,
+ * so `stageFrame`'s determinism makes the page and the Node test build the same frame. It imports only `#src` and
+ * `./view-sheets.ts`: it runs in the browser and in Node, with no Pixi.
  *
  * The stage paints at D2 and the renders' pitch (18°) and is crisp by default (whole pixels a texel), so a case without
  * `crisp: false` is crisp; the `…/true/…` cases say `crisp: false`. Claims: `bytes`: the readback equals `compose(frame)`, every byte. `palette`: every opaque pixel is a colour some
@@ -215,7 +216,7 @@ CASES['tie/same'] = {
   claim: 'bytes',
 }
 // Per-texel order, not per-quad: the standing man, and a woman walking past him a hand's breadth behind, her swung arm
-// nearer the camera than his body (view-check's unit test counts the pixels where the two orders differ).
+// nearer the camera than his body (tests/unit/stage/depth-cases.test.ts counts the pixels where the two orders differ).
 CASES.overlap = {
   frame: () =>
     stageFrame(

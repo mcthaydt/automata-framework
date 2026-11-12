@@ -50,7 +50,7 @@ const cellDepthBit: ShaderBit = {
   let cellD = bitcast<f32>(bits) - material.depthProj.w;
   let zNdc = select(-material.depthProj.y * cellD + material.depthProj.z, -material.depthProj.y + material.depthProj.z / cellD, material.depthProj.x > 0.5);
   // Window depth, as under WebGL: the projection StageView passes holds −1…1 clip depth, and WebGPU's 0…1 is that halved and
-  // shifted. Both formulas were tried at the spike; this one makes view-check's wall and overlap cases 0 pixels from compose.
+  // shifted. Both formulas were tried at the spike; this one makes the browser suite's wall and overlap cases 0 pixels from compose.
   cellDepth = zNdc * 0.5 + 0.5;
 `,
     },

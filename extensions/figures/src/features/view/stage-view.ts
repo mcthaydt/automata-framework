@@ -9,7 +9,7 @@ import { CellSprite } from './cell-sprite'
 
 /**
  * A `StageFrame` in a Pixi 3D view: one `CellSprite` per sprite, under a `Camera3D` set from the frame's `CameraPose`.
- * It holds no look: nothing but textured quads, so what the GPU draws is `compose(frame)` (`npm run view-check` proves
+ * It holds no look: nothing but textured quads, so what the GPU draws is `compose(frame)` (the browser suite in `tests/browser` proves
  * it, byte for byte, under the orthographic camera, and under perspective at whole pixels a texel).
  *
  * Each quad is square to the image plane (its axes the pose's `right` and `up`: `poseQuaternion`), never yawed to the

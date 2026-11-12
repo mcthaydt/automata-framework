@@ -10,8 +10,8 @@ import { type CameraPose, checkPose, densityFor, project, viewOf, zoomOf } from 
 
 /**
  * The stage frame: scripted actors at a time under a passed-in camera pose, as the painted cells a scene draws and
- * where each lands. `compose` is the CPU reference that frame is checked against (the GPU's readback must equal it,
- * `npm run view-check`) and replaces the compositor each showcase wrote by hand. Pure TypeScript: no Pixi, no DOM.
+ * where each lands. `compose` is the CPU reference that frame is checked against (the GPU's readback must equal it: see
+ * `tests/browser`) and replaces the compositor each showcase wrote by hand. Pure TypeScript: no Pixi, no DOM.
  */
 
 /** The contract's version: a whole number, raised on any breaking change to the types in docs/contract.md or to
