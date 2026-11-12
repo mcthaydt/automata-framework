@@ -247,7 +247,7 @@ its gate was red (B1); the 4d wording.
 
 ## Fixes
 
-**Stage 6**, 2026-11-12, on the same branch from `4aeafb04`, no subagents. **Progress: 6 of 16 findings answered (38%)**; the
+**Stage 6**, 2026-11-12, on the same branch from `4aeafb04`, no subagents. **Progress: 7 of 16 findings answered (44%)**; the
 table is updated as each fix commits. The commit column holds the short hash once the fix is committed.
 
 | Finding | Commit | What changed | How it is proved, or why it is left |
@@ -261,7 +261,7 @@ table is updated as each fix commits. The commit column holds the short hash onc
 | N1 | this commit | The 43 headers now say why ("until the strict flags (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) replace each with a check") and no longer name a task or the plan; `tsconfig.json`'s and the README's sentences lose the plan too (the plan, which lists the files per task, says so). The detector learns the form | `tooling/check-style/tests/unit/plan-comments.test.ts`: 3 flagged cases (`task 27 of the builders-fold plan`, `tasks 21 to 27 of the fold plan`, `the builders-fold plan's ledger`) failed first; 2 near-misses pass (`Task 27 of 30`, `The ledger of the plan`); the check-style suite 143 pass; `pnpm style` 0 findings. The same run found that S1's new test spelled `../../src` strings that `pnpm style` (not part of the commit hook) read as imports: spelled in parts here (`UP`) |
 | N2 | | | |
 | N3 | | | |
-| N4 | | | |
+| N4 | this commit | `automata-check-boundaries --confine <package>:<folder> <root>...` (`packages/tools/src/features/boundaries/confine.ts`, rule `confined-import`, the `--forbid` reader with the folder exempt); `pnpm boundaries` runs it as `--confine @automata/figures:extensions/character-kit/src/shared/figures packages extensions games examples tooling`; the verify skill's rule table has the row; a patch changeset for `@automata/tools` (a published package) | `confine.test.ts` (4 cases: the door and its subpaths pass; any other source and test fail naming the specifier and the door; `door-2` is not the door; a lookalike package is not the package) and two CLI cases in `cli.test.ts` (exit 0 / 1 / 2) failed first (missing module, exit 1 for a flag it did not know). Run on the real tree: 4,795 files, 0 findings; with a probe `games/emberwick/src/probe/p.ts` importing `@automata/figures` (removed again): `confined-import … which only extensions/character-kit/src/shared/figures may use`, exit 1 |
 | N5 | | | |
 | N6 | | | |
 | N7 | | | |

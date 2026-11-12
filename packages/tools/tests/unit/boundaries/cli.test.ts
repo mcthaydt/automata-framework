@@ -204,6 +204,29 @@ describe('--features and --browser (core and 2D refactor spec §3.5)', () => {
     )
   })
 
+  it('--confine lets only the named folder import the package, and exits 1 on any other', () => {
+    const files = {
+      'door/door.ts': "export { member } from '@x/painter'\n",
+      'game/a.ts': "import { member } from '@x/painter'\nexport const a = member\n",
+    }
+    expect(
+      pkg({ 'door/door.ts': files['door/door.ts'] }, () => ['--confine', '@x/painter:src/door', 'src']),
+    ).toMatchObject({
+      status: 0,
+    })
+    const result = pkg(files, () => ['--confine', '@x/painter:src/door', 'src'])
+    expect(result.status).toBe(1)
+    expect(result.stdout).toContain(
+      'src/game/a.ts:1:1  confined-import  imports "@x/painter", which only src/door may use.',
+    )
+  })
+
+  it('--confine needs a package, a folder and a root', () => {
+    expect(pkg({}, () => ['--confine'])).toMatchObject({ status: 2 })
+    expect(pkg({}, () => ['--confine', '@x/painter'])).toMatchObject({ status: 2 })
+    expect(pkg({}, () => ['--confine', '@x/painter:src/door'])).toMatchObject({ status: 2 })
+  })
+
   it('--forbid needs a package root and at least one package', () => {
     expect(pkg({}, () => ['--forbid'])).toMatchObject({ status: 2 })
     expect(pkg({}, () => ['--forbid', '.'])).toMatchObject({ status: 2 })
