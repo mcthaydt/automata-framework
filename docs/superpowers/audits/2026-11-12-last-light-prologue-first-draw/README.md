@@ -265,7 +265,7 @@ Reading the table:
 
 ### What was done about it (session 5)
 
-Frames: `ours-meshes-play-1024x768.png`, `ours-meshes-cutscene-1024x768.png` (Chromium on SwiftShader, a desktop context with no touch, so no
+Frames: `ours-meshes-play-1024x768.png`, `ours-meshes-cutscene-1024x768.png` (re-shot after the facing fix below; Chromium on SwiftShader, a desktop context with no touch, so no
 buttons over the frame), `side-by-side-meshes-play.png` and `side-by-side-meshes-cutscene.png` (old left, ours right), and
 `generated-against-meshes-play.png` (the same frame with the generated props left, the meshes right).
 
@@ -299,3 +299,62 @@ to 41.8 (0.88), the counter and what stands on it 73.1 to 63.4 (0.87). The model
 model's texture on a `FlatMaterial` (a plain texture, as the pieces with a photo tile have) and call `light.bake(mesh, { textured: true,
 albedo, shadeSteps: 1 - room.light })` as the piece loop does, since the mesh is already in world space with a geometry of its own.
 Not made: it is a framework decision for the Owner's eye on the frame.
+
+
+## Three things seen in the last frame (stage 4 session 5)
+
+**4a. The row of six large W S A D Q E buttons.** They are the framework's own touch controls: `keys()` makes one button for each bound key
+and `PlayScreen` draws them when the player is touching (`tracker.method === 'touch'`). They were in the frame because the journeys'
+`sizes.phone` is an iPhone context with a coarse pointer, which the framework rightly reads as touch; the frame shoot is a desktop context now
+(`tests/e2e/frames.test.ts`: no touch, device scale 1), and its frames have no buttons. What was not gated was the game's own Lamp and Skip
+buttons (`PlayControls.svelte`): a `hud.overlay` component could not see the input method. **`PlayHandle.inputMethod`** (core, `fa496784`,
+test first, `patch` changeset) gives it, and the two buttons now show only under touch (`9fc00ff1`; tests for touch, keyboard and gamepad, and for
+a player who changes from one to the other). Layout is unchanged: the container's size moves them, the input mode says whether they are there.
+Still to be shot, as the coordinator asked: one phone-size touch frame, to see the six buttons and Lamp and Skip over the objective and the inventory.
+
+**4b. Ada against the room.** First, a fault of ours that explains much of "she does not look like the same character": **she faced the
+wrong way.** The game's heading is the sim's (`atan2(dx, dz)`, 0 faces +z toward the play camera, the old spawn's pi faces north) and the kit's
+painted figure has its own zero, half a turn away (an entity's yaw 0 faces -z). The game passed its heading as it was, so she was drawn
+facing the camera at the spawn, where the old game shows her back, and she walked backwards in the picture (the creature too). `kitYaw` turns
+it at the one place the figure is posed (`features/figures/figure-view.ts`), for the sim's heading and for a cutscene's facing alike; the test
+that failed first walks a figure north and checks she is drawn facing away. See `ada-old-against-ours-back.png` (old left, ours right).
+The cutscene's other facings (a quarter turn to the board, and so on) are not checked against the old game; the opening's is.
+
+Her reading, measured on the play frame at the spawn (mean over boxes inside the figure, and over the floor on the same rows and around her
+feet; luma 0 to 255, saturation 0 to 1 as HSV):
+
+| | Old, graded | Old, no LCD and dither | Ours now |
+|---|---|---|---|
+| Her shirt, luma (sat) | 40.0 (0.33) | 44.7 (0.31) | 138.3 (0.25) |
+| Her trousers, luma (sat) | 39.8 (0.49) | 44.0 (0.46) | 49.4 (0.91) |
+| Her hair, luma (sat) | 41.4 (0.41) | 44.5 (0.35) | 73.0 (0.69) |
+| The floor on her rows and at her feet, luma | 54.2 | 60.4 | 84.4 |
+| Her (shirt and trousers) over the floor | 0.74 | 0.73 | **1.11** |
+
+The old Ada is a dark figure against the floor (0.74: darker than the floor under her, a silhouette); ours is brighter than the floor under her
+(1.11) and her trousers are saturated (0.91 against 0.49). **The kit's bound is that a figure is no brighter than 1.1 times its ring** (`HOT`
+in the reads): by this rough measure (boxes, not the kit's depth-buffer mask) she is at it and a hair over, so the kit's exposure does not
+clearly hold her inside its bound; it was never measured on this level (nothing in the game or the kit's browser tests measures a figure's read: `figureReads`
+needs the frame's two depth buffers, which no test gives it). **How much is the missing grade and vignette:** the old frame with the LCD
+and dither off is 10% brighter than with them (44.3 against 39.9 for her, 60.4 against 54.2 for the floor), and the retro grade (palette, fade,
+saturation 0.85, warmth) and the vignette are in both old frames, so these two frames cannot separate them. The floor tells the order: ours is
+1.4 to 1.6 times the old floor, which the grade and vignette plausibly account for. They cannot account for her being above her floor
+where the old Ada is 0.74 of hers: that difference is the clothes (a cream tee in place of the dark maroon waistcoat and shirt, held with the
+wardrobe) and the sprite light (the old figure sat in the room's own light; ours is lit by the painter's sprite light at the lamps' pools).
+Nothing was changed for this: it is a number for the Owner and for the wardrobe work, and any darkening of her by hand would be a guess.
+
+**4c. The hall's dressing after the meshes.** Present now, from the old game's own models: the waiting bench with its three seats, the
+wheelchair, the bed with the overbed table, the drip stand, the filing cabinets, the drawers, the clock, the wall television, the coat hook, the
+trolley, the bins, the plants, the folding screen and the chair on its side. Still different, and why:
+- The noticeboard (the cork board with notes behind the desk), the posters, the notes and papers on the floor and walls, and the scratches:
+  they are decals and lettering the old game's dressing rules placed; the level format has `decals` and `lettering`, and the prologue's level has
+  none authored (a hand job for the dressing, or the world kit's dressing: workstream 4).
+- The ward's curtains (green, on rails), the ward curtains' fire: not props of the old table; the old game drew them as dressing, and the kit
+  has no curtain prop.
+- The teal glazed-tile wainscot and the checker tint of the old floor: the kit has no such swatch (named in "What is left" above).
+- The moonlight slats across the floor: the old game's window light; the level has the moon lamps (`neon`) and no light shaft (`shaft` on a lamp).
+- The supply room's shelving: the stock boxes stand in the air; the old shelf boxes were colliders and shelf geometry the level lacks.
+- The corner minimap and the objective marker: the HUD (editor ledger row 15), not the dressing.
+- The look: the LCD panel, the vignette and the retro grade (held: `claude/builders-look-effects`), and Ada's wardrobe (held: FigureBuilder's wardrobe branch).
+- The models take the room's light by a flat material and not by the bake: they read 0.65 to 0.88 of what the generated props did (see above), which
+  is a framework decision waiting on the coordinator.

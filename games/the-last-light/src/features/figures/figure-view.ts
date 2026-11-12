@@ -26,6 +26,14 @@ export type MovingOf = (curr: Components, prev: Components | undefined) => boole
 /** The characters the stage can place, by who a script calls them (`player`, an agent's id). */
 export type Actors = Map<string, ActorView>
 
+/**
+ * The yaw the kit's painted figure wants for the game's heading. The game's heading is the sim's (`atan2(dx, dz)`: 0 faces +z,
+ * toward the play camera, and the old spawn's pi faces north, away from it); the kit's entity yaw 0 faces -z, half a turn from that.
+ * Given the heading as it is, a figure faced the opposite way to where she walked and stood showing her face at the spawn, where the
+ * old game shows her back.
+ */
+export const kitYaw = (heading: number): number => heading + Math.PI
+
 /** Ada faces the way her `yaw` says (the sim's heading of her last step). */
 export const adaYaw: YawOf = (curr, _prev, was) => {
   const yaw = curr.ada?.yaw
@@ -79,12 +87,13 @@ export function figureView(look: FigureLook, actors: Actors): View3dFactory {
     const withPose = (curr: Components, prev: Components | undefined, held?: Placed): Components => {
       const at = curr[PLACE]
       yaw = held?.yaw ?? look.yawOf(curr, prev, yaw)
-      const pose = held ?? {
-        x: Number(at?.x ?? 0),
-        y: 0,
-        z: Number(at?.z ?? 0),
-        yaw,
-        moving: look.movingOf(curr, prev),
+      const pose = {
+        x: held?.x ?? Number(at?.x ?? 0),
+        y: held?.y ?? 0,
+        z: held?.z ?? Number(at?.z ?? 0),
+        // The game's heading kept as it is; the kit's figure turns from its own zero.
+        yaw: kitYaw(yaw),
+        moving: held?.moving ?? look.movingOf(curr, prev),
       }
       return { ...curr, [POSE]: pose }
     }
