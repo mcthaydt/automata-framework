@@ -52,3 +52,18 @@ near-grey. The old floor is a green-teal grey at 0.14.)
   flattens it. The game can say a stronger contrast on its own swatch; not done in this item.
 - **For the framework (open proposals, nothing built):** a light colour space that multiplies the surface's linear colour and shows the product without
   encoding it, as `@pixi/3d` beta.2 does for the old game, so a game that wants an old game's numbers does not need a gain and a re-picked palette step.
+
+## Item 3: Ada in the room's light
+
+`ada-old-before-after-play.png` (the 200 by 240 px round Ada at the spawn, 2x: old, ours before the room's light, ours after). Mean luma of the
+box round her: old 52.3, ours before 85.1, **ours after 56.2**.
+
+- **How the old game lights its figure** (`src/render/stage.ts`, `sprite-light.ts` at 92e6704): every texel takes an ambient fill (the room's ambient
+  0.15 x the teal tint x 1.5, `LOOK.characters.ambient`) plus N.L from each lamp that reaches her past the walls (`lightAt`, 1.05 x the lamp's
+  falloff x strength x colour), snapped to the room's 0.1 steps, times its colour, on the sRGB bytes. At the spawn, away from the lamps, that is
+  the ambient alone: she is as dim as the floor round her. The outline is DUEL's darkest teal (`#002219`), not black.
+- **What ours does** (`extensions/character-kit/src/features/painted/room-light.ts`): the kit reads the room's light at her chest and at four points of floor
+  round her feet, and holds her no hotter than 1.1 times the floor's shown luma by whole steps (`ROOM_LIGHT.hotLuma`, `dimmest` 12), never above her
+  painted colours (`lift` 0). So she dims with the floor, and the floor was twice too bright: item 2 is what dimmed her, with no change to the figure.
+- **Left, and not the game's to say:** the kit's outline is black where the old is the room's dark teal, and her arms keep a pale rim from the lamp's
+  direction (the old shows the same rim, fainter). Both are the character kit's, which `claude/last-light-figures-look` owns, so they are not touched here.
