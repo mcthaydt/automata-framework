@@ -8,6 +8,10 @@ Node 24.22.1 from `/opt/node24` for the runs (the container's default `node` is 
 
 ## Verdict
 
+> **Superseded in scope by Part 2** (end of this document): the Owner has since ruled that the first release ships
+> with 3D, the editors and desktop apps, so the "2D first" recommendation below is withdrawn. Part 2 holds the ship list
+> for the full scope.
+
 AF is close in code and far in accounts. A stranger's 2D path works end to end from packed tarballs today: make a game,
 install it, check it, test it, build it, play it in Chromium and make its itch.io zip (the stranger's journey, 52 s,
 pass). The packages build, the API report and index match, the agent skills are in step and the packed-install smoke
