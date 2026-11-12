@@ -7,6 +7,7 @@ export {
   paintedCell,
   paintedStand,
   paintedWalk,
+  rowGaps,
   rowWidths,
   type Silhouette,
   silhouette,

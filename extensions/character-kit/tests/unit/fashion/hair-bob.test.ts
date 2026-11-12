@@ -117,3 +117,27 @@ describe('a bob with a fringe', () => {
     expect(playTexels(bob('bobFringeFull'))).toBeGreaterThan(playTexels(bob('bobFringe')))
   })
 })
+
+/** From the back at density 2, how many rows below the figure's top the last row of hair is (the fall's hem), looking at the first quarter of the cell's height, where a head's hair is. */
+function backHem(def: CharacterDef): number {
+  const cell = paintedCell(def, 4, 2)
+  const first = rowWidths(cell).findIndex((width) => width > 0)
+  const hair = rowWidths(cell, { def, swatch: 'auburn' }).slice(first, first + Math.round(cell.size[1] / 4))
+  return hair.length - 1 - [...hair].reverse().findIndex((width) => width > 0)
+}
+
+describe('a bob with a blunt hem at the nape', () => {
+  const full = bob('bobFringeFull')
+
+  it('is a style of the painted wardrobe', () => {
+    expect(HAIR_STYLES.bobFringeBlunt).toBeDefined()
+  })
+
+  it('ends higher on the back than the fuller bob, whose fall hangs below the nape in a tail', () => {
+    expect(backHem(bob('bobFringeBlunt'))).toBeLessThanOrEqual(backHem(full) - 6)
+  })
+
+  it('keeps the bob’s mass at the ear: its widest row at density 2 is the fuller bob’s, give or take a texel', () => {
+    expect(front(bob('bobFringeBlunt')).widest).toBeGreaterThanOrEqual(front(full).widest - 1)
+  })
+})

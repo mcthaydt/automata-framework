@@ -5,7 +5,15 @@
 //   pnpm --filter @automata/character-kit variants <out-dir> <name> <id: ada|nurse> <look> [--old <old-game-checkout>]
 import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { decodePng, encodePng, paintedStand, paintedWalk, silhouette } from '../src/entries/testing.ts'
+import {
+  decodePng,
+  encodePng,
+  paintedStand,
+  paintedWalk,
+  rowGaps,
+  silhouette,
+  texelsOfSwatch,
+} from '../src/entries/testing.ts'
 import { LOOKS } from './figure-looks.ts'
 import { asRaster, at, measure, NAMES, oldCell, panel, row, SUBJECTS, stack } from './figure-sheet.ts'
 
@@ -91,9 +99,22 @@ async function main(): Promise<void> {
     ]
   })
   if (diffs.length > 0) writeFileSync(join(out, `${name}-diff.txt`), `${diffs.join('\n')}\n`)
-  console.log(
-    variants.map((v) => `${v.label}: ${measure(silhouette(at(paintedStand(v.def, 1), 0)))}`).join('\n'),
-  )
+  // The numbers the README quotes, measured from the pictures: each variant's silhouette, the floor showing between its legs from the
+  // knee down (empty texels inside the rows 0.70 to 0.92 of its height, front view, play size) and each cloth's texels.
+  const numbers = variants.flatMap((v) => {
+    const front = at(paintedStand(v.def, 1), 0)
+    const { top, height } = silhouette(front)
+    const floor = rowGaps(front)
+      .slice(top + Math.round(height * 0.7), top + Math.round(height * 0.92))
+      .reduce((sum, gap) => sum + gap, 0)
+    const cloths = subject.swatches.map((swatch) => `${swatch} ${texelsOfSwatch(v.def, front, swatch)}`)
+    return [
+      `${v.label}: ${measure(silhouette(front))}  FLOOR BETWEEN LEGS ${floor}`,
+      `  texels: ${cloths.join(', ')}`,
+    ]
+  })
+  writeFileSync(join(out, `${name}-numbers.txt`), `${numbers.join('\n')}\n`)
+  console.log(numbers.join('\n'))
 }
 
 if (process.argv[1]?.endsWith('figure-variants.ts')) await main()

@@ -9,8 +9,8 @@ up by `pnpm --filter @automata/character-kit sheet <out-dir> <round> --old <old-
 old painter, which our painter descends from; Ada row 7, nurse row 3) and the **approved hand-painted atlas** (Ada row 1, nurse row
 1), which is what the old game actually shipped and what "looking good" meant there.
 
-Progress: **round 3 done** (about 90 %): Ada's face, stand and hair adopted, the nurse's cut open. Left: the Owner's picks, the nurse's
-hair, the in-game frame. Round 0 look before touching, round 1 data, round 2 painted garments as generators,
+Progress: **round 4 done** (Ada, about 70 % of the whole job): her fringe, open waistcoat, legs and the back of her bob worked as
+generators and data; the in-game pair for her next; **round 5 (the night nurse) not started**. Round 3: Ada's face, stand and hair adopted, the nurse's cut open. Round 0 look before touching, round 1 data, round 2 painted garments as generators,
 round 3 the nurse's cut (choices open), and the list for the painter, kept as it goes. Left: the Owner's picks, hair as data if the
 Owner allows it, the in-game frame.
 
@@ -268,22 +268,94 @@ Data only, over round 1's nurse: her skirt's options (`length`, `flare`, both th
 - Her cap, her face and her hair are the painter's (the cap is a bowl, the face a blank, the hair a fall down her back): see the table
   below.
 
+## Round 4: Ada's fringe, waistcoat, legs and the back of her bob
+
+Merged `origin/claude/last-light-prologue` first (clean). The coordinator's read of round 3 had four faults and a keeper (the boots); each
+was diagnosed from the picture and fixed as a generator option or data, test first, each test watched failing for the right reason.
+Sheets: [`round4-ada-variants-play.png`](round4-ada-variants-play.png) (the two old rows on top, then BEFORE, A (adopted), B, C, D, each
+as four stands and four walk poses, texels ×4), [`-detail`](round4-ada-variants-detail.png) (density 2), numbers in
+[`round4-ada-variants-numbers.txt`](round4-ada-variants-numbers.txt); the adopted Ada alone with the old figures' numbers:
+[`round4-ada-play.png`](round4-ada-play.png), [`-detail`](round4-ada-detail.png), [`-numbers.txt`](round4-ada-numbers.txt).
+The variants are `round4-ada` in [`figure-looks.ts`](../../../../extensions/character-kit/scripts/figure-looks.ts).
+
+| | BEFORE (round 3) | **A (adopted)** | what changed it |
+| --- | --- | --- | --- |
+| skin above the eyes, front, play size | none (hair on the eye row) | a row | the fringe's edge on the skull, 0.12 to 0.3 (hair.ts `FRINGE`) |
+| shirt texels (cream) | 36 | **65** (old procedural 62, atlas 63) | `open`, `chest`, `hem`, `neckline` on the waistcoat |
+| waistcoat texels (maroon) | 129 | **105** (old 100 / 92) | the same |
+| floor between the legs, knee to ankle, texels | 0 | **10** (5 rows) | `taper` 1, `gap` 1 on the jeans, the hips slider .9 |
+| hip row / hip over height | 19 / 0.292 | **21 / 0.323** (old 18 / 0.305, atlas 20 / 0.328) | the hips slider |
+| hair, back view, last row below the head's top (density 2) | 39 | 39 (B: 32) | `bobFringeBlunt` is B, not adopted |
+
+**Item 1, the fringe covers her eyes.** True: the old eye test passed because it only asked for two dark texels with skin beside them, and
+the fringe's lower row (29) sat directly on the eye row (30), so the eyes read as part of one dark band. The test now also needs skin right
+above each eye (`cast.test.ts`, watched failing at 0.12). The painter's decal eyes are fixed: one texel each, two apart (the old figures'
+are two tall and four to six apart; that is the painter's, on the table below). The kit's three bob styles share one fringe line; its front
+height is now one number. 0.2 passed, then failed once the wider hips moved the head by a sub-texel (the edge sat on a texel's boundary), so it
+is 0.3, which keeps a row of forehead and most of the fringe (the sweep: 0.2, 0.3 and 0.4 and over leave one skin row, then a thinner fringe).
+
+**Item 2, the waistcoat is open.** The waistcoat gained `open` (0 the V of shirt it always had, 1 a strip of the shirt from the collar to
+the hem), `chest` and `hem` (the strip's half-width at the neck and the hem as a share of the torso's half-width there, default .3 and .2)
+and `neckline` (how far below the neck it starts, so the shirt's collar shows). Tests first (`cut.test.ts`: the shirt's texels between the
+vest's two sides, from the picture, with each option at either end). `waistcoat-default.test.ts` still pins the legacy cut. Ada: `open` 1,
+`chest` .4, `hem` .3, `neckline` 1. The strip reads as an open vest on a shirt, as the atlas has it; the old procedural has a scooped
+collar and no strip. **Nearer to: the atlas** here.
+
+**Item 3, the legs, diagnosed.** The hypotheses, one by one:
+- The jeans' shells merge two legs: partly. With `taper` .7 each shin is 70 % of the way from the knee's width to its own, so the cloth is
+  a pipe; `taper` 1 alone opens 14 texels of floor in the base figure at density 2 and none at play size.
+- `track`: no effect on the stand. The stand's feet are the builder's relaxed stand: the weight foot is drawn in 25 % toward the middle,
+  both feet at 0.75 of the hip joints' half-width, whatever `track` says (it only sets the walk).
+- The body itself: the bare legs, no jeans, have 0 texels of floor between them at play size too (the painter outlines each leg, so two
+  legs 4.4 texels apart and 4 wide with their outlines touch). The sliders cannot widen it enough: `hips` at 1, `chunk` 0, `muscle` 0
+  together still give one texel on one row.
+- So the stand is the limit, and the slider that spaces it is `hips`, which round 1 had taken down to .2 for a leaner pelvis. With `taper` 1
+  and `gap` 1 the floor between the legs at play size is 0 at hips .2 to .4, 1 at .5, 2 at .6, 5 at .7 and .8, **10 at .9** (and at 1): the
+  hips slider is set to .9, at a cost of two texels on the hip row (19 to 21). I first set the joint's gene directly (`genes.hips` .11),
+  which draws the same pixels as the slider at .9; the slider is the plainer data, so it is the slider.
+The generator option is `gap` on `jeans` and `trousers` (`legsOf`): 0 the cloth clears the leg all round (as before), 1 the inside of each
+leg's cloth lies on the leg and only the outside keeps the clearance, ramping in from the hip to the knee. It cannot open floor the body
+has not got, so alone it adds floor only where the body has some (14 to 18 texels in the base figure at density 2 with `taper` 1); with
+the hips slider at .9 it makes 10 at play size. Tests: `cut.test.ts` (the floor at the knee and the shin, `rowGaps`, a new testing helper with its own
+test; the outer line is unchanged) and `legs-default.test.ts`, which pins the base pair's trousers, wide tapered trousers and tapered
+jeans, eight views each, recorded before the option. **Nearer to: the procedural** (two legs with floor between); the atlas has boots
+over jeans, which ours does not.
+
+**Item 4, the back of the bob.** The fall's `length` at 0.1 removes the tail and a raised back line (the hairline of what hangs, -0.2 at the
+nape) lifts the hem: style `bobFringeBlunt`, hem 7 rows higher at density 2 with the ear's mass unchanged (`hair-bob.test.ts`, written first,
+failed on the missing style). **It still tapers to the nape**: from behind the hair is a bell narrowing from 28 wide to 10, so a hem as
+wide as the ears is not a thing the pieces do (every line and volume I tried narrows). It is the Owner's bob, so Ada keeps `bobFringeFull`
+and `bobFringeBlunt` is variant B; on the painter's list.
+
+**Not changed: the boots (kept), the belt (off), her height (162), variant D's arms and head turn, the nurse's cut.**
+
+**Choices open for the Owner:** B (the blunt bob), C (a narrower strip of shirt), D (the legs together, hip 19).
+
+### Verification
+
+`pnpm --filter @automata/character-kit test:unit`: 35 files, 279 tests; the game's `vitest --project unit`: 51 files, 365 tests; typecheck
+of both clean; biome on the files touched (its seven warnings are the existing `3.1416` literals). No golden moved: the kit's runway cells
+and core goldens pass, and the pinned cells of the base pair for the waistcoat and for the three leg cuts are unchanged.
+
 ## Waiting for the painter (the fold, `claude/builders-fold-figures`)
 
 Kept here as it grows. Each needs a hair piece, a gait entry or a pose in the painter, which this branch does not patch.
 
 | Needs the painter | Why | What it would improve |
 | --- | --- | --- |
-| The old `bob`'s turned-under hem and parting | `bobFringeFull` (a kit style of the builder's pieces) has the fringe and the mass at the ear, not the hem tucked under or a side part | the last of Ada's hair: the old bob's shape |
+| The old `bob`'s turned-under hem and parting | `bobFringeFull` and `bobFringeBlunt` (kit styles of the builder's pieces) have the fringe and the mass at the ear; from behind the hair still narrows to the nape (28 wide to 10), where the old bob's hem is as wide as the ears, and no piece turns it under or parts it | the last of Ada's hair: the old bob's shape |
 | The nurse's `curtain` | no piece hangs a panel across the face | the uncanny: her face hidden, not a blank mask under the cap |
 | A stooping stand | the stand holds a figure upright whatever the sliders (round 1, variant B) | her old shape: 71 rows for 210 cm, leaning down |
 | Skirt pleats (`folds`) | the painted skirt is a smooth profile of rings | the torn, hanging hem |
 | A cap that sits as the old one: a flat band over the brow | the headwear table's cap is a bowl | the nurse's head |
 | A brisk, leaning stand and pose for Ada standing | the stand is the builder's relaxed one: feet together, arms at the sides | her first-night posture |
+| The decal face's eyes | the decal eyes are one texel each, two apart (the old figures': two texels tall, four to six apart, black) | Ada's face at play size: bigger, wider-set eyes |
+| A wider stand | the relaxed stand draws the weight foot in 25 % and keeps the other near it, so two legs touch at play size; Ada's hips slider is at .9 to open them (the hip row grows two texels) | legs that stand apart without a wider pelvis |
 | The drawn face's eyes at density 1 | the drawn face is a lid line there (eyes from density 2), under a fringe: Ada uses the decal face for now | a face with a mouth and a nose at play size, not two dots |
 
 ## Log
 
+- Round 4: the fringe's height as one number (0.3), the waistcoat's `open`, `chest`, `hem` and `neckline`, `gap` on the jeans and trousers, `bobFringeBlunt`, `rowGaps`; Ada's eye test widened, her waistcoat, jeans and hips slider set; `legs-default.test.ts`; the variants script writes its own numbers.
 - Round 3: the kit's `bobFringe`, `bobFringeFull` and `bobFringeShort` hair styles (`hair-bob.test.ts` first), Ada wears `bobFringeFull`; Ada's `face.drawn: false` (eyes at play size), her stance and arm from the old brisk gait, the eyes test, the nurse's cut sheeted.
 - Round 2: waistcoat `fit`, `length` and `armhole` and legs' `taper` in the kit's garments (`accessories.ts`, `shells.ts`, `garments.ts`),
   `cut.test.ts` written first, `waistcoat-default.test.ts` pinning the legacy default; Ada's waistcoat and jeans set the options; `figure-variants.ts` can count the texels two variants differ by.

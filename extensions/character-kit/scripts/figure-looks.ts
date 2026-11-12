@@ -6,7 +6,9 @@
 import { ADA, NIGHT_NURSE } from '../../../games/the-last-light/src/features/figures/cast.ts'
 import { OLD_UNCANNY } from '../../../games/the-last-light/src/features/figures/old-gaits.ts'
 import type { CharacterDef } from '../src/entries/index.ts'
-import { BASE } from '../src/shared/figure-builder/door.ts'
+import { FASHION_HAIR } from '../src/features/fashion/hair.ts'
+import { registerFashion } from '../src/features/fashion/register-fashion.ts'
+import { BASE, HAIR_STYLES } from '../src/shared/figure-builder/door.ts'
 
 /** One version of a character: what it is called on the sheet, what differs, its data, and optionally the variant it is counted against. */
 export interface Variant {
@@ -288,7 +290,102 @@ const round3hair = (() => {
   return { ada: list(ADA, 'Ada'), woman: list(woman, 'the base woman') }
 })()
 
+/**
+ * Round 4: Ada's fringe, waistcoat and legs, one change at a time over round 3's adopted Ada.
+ */
+const round4ada = (() => {
+  registerFashion()
+  /**
+   * A copy of the kit's bob in `style` with its fringe's lower edge at `fringe` on the skull (round 3's was 0.12) and/or its fall's
+   * numbers replaced by `fall` (`length`, `volume`, ...), as a style of its own.
+   */
+  const restyled = (style: string, tweak: { fringe?: number; fall?: Record<string, unknown> }): string => {
+    const name = `${style}@${JSON.stringify(tweak)}`
+    const source = FASHION_HAIR[style]
+    if (source === undefined) throw new Error(`no hair style ${style}`)
+    HAIR_STYLES[name] ??= {
+      ...source,
+      pieces: source.pieces.map((piece) => {
+        const { scalp, fall } = piece as { scalp?: { from: [number, number][] }; fall?: object }
+        if (scalp !== undefined && tweak.fringe !== undefined) {
+          const from = scalp.from.map(([angle, y], i): [number, number] => [
+            angle,
+            i < 3 ? (tweak.fringe ?? y) : y,
+          ])
+          return { scalp: { ...scalp, from } } as typeof piece
+        }
+        if (fall !== undefined && tweak.fall !== undefined)
+          return { fall: { ...fall, ...tweak.fall } } as typeof piece
+        return piece
+      }),
+    }
+    return name
+  }
+  /** Ada with each outfit item that names a kind replaced by `patch[kind]` (merged into it), and her hair style replaced. */
+  const dressed = (
+    patch: {
+      waistcoat?: Record<string, unknown>
+      jeans?: Record<string, unknown>
+      hair?: string
+    },
+    def: CharacterDef = ADA,
+  ): CharacterDef => ({
+    ...def,
+    outfits: {
+      street: (def.outfits.street ?? []).map((item) => {
+        if ('waistcoat' in item && patch.waistcoat !== undefined) return { ...item, ...patch.waistcoat }
+        if ('jeans' in item && patch.jeans !== undefined) return { ...item, ...patch.jeans }
+        if ('hair' in item && patch.hair !== undefined) return { ...item, style: patch.hair }
+        return item
+      }) as never,
+    },
+  })
+  /** `def` with its hips slider set to `hips` (0.2 was Ada's before round 4: the legs touch from the hip to the ankle). */
+  const withHips = (def: CharacterDef, hips: number): CharacterDef => ({
+    ...def,
+    sliders: { ...def.sliders, hips },
+  })
+  /** Round 3's Ada: the fringe at the brow, a V of shirt and the neck closed, jeans tapered .7 with no gap, the hips slider at .2. */
+  const before = dressed(
+    {
+      waistcoat: { open: 0, neckline: 0 },
+      jeans: { taper: 0.7, gap: 0 },
+      hair: restyled('bobFringeFull', { fringe: 0.12 }),
+    },
+    withHips(ADA, 0.2),
+  )
+  const ada: Variant[] = [
+    {
+      label: 'BEFORE',
+      note: 'round 3: fringe on the eyes, a slit of shirt, neck closed, one block of leg',
+      def: before,
+    },
+    {
+      label: 'A (ADOPTED)',
+      note: 'fringe over the brow (.3), the vest open on a strip of shirt, a lowered neckline, jeans cut to the leg with a gap, hips slider .9',
+      def: ADA,
+    },
+    {
+      label: 'B',
+      note: 'A with the bob cut blunt at the nape (bobFringeBlunt): no tail down the back',
+      def: dressed({ hair: 'bobFringeBlunt' }),
+    },
+    {
+      label: 'C',
+      note: 'A with a narrower strip of shirt (chest .3, hem .2)',
+      def: dressed({ waistcoat: { chest: 0.3, hem: 0.2 } }),
+    },
+    {
+      label: 'D',
+      note: 'A with the legs together as before (hips slider .2): the hip row is 19, not 21, and the floor between the legs shuts',
+      def: withHips(ADA, 0.2),
+    },
+  ]
+  return { ada }
+})()
+
 export const LOOKS: Readonly<Record<string, readonly Variant[]>> = {
+  'round4-ada': round4ada.ada,
   'round1-ada': round1.ada,
   'round1-nurse': round1.nurse,
   'round2-ada': round2.ada,

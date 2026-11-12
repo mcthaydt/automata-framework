@@ -27,17 +27,28 @@ const hang = [
   [2.3, -0.35],
   [3.1416, -0.5],
 ]
-/** A hairline with a fringe: the brow's height (0.62) brought down to the brow across the front (0.12: lower covers the eyes), the sides and the back as the natural line has them. */
+/** Where a fringe's lower edge sits on the skull: over the eye row, a row of the brow's skin between (0.2 sat on a texel's edge, and a sub-texel move of the head put hair back on the eyes). Lower (0.12) and the fringe's dark band sits on the eyes at the
+ *  play size, so the front view reads as a brow band with no eyes; 0.4 and over leaves it a few texels of the front. */
+const FRINGE = 0.3
+/** A hairline with a fringe: the brow's height (0.62) brought down across the front to `FRINGE`, the sides and the back as the natural line has them. */
 const fringeLine = [
-  [0, 0.12],
-  [0.5, 0.12],
-  [0.85, 0.12],
+  [0, FRINGE],
+  [0.5, FRINGE],
+  [0.85, FRINGE],
   [1.15, 0.0],
   [1.3, -0.12],
   [1.5, 0.1],
   [1.9, 0.0],
   [2.5, -0.45],
   [3.1416, -0.6],
+]
+/** The line the hair that hangs starts from, lifted at the back: the fall ends at the nape, in a blunt hem, instead of hanging down it in a tail. */
+const hangHigh = [
+  [0, 0.62],
+  [0.7, 0.4],
+  [1.5, 0.0],
+  [2.3, -0.2],
+  [3.1416, -0.2],
 ]
 const crown = {
   scalp: {
@@ -258,6 +269,26 @@ export const FASHION_HAIR: Readonly<Record<string, HairStyle>> = {
       { scalp: { ...crown.scalp, from: fringeLine, lift: 0.12 } },
       {
         fall: { from: hang, part: 0.3, count: 34, length: 0.42, curl: 0.1, volume: 0.55, rope: { r: 0.19 } },
+      },
+    ],
+  },
+  // The same bob with its back line lifted and the fall cut short: from behind it ends at the nape with no tail, the neck showing under it
+  // (the fuller bob's fall is a long, low tail there). It still narrows to the nape: a hem as wide as the ears is the painter's.
+  bobFringeBlunt: {
+    about: 'A fuller bob with a fringe, cut straight across at the nape.',
+    finish: 'smooth',
+    pieces: [
+      { scalp: { ...crown.scalp, from: fringeLine, lift: 0.12 } },
+      {
+        fall: {
+          from: hangHigh,
+          part: 0.3,
+          count: 34,
+          length: 0.1,
+          curl: 0.1,
+          volume: 0.55,
+          rope: { r: 0.19 },
+        },
       },
     ],
   },

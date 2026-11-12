@@ -28,7 +28,10 @@ export const ADA: CharacterDef = {
     muscle: 0.3, // retuned: the old 0.5
     fat: 0.05, // retuned: the old 0.2
     shoulders: 0.55, // retuned: the old 0.47
-    hips: 0.2, // retuned: the old 0.37
+    // retuned: the old 0.37, then 0.2 for a leaner pelvis. The builder stands a figure with its weight foot drawn in a quarter of the way to the
+    // middle line, so the feet stand 0.75 of the hip joints' width apart where the old figure's stood under its hips; at 0.2 her two legs touch
+    // from the hip to the ankle at the size she is played, and at 0.9 the floor shows between them (the hip row grows two texels).
+    hips: 0.9,
     legs: 0.6, // retuned: the old 0.3
     arms: 0.15,
     head: 0.87,
@@ -57,10 +60,12 @@ export const ADA: CharacterDef = {
   outfits: {
     street: [
       { top: 'cream', sleeves: 'short' },
-      // The kit's waistcoat follows the torso: fitted at the waist and ending there, narrow across the shoulder so her cream sleeves show.
-      { waistcoat: 'maroon', fit: 1, length: 0.05, armhole: 1 },
-      // The kit's closer cut, tapered to the ankle: its `trousers` is a cloth shell over the whole leg, where the old trousers were paint on it.
-      { jeans: 'denim', taper: 0.7 },
+      // The kit's waistcoat follows the torso: fitted at the waist and ending there, narrow across the shoulder so her cream sleeves show,
+      // its neckline lowered and its front standing open on a strip of the shirt (the old atlas's vest) from the collar to the hem.
+      { waistcoat: 'maroon', fit: 1, length: 0.05, armhole: 1, open: 1, chest: 0.4, hem: 0.3, neckline: 1 },
+      // The kit's closer cut, to the leg's own narrowing at the ankle with each leg's inside bare of clearance, so the floor shows between
+      // them: its `trousers` is a cloth shell over the whole leg, where the old trousers were paint on it.
+      { jeans: 'denim', taper: 1, gap: 1 },
       { shoes: 'bootBrown', sole: 'bootSole', boots: true },
       { hair: 'auburn', style: 'bobFringeFull' },
       { eyes: 'eyeDark' },
