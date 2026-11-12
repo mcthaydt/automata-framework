@@ -61,6 +61,21 @@ describe('words in the line', () => {
     expect(Object.keys(catalog).filter((key) => key.includes('lines_1'))).toEqual([])
   })
 
+  // The compiler reads `words` through a marker until it puts the string back, so the delivery check inside the line's
+  // schema must read the marker's text (found by the reference game, whose lines have beats).
+  it('compiles a line whose delivery has a beat, and refuses a beat past the last sentence in words naming the line', async () => {
+    const beats = SHOP.replace(
+      'words = "Welcome in. Mind the step."',
+      'words = "Welcome in. Mind the step."\ndelivery = { beats = [{ after = 1, pause = 1 }] }',
+    )
+    const ok = await compileContentResult({ root: game(beats), schemas: [linesContent] })
+    if (!ok.ok) throw new Error(`the compile failed: ${ok.error.message}`)
+    const past = beats.replace('after = 1', 'after = 3')
+    const bad = await compileContentResult({ root: game(past), schemas: [linesContent] })
+    expect(bad.ok).toBe(false)
+    if (!bad.ok) expect(JSON.stringify(bad.error)).toMatch(/shop\.welcome_in.*sentence 3.*only 2/)
+  })
+
   it('refuses empty words, since an empty text is not text', async () => {
     const result = await compileContentResult({
       root: game(SHOP.replace('Welcome in. Mind the step.', '')),
