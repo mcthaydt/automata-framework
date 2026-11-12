@@ -1,11 +1,13 @@
 // biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 23 of the builders-fold plan (the strict flags) replaces each with a check
 
 import { GROUP } from '../body/parts'
-import { labelAt } from './fabric'
-import { isLeg, LINE, MIRROR, OUTLINE, RIM, tint } from './paint-budget'
+import { depthAt, labelAt } from './fabric'
+import { budget, isLeg, LINE, lightTexels, MIRROR, OUTLINE, RIM, tint } from './paint-budget'
 import type { AfterStainsAndHolo } from './paint-detail'
+import { stampFace } from './paint-stamp'
 import { EDGE_LEVELS } from './paint-style'
 import { noise3 } from './raster'
+import { tiled } from './row'
 
 /**
  * Tone to colour: each texel's colour from its material's ramp, a sheer cloth's denser edge, a stain's wash, a
@@ -129,5 +131,66 @@ export function colourTexels(ctx: AfterStainsAndHolo) {
     normals[o + 1] = Math.round((1 - sm[at * 3 + 1]) * 127.5)
     normals[o + 2] = Math.round((sm[at * 3 + 2] + 1) * 127.5)
     normals[o + 3] = 255
+  }
+}
+
+/**
+ * The drawn face reads the tones (an outline texel is never the face's) and is stamped on; then the colour budget,
+ * the outside light's texels, and last the fabric's tile, a step along its own row by the label.
+ */
+export function stampAndBudget(ctx: AfterStainsAndHolo) {
+  const {
+    D,
+    albedo,
+    depth,
+    face,
+    g,
+    group,
+    h,
+    hue,
+    light,
+    material,
+    n,
+    owner,
+    part,
+    skinny,
+    through,
+    tone,
+    tones,
+    w,
+    weave,
+  } = ctx
+  // The face reads the tones: an outline texel (9) is never the face's.
+  const fixed = tone.map((v) => (v >= OUTLINE ? 9 : v))
+  const kept = new Uint8Array(n)
+  for (let k = 0; k < n; k++) if (tone[k] === -1 || hue[k] >= 0) kept[k] = 1
+  if (face)
+    stampFace(
+      face,
+      { ...g, material, part, group, depth },
+      tones[face.skin],
+      albedo,
+      fixed,
+      through,
+      kept,
+      (m) => skinny[m],
+    )
+  budget(albedo, w, h, D, kept, (k: number) => material[tone[k] >= OUTLINE && material[k] < 0 ? owner[k] : k])
+  if (light) lightTexels(light, g, albedo, D)
+  if (weave) {
+    // The tile, last: the ground as painted, budgeted and lit, then a step along its own row by the label (row.ts tiled).
+    weave.ground.set(albedo)
+    for (let k = 0; k < n; k++) {
+      if (!weave.on[k]) continue
+      const o = k * 4,
+        c = tiled(
+          (albedo[o] << 16) | (albedo[o + 1] << 8) | albedo[o + 2],
+          weave.labels[k],
+          ...depthAt(weave, k),
+        )
+      albedo[o] = (c >> 16) & 255
+      albedo[o + 1] = (c >> 8) & 255
+      albedo[o + 2] = c & 255
+    }
   }
 }

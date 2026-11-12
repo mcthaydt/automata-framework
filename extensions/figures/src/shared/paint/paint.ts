@@ -1,20 +1,17 @@
 // biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until task 23 of the builders-fold plan (the strict flags) replaces each with a check
 
 import type { Material } from '../body/parts'
-import { depthAt, type Weave } from './fabric'
-import { budget, lightTexels, OUTLINE } from './paint-budget'
-import { colourTexels } from './paint-colour'
+import type { Weave } from './fabric'
+import { colourTexels, stampAndBudget } from './paint-colour'
 import { detailFloor, outlines, stainsAndHolo } from './paint-detail'
 import type { FaceStamp } from './paint-face'
 import type { Bends, HandStamp } from './paint-hands'
 import type { Cloth } from './paint-prepare'
 import { type PaintInputs, prepare } from './paint-prepare'
-import { stampFace } from './paint-stamp'
 import { PAINT, type PaintStyle } from './paint-style'
 import { faceForm, keyLight, quiltedBands, smoothSurfaces } from './paint-surface'
 import { clusterTones, polishTones, ruleLines, toneTexels } from './paint-tones'
 import type { GBuffer } from './raster'
-import { tiled } from './row'
 
 export {
   densityOf,
@@ -71,6 +68,9 @@ export function paint(
     cloth,
     weaveOut,
   }
+  // The phases, in the order the one pass always ran. A phase reads the names it needs from the context and returns the
+  // ones it declares for a later phase (a phase that returns nothing only changes the buffers it was handed), so no
+  // phase sees a value a later one made, and the order of the texel loops, and with it the grain, is the pass's own.
   const c1 = { ...c0, ...prepare(c0) }
   const c2 = { ...c1, ...smoothSurfaces(c1) }
   const c3 = { ...c2, ...faceForm(c2) }
@@ -84,40 +84,7 @@ export function paint(
   outlines(c8)
   const c9 = { ...c8, ...stainsAndHolo(c8) }
   colourTexels(c9)
-  // @cut-head-end: the names below are what the statements still in paint() read of the phases cut so far
-  const { D, depth, group, h, hue, material, n, owner, part, skinny, through, tone, tones, w, weave } = c9
-  // The face reads the tones: an outline texel (9) is never the face's.
-  const fixed = tone.map((v) => (v >= OUTLINE ? 9 : v))
-  const kept = new Uint8Array(n)
-  for (let k = 0; k < n; k++) if (tone[k] === -1 || hue[k] >= 0) kept[k] = 1
-  if (face)
-    stampFace(
-      face,
-      { ...g, material, part, group, depth },
-      tones[face.skin],
-      albedo,
-      fixed,
-      through,
-      kept,
-      (m) => skinny[m],
-    )
-  budget(albedo, w, h, D, kept, (k: number) => material[tone[k] >= OUTLINE && material[k] < 0 ? owner[k] : k])
-  if (light) lightTexels(light, g, albedo, D)
-  if (weave) {
-    // The tile, last: the ground as painted, budgeted and lit, then a step along its own row by the label (row.ts tiled).
-    weave.ground.set(albedo)
-    for (let k = 0; k < n; k++) {
-      if (!weave.on[k]) continue
-      const o = k * 4,
-        c = tiled(
-          (albedo[o] << 16) | (albedo[o + 1] << 8) | albedo[o + 2],
-          weave.labels[k],
-          ...depthAt(weave, k),
-        )
-      albedo[o] = (c >> 16) & 255
-      albedo[o + 1] = (c >> 8) & 255
-      albedo[o + 2] = c & 255
-    }
-  }
+  stampAndBudget(c9)
+  const { weave } = c9
   return { albedo, normals, weave }
 }
