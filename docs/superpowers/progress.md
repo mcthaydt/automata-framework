@@ -238,6 +238,15 @@ Follow-ups the audit's list leaves open, recorded here (not fixed in stage 6):
 - "I prefer our photo texture replacement" (of the item 1 strip), and "we should do photo texture across the board since that's our environment builder look": every surface is a photo-made swatch through the kit's pipeline; patterns only for graphic designs. The coordinator withdrew the tile-grid pattern kind. Owed: a table of every surface and prop (photo-made today? yes / flat / tone-only / mesh's own texture), and the conversion of what is flat. Session 9 made the floor, the walls and the wainscot photo-made; the cork (`ward-cork`), the EXIT sign's plate and tube (`exit-plate`, `exit-green`) are flat DUEL colours today and the ceiling, the doors, the frames, the trims and the desk were not audited.
 - The coordinator's rulings, open to the Owner's correction, to build after items 3 and 5: (A) an optional `lumaWeight` and `shadowTaper` on the framework's dither (defaults = today's behaviour; the game sets the old numbers); (B) an opt-in on the retro extension for where the grade sits, `before-snap` (today's default) or `after-snap` (smooth dark gradients; the final frame is no longer strictly DUEL), the game opting into `after-snap`, with a before-and-after zoom of the bench shadows for the Owner. Also owed: how the old frame's edges and far corners fall off to near black (a vignette or the fog) and the desk lamp pool (90 against 63).
 
+- 2026-11-12, after FigureBuilder's own record of the base man and woman at density 2 (enlarged with crisp pixels: bold
+  brows two texels thick, eyes with whites under a dark lid, a nose, a mouth with lips) was shown beside the same faces
+  at density 8 (hair-thin slit eyes on a blank face): "Yeah, I want the characters to look like how they do on the left"
+  (the density-2 picture), and "I keep telling you that you can change the scale of the room and move the camera to
+  support the character, do whatever it takes to make the character look like how it looks on the left during gameplay".
+  So in gameplay a figure is the painter's density-2 figure shown crisp at a whole-pixel scale; the gameplay camera, the
+  field, the room's scale, the figure's size and the level's framing are all free to change, and the old game's camera
+  rules (50 mm, 30 degree tilt, the wide view) no longer bind. Session 15's job.
+
 ### Workstream 2: open proposals added in session 9 (framework, not built)
 
 - **The occluder rule reads the camera that is drawing.** `occluderHooks` reads the camera rig's pose; a cutscene writes `view.camera` itself, so a wall tagged for the play camera stays cut while a cutscene looks at it from inside (the opening's close shot is a black void above a low band). Test first: a cut wall stays whole while a cutscene's camera looks at it.
