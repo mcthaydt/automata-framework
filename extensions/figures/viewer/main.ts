@@ -148,12 +148,12 @@ async function gameplayMain() {
     stage = new StageView([w, h])
   app.stage.addChild(stage.view)
   // Shown at the largest whole multiple of 640×480 the window holds, each pixel a square.
-  const fit = () => {
+  const fitCanvas = () => {
     const k = Math.max(1, Math.floor(Math.min(innerWidth / w, innerHeight / h)))
     app.canvas.style.cssText = `width:${w * k}px;height:${h * k}px;image-rendering:pixelated;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%)`
   }
-  fit()
-  addEventListener('resize', fit)
+  fitCanvas()
+  addEventListener('resize', fitCanvas)
   // The pair stand at x = ∓0.6, or walk back and forth along z (W).
   const stand = (): ScriptedActor[] =>
     BASE.map((b, i) => new ScriptedActor({ who: b.def.id, at: [i === 0 ? -0.6 : 0.6, 0] }))

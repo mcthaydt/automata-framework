@@ -720,15 +720,15 @@ function stampFace(
       for (let i = 0; i < ew; i++) if (!own(x0 + i, I)) return false
       return true
     }
-    const fit = (x0: number, inward: number) => {
+    const fitEye = (x0: number, inward: number) => {
       for (let s = 0; s <= ew && !onFace(x0); s++) x0 += inward
       return x0
     }
-    const eL = fit(
+    const eL = fitEye(
       turned ? Math.round(f.eyes[0][0] + ew / 2 - 1) - ew + 1 : Math.floor(c2 - gi - 0.5) - ew + 1,
       1,
     )
-    const eR = fit(turned ? Math.round(f.eyes[1][0] - ew / 2) : mirror(Math.floor(c2 - gi - 0.5)), -1)
+    const eR = fitEye(turned ? Math.round(f.eyes[1][0] - ew / 2) : mirror(Math.floor(c2 - gi - 0.5)), -1)
     // Looking ahead: a two-texel iris centred in an eye of four, a white either side; a narrower eye's iris inward.
     const seenL = eye(eL, ew, -1, ew >= 4 ? (ew - 2) >> 1 : ew >> 1, -1),
       seenR = eye(eR, ew, 1, ew >= 4 ? (ew - 2) >> 1 : (ew - 1) >> 1, 1)
