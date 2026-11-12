@@ -10,10 +10,10 @@ import { member, view } from '#src/shared/figure/frames.ts'
 import { bodyOf } from '#src/shared/outfit/fit.ts'
 import { dress } from '#src/shared/outfit/garments.ts'
 import type { ShoeForm } from '#src/shared/outfit/shoe.ts'
+import { BODY, endsOf } from '../../fixtures/body-ends'
 import { differs, dressed, turned } from '../../fixtures/draw'
 import { pinned } from '../../fixtures/pins'
-import { BODY, endsOf } from '../body/ends'
-import { shod, shodToo, useFixtures } from './wardrobe-fixtures'
+import { shod, shodToo, useFixtures } from '../../fixtures/wardrobe'
 
 useFixtures()
 /**

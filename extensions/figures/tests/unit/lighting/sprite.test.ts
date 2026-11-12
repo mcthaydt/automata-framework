@@ -11,7 +11,7 @@ import { RAMP_OUTLINE, RAMPS } from '#src/shared/paint/duel-ramps.ts'
 import { depthAt } from '#src/shared/paint/fabric.ts'
 import { onRow, tiled } from '#src/shared/paint/row.ts'
 import { dressed } from '../../fixtures/draw'
-import { registerFixtures } from '../paint/fabric-fixtures'
+import { registerFixtures } from '../../fixtures/fabrics'
 
 /**
  * `lightSprite` (c8-lit, spec section 5a): a painted cell lit by the room as a sprite. Drawn on the base woman at

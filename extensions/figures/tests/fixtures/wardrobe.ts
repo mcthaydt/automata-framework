@@ -12,7 +12,7 @@ import type { ShoeForm } from '#src/shared/outfit/shoe.ts'
  *   two-kinds-that-both-set-a-shoe case);
  * - F7 adds `fxPrinted` (a decal carrying a print).
  */
-declare module '../../../src/shared/outfit/garments' {
+declare module '#src/shared/outfit/garments.ts' {
   interface GarmentKinds {
     fxShod: { fxShod: string; form?: ShoeForm }
     fxShodToo: { fxShodToo: string; form?: ShoeForm }

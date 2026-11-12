@@ -5,8 +5,8 @@ import { type ActorScript, ScriptedActor, scriptOf, Troupe } from '#src/shared/a
 import { lowest } from '#src/shared/actors/pose-spec.ts'
 import { BASE } from '#src/shared/base/base-pair.ts'
 import { fk } from '#src/shared/body/rig.ts'
+import { SPRITE_SETS, spriteSet } from '../../fixtures/frames/sprites'
 import golden from '../../fixtures/golden/sprites.json'
-import { SPRITE_SETS, spriteSet } from '../golden/sprites'
 
 const view = { azimuth: 0, pitch: (18 * Math.PI) / 180 }
 const md5 = (px: Uint8ClampedArray) => createHash('md5').update(px).digest('hex')

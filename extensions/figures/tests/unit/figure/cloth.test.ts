@@ -13,9 +13,9 @@ import { profiles } from '#src/shared/outfit/fit.ts'
 import { dress, type Garment } from '#src/shared/outfit/garments.ts'
 import { labelAt } from '#src/shared/paint/fabric.ts'
 import { VERT } from '#src/shared/paint/raster.ts'
+import { BODY, endsOf } from '../../fixtures/body-ends'
 import { dressed } from '../../fixtures/draw'
-import { BODY, endsOf } from '../body/ends'
-import { FIXTURES, registerFixtures } from '../paint/fabric-fixtures'
+import { FIXTURES, registerFixtures } from '../../fixtures/fabrics'
 
 beforeAll(registerFixtures)
 

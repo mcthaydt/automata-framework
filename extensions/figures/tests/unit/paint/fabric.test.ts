@@ -13,7 +13,7 @@ import { box, type Garment, registerGarment, SWATCHES } from '#src/shared/outfit
 import { depthAt, fabricOf, labelAt, registerFabric } from '#src/shared/paint/fabric.ts'
 import { duel, oklab, tonesOf } from '#src/shared/paint/paint.ts'
 import { differs, dressed, turned } from '../../fixtures/draw'
-import { FIXTURES, registerFixtures } from './fabric-fixtures'
+import { FIXTURES, registerFixtures } from '../../fixtures/fabrics'
 
 describe('the fabric registry (H5)', () => {
   it('rejects a deep motif', () => {

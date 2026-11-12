@@ -16,7 +16,7 @@ import { BASE, Figure, type Lighting, lightFigure, member, TIMES, view } from '.
 import type { Material } from '../src/shared/body/parts'
 import type { CharacterDef } from '../src/shared/figure/cast'
 import type { Garment } from '../src/shared/outfit/garments'
-import { FIXTURES, registerFixtures } from '../tests/unit/paint/fabric-fixtures'
+import { FIXTURES, registerFixtures } from '../tests/fixtures/fabrics'
 
 registerFixtures()
 const args = process.argv.slice(2),

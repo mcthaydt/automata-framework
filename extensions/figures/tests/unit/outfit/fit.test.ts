@@ -8,7 +8,7 @@ import { J, skeleton } from '#src/shared/body/rig.ts'
 import { axisAngle } from '#src/shared/math/math.ts'
 import { bodyOf, clearance, girth, profiles, ringAt } from '#src/shared/outfit/fit.ts'
 import { box, dress, type Garment, registerGarment } from '#src/shared/outfit/garments.ts'
-import { BODY, endsOf } from '../body/ends'
+import { BODY, endsOf } from '../../fixtures/body-ends'
 
 const rig = (sliders: object = BASE[0].def.sliders) => {
   const m = measure(sliders),

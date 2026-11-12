@@ -4,13 +4,13 @@
  *
  * - base: the frames `pnpm --filter @automata/figures render` draws (each member's 8 standing views, its walk's poses and its lookbook hero, at
  *   the 18° pitch), at DENSITY 1 and 2, as raw RGBA, gzipped, into tests/fixtures/golden/base/ (tests/unit/golden/base.test.ts);
- * - lit: the md5 of every lit frame tests/unit/golden/lit.ts draws, into tests/fixtures/golden/lit.json (tests/unit/golden/lit.test.ts);
- * - actors: the md5 of every frame tests/unit/golden/actors.ts draws, into tests/fixtures/golden/actors.json
+ * - lit: the md5 of every lit frame tests/fixtures/frames/lit.ts draws, into tests/fixtures/golden/lit.json (tests/unit/golden/lit.test.ts);
+ * - actors: the md5 of every frame tests/fixtures/frames/actors.ts draws, into tests/fixtures/golden/actors.json
  *   (tests/unit/golden/actors.test.ts);
- * - sprites: the md5 of every frame tests/unit/golden/sprites.ts draws, into tests/fixtures/golden/sprites.json
+ * - sprites: the md5 of every frame tests/fixtures/frames/sprites.ts draws, into tests/fixtures/golden/sprites.json
  *   (tests/unit/actors/actors.test.ts).
  *
- * - sprite: the md5 of every sprite-lit frame tests/unit/golden/sprite.ts draws, into tests/fixtures/golden/sprite.json
+ * - sprite: the md5 of every sprite-lit frame tests/fixtures/frames/sprite.ts draws, into tests/fixtures/golden/sprite.json
  *   (tests/unit/golden/sprite.test.ts).
  *
  *   pnpm --filter @automata/figures golden [base|lit|actors|sprites|sprite]
@@ -23,11 +23,11 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { gzipSync } from 'node:zlib'
-import { ACTOR_WHO, actorFrames } from '../tests/unit/golden/actors'
-import { GOLDEN_DENSITIES, goldenFrames } from '../tests/unit/golden/base'
-import { litFrames } from '../tests/unit/golden/lit'
-import { spriteLitFrames } from '../tests/unit/golden/sprite'
-import { spriteFrames } from '../tests/unit/golden/sprites'
+import { ACTOR_WHO, actorFrames } from '../tests/fixtures/frames/actors'
+import { GOLDEN_DENSITIES, goldenFrames } from '../tests/fixtures/frames/base'
+import { litFrames } from '../tests/fixtures/frames/lit'
+import { spriteLitFrames } from '../tests/fixtures/frames/sprite'
+import { spriteFrames } from '../tests/fixtures/frames/sprites'
 
 const which = process.argv[2] ?? 'all',
   KINDS = ['all', 'base', 'lit', 'actors', 'sprites', 'sprite']

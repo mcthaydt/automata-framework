@@ -69,6 +69,14 @@ describe('the painter points at what is there', () => {
     expect(missing).toEqual([])
   })
 
+  it('cites only test and script files that exist', () => {
+    // `tests/…` and `scripts/…` paths in code, comments and docs (a data file or a folder is not a file of code).
+    const missing = found(/(?<![\w/#.-])(?:tests|scripts)\/[\w/.-]+\.ts\b/g).filter(
+      (hit) => !existsSync(join(ROOT, hit.split('  ')[1] ?? '')),
+    )
+    expect(missing).toEqual([])
+  })
+
   it('calls the package the painter, not by its old name', () => {
     expect(found(/Figure ?Builder/gi, (file) => file.endsWith('.ts'))).toEqual([])
   })

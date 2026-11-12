@@ -32,7 +32,7 @@ import type { Garment } from '../src/shared/outfit/garments'
 import '../tests/fixtures/pins' // registers the `fxPaint` kind: a row repaints body regions with it
 import { HAIR_STYLES, type HairStyle } from '../src/shared/hair/hair'
 import { FALL_PLAIN, sheerTest } from '../tests/fixtures/pins'
-import { shod, useFixtures } from '../tests/unit/outfit/wardrobe-fixtures'
+import { shod, useFixtures } from '../tests/fixtures/wardrobe'
 
 useFixtures()
 
@@ -108,7 +108,7 @@ export const slight = (def: CharacterDef): CharacterDef => ({
 })
 /** The sheets, in the order the plan makes them. */
 export const SHEETS: Sheet[] = [
-  // F2: the shod foot's forms, on a charcoal shoe (the fixture kind `fxShod`, tests/unit/outfit/wardrobe-fixtures.ts).
+  // F2: the shod foot's forms, on a charcoal shoe (the fixture kind `fxShod`, tests/fixtures/wardrobe.ts).
   {
     name: 'shoes',
     rows: pair((def, who) =>

@@ -1,7 +1,7 @@
 /**
  * The base pair lit (src/shared/lighting): a contact sheet of a few lighting setups, one row each (daylight; golden
  * hour; dusk under a spot; night under a warm lamp with the floor's bounce; a bar's two lamps, one flickering), then
- * the four sprite lights (`lightSprite`, the room's light on a sprite: tests/unit/golden/sprite.ts), each base figure in three
+ * the four sprite lights (`lightSprite`, the room's light on a sprite: tests/fixtures/frames/sprite.ts), each base figure in three
  * views (front, three-quarter, side), at D2. Writes OUT_DIR/lit-sheet.png and lit-sheet-x2.png.
  *
  *   pnpm --filter @automata/figures lit [OUT_DIR]
@@ -10,7 +10,7 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { createCanvas } from '@napi-rs/canvas'
 import { BASE, Figure, type Lighting, lightFigure, lightSprite, member, TIMES, view } from '../src/entries'
-import { SPRITE_LIGHTS } from '../tests/unit/golden/sprite'
+import { SPRITE_LIGHTS } from '../tests/fixtures/frames/sprite'
 
 const out = resolve(process.argv[2] ?? 'out/lit')
 mkdirSync(out, { recursive: true })
