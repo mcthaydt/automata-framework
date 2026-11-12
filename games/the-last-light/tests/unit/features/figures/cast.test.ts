@@ -161,17 +161,14 @@ describe('Ada', () => {
 
   it('walks the old brisk walk whole, with the old file’s own overrides on it, not the builder’s tamer `brisk`', () => {
     expect(ADA.gait).toBe('brisk')
-    // The old `standOut` did not exist: her arms hung at `armOut` standing too, so it is that number.
-    expect(ADA.gaitOverrides).toEqual({
-      ...OLD_BRISK,
-      armOut: 0.11,
-      idleElbow: 0.15,
-      hang: 0.04,
-      stance: 0,
-      stanceLead: 0,
-      shift: 0,
-      standOut: 0.11,
-    })
+    // The old file zeroed her stance (weight on a leg), shift and hang and cut her idle elbow to 0.15; the old brisk gait's own numbers
+    // (0.04, 0.08, 0.012, hang 0.12, idleElbow 0.45) stand her on one hip with a bent, hung arm, as the old hand-painted atlas does, so
+    // only her `armOut` stays. The old `standOut` did not exist: her arms hung at `armOut` standing too, so it is that number.
+    expect(ADA.gaitOverrides).toEqual({ ...OLD_BRISK, armOut: 0.11, standOut: 0.11 })
+  })
+
+  it('has the old face but for the drawn one: at the size she is played the builder draws a lid line the fringe covers, its decal face two eyes', () => {
+    expect(ADA.face).toEqual({ camera: 0.6, turn: 0.15, blink: 3.7, drawn: false })
   })
 
   it('wears the old `street` outfit piece for piece: a cream top, a maroon waistcoat, denim, boots, an auburn bob', () => {
@@ -217,6 +214,29 @@ describe('the night nurse', () => {
   })
 })
 
+/** Whether the front view of `def` at the play size has an eye pair: two dark texels 2 to 7 apart on one row, each with skin beside it. */
+function hasEyes(def: typeof ADA): boolean {
+  const cell = paintedCell(def, 0, 1)
+  const [w, h] = cell.size
+  const p = cell.painted
+  const skin = (def.swatches?.[def.skin]?.paint ?? []).map((hex) =>
+    [1, 3, 5].map((i) => Number.parseInt(hex.slice(i, i + 2), 16)),
+  )
+  const isSkin = (i: number) =>
+    skin.some(([r, g, b]) => r === p[i * 4] && g === p[i * 4 + 1] && b === p[i * 4 + 2])
+  const dark = (i: number) =>
+    (p[i * 4 + 3] ?? 0) > 0 &&
+    0.3 * (p[i * 4] ?? 0) + 0.59 * (p[i * 4 + 1] ?? 0) + 0.11 * (p[i * 4 + 2] ?? 0) < 60
+  for (let y = 0; y < h; y++)
+    for (let a = 1; a < w - 1; a++)
+      for (let b = a + 2; b <= a + 7 && b < w - 1; b++) {
+        const [i, j] = [y * w + a, y * w + b]
+        if (dark(i) && dark(j) && isSkin(i - 1) && isSkin(i + 1) && isSkin(j - 1) && isSkin(j + 1))
+          return true
+      }
+  return false
+}
+
 describe('the painted frame shows what they wear', () => {
   // The painter drops a garment it does not know without a word, so the proof is in the picture: the swatches' own colours, counted
   // in the cell seen from the front and from the back.
@@ -225,6 +245,10 @@ describe('the painted frame shows what they wear', () => {
       (sum, direction) => sum + texelsOfSwatch(def, paintedCell(def, direction, density), swatch),
       0,
     )
+
+  it('shows Ada’s eyes from the front at the size she is played', () => {
+    expect(hasEyes(ADA)).toBe(true)
+  })
 
   it('shows Ada in a maroon waistcoat over her cream top, in brown boots', () => {
     expect(seen(ADA, 'maroon')).toBeGreaterThan(150)

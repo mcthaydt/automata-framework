@@ -9,7 +9,7 @@ up by `pnpm --filter @automata/character-kit sheet <out-dir> <round> --old <old-
 old painter, which our painter descends from; Ada row 7, nurse row 3) and the **approved hand-painted atlas** (Ada row 1, nurse row
 1), which is what the old game actually shipped and what "looking good" meant there.
 
-Progress: **round 3 of 3 sheeted** (about 85 %). Round 0 look before touching, round 1 data, round 2 painted garments as generators,
+Progress: **round 3 in progress** (about 85 %: Ada's face and stand adopted, the nurse's cut open, the hair style next). Round 0 look before touching, round 1 data, round 2 painted garments as generators,
 round 3 the nurse's cut (choices open), and the list for the painter, kept as it goes. Left: the Owner's picks, hair as data if the
 Owner allows it, the in-game frame.
 
@@ -182,11 +182,55 @@ at the waist and ends there, and the shirt shows at the shoulder, on any body.
 - **D, a belt**: it draws a waist the body has not got. It is an outfit choice (the old street outfit has none), so **the Owner's call**.
 - What the generator cannot do: the torso under the vest is the painter's body, and the face, hair and stand are still the painter's.
 
-## Round 3: the night nurse's cut (choices open, nothing adopted)
+## Round 3: Ada's face and stand (adopted), the night nurse's cut (open)
+
+### Why Ada had no face in the front view, and the fix (data)
+
+The painter's **drawn** face (`face.drawn: true`, the old file's) paints an eye from density 2 up; at the play size (density 1) it is a
+lid line and a mouth, and the bob's fringe covers the eye row, so the front view is a blank oval (round 0's sheets). Nothing in the
+painter is wrong there: it is the cast's data. The builder's **decal** face (`face.drawn: false`) is two dark eye dots, and that is what the
+old figure showed at this size. Ada's `face.drawn` is now `false` (the old file's `camera` .6, `turn` .15 and `blink` stay). The test
+`shows Ada's eyes from the front at the size she is played` finds an eye pair in the picture (two dark texels two to seven apart on one row, each
+with skin beside it) and was watched failing with `drawn: true`. A close-up (density 2 or 4) wants the drawn face back, as a cutscene key
+that asks; the figure view only draws the play size today. What the painter could still do: draw the eye at density 1 over a fringe.
+
+### Her stand and her walk, one old number at a time
+
+[`round3-ada-variants-play.png`](round3-ada-variants-play.png) and [`-detail.png`](round3-ada-variants-detail.png), the adopted Ada alone in
+[`round3-ada-play.png`](round3-ada-play.png), [`-detail.png`](round3-ada-detail.png), [`-numbers.txt`](round3-ada-numbers.txt).
+The old file zeroed her weight on a leg and cut her arm; the old brisk gait's own numbers put them back.
+
+| | what it does | shoulder / waist / hip |
+| --- | --- | --- |
+| BEFORE (round 2) | weight on neither leg, the arm near straight, the drawn face | 16, 18, 20 |
+| A | the decal face: two eye dots | 16, 18, 20 |
+| B | A and `stance` .04, `stanceLead` .08, `shift` .012: weight on one leg, one hip up, a shoulder down | 17, 17, 21 |
+| **C (adopted)** | B and `idleElbow` .45, `hang` .12: a bent, hung arm, the brisk gait's own | **17, 17, 19** |
+| D | C with `standOut` .05 (arms near the body) and `face.turn` .5 | 17, 17, 19 |
+
+The atlas is 17, 19, 20 at 61 texels; the old procedural 14, 16, 18 at 59; adopted Ada is 17, 17, 19 at 64 (hip/height .297).
+`cast.test.ts` was changed first and watched failing: her gait overrides are the old brisk whole and her `armOut` (the old file's
+zeroed stance and cut elbow are gone), her face is the old one but `drawn`.
+
+### What `knip` and `check:changesets` say here (so it is clear whether they are real)
+
+- `knip` says: two `ERROR: Error loading site/vite.config.ts` and `site/playground/vite.config.ts` (`File './.svelte-kit/tsconfig.json' not
+  found`: SvelteKit's generated file, made by `svelte-kit sync`, which this container did not run); then `Unresolved imports` of `./$types`
+  in eight `site/src/routes/**` files (the same generated types), six `Unused files` under `site/playground/` (their entries are not
+  found with the config unloaded), two unused dependencies of `site` and two unused exports in
+  `site/src/features/playground/protocol.ts`. All of it is `site/` with its generated types missing: an artefact of this container, not of the
+  branch. None names a file of this work; the first run also named my variants files under `docs/`, which are now one script that
+  `figure-variants.ts` imports.
+- `check:changesets` runs `changeset status --since=origin/main` and fails with `Error: Failed to find where HEAD diverged from
+  "origin/main". Does "origin/main" exist and it's synced with remote?`: this clone has no `origin/main` ref (only the two branches
+  were fetched). An artefact of this container too. No published package is changed by this work (the kit and the game are private).
+
+### The night nurse's cut (choices open, nothing adopted)
 
 Data only, over round 1's nurse: her skirt's options (`length`, `flare`, both the kit's) and her belt. Taste decides, so the cast file is
 **unchanged** and the Owner picks. [`round3-nurse-variants-detail.png`](round3-nurse-variants-detail.png),
-[`-play.png`](round3-nurse-variants-play.png), the variants are `round3-nurse` in [`figure-looks.ts`](../../../../extensions/character-kit/scripts/figure-looks.ts).
+[`-play.png`](round3-nurse-variants-play.png), the variants are `round3-nurse` in
+[`figure-looks.ts`](../../../../extensions/character-kit/scripts/figure-looks.ts).
 
 | | what differs | waist width at play size |
 | --- | --- | --- |
@@ -195,7 +239,8 @@ Data only, over round 1's nurse: her skirt's options (`length`, `flare`, both th
 | B | a straighter skirt (flare .1), a hand longer (length .5), the belt | 18 |
 | C | B and no belt: one long, plain line | 18 |
 
-- The belt reads as a grey ring (it stands three clearances off the cloth); without it she reads as one worn dress. It is a piece of the old outfit, so keeping or dropping it is the Owner's call.
+- The belt reads as a grey ring (it stands three clearances off the cloth); without it she reads as one worn dress. It is a piece of the old
+  outfit, so keeping or dropping it is the Owner's call.
 - B and C make her skirt a column, not a bell: the waist narrows by two texels and the hem no longer flares over her legs.
 - Her cap, her face and her hair are the painter's (the cap is a bowl, the face a blank, the hair a fall down her back): see the table
   below.
@@ -212,10 +257,11 @@ Kept here as it grows. Each needs a hair piece, a gait entry or a pose in the pa
 | Skirt pleats (`folds`) | the painted skirt is a smooth profile of rings | the torn, hanging hem |
 | A cap that sits as the old one: a flat band over the brow | the headwear table's cap is a bowl | the nurse's head |
 | A brisk, leaning stand and pose for Ada standing | the stand is the builder's relaxed one: feet together, arms at the sides | her first-night posture |
-| Eyes at density 1 | the front view at play size draws no eyes (a lid line at most), where the old painter's figure showed two dark dots | Ada's face at the size she is played |
+| The drawn face's eyes at density 1 | the drawn face is a lid line there (eyes from density 2), under a fringe: Ada uses the decal face for now | a face with a mouth and a nose at play size, not two dots |
 
 ## Log
 
+- Round 3: Ada's `face.drawn: false` (eyes at play size), her stance and arm from the old brisk gait, the eyes test, the nurse's cut sheeted.
 - Round 2: waistcoat `fit`, `length` and `armhole` and legs' `taper` in the kit's garments (`accessories.ts`, `shells.ts`, `garments.ts`),
   `cut.test.ts` written first, `waistcoat-default.test.ts` pinning the legacy default; Ada's waistcoat and jeans set the options; `figure-variants.ts` can count the texels two variants differ by.
 - Round 1: the old `brisk` and `uncanny` gaits whole as overrides (`old-gaits.ts`), Ada's six retuned sliders and `jeans`, the cast test

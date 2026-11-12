@@ -195,10 +195,56 @@ const round3 = (() => {
   return { nurse }
 })()
 
+/**
+ * Round 3's stand and face for Ada, one change at a time over round 2's: what the old file's own numbers do (it zeroed the weight on a
+ * leg, `stance` and `stanceLead` and `shift`, which the brisk gait itself has as 0.04, 0.08 and 0.012; and it bent the idle arm by
+ * 0.45 and hung it by 0.12, which her overrides cut to 0.15 and 0.04), and what `face.drawn: false` does at the play size.
+ */
+const round3ada = (() => {
+  /** Round 2's stand: the old file's zeroed stance and shift, its idle elbow and hang, over the adopted gait. */
+  const round2 = { ...ADA.gaitOverrides, stance: 0, stanceLead: 0, shift: 0, idleElbow: 0.15, hang: 0.04 }
+  const stance = { stance: 0.04, stanceLead: 0.08, shift: 0.012 }
+  const arm = { idleElbow: 0.45, hang: 0.12 }
+  const decal = { ...ADA.face, drawn: false }
+  const ada: Variant[] = [
+    {
+      label: 'BEFORE',
+      note: 'round 2: weight on neither leg, the arm near straight, the drawn face',
+      def: { ...ADA, face: { ...ADA.face, drawn: true }, gaitOverrides: round2 },
+    },
+    {
+      label: 'A',
+      note: 'the decal face (face.drawn false): two eye dots at play size',
+      def: { ...ADA, face: decal, gaitOverrides: round2 },
+    },
+    {
+      label: 'B',
+      note: 'A and her weight on one leg: stance .04, stanceLead .08, shift .012',
+      def: { ...ADA, face: decal, gaitOverrides: { ...round2, ...stance } },
+    },
+    {
+      label: 'C (ADOPTED)',
+      note: "B and a bent, hung arm: idleElbow .45, hang .12, the old brisk gait's own",
+      def: ADA,
+    },
+    {
+      label: 'D',
+      note: 'C with her arms nearer her body (standOut .05) and her head turned more (face.turn .5)',
+      def: {
+        ...ADA,
+        face: { ...decal, turn: 0.5 },
+        gaitOverrides: { ...ADA.gaitOverrides, ...stance, ...arm, standOut: 0.05 },
+      },
+    },
+  ]
+  return { ada }
+})()
+
 export const LOOKS: Readonly<Record<string, readonly Variant[]>> = {
   'round1-ada': round1.ada,
   'round1-nurse': round1.nurse,
   'round2-ada': round2.ada,
   'round2-vest': round2vest.pair,
   'round3-nurse': round3.nurse,
+  'round3-ada': round3ada.ada,
 }

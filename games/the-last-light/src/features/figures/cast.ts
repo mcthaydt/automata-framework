@@ -42,19 +42,14 @@ export const ADA: CharacterDef = {
   },
   skin: 'fair',
   gait: 'brisk',
-  // The old brisk walk whole with the old file's own six numbers on it. `standOut` did not exist then: the arms hung at `armOut` standing too.
-  gaitOverrides: {
-    ...OLD_BRISK,
-    armOut: 0.11,
-    idleElbow: 0.15,
-    hang: 0.04,
-    stance: 0,
-    stanceLead: 0,
-    shift: 0,
-    standOut: 0.11,
-  },
+  // The old brisk walk whole. The old file zeroed her stance, stance lead and shift (no weight on a leg) and cut her idle elbow and hang; the
+  // old brisk gait's own numbers stand her on one hip with a bent, hung arm, as the old hand-painted atlas does, so only her `armOut` of the
+  // old file stays. `standOut` did not exist then: the arms hung at `armOut` standing too.
+  gaitOverrides: { ...OLD_BRISK, armOut: 0.11, standOut: 0.11 },
   hand: 'R',
-  face: { camera: 0.6, turn: 0.15, blink: 3.7, drawn: true },
+  // `drawn` was true in the old file. At the size she is played the builder's drawn face is a lid line the fringe covers (eyes need density 2),
+  // so her front view had no face; its decal face is two eye dots, which is what the old figure showed there.
+  face: { camera: 0.6, turn: 0.15, blink: 3.7, drawn: false },
   hair: { stiff: 70, damp: 9, trail: 0.3, bounce: 0.08 },
   swatches: ADA_SWATCHES,
   default: 'street',
