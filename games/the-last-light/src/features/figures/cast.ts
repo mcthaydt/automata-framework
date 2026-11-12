@@ -32,8 +32,9 @@ export const ADA: CharacterDef = {
     shoulders: 0.55, // retuned: the old 0.47
     // retuned: the old 0.37, then 0.2 for a leaner pelvis. The builder stands a figure with its weight foot drawn in a quarter of the way to the
     // middle line, so the feet stand 0.75 of the hip joints' width apart where the old figure's stood under its hips; at 0.2 her two legs touch
-    // from the hip to the ankle at the size she is played, and at 0.9 the floor shows between them (the hip row grows two texels).
-    hips: 1, // at her new height 0.9 left 5 texels of floor between her legs; 1 gives 12 and no wider a hip row (21 either way)
+    // from the hip to the ankle at the size she is played. At her height now 0.9 leaves 5 texels of floor between them and 1 gives 12, with no
+    // wider a hip row (19 by the proportions helper, 21 by the older bands, either way). A wider stand is the painter's (README, list 3).
+    hips: 1,
     legs: 0.3, // the old 0.3 (round 1 had it at 0.6 for longer legs; the old figure's legs are half of her, 29 rows of 59, and ours were 52%)
     arms: 0.15,
     head: 0.87,

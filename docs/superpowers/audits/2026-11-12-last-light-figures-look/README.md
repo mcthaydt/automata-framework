@@ -502,6 +502,18 @@ spaces the dots by under a texel. The old face is two black texels, **2 tall**, 
 (#ebbd9d, 21 to 25 texels in the head's rows); ours is two texels, 1 tall, 2 to 3 apart, on a face that is mostly the middle step (#d5a39a, 21)
 with a dark chin. Both are painter code, first on the list.
 
+### Round 7 in the game
+
+Chromium on this container's software GL, `AF_SHOOT=<folder> pnpm exec playwright test tests/e2e/frames.test.ts --grep "frames at"`, desktop
+context, 1024 by 768. Old game left, ours before (round 4's own frames, `round4-ingame-ours-*`), ours after:
+[`round7-ingame-cutscene.png`](round7-ingame-cutscene.png) and [`round7-ingame-play.png`](round7-ingame-play.png); the singles are
+`round7-ingame-ours-*-1024x768.png`. **Read them for Ada's size and shape only**: the "before" frames are round 4's, shot when the room's look was an
+earlier one (and the cutscene frames are different moments of the opening: the "after" frame caught the title card and the room's fade, the nurse not
+yet in the door), so the lighting does not compare. In play she is now about a fifth shorter on screen than before (the old Ada's size is between the
+two); the trim body, the head and the legs read nearer the old figure's. **Her face is still two dots, and from this camera, from behind, none shows**: the
+face is painter work (list below, items 1 and 2). The outline is still black where the old game's is teal (item 4). The shoot's own check failed once on a
+Vite hot reload (an edit of `cast.ts` comments while it ran; `RegistryClash` for the retro pass), after both frames were taken; not a game fault.
+
 ## Waiting for the painter (the fold, `claude/builders-fold-figures`)
 
 Kept here as it grows, **ranked by what each buys at the size she is played** (the first three are the face the Owner asked for; they are the first
