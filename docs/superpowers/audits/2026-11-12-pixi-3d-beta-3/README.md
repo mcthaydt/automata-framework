@@ -238,3 +238,22 @@ step 4, in this order:
 4. Then run the 3D Chromium suites, WebGL and `AF_WEBGPU=software`; for every 3D golden or recorded value that moves, collect the expected, actual and diff, do not
    re-record, and send the coordinator the list. Commands and baseline numbers are in §1; the per-package loop is
    `npx vitest run --project '<name>*chromium*'` in the package folder.
+
+### The coordinator's additions (messages read after the handoff)
+
+- `main` at `5370df3d` (#654, #655) is merged into this branch already. #655 brings `extensions/lcd-panel` and `extensions/retro-crisp` and the
+  look's pass list and switches (`packages/3d/src/features/look`, `LookPass`, `OutlineEffect`); each of those passes was written for beta.2's
+  single `'post'` stage, so step 4 says for each whether it runs before or after tone mapping (grades, the LCD panel, outlines and anything on
+  the picture as shown are `'afterToneMapping'`). **Re-take the baseline on this merged tree before changing anything:** the Chromium suites
+  the coordinator expects are lcd-panel 9, retro-crisp 10, world-kit 19, `@automata/3d` 48 (§1's numbers are from before #655). #654 touches the
+  framework's exports and changesets, not rendering.
+- Step 4 must answer the coordinator's twelve numbered behaviour changes one by one with the file each touches (the table in §2 is the start of
+  it); show the pictures both ways on the `toneMapping` default rather than pinning `'aces'`; group every moved golden by the number that explains it
+  and send the groups before anything is re-recorded. Say, in a line each, whether the framework should adopt `FxaaEffect`, `Model3D.materials`,
+  `Mesh3D.enablePass`, `View3D.resolution`, `.hdr` environments and `View3D.raycast(out)` (do not adopt them in this branch).
+- `examples/3d-story`'s journeys fail on `main` before this work, with this message from the CLI the web server runs (`automata editor . --app suite
+  --app-dir …`): `Error: This option is gone: automata editor picks the editors your game needs.` Left as it is: the 3D examples are to be cut and
+  rebuilt after the reference game's prologue.
+- This branch holds until the Owner has run cross-engine parity (WebKit and Firefox) on the pixi.js bump and the beta.3 move; Chromium alone is
+  what ran here. The section "what the three live branches will meet" in step 6 must note that `claude/last-light-prologue` adds an optional `model`
+  on a prop and draws meshes through `drawWorld`.
