@@ -60,7 +60,7 @@ main (2026-11-08)
          └─ #538  AI game maker fixes (not editors' look)
 main ── #512 shared-editors spec and plan ── #519 v2 spec and plan (docs; copied into the stack)
 main ── #528 ── #536 ── #537  saving and sign-in audit, spec, plan (docs; copied into #544)
-main ── #531  the paid app's first build session (old `@mcthaydt/*` names)   714796a2
+main ── #531  the paid app's first build session (names in the older `mcthaydt` scope)   714796a2
 ```
 
 Commands: `gh api …/pulls/<n> --jq '.base.ref, .head.sha'`; `git merge-base --is-ancestor pr/<a> pr/<b>` for every pair.
@@ -100,7 +100,7 @@ green but for one layout test** (section 4): 6,415 unit tests and 1,082 of 1,084
 
 **The stack is already in today's shape.** `git ls-tree pr/559 packages/` is `3d automata content editor editor-3d sim
 tools`, the same seven as `main`; `packages/editor/src` is `app/ features/ shared/ entries/ testing/`; the scope is
-`@automata/*` (`git grep -l '@mcthaydt/' pr/<n> -- . ':!pnpm-lock.yaml' ':!docs'`: 6 files on every stack branch and the
+`@automata/*` (`git grep -l '@mcthaydt''/' pr/<n> -- . ':!pnpm-lock.yaml' ':!docs'`: 6 files on every stack branch and the
 same 6 on `main`; 1,925 to 1,984 files name `@automata/`). Only #531 is on the old names (984 files, 0 on the new).
 
 The big moves on `main` since: the trunk's gates after the refactor's merge (2026-11-09), The Last Light's framework

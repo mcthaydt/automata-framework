@@ -146,7 +146,7 @@ A trial merge conflicts in 29 files: `docs/refactor/progress.md`, `docs/versions
 `package.json`, `tsdown.config.ts`, `automata-content.ts`, `compile-content.ts`, `read-sources.ts` and a test,
 `packages/editor/package.json`, tools' `cli.ts`, `help.ts`, `editor-args.ts`, `editor-command.ts`, `serve-editor.ts`,
 `create-game.ts`, `template-project.ts`, `template.ts`, `tsdown.config.ts` and three tests, and two tooling tests. Every
-file of it uses the old `@mcthaydt/automata-*` names (`git show pr531:packages/content/package.json`), which `main` has
+file of it uses the older `mcthaydt` scope's `automata-*` names (`git show pr531:packages/content/package.json`), which `main` has
 since renamed, and a second rename is coming.
 
 *Fixed:* each task the plan lists names "#531 has this; carry its tests and code across, renamed" as its Step 0, with
