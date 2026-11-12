@@ -1,4 +1,4 @@
-import type { ShaderBitTemplate } from '@pixi/3d';
+import type { ShaderBitTemplate } from '@pixi/3d'
 
 /**
  * The WGSL template of a depth-writing `CellSprite` under WebGPU.
@@ -107,4 +107,4 @@ fn mainFragment(inputIn: FragmentInput) -> CellFragment {
   return CellFragment(vec4<f32>(finalColor * alpha, alpha), cellDepth);
 }
 `,
-};
+}

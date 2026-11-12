@@ -6,16 +6,26 @@
  * changing one follows docs/contract.md (the breaking-change list, STAGE_VERSION and the changelog), and
  * tests/api.test.ts pins the list. A downstream that needs more asks for it to be added here.
  */
-export { gbuffer, rasterize, resolve, cleanup, noise3, STYLE, TRI, VERT, type GBuffer } from './features/paint/raster';
-export { duel, oklab, rampOf } from './features/paint/paint';
-export { RAMPS, RAMP_OUTLINE } from './features/paint/duel-ramps';
-export { placed, superquadric, limb, type Mesh, type Material } from './features/body/parts';
+export {
+  gbuffer,
+  rasterize,
+  resolve,
+  cleanup,
+  noise3,
+  STYLE,
+  TRI,
+  VERT,
+  type GBuffer,
+} from './features/paint/raster'
+export { duel, oklab, rampOf } from './features/paint/paint'
+export { RAMPS, RAMP_OUTLINE } from './features/paint/duel-ramps'
+export { placed, superquadric, limb, type Mesh, type Material } from './features/body/parts'
 // For a host's own garment kinds (H1): the part groups, skin weights, and the limb and ring shapes they are built from.
-export { GROUP, weights, type Limb, type Ring } from './features/body/parts';
-export { axisAngle, normalize, apply, sub, cross, dot, lerp, type V3 } from './lib/math';
-export { qmul, smooth } from './lib/math';
-export { fk, J } from './features/body/rig';
+export { GROUP, weights, type Limb, type Ring } from './features/body/parts'
+export { axisAngle, normalize, apply, sub, cross, dot, lerp, type V3 } from './lib/math'
+export { qmul, smooth } from './lib/math'
+export { fk, J } from './features/body/rig'
 // For a host's headwear kinds (H1): the head's form and the skull's measures, from which a crown is lofted over the head the sliders make
 // (the hair's own pieces are built from them), and a point on the head's form at a skull angle and height.
-export { skull, onHead, type Skull } from './features/hair/hair';
-export { headForm, type HeadForm } from './features/body/head';
+export { skull, onHead, type Skull } from './features/hair/hair'
+export { headForm, type HeadForm } from './features/body/head'

@@ -17,13 +17,18 @@
       "!site/build",
       "!site/static/demos",
       "!site/static/playground",
-      "!extensions/figures"
+      "!extensions/figures/tests/golden/*.json"
     ]
   },
   "formatter": { "indentStyle": "space", "indentWidth": 2, "lineWidth": 110 },
   "javascript": { "formatter": { "quoteStyle": "single", "semicolons": "asNeeded" } },
   "linter": { "enabled": true, "rules": { "preset": "recommended" } },
   "overrides": [
+    {
+      "includes": ["extensions/figures/**"],
+      "linter": { "enabled": false },
+      "assist": { "enabled": false }
+    },
     {
       "includes": ["packages/sim/**"],
       "linter": { "rules": { "style": { "useExponentiationOperator": "off" } } }

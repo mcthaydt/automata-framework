@@ -1,6 +1,6 @@
-import type { Garment, Regions } from '../../../src/features/outfit/garments';
-import { registerGarment } from '../../../src/features/outfit/garments';
-import type { ShoeForm } from '../../../src/features/outfit/shoe';
+import type { Garment, Regions } from '../../../src/features/outfit/garments'
+import { registerGarment } from '../../../src/features/outfit/garments'
+import type { ShoeForm } from '../../../src/features/outfit/shoe'
 
 /**
  * The fixture kinds c9's tests draw with (H1). Fixtures live in tests only: base registers no garment kind, so with none
@@ -14,20 +14,32 @@ import type { ShoeForm } from '../../../src/features/outfit/shoe';
  */
 declare module '../../../src/features/outfit/garments' {
   interface GarmentKinds {
-    fxShod: { fxShod: string; form?: ShoeForm };
-    fxShodToo: { fxShodToo: string; form?: ShoeForm };
+    fxShod: { fxShod: string; form?: ShoeForm }
+    fxShodToo: { fxShodToo: string; form?: ShoeForm }
   }
 }
-let registered = false;
+let registered = false
 /** Registers the fixture kinds, once for this test file. */
 export function useFixtures(): void {
-  if (registered) return;
-  registered = true;
-  const paint = (swatch: string): Partial<Regions> => ({ shoe: swatch, sole: 'flatGrey' });
-  registerGarment('fxShod', { build: (_c, item: { fxShod: string; form?: ShoeForm }) => ({ parts: [], paint: paint(item.fxShod), shoe: item.form }) });
-  registerGarment('fxShodToo', { build: (_c, item: { fxShodToo: string; form?: ShoeForm }) => ({ parts: [], paint: paint(item.fxShodToo), shoe: item.form }) });
+  if (registered) return
+  registered = true
+  const paint = (swatch: string): Partial<Regions> => ({ shoe: swatch, sole: 'flatGrey' })
+  registerGarment('fxShod', {
+    build: (_c, item: { fxShod: string; form?: ShoeForm }) => ({
+      parts: [],
+      paint: paint(item.fxShod),
+      shoe: item.form,
+    }),
+  })
+  registerGarment('fxShodToo', {
+    build: (_c, item: { fxShodToo: string; form?: ShoeForm }) => ({
+      parts: [],
+      paint: paint(item.fxShodToo),
+      shoe: item.form,
+    }),
+  })
 }
 /** A shoe in the swatch, in the form: the item of `fxShod`. */
-export const shod = (swatch: string, form?: ShoeForm): Garment => ({ fxShod: swatch, form });
+export const shod = (swatch: string, form?: ShoeForm): Garment => ({ fxShod: swatch, form })
 /** The same under a second kind's name. */
-export const shodToo = (swatch: string, form?: ShoeForm): Garment => ({ fxShodToo: swatch, form });
+export const shodToo = (swatch: string, form?: ShoeForm): Garment => ({ fxShodToo: swatch, form })
