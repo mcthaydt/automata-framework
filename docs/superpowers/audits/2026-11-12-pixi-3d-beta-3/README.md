@@ -766,6 +766,11 @@ One answer each. "Moved" counts expectations written in test code, each with its
   5. Journeys in WebKit: `cd games/base-3d && npx playwright test --project base-3d-dev-webkit`; `cd examples/3d && npx playwright test --project examples-3d-webkit`; `cd games/emberwick && npx playwright test --project emberwick-phone-webkit --project emberwick-ipad-webkit`.
   6. Then `pnpm ci:local`, and report which of these ran.
 
+### The close (step 6), on the tree at `f2f4ef01`
+
+`pnpm build`: 16 of 16 tasks, exit 0. `pnpm api-report`: 6 core packages, 0 API breaks, 0 undeclared; `pnpm api-index`: 1,300 exports from 49 entry points, 0 undocumented; neither moved a file (no published package's exports or doc comments changed; `@automata/figures` is private), so nothing was written. **The whole `pnpm check` with turbo's cache off (`TURBO_FORCE=true pnpm check`: `pnpm check --force` reaches only its last step): exit 0, 56 of 56 static tasks and 66 of 66 unit tasks, 0 cached, 13 m 48 s, 78 changesets, 0 problems.**
+No changeset needed (the painter and its view are private). Node 24.22 (the container's default `node` is 22; `/opt/node24/bin` first on `PATH`). Not run: WebKit, Firefox, a real GPU, `examples/3d-story`; the Owner's commands are in (d) above.
+
 ## Handoff at 90 minutes
 
 Last commit before the merge below: `5cabf0cd` (step 3), pushed. `main` was merged in at the handoff (it brought two new extensions,
