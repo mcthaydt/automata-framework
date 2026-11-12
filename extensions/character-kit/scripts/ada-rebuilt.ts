@@ -129,7 +129,7 @@ export const LOOKS: Readonly<Record<string, readonly Variant[]>> = {
     },
     {
       label: 'D (ADOPTED)',
-      note: "B after the coordinator's read: lighter faded denim (DUEL steps #828b98, #626871 over the old #626871, #48474d), the tail-less bob (`bobFringeBlunt`), no lip mark, the arms closer (`armOut` and `standOut` .03)",
+      note: "B after the coordinator's read: lighter faded denim (DUEL steps #828b98, #626871 over the old #626871, #48474d), the tail-less bob (`bobFringeBlunt`), no lip mark, the arms closer (`armOut` and `standOut` .03), an ankle boot (the kit's new `shaft` .25)",
       def: adaOf(ADA_PROPORTIONS, {
         face: REF_FACE,
         gait: { armOut: 0.03, standOut: 0.03 },
@@ -142,9 +142,11 @@ export const LOOKS: Readonly<Record<string, readonly Variant[]>> = {
             street: REF_OUTFIT.map((item) =>
               'hair' in item
                 ? { hair: 'auburn', style: 'bobFringeBlunt' }
-                : 'eyes' in item
-                  ? { eyes: 'eyeBrown', lids: 'lidDeep', white: 'eyeWhite', brows: 'auburn' }
-                  : item,
+                : 'shoes' in item
+                  ? { ...item, shaft: 0.25 }
+                  : 'eyes' in item
+                    ? { eyes: 'eyeBrown', lids: 'lidDeep', white: 'eyeWhite', brows: 'auburn' }
+                    : item,
             ) as never,
           },
         },

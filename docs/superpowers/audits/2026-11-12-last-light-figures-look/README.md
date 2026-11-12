@@ -605,8 +605,15 @@ reference's face, **density 1 (x4) beside density 2 (x2), the same size on scree
 `#626871`, `#434549`, `#2e3d47` (round 1's mid was `#48474d`): a faded grey-blue clearly lighter than the oxblood vest, as in the turnaround; (2) the hair is `bobFringeBlunt`, the
 widest tail-less style the pieces allow (no knot at the nape; the painter's change is the first on the list below); (3) no lip mark (her `lips` swatch is gone), eyes and brows only;
 (4) the arms nearer the body (`armOut` and `standOut` .03). Not done, and why: the waistcoat's V is a tall strip because the kit's `open` strip runs the whole torso (a short V with a
-shirt collar and two rows of buttons needs a kit option for the V's length and a collar: on the list); the boots' shaft is the kit's (19 % of her against 15.5 %: the shaft's length is not an option yet);
+shirt collar and two rows of buttons needs a kit option for the V's length and a collar: on the list); the boots' shaft length (19 % against 15.5 %) became the kit's `shaft` option in round 3 below;
 the skin's tone and the hair are the painter's. The tests still pass (`ada-rebuilt.test.ts` reads D's proportions and eyes). Proportions unchanged (the numbers file is identical to round 1's).
+
+#### B, round 3: the boot's shaft (a kit option)
+
+`shaft` on the kit's `shoes` garment (`garments.ts`): how far up the shin the leather rises, a share of the shin's length up from the ankle; the default is the 0.42 it always was
+(`tests/unit/fashion/boot-shaft.test.ts`: written first, the shorter-boot test watched failing on the missing option; the default pinned: naming 0.42 draws the same cells). Variant D wears `shaft` .25: her boots are
+**15.1 % of her height at density 2 against the turnaround's 15.5 %** (19.0 % before), [`round8-b3-sheet.png`](round8-b3-sheet.png), [`round8-b3-numbers.txt`](round8-b3-numbers.txt). The waistcoat's short V
+and the shirt collar are still not options of the kit (list).
 
 ### C and D. The framing study
 
@@ -680,6 +687,7 @@ painter task after the fold merges). Each needs painter code, which this branch 
 
 ## Log
 
+- Round 8 (B, round 3): the kit's `shaft` option of the boots (test first), Ada's ankle boots.
 - Round 8 (B, round 2): variant D, the lighter jeans, the tail-less bob, no lip mark, the arms closer; the painter's hair change first on the list.
 - Round 8 (C, D): five framings and three with the rebuilt Ada shot in the game under a study patch, the contact sheets, the recommendation.
 - Round 8 (B, first round): `ada-rebuilt.ts` (the base woman to the spec), `figure-rebuild.ts` and its sheet, the test of her proportions and eyes (`ada-rebuilt.test.ts`).

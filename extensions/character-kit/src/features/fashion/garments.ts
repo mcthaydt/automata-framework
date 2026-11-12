@@ -86,6 +86,8 @@ export interface Shoes {
   sole?: string
   /** A boot: a shaft of the shoe's leather up the shin, over the trousers. */
   boots?: boolean
+  /** How far up the shin a boot's shaft rises, as a share of the shin's length up from the ankle (default 0.42; 0.2 is an ankle boot). */
+  shaft?: number
 }
 
 // The builder widens its `Garment` union by augmentation: a kind declared here is a garment an outfit may list.
@@ -267,7 +269,7 @@ export function registerGarments(): void {
               : {}
           return shell(
             grown(c.body.profiles.leg[side], off, wide),
-            h.knee - 0.58 * c.s.shin,
+            h.knee - (i.shaft === undefined ? 0.58 : 1 - i.shaft) * c.s.shin,
             h.ankle + 0.015 * h.k,
             i.shoes,
             legGroup(side),
