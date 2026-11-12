@@ -9,7 +9,14 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { registerFashion } from '../src/features/fashion/register-fashion.ts'
 import { RUNWAY_CAST } from '../src/features/fashion/runway-cast.ts'
-import { member, standing } from '../src/shared/figures/door.ts'
+import {
+  type CharacterDef,
+  Figure,
+  type Garment,
+  member,
+  SPRITE_PITCH,
+  standing,
+} from '../src/shared/figures/door.ts'
 import { bbox, blit, png } from './sheet-kit.ts'
 
 const out = resolve(process.argv[2] ?? 'out'),
@@ -17,6 +24,60 @@ const out = resolve(process.argv[2] ?? 'out'),
 mkdirSync(out, { recursive: true })
 registerFashion()
 
+// `ad-match` as the third argument: Sam (as the cast has him: a pinstripe jacket), Sam in a lilac hoodie (the same body, face and hair, one
+// garment changed) and Otto, head and shoulders, front, on a flat mid-grey ground, no light hook, at x2: for the eye, against the Owner's ad.
+if (process.argv[4] === 'ad-match') {
+  const byId = (id: string) => RUNWAY_CAST.find((m) => m.def.id === id)?.def as CharacterDef
+  const sam = byId('sam')
+  const hooded = {
+    ...sam,
+    id: 'sam-hoodie',
+    outfits: {
+      runway: [
+        { hoodie: 'hoodieLilac' },
+        { trousers: 'charcoalWool', wide: 1.1 },
+        { shoes: 'leatherBlack', sole: 'soleBlack' },
+        ...(sam.outfits.runway ?? []).filter((g) => 'hair' in g || 'eyes' in g),
+      ] as Garment[],
+    },
+  } as CharacterDef
+  const models = [sam, hooded, byId('otto')]
+  // One row per density: D as given, then one lower (a head of about 100 texels for Sam).
+  const rowsOf = [D, D - 1],
+    Z = 2,
+    SW = Math.round((100 * D) / 4) * Z * models.length,
+    SH = rowsOf.reduce((a, d) => a + Math.round((100 * d) / 4) * Z, 0)
+  const sheet = new Uint8Array(SW * SH * 4)
+  for (let i = 0; i < sheet.length; i += 4) {
+    sheet[i] = 0x80
+    sheet[i + 1] = 0x80
+    sheet[i + 2] = 0x80
+    sheet[i + 3] = 255
+  }
+  let y0 = 0
+  for (const d of rowsOf) {
+    const C = Math.round((100 * d) / 4),
+      PX = C * Z
+    models.forEach((def, i) => {
+      const cast = member(def, d),
+        f = new Figure(cast)
+      for (let k = 0; k < 3; k++)
+        f.update(1 / 60, { facing: 0, moving: false, view: { azimuth: 0, pitch: SPRITE_PITCH } })
+      const px = f.painted.slice() as Uint8ClampedArray,
+        [w, h] = cast.cell,
+        bb = bbox(px, w, h)
+      let chin = bb.y0
+      for (let k = 0; k < w * h; k++)
+        if (px[k * 4 + 3] && f.g.part[k] === 1000) chin = Math.max(chin, Math.floor(k / w))
+      console.log(def.id, 'density', d, 'head rows (hair top to chin)', chin - bb.y0 + 1)
+      blit(sheet, SW, px, w, [Math.round((bb.x0 + bb.x1) / 2 - C / 2), bb.y0 - 6, C, C], i * PX, y0, Z)
+    })
+    y0 += PX
+  }
+  writeFileSync(join(out, 'runway-ad-match.png'), png(sheet, SW, SH))
+  console.log(`runway-ad-match.png ${SW}x${SH}`)
+  process.exit(0)
+}
 // Heads only (`heads` as the third argument): every model's head and shoulders at one size on the sheet, whatever the density.
 if (process.argv[4] === 'heads') {
   const C = Math.round((100 * D) / 4),
