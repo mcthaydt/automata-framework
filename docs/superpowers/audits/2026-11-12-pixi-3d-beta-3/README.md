@@ -13,7 +13,7 @@ contains it (`vendor/pixi-3d/README.md`).
 | 2 | What changed in the beta | done 2026-11-12 | [§2](#2-what-changed-in-the-beta) |
 | 3 | `pixi.js` 8.22.0 → 8.23.0, on its own, with beta.2 | done 2026-11-12 | [§3](#3-pixijs-8220--8230-on-its-own-with-beta2) |
 | 3b | `main` (#654, #655, #656) merged; the baseline taken again on the merged tree with beta.2; the retro-crisp case that 8.23.0 moved found | done 2026-11-12 | [§3b](#3b-the-merged-tree-with-beta2-the-baseline-taken-again) |
-| 4 | `@pixi/3d` beta.3 | in progress: the third session's list, items 1 to 3 done | [third session](#third-session-the-work-list-in-order) |
+| 4 | `@pixi/3d` beta.3 | in progress: the third session's list, items 1 to 4 done | [third session](#third-session-the-work-list-in-order) |
 | 5 | Workarounds the beta makes unnecessary | not started | |
 | 6 | Close: build, API report and index, changesets, the whole check, this record | not started | |
 
@@ -405,6 +405,20 @@ retro-crisp suites say "WebGPU and WebGL2 parity is the GPU runner's", and no ru
 
 `frames/samplers-room-webgl-vs-webgpu.png` and `samplers-street-webgl-vs-webgpu.png`: the dressed room and street through `spikes/eb-look` with `figures=core`, `pref=webgl` and `pref=webgpu` (`AF_WEBGPU=software` flags), the world's tiled `albedoTiles` surfaces (the floor, the camouflage-patterned walls) and their `nearest` texels. **They match:** 0.5% of the room's pixels differ and 0.1% of the street's, mean luma 56.2 and 56.2, 109.5 and 109.5; the differing pixels are the figures' edges (core cast, drawn by the engine's default style), none on a tiled surface. `world-view.ts` already sets `addressMode: 'repeat'` and `scaleMode: 'nearest'`
 on each tile, which is what beta.3's per-texture sampler asks for. Recommendation: nothing to change; keep these two as the proof.
+
+### Item 4: the painter's view waits for the fold; what the port will be
+
+Not done on this branch (the ruling: no vendoring, patching or copying of the painter's files). `claude/builders-fold-figures` brings the painter into the framework as `extensions/figures` on beta.2, merges first, and this branch then ports the view
+(`docs/superpowers/plans/2026-11-12-builders-fold.md` §4 has the list; read against FigureBuilder `23f889c8`, `src/features/view/`, 482 lines, nothing copied):
+
+1. **`cell-template.ts` (110 lines), the copy of beta.2's WGSL material template, remade from beta.3's, and its guard `tests/unit/view/template.test.ts`**, which reads the installed `@pixi/3d` and fails until the copy is. The beta.3 failure
+   seen here is its first line: "the shader template lists the 'global' bind group without `ubo: true`". The template stays: **beta.3's `FragmentOutput` carries colour locations only (`dist` has no `frag_depth` anywhere), so a bit still cannot write `@builtin(frag_depth)`** and the painter's per-texel depth still needs its own template.
+2. `bindGroups: ['global', 'camera', 'batch']` becomes `[{ name: 'global', ubo: true }, 'camera', 'batch']`; the template's fragment follows beta.3's: `FragmentOutput`, `finalColor` and `alpha` set before the `end` slot, `{{materialAccess}}` named `{{storeAccess}}`, and the names `outputs`, `Outputs`, `FragmentOutput`, `decodeColor`, `inputTint`, `decodeFrame`, `inputExposure`, `decodeToLinear`, `viewTexel`, `depthTexel`, `PI` now reserved (`CellFragment` and `cellDepth` are unaffected).
+3. **`CellMaterial extends FlatMaterial` under beta.3's display encoding of an unlit colour** (it draws as authored now; beta.2 drew a 128 grey as 55): the byte equality of the painted frame with the CPU frame, which the character kit's browser suite proves, must be proven again; the colour the painter writes to a texture is a display value, and the cell material's base colour is white, so the likely answer is "no change", but the suite says.
+4. **Per-texture samplers in place of the texel snap**: the template snaps `vUV` to the texel centre because beta.2's one batch sampler was linear; beta.3 samples each texture with its own `source.style` on WebGPU, and the colour and depth `BufferImageSource`s already say `scaleMode: 'nearest'`, so the snap (and its `material.texSize` read) goes. A packed depth must still never be filtered: the test is the byte equality again, on WebGPU.
+5. `Sprite3D` takes one options object (`cell-sprite.ts` already passes one); `cull` defaults to `'gpu'` (a billboarded quad: `cull: 'off'` if one vanishes); `stage-view.ts` passes `toneMapping: 'none'` itself.
+6. **One more `file:` specifier** in `extensions/figures/package.json` (and its `pixi.js` peer to `^8.23.0`); `vendor/figure-builder/package.json`, where this branch moved the `pixi.js` pin to 8.23.0, **goes away with the fold** (a modify/delete conflict on merging `main`: delete it and move the pin).
+7. Proof: `extensions/character-kit` `painted-webgpu.test.ts` (3 cases failing today) and the painted WebGL cases (passing), plus the frames of item 2 with `figures=painted` on WebGPU.
 
 ## Handoff at 90 minutes
 
