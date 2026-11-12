@@ -122,10 +122,10 @@ export function densityFor(zoom: number, max = 4): 1 | 2 | 4 {
   return 1
 }
 
-/** The Last Light's gameplay camera (mcthaydt/PixiJS3D_Experiment_001 at 92e6704): perspective, a vertical field of
- * view of 2·atan(12/50), pitched 30° down, 16 m from a look point 0.6 m above the floor, behind on +z, a 640×480
- * frame. There a D1 texel covers about 1.69 frame pixels and a D2 texel (the stage's default density) about 0.85. The
- * camera tilts 30°, but the stage paints its figures at the renders' pitch (`SPRITE_PITCH`, 18°), not the camera's. */
+/** A 2.5D gameplay camera: perspective, a vertical field of view of 2·atan(12/50), pitched 30° down, 16 m from a look
+ * point 0.6 m above the floor, behind on +z, a 640×480 frame. There a D1 texel covers about 1.69 frame pixels and a D2
+ * texel (the stage's default density) about 0.85. The camera tilts 30°, but the stage paints its figures at the
+ * renders' pitch (`SPRITE_PITCH`, 18°), not the camera's. */
 export const GAMEPLAY = {
   fov: 2 * Math.atan(12 / 50),
   pitch: (30 * Math.PI) / 180,

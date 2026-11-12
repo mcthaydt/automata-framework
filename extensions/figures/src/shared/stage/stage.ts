@@ -39,16 +39,16 @@ export interface StageOptions {
    * `lightFigure` light the cell where the actor stands. Give `t` for a flicker or a light style. */
   lighting?: Lighting
   /** The other light path: a light per actor for the painter's light hook (an outside light per vertex, figure.ts
-   * FigureLight), as EnvironmentBuilder's scene light does. With it no `lightFigure` runs. Not with `lighting`. */
+   * FigureLight), as a scene's light does. With it no `lightFigure` runs. Not with `lighting`. */
   lights?: (actor: ScriptedActor) => FigureLight | null
   /** The third light path: the room's light on each actor, as `lightSprite` takes it (docs/contract.md section 3): `at` is the
    * actor's feet in the world, the lamps' `dir` are unit vectors toward them in the world, and the stage turns each into
    * the actor's lighting frame. `null` leaves that actor unlit. Not with `lighting` or `lights`. */
   sprite?: (actor: ScriptedActor, at: V3) => SpriteLighting | null
-  /** The density every figure is painted at: 2 by default (FigureBuilder's working resolution, the renders' look), 1 or
+  /** The density every figure is painted at: 2 by default (the painter's working resolution, the renders' look), 1 or
    * 4 as asked, or `'auto'` to pick it from the zoom by `densityFor` (up to `maxDensity`), as the showcases did by hand. */
   density?: 1 | 2 | 4 | 'auto'
-  /** Whole pixels per texel and the quad on the pixel grid (The Last Light's `?crisp=figures`). On by default (the
+  /** Whole pixels per texel and the quad on the pixel grid (a game's crisp-figures switch). On by default (the
    * owner's call at the c6 visual gate); `crisp: false` is true scale: any real scale, the anchor unrounded. */
   crisp?: boolean
   /** The highest density `density: 'auto'` paints at (4 by default). */

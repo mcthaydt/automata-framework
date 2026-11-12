@@ -247,7 +247,7 @@ its gate was red (B1); the 4d wording.
 
 ## Fixes
 
-**Stage 6**, 2026-11-12, on the same branch from `4aeafb04`, no subagents. **Progress: 2 of 16 findings answered (12%)**; the
+**Stage 6**, 2026-11-12, on the same branch from `4aeafb04`, no subagents. **Progress: 3 of 16 findings answered (19%)**; the
 table is updated as each fix commits. The commit column holds the short hash once the fix is committed.
 
 | Finding | Commit | What changed | How it is proved, or why it is left |
@@ -255,7 +255,7 @@ table is updated as each fix commits. The commit column holds the short hash onc
 | B1 | | | |
 | S1 | this commit | `scripts/showcase-imports.ts` names the painter file for each of the showcase's three imports (`src/entries/index.ts`, `src/shared/body/parts.ts`, `src/shared/math/math.ts`) and throws, naming it, on a fourth; `record-runway-cells.ts` uses it. `runway-cells.json` not touched | `tests/unit/fashion/runway-recorder.test.ts` (3 cases: the three showcase lines rewritten and `existsSync` on every file named; an unknown specifier throws). It failed first (module missing). The recorder itself needs the archived clone and has no check mode, so it was not run |
 | S2 | this commit | `workflowProblems` gets a sixth rule: a step with `submodules:` set to anything but false, or a `git submodule` command, is a problem; the old text pattern stays for the `vendor/…` names; a hygiene case that `.gitmodules` does not exist | `workflow-invariants.test.ts`: the new case (`submodules: recursive`, `submodules: true`, `git submodule update --init --recursive`, a wrapped `git  submodule sync`; `submodules: false` and `pnpm install` pass) failed first (`expected [] to deeply equal [...]`, the audit's probe), the file's 11 cases and the real workflows pass now |
-| S3 | | | |
+| S3 | this commit | `pnpm source-names` now reads `extensions/figures/src` too (the root script and the test that pins it): it found 8 lines, all fixed: `pose.ts:125` drops the old repository and commit (and the game's name), `stage.ts:42,48,51`, `cell.ts:6`, `figure-build.ts:21` and `entries/index.ts:3` say what they mean without naming a source project. `nurse` is now `tiltedLoose` (`scripts/c9-sheet.ts`), `NURSE` is `TILTED` (`tests/unit/hair/standoff.test.ts`); no value moved | `source-names-wired.test.ts` failed first (the pinned script lacked the folder), then `pnpm source-names` failed with 8 findings, now 0; `grep -rni nurse` over `src`, `scripts`, `tests`, `viewer`, `docs/contract.md`, `docs/actors.md` and the README finds only the guard below. The standoff and pose tests and the goldens pass. **Left, by reason:** `viewer/main.ts:6,50`, `tests/unit/stage/pose.test.ts:80` and `docs/contract.md:49,88,109` name The Last Light as the camera the `gameplay` pose copies: a dev viewer, a test title and a contract that say whose camera it is, outside `src` and unpublished (the plan keeps the game's name there); `tests/unit/hair/fringe.test.ts:207` holds `/Ada|Nurse|Voss/`, the guard that a hair style's description names no character, so the names are the check; `docs/archive/figure-painter/c9-wardrobe/` names Ada and the Night Nurse about 40 times: the archive is a record (the framework's own archive already names both), and the Owner decides before the repository goes public (N10) |
 | S4 | | | |
 | S5 | | | |
 | N1 | | | |

@@ -96,7 +96,7 @@ export const withFall = (name: string, extra: Record<string, unknown>): HairStyl
   ) as HairStyle['pieces'],
 })
 /** A tilted head and loose hair, as sliders and a spring: a head tilted 15°, a drooping posture and a loose hair spring. */
-export const nurse = (def: CharacterDef): CharacterDef => ({
+export const tiltedLoose = (def: CharacterDef): CharacterDef => ({
   ...def,
   sliders: { ...def.sliders, headTilt: 15, posture: 0.52 },
   hair: { stiff: 14, damp: 2.6, trail: 0.55, bounce: 0.02 },
@@ -173,7 +173,7 @@ export const SHEETS: Sheet[] = [
     rows: BASE.slice(1).flatMap((b) =>
       (['head', 'trunk'] as const).map((rest) => ({
         label: `${b.def.id} rest ${rest}`,
-        def: nurse(hairOf(b.def, withFall('longFront', { rest }))),
+        def: tiltedLoose(hairOf(b.def, withFall('longFront', { rest }))),
       })),
     ),
     views: [0, 1, 2, 4],
