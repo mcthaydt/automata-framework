@@ -1,35 +1,29 @@
-// The scope codemod: every package moves from the Owner's personal npm scope,
-// `@mcthaydt`, to the project's organisation, `@automata`, before anything is published to npmjs.org.
+// The scope codemod: every package moves from `@automata`, an npm scope that belongs to another account, to the
+// project's own organisation, `@automataframework`, before anything is published to npmjs.org. (The scope moved once
+// before, from the Owner's personal `@mcthaydt`; that move is done and its names live only in the history.)
 //
 // The names map one to one, so the codemod is a table of text rules rather than an import rewrite: package names
 // appear in imports, `package.json`s, Markdown, YAML, shell lines and test expectations alike, and every one of them
 // must change the same way.
 //
-//   @mcthaydt/automata          → @automata/framework   (the main package: its own word, not "automata" twice)
-//   @mcthaydt/automata-<name>   → @automata/<name>      (sim, content, tools, the private packages, the site)
-//   @mcthaydt/<tool>            → @automata/<tool>      (the private tooling packages: vitest-preset, release, …)
-//   mcthaydt-automata-<version> → automata-framework-<version>   (`npm pack` file names: `@a/b` packs as `a-b-…tgz`)
-//   mcthaydt-automata-<name>    → automata-<name>
+//   @automata/<name>           → @automataframework/<name>   (and the bare scope: `node_modules/@automata`, `'@automata'`)
+//   automata-<name>-<ver>.tgz  → automataframework-<name>-<ver>.tgz   (`npm pack` file names: `@a/b` packs as `a-b-…tgz`)
 //
-// What stayed until the packages moved to npmjs.org: `@mcthaydt` as a registry scope (`.npmrc`, the release job's `scope:`), now gone;
-// the GitHub owner in `mcthaydt/automata-framework` URLs and `CODEOWNERS`;
-// and the history (`docs/archive/`, `docs/refactor/`, every `CHANGELOG.md`), which records the names as they were.
-// Patterns written as regular expressions (`@mcthaydt\/automata(?:-…)?`) are rewritten by the same rules but encode
-// the old naming scheme (main package = the bare prefix), so the CLI lists them for a person to check by eye.
+// Look-alikes that are not the npm scope and stay: the `automata` command and the `automata-*` bins, the product name
+// AutomataFramework, the repository slugs (`mcthaydt/automata-framework`, `mcthaydt/automata-skills`), the agent
+// plugin's id `automata@automata-framework`, the root package `automata-framework`, `@af-games/*` and `@af-examples/*`,
+// and the domain `automataframework.com`. Neither rule can match its own output (`@automataframework` has a letter
+// after `@automata`; `automataframework-` has no `automata-`), so a second run changes nothing.
 
 /** The project's npm scope, without the `@`. */
-export const NEW_SCOPE = 'automata'
-/** The main package's name inside the scope. */
-export const MAIN_PACKAGE = 'framework'
+export const NEW_SCOPE = 'automataframework'
 
-// One rule per line of the table above, tried in this order at each position; `\\?` keeps a regex's escaped slash.
+// Tried in this order. `(?![a-z0-9-])` stops at the end of the scope word, so `@automata/x`, `@automata\/x` (a regular
+// expression's escaped slash), `'@automata'` and `node_modules/@automata` all match and `@automataframework` does not.
 const RULES: readonly { readonly pattern: RegExp; readonly to: string }[] = [
-  { pattern: /@mcthaydt(\\?)\/automata-/g, to: `@${NEW_SCOPE}$1/` },
-  { pattern: /@mcthaydt(\\?)\/automata(?![a-z0-9-])/g, to: `@${NEW_SCOPE}$1/${MAIN_PACKAGE}` },
-  { pattern: /@mcthaydt(\\?)\/(?=[a-z*])/g, to: `@${NEW_SCOPE}$1/` },
-  { pattern: /\bmcthaydt-automata-(?=\d)/g, to: `${NEW_SCOPE}-${MAIN_PACKAGE}-` },
-  // `mcthaydt-automata-framework` is the GitHub repository's slug (a runner's service name), not a pack file.
-  { pattern: /\bmcthaydt-automata-(?!framework\b)(?=[a-z])/g, to: `${NEW_SCOPE}-` },
+  { pattern: /@automata(?![a-z0-9-])/g, to: `@${NEW_SCOPE}` },
+  // A pack file name, or a pattern for one (`/automata-tools-.*\.tgz$/`): the name runs up to `.tgz` in one word.
+  { pattern: /\bautomata-(?=[a-z0-9][a-z0-9.*\\-]*\.tgz)/g, to: `${NEW_SCOPE}-` },
 ]
 
 /** `text` with every old package name in the new scope. */
@@ -37,21 +31,28 @@ export function renameScope(text: string): string {
   return RULES.reduce((result, rule) => result.replace(rule.pattern, rule.to), text)
 }
 
-/** True when `text` holds a regular-expression form of an old name, which the rules rewrite but a person checks. */
-export function hasPatternForm(text: string): boolean {
-  return /@mcthaydt\\\/automata(?!-)/.test(text)
+/** How many old names `text` holds: the occurrences `renameScope` rewrites. */
+export function oldNameCount(text: string): number {
+  return RULES.reduce((count, rule) => count + (text.match(rule.pattern)?.length ?? 0), 0)
 }
 
-// Where the old names stay on purpose: the history, which records them as they were, and the codemod and the
-// repository check themselves, which must name what they replace.
+/** True when `text` holds a regular expression naming the old scope, which the rules rewrite but a person checks. */
+export function needsALook(text: string): boolean {
+  return /@automata\\\/|automata-[a-z0-9-]*\.\*/.test(text)
+}
+
+// Where the old names stay on purpose: the dated records (the archive, the refactor and superpowers records, which
+// state what was true when they were written, such as "`@automata` belongs to another account"), the changelogs, the
+// lockfile (`pnpm install` rewrites it from the `package.json`s; it is never edited by hand), and the codemod and the
+// scope check themselves, which must name what they replace.
 const KEPT = [
   /^docs\/archive\//,
   /^docs\/refactor\//,
+  /^docs\/superpowers\//,
   /(^|\/)CHANGELOG\.md$/,
-  // The changeset that tells users the old names became the new ones; it ends up in the changelogs.
-  /^\.changeset\/scope-automata\.md$/,
-  /^tooling\/codemods\/(src|tests\/unit)\/rename-scope(-cli)?(\.test)?\.ts$/,
-  /^tooling\/release\/tests\/unit\/scope\.test\.ts$/,
+  /^pnpm-lock\.yaml$/,
+  /^tooling\/codemods\/src\/rename-scope(-cli)?\.ts$/,
+  /^tooling\/codemods\/tests\/unit\/(rename-scope|scope-hygiene)\.test\.ts$/,
 ]
 
 /** True when the file at `path` (relative to the repository) keeps the old names. */
