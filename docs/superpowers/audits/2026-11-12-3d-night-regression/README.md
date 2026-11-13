@@ -75,6 +75,19 @@ package's `browser` project, which `pnpm test:browser:3d` runs: the "3D - parity
 `.github/workflows/3d.yml`. The editor's two night journeys (the fresh template game, played) run in the editor's
 journeys step.
 
+## The Last Light, after the haze rule (M1 ruled)
+
+A game's own haze colour is now used as given (`HazeProfile.lit`, above). Proved on a scratch worktree (not pushed): this branch
+merged with `origin/claude/last-light-prologue` (one conflict, in `create-renderer.ts`, resolved by keeping both the
+prologue's `width` and `drawing` and this branch's `hazing` line). The game's `frames.test.ts` (`AF_SHOOT`, 1024 by 768,
+Chromium with SwiftShader) shot twice: before is main's behaviour (`hazeOf` in `createLookPasses`, no haze-focus hook), after
+is this branch. In `last-light-play-before-after.png` and `last-light-cutscene-before-after.png` (before left, after right) the far
+floor and the window's shafts keep the game's grey-green on both sides, and the far tile is not pink. Mean colour over the whole
+frame, before then after: play (28.85, 33.21, 32.24) and (28.94, 33.28, 32.28); cutscene (30.91, 34.10, 31.09) and
+(30.80, 33.99, 30.99); over the far band of the frame the same to 0.3 a channel. The film grain differs between any two shots,
+so single pixels do. (With the first version of the fix, which lit every colour, the same frame went blue-lavender.) The
+game's `lookOf` spreads `DEFAULT_LOOK.haze` and writes its own colour, which is why the library's mark is not carried by a copy.
+
 ## What moves
 
 | Picture or number | Before | After | Verdict |
