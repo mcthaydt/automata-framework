@@ -77,6 +77,9 @@ describe("a new game's release workflow", () => {
         'run',
         '--rm',
         '-i',
+        // A runner that has not pulled the image yet prints the pull's progress on stderr, which is not actionlint
+        // speaking; --quiet keeps the output to what actionlint says.
+        '--quiet',
         'rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667',
         '-stdin-filename',
         '.github/workflows/release.yml',
