@@ -1,7 +1,7 @@
 // What the Home page says, in one place so a test can hold each claim to the framework as it is. The words follow the
 // GTM research (2026-11-08): the buyer already makes browser games with Claude Code, Cursor or Codex and has not finished
 // one, so the page names that wall, shows what is built in, then the price. The command is the
-// one `create-game` answers to, the code is the shapes example's own lines, and each target's command is one
+// one `create-game` answers to, the code is the shapes example's own file, and each target's command is one
 // `automata ship` accepts (the four targets of ADR 0006). The numbers are not here: they are read from the workspace
 // (`virtual:framework/facts`). The page itself only lays these out.
 import { AGENT_PROMPT, CREATE_COMMAND } from '../../shared/content/agent-prompt'
@@ -148,26 +148,6 @@ export const HOME_EXAMPLES = [
   'render-filter',
   'core-camera-2d',
 ] as const
-
-/** The example Home shows, and the lines of it shown: each one is in the file as written. */
-export const EXAMPLE_FILE = 'shapes-rects.ts'
-export const EXAMPLE_PATH = 'examples/2d/shapes/shapes-rects.ts'
-export const EXAMPLE_EXCERPT = `const Block = defineComponent('block', { x: 'f32', y: 'f32' })
-
-const move = defineSystem('move', (ctx) => {
-  for (const block of ctx.query(Block)) {
-    const { y } = block.get(Block)
-    block.set(Block, { y: y > 196 ? -16 : y + 1 })
-  }
-})
-
-export default defineGame({
-  id: 'shapes-rects',
-  size: { width: 320, height: 180 },
-  views: {
-    [Block.id]: rect({ w: 16, h: 16, color: 0x52d2ff }),
-  },
-})`
 
 /** Where a game goes: the four peer targets, each with the command that publishes it (shown on two lines). */
 export const TARGETS = [

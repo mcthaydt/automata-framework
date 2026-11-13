@@ -32,3 +32,7 @@ declare module 'virtual:framework/changelog' {
   const entries: import('./changelog.ts').ChangelogEntry[]
   export default entries
 }
+declare module 'virtual:framework/home-example' {
+  const example: import('./home-example.ts').HomeExample
+  export default example
+}

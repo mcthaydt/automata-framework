@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import example from 'virtual:framework/home-example'
 import { render, waitFor } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
 import Home from '#src/features/home/Home.svelte'
@@ -7,8 +8,6 @@ import {
   CHANGELOG_SECTION,
   CREATE_COMMAND,
   DEMO_BAR,
-  EXAMPLE_EXCERPT,
-  EXAMPLE_PATH,
   HERO,
   HOME_EXAMPLES,
   TARGETS,
@@ -36,10 +35,17 @@ describe('Home', () => {
     expect(CREATE_COMMAND).toMatch(/^npx @automata\/tools create-game /)
   })
 
-  it('shows code that is in the example, line for line', () => {
-    const source = readFileSync(resolve(repo, EXAMPLE_PATH), 'utf8')
-    for (const line of EXAMPLE_EXCERPT.split('\n').filter((each) => each.trim() !== ''))
-      expect(source, `"${line.trim()}" is not in ${EXAMPLE_PATH}`).toContain(line.trim())
+  it("shows the example's whole code, not an excerpt, as a scroll region the keyboard can reach", () => {
+    const source = readFileSync(resolve(repo, example.dir, example.file), 'utf8')
+    // The file minus its header comment (the leading `//` lines, which are for the catalogue): every other byte is shown.
+    const code = source.replace(/^(\/\/.*\n)+/, '')
+    expect(code.startsWith('import { defineComponent, defineGame,')).toBe(true)
+    const view = render(Home)
+    const region = view.container.querySelector('.show .sample .code-scroll')
+    expect(region?.textContent).toBe(code.trimEnd())
+    expect(region?.getAttribute('tabindex')).toBe('0')
+    expect(region?.getAttribute('role')).toBe('region')
+    expect(region?.getAttribute('aria-label')).toBe("The example's code, whole")
   })
 
   it('names the four places a game goes, each with a command automata ship accepts', () => {

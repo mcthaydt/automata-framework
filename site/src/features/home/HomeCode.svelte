@@ -1,10 +1,20 @@
 <script lang="ts">
 // "Built for agents": three plain points beside a real example's lines, highlighted, with what they draw under them.
+
+import example from 'virtual:framework/home-example'
 import CodeBlock from '../../shared/components/CodeBlock.svelte'
 import Icon from '../../shared/components/Icon.svelte'
 import InlineText from '../../shared/components/InlineText.svelte'
-import { AGENT_SECTION, EXAMPLE_EXCERPT, EXAMPLE_FILE, EXAMPLE_PATH } from './home-content'
-import ShapesPreview from './ShapesPreview.svelte'
+import { AGENT_SECTION } from './home-content'
+
+// The drawing sits below the first screen, so its code is its own chunk, fetched once the page is live: the Home page's
+// preloaded script stays inside its budget now that the whole example is on the page.
+let Preview: typeof import('./ShapesPreview.svelte').default | undefined = $state()
+$effect(() => {
+  import('./ShapesPreview.svelte').then((module) => {
+    Preview = module.default
+  })
+})
 </script>
 
 <section class="home-section">
@@ -20,10 +30,10 @@ import ShapesPreview from './ShapesPreview.svelte'
       </ul>
     </div>
     <div class="show home-panel">
-      <div class="head"><span class="tab">{EXAMPLE_FILE}</span><span class="sp">{EXAMPLE_PATH.replace(/\/[^/]+$/, '')}</span></div>
-      <CodeBlock code={EXAMPLE_EXCERPT} lang="ts" label="" class="sample" />
+      <div class="head"><span class="tab">{example.file}</span><span class="sp">{example.dir}</span></div>
+      <CodeBlock code={example.code} lang="ts" label="" regionLabel="The example's code, whole" class="sample" />
       <div class="run">
-        <ShapesPreview />
+        {#if Preview}<Preview />{/if}
         <span class="runbar"><i aria-hidden="true"></i>What it draws</span>
       </div>
     </div>
@@ -38,6 +48,13 @@ import ShapesPreview from './ShapesPreview.svelte'
   }
   .show :global(.sample pre) {
     font: 400 13px/21px var(--font-mono);
+  }
+  /* The whole file is shown. It is taller than the picture beside it, so the code is a scroll region of a set height
+     (keyboard-focusable, from CodeBlock), and no line is cut to make it fit. */
+  .show :global(.sample .code-scroll) {
+    max-height: 22rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
   .run {
     position: relative;
@@ -71,6 +88,9 @@ import ShapesPreview from './ShapesPreview.svelte'
     .show :global(.sample pre) {
       font-size: 12px;
       line-height: 19px;
+    }
+    .show :global(.sample .code-scroll) {
+      max-height: 16rem;
     }
   }
 </style>

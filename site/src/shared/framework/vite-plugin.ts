@@ -5,6 +5,7 @@ import { demoList } from './demos.ts'
 import { playgroundExamples } from './examples.ts'
 import { siteFacts } from './facts.ts'
 import { readGuides } from './guides.ts'
+import { homeExample } from './home-example.ts'
 import { repositoryRoot } from './root.ts'
 
 // The framework's files as the pages import them: `import guides from 'virtual:framework/guides'`. Each module is
@@ -17,6 +18,7 @@ const MODULES = {
   examples: () => playgroundExamples(),
   demos: () => demoList(),
   facts: () => siteFacts(),
+  'home-example': () => homeExample(),
   changelog: () => readChangelog(),
   api: () => readApiIndex().reference,
   'api-search': () => readApiIndex().search,
