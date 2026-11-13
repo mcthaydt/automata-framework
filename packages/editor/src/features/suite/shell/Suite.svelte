@@ -51,7 +51,7 @@ interface Props {
   suite: Suite
   ports: SuitePorts
   sample: boolean
-  /** Whether the sample is kept in this browser; false says its changes are lost with the page. */
+  /** Whether the sample is kept in this browser; false (the default) says its changes are lost with the page. */
   kept?: boolean
   /** The game's name in words, from the server; the title. */
   game?: string | undefined
@@ -71,7 +71,7 @@ const {
   suite,
   ports,
   sample,
-  kept = true,
+  kept = false,
   game,
   reread,
   playUrl,

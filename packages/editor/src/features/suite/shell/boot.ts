@@ -21,7 +21,10 @@ export interface SuiteEnv {
   readonly suite: Suite
   /** Marks the top bar when the workspace is the built-in sample rather than a game's checkout. */
   readonly sample?: boolean
-  /** False when the sample cannot be kept in this browser: the saved line says its changes are lost with the page. */
+  /**
+   * True when the browser keeps the sample (`openSuitePorts` says). Not given, the sample is taken to be in memory only:
+   * the saved line must never say more than is true.
+   */
   readonly kept?: boolean
   /** The game's name in words, from the server's ping: the top bar's title. */
   readonly game?: string | undefined
@@ -58,7 +61,7 @@ export async function startSuite(target: HTMLElement, env: SuiteEnv): Promise<Su
       suite: env.suite,
       ports: env.ports,
       sample: env.sample ?? false,
-      kept: env.kept ?? true,
+      kept: env.kept ?? false,
       game: env.game,
       playUrl: env.playUrl,
       publish: env.publish,
