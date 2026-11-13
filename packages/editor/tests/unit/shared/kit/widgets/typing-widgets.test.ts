@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen } from '@testing-library/svelte'
+import { cleanup, render, screen } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import {
@@ -90,6 +90,8 @@ describe('Stepper typing', () => {
     await userEvent.type(box, '12')
     expect(storage.size).toBe(1)
 
+    // A reload: the next page starts empty.
+    cleanup()
     const again = setup(storage)
     const heard: number[] = []
     render(TypingHost, {
@@ -100,6 +102,31 @@ describe('Stepper typing', () => {
     })
     await Promise.resolve()
     expect(heard).toEqual([12])
+  })
+})
+
+describe('Steppers with one label', () => {
+  // A list of clips has a "Speed" for each. A number typed into the second and left there when the page closed goes
+  // back to the second only: the draft is kept under the stepper's place, not its label.
+  it('offers a typed number back to the stepper it was typed in, and to no other', async () => {
+    const { drafts, storage } = setup()
+    render(TypingHost, { drafts, widget: 'steppers', value: 8 })
+    await userEvent.click(screen.getAllByRole('spinbutton')[1] as HTMLElement)
+    const box = screen.getByRole('textbox', { name: 'Speed' })
+    await userEvent.clear(box)
+    await userEvent.type(box, '12')
+
+    cleanup()
+    const again = setup(storage)
+    const heard: (readonly [number, number | undefined])[] = []
+    render(TypingHost, {
+      drafts: again.drafts,
+      widget: 'steppers',
+      value: 8,
+      onnumber: (v: number, which?: number) => heard.push([v, which]),
+    })
+    await Promise.resolve()
+    expect(heard).toEqual([[12, 1]])
   })
 })
 
@@ -130,6 +157,7 @@ describe('ColorField typing', () => {
     await userEvent.clear(box)
     await userEvent.type(box, '#1234ab')
 
+    cleanup()
     const again = setup(storage)
     const heard: string[] = []
     render(TypingHost, {

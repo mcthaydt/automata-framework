@@ -5,10 +5,12 @@
   `set` edit event; picking the colour it already has emits nothing. Escape closes and returns focus to the trigger.
 -->
 <script lang="ts">
-import { onDestroy, tick, untrack } from 'svelte'
+import { tick } from 'svelte'
+import type { TypingField } from '../storage/typing-drafts'
 import { parseHexColor, sameColor } from './color'
 import type { BlockedProps, EditEvent } from './edit-event'
 import Swatch from './Swatch.svelte'
+import { fieldPosition } from './field-position'
 import { typingDrafts } from './typing-context'
 import { nextEnabled } from './widget-math'
 
@@ -75,25 +77,35 @@ function pick(color: string): void {
 }
 
 // A hex typed in the Custom field is written once it is a whole colour (after a pause, on leaving, and when the page
-// hides), without closing the panel under the typing, and a half-typed one is kept as a draft for a page that closes.
-const field = typingDrafts().field(
-  (text, leaving) => {
-    const parsed = parseHexColor(text)
-    if (!parsed.ok) {
-      if (leaving) message = parsed.message
-      return false
-    }
-    message = undefined
-    setColor(parsed.value)
-    return true
-  },
-  {
-    key: untrack(() => `${label} hex`),
-    current: () => value.toLowerCase(),
-    valid: (text) => parseHexColor(text).ok,
-  },
-)
-onDestroy(() => field.dispose())
+// hides), without closing the panel under the typing, and a half-typed one is kept as a draft for a page that closes,
+// under the field's place on the screen: two colour fields may share a label.
+const drafts = typingDrafts()
+let field: TypingField | undefined
+function typingPlace(node: HTMLElement) {
+  field = drafts.field(
+    (text, leaving) => {
+      const parsed = parseHexColor(text)
+      if (!parsed.ok) {
+        if (leaving) message = parsed.message
+        return false
+      }
+      message = undefined
+      setColor(parsed.value)
+      return true
+    },
+    {
+      key: () => `${fieldPosition(node)} hex`,
+      current: () => value.toLowerCase(),
+      valid: (text) => parseHexColor(text).ok,
+    },
+  )
+  return {
+    destroy() {
+      field?.dispose()
+      field = undefined
+    },
+  }
+}
 
 function onSwatchKey(event: KeyboardEvent, index: number): void {
   const step =
@@ -120,7 +132,7 @@ async function showCustom(): Promise<void> {
 
 function commitDraft(): void {
   const parsed = parseHexColor(draft)
-  field.left(draft)
+  field?.left(draft)
   if (parsed.ok) void closePanel(true)
 }
 
@@ -131,7 +143,7 @@ function onPanelKey(event: KeyboardEvent): void {
 }
 </script>
 
-<div class="color-field" data-widget="color-field" data-state={open ? 'open' : disabled ? 'disabled' : 'idle'} onkeydown={onPanelKey} role="presentation">
+<div class="color-field" use:typingPlace data-widget="color-field" data-state={open ? 'open' : disabled ? 'disabled' : 'idle'} onkeydown={onPanelKey} role="presentation">
   <span class="label">{label}</span>
   <button
     type="button"
@@ -178,9 +190,9 @@ function onPanelKey(event: KeyboardEvent): void {
             aria-invalid={message ? 'true' : undefined}
             aria-describedby={message ? messageId : undefined}
             bind:value={draft}
-            oninput={() => field.typed(draft)}
-            onfocus={() => field.entered()}
-            onblur={() => field.left(draft)}
+            oninput={() => field?.typed(draft)}
+            onfocus={() => field?.entered()}
+            onblur={() => field?.left(draft)}
             onkeydown={(event) => {
               if (event.key === 'Enter') {
                 event.preventDefault()

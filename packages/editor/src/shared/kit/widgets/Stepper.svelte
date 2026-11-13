@@ -15,11 +15,13 @@
   A disabled stepper stays focusable and announces its `reason`; pressing it calls `onblocked`.
 -->
 <script lang="ts">
-import { onDestroy, tick, untrack } from 'svelte'
+import { tick } from 'svelte'
 import { attachGestures } from '../gestures/attach-gestures'
 import type { DragEndGesture, DragGesture, DragStartGesture } from '../gestures/gesture-events'
 import type { BlockedProps, EditEvent } from './edit-event'
 import { parseNumberText, scrubbedValue, steppedValue } from './stepper-model'
+import type { TypingField } from '../storage/typing-drafts'
+import { fieldPosition } from './field-position'
 import { typingDrafts } from './typing-context'
 
 interface Props extends BlockedProps {
@@ -121,29 +123,43 @@ function reading(text: string): { value: number } | { message: string } {
 
 // The typed number is written while it is typed (after a pause, on leaving, and when the page hides), and a number
 // typed and not yet left is kept as a draft for a page that closes. The field is made with the stepper, not with the
-// text box, so a draft finds its stepper again after a reload.
-const field = typingDrafts().field(
-  (text, leaving) => {
-    const read = reading(text)
-    if ('message' in read) {
-      if (leaving) message = read.message
-      return false
-    }
-    if (read.value !== value) {
-      value = read.value
-      emit({ value: read.value, phase: 'set' })
-    }
-    return true
-  },
-  { key: untrack(() => label), current: () => String(value), valid: (text) => 'value' in reading(text) },
-)
-onDestroy(() => field.dispose())
+// text box, so a draft finds its stepper again after a reload; it is kept under the stepper's place on the screen, not
+// its label, since steppers share labels (each clip in a list has its own "Speed").
+const drafts = typingDrafts()
+let field: TypingField | undefined
+function typingPlace(node: HTMLElement) {
+  field = drafts.field(
+    (text, leaving) => {
+      const read = reading(text)
+      if ('message' in read) {
+        if (leaving) message = read.message
+        return false
+      }
+      if (read.value !== value) {
+        value = read.value
+        emit({ value: read.value, phase: 'set' })
+      }
+      return true
+    },
+    {
+      key: () => fieldPosition(node),
+      current: () => String(value),
+      valid: (text) => 'value' in reading(text),
+    },
+  )
+  return {
+    destroy() {
+      field?.dispose()
+      field = undefined
+    },
+  }
+}
 
 async function finishTyping(commit: boolean, refocus: boolean): Promise<void> {
   if (!typing) return
   typing = false
   // Leaving puts the text to the same rule as a pause does; Escape leaves with the number as it is.
-  field.left(commit ? draft : String(value))
+  field?.left(commit ? draft : String(value))
   if (refocus) {
     await tick()
     spinEl?.focus()
@@ -223,6 +239,7 @@ $effect(() => {
 
 <div
   class="stepper"
+  use:typingPlace
   role="group"
   aria-labelledby={labelId}
   data-widget="stepper"
@@ -248,8 +265,8 @@ $effect(() => {
       aria-label={label}
       bind:this={fieldEl}
       bind:value={draft}
-      oninput={() => field.typed(draft)}
-      onfocus={() => field.entered()}
+      oninput={() => field?.typed(draft)}
+      onfocus={() => field?.entered()}
       onkeydown={onFieldKey}
       onblur={() => void finishTyping(true, false)}
     />
