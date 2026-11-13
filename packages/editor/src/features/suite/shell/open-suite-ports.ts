@@ -6,7 +6,9 @@
 
 import { createMemoryPorts } from '../../../shared/kit/ports/memory/memory-ports.ts'
 import type { SuitePorts } from '../../../shared/kit/ports/suite-ports.ts'
+import { openIndexedDbStore } from '../../../shared/kit/storage/indexeddb-store.ts'
 import { createMemoryStore } from '../../../shared/kit/storage/memory-store.ts'
+import type { ProjectStore } from '../../../shared/kit/storage/project-store.ts'
 import type { PublishClient } from '../../../shared/kit/storage/publish-client.ts'
 import {
   openPrivateStores,
@@ -36,23 +38,35 @@ export interface SuitePortsEnv
   extends Pick<ServedWorkspaceEnv, 'origin' | 'search' | 'fetch' | 'sessionStorage' | 'storage'> {
   /** The sample game's files, opened when no editor server answers; the 2D sample by default. */
   readonly sample?: Readonly<Record<string, string>> | undefined
+  /** The browser's IndexedDB, where the sample is kept when private file storage is refused; the page's own by default. */
+  readonly indexedDb?: IDBFactory | undefined
 }
 
 /** The private-storage folder the sample game is kept in, apart from the 2D page's own `workspace`. */
 const SAMPLE_FOLDER = 'sample-game'
 
+/**
+ * Where the sample is kept, so the try-it page keeps a visitor's level through a reload, as the site says: this
+ * browser's private file storage, or IndexedDB where the browser refuses that (a private window does). Only when
+ * neither keeps files is it memory, and `kept` is false so the page says the work is lost when it closes.
+ */
+async function openSampleStore(env: SuitePortsEnv): Promise<{ store: ProjectStore; kept: boolean }> {
+  const [opfs] = (await openPrivateStores([SAMPLE_FOLDER], env.storage)).stores
+  if (opfs !== undefined) return { store: opfs, kept: true }
+  const indexed = await openIndexedDbStore({ folder: SAMPLE_FOLDER, factory: env.indexedDb })
+  if (indexed !== undefined) return { store: indexed, kept: true }
+  return { store: createMemoryStore(), kept: false }
+}
+
 export async function openSuitePorts(env: SuitePortsEnv): Promise<OpenedSuitePorts> {
   const served = await openServedStore(env)
   if (served === undefined) {
-    // The sample is kept in this browser's private storage where it has one (memory where it has not), so the try-it
-    // page keeps a visitor's level through a reload, as the site says.
-    const opened = await openPrivateStores([SAMPLE_FOLDER], env.storage)
-    const [store = createMemoryStore()] = opened.stores
+    const { store, kept } = await openSampleStore(env)
     const ports = await samplePorts(env.sample ?? SAMPLE_GAME, { store })
     return {
       ports,
       sample: true,
-      kept: opened.persistent,
+      kept,
       gameUrl: undefined,
       game: undefined,
       publish: undefined,

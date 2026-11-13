@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest'
+import { openSuitePorts } from '#src/features/suite/shell/open-suite-ports.ts'
 import { openWorkspace } from '#src/shared/kit/storage/workspace.ts'
 
 // Runs only in the `webkit (private)` instance: Playwright's default WebKit context, which is ephemeral like a
@@ -21,4 +22,23 @@ describe('the workspace in a private window (EK-f)', () => {
   // a directory handle back from IndexedDB in an ephemeral context, so the folder vault cannot be run in one; the
   // crash would end every other test in the run. Chromium 141 did not crash. It runs in the persistent profiles.
   test.skip('Chromium 153, ephemeral: reading a folder handle back from IndexedDB crashes the browser', () => {})
+})
+
+describe('the sample game in a private window', () => {
+  // The try-it page keeps a visitor's level through a reload, as the site says, even where the browser refuses the
+  // origin private file system: it keeps it in IndexedDB, which a private window allows.
+  test('keeps a level through a reload in IndexedDB, and says it is kept', async () => {
+    const env = {
+      origin: location.origin,
+      search: '',
+      fetch: (() => Promise.reject(new TypeError('no editor server'))) as typeof fetch,
+    }
+    const first = await openSuitePorts(env)
+    expect(first).toMatchObject({ sample: true, kept: true })
+    const level = `content/levels/${Date.now().toString(36)}.af2d.json`
+    expect(await first.ports.workspace.write(level, '{}', 'absent')).toMatchObject({ ok: true })
+
+    const reloaded = await openSuitePorts(env)
+    expect((await reloaded.ports.workspace.files('levels-2d')).map((file) => file.path)).toContain(level)
+  })
 })

@@ -96,6 +96,20 @@ describe('openSuitePorts', () => {
     expect(nowhere).toMatchObject({ sample: true, kept: false })
   })
 
+  it('says the sample is not kept when private storage and IndexedDB both refuse it, never pretending', async () => {
+    const refusing = {
+      open() {
+        throw new DOMException('This browser keeps nothing.', 'SecurityError')
+      },
+    } as unknown as IDBFactory
+    const opened = await openSuitePorts({ ...page(undefined).env, storage: {}, indexedDb: refusing })
+    expect(opened).toMatchObject({ sample: true, kept: false })
+    // It still works for the session, in memory.
+    expect(await opened.ports.workspace.write('content/levels/a.af2d.json', '{}', 'absent')).toMatchObject({
+      ok: true,
+    })
+  })
+
   it('opens the sample game only when no editor server answers', async () => {
     const opened = await openSuitePorts(page(undefined).env)
     expect(opened.sample).toBe(true)
