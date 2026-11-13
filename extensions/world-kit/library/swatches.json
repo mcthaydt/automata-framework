@@ -1231,5 +1231,36 @@
   "steelGrey": {
     "ramp": "slate",
     "step": 3
+  },
+  "ballast": {
+    "ramp": "slate",
+    "step": 3,
+    "texture": {
+      "photo": "ballast",
+      "scale": 2,
+      "contrast": 0.025,
+      "range": [-2, 2],
+      "facet": 0,
+      "flatten": 0.7,
+      "cluster": 2,
+      "wear": 0.3,
+      "seed": 83
+    },
+    "reads": {
+      "maxSpots": 0.02
+    }
+  },
+  "sleeper": {
+    "ramp": "wood",
+    "step": 1,
+    "texture": {
+      "photo": "sleeper",
+      "contrast": 0.03,
+      "seed": 84
+    },
+    "reads": {
+      "maxBlotch": 0.11,
+      "maxPatches": 0.36
+    }
   }
 }

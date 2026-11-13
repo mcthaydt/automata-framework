@@ -3,6 +3,7 @@
 
 import aggregateTile from '../../../library/tiles/aggregate.tile.json' with { type: 'json' }
 import asphaltTile from '../../../library/tiles/asphalt.tile.json' with { type: 'json' }
+import ballastTile from '../../../library/tiles/ballast.tile.json' with { type: 'json' }
 import barBodyTile from '../../../library/tiles/barBody.tile.json' with { type: 'json' }
 import barkTile from '../../../library/tiles/bark.tile.json' with { type: 'json' }
 import baseCeilingTile from '../../../library/tiles/baseCeiling.tile.json' with { type: 'json' }
@@ -54,6 +55,7 @@ import rugFieldTile from '../../../library/tiles/rugField.tile.json' with { type
 import runnerTile from '../../../library/tiles/runner.tile.json' with { type: 'json' }
 import sidewalkTile from '../../../library/tiles/sidewalk.tile.json' with { type: 'json' }
 import sidingBlueTile from '../../../library/tiles/sidingBlue.tile.json' with { type: 'json' }
+import sleeperTile from '../../../library/tiles/sleeper.tile.json' with { type: 'json' }
 import stoneWallTile from '../../../library/tiles/stoneWall.tile.json' with { type: 'json' }
 import stuccoTile from '../../../library/tiles/stucco.tile.json' with { type: 'json' }
 import tileBathTile from '../../../library/tiles/tileBath.tile.json' with { type: 'json' }
@@ -68,6 +70,7 @@ import type { TileFile } from './tile-read.ts'
 export const TILE_FILES: Readonly<Record<string, TileFile>> = {
   aggregate: aggregateTile as unknown as TileFile,
   asphalt: asphaltTile as unknown as TileFile,
+  ballast: ballastTile as unknown as TileFile,
   barBody: barBodyTile as unknown as TileFile,
   bark: barkTile as unknown as TileFile,
   baseCeiling: baseCeilingTile as unknown as TileFile,
@@ -119,6 +122,7 @@ export const TILE_FILES: Readonly<Record<string, TileFile>> = {
   runner: runnerTile as unknown as TileFile,
   sidewalk: sidewalkTile as unknown as TileFile,
   sidingBlue: sidingBlueTile as unknown as TileFile,
+  sleeper: sleeperTile as unknown as TileFile,
   stoneWall: stoneWallTile as unknown as TileFile,
   stucco: stuccoTile as unknown as TileFile,
   tileBath: tileBathTile as unknown as TileFile,

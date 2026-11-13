@@ -13,6 +13,13 @@
     "licence": "CC0",
     "credit": "Asphalt 02 by Rob Tuytel, polyhaven.com/a/asphalt_02"
   },
+  "ballast": {
+    "file": "ballast.png",
+    "size": [2, 2],
+    "source": "polyhaven:gravel_stones",
+    "licence": "CC0",
+    "credit": "Gravel Stones by Amal Kumar, polyhaven.com/a/gravel_stones"
+  },
   "bark": {
     "file": "bark.png",
     "size": [1, 1],
@@ -215,6 +222,13 @@
     "source": "polyhaven:patterned_clay_plaster",
     "licence": "CC0",
     "credit": "Patterned Clay Plaster by Amal Kumar, polyhaven.com/a/patterned_clay_plaster"
+  },
+  "sleeper": {
+    "file": "sleeper.png",
+    "size": [0.5, 0.5],
+    "source": "polyhaven:rough_wood",
+    "licence": "CC0",
+    "credit": "Rough Wood by Rob Tuytel, polyhaven.com/a/rough_wood"
   },
   "stone": {
     "file": "stone.png",
