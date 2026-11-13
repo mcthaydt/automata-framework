@@ -1,0 +1,20 @@
+[
+  {
+    "label": "opening",
+    "seconds": 8.47,
+    "ticks": 102,
+    "ticksPerSecond": 12.04250295159386,
+    "frames": 17,
+    "frameMsMedian": 490.59999999962747,
+    "frameMsMax": 582.7000000001863
+  },
+  {
+    "label": "play",
+    "seconds": 8.673,
+    "ticks": 108,
+    "ticksPerSecond": 12.452438602559669,
+    "frames": 18,
+    "frameMsMedian": 479.40000000037253,
+    "frameMsMax": 520.7000000001863
+  }
+]

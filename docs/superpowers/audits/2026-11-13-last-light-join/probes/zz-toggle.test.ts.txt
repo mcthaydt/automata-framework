@@ -1,0 +1,41 @@
+import { writeFileSync } from 'node:fs'
+import { test } from '@playwright/test'
+import { begin, stateOf, waitFor } from './driver.ts'
+
+// Temporary measurement probe: ticks a second and frame time with each pass switched off in turn.
+test.setTimeout(15 * 60_000)
+test('toggle passes', async ({ page }) => {
+  await page.setViewportSize({ width: Number(process.env.PROBE_W ?? 844), height: Number(process.env.PROBE_H ?? 390) })
+  await begin(page)
+  await page.evaluate(() => globalThis.__lastLight?.skip())
+  await waitFor(page, { cutscene: null }, 600_000)
+  await waitFor(page, { tickAtLeast: (await stateOf(page)).tick + 90 }, 300_000)
+  await page.evaluate(() => {
+    const w = globalThis as any
+    w.__frames = []
+    const f = () => { w.__frames.push(performance.now()); requestAnimationFrame(f) }
+    requestAnimationFrame(f)
+  })
+  const win = async (label: string) => {
+    await page.waitForTimeout(1500)
+    const t0 = (await stateOf(page)).tick
+    await page.evaluate(() => { (globalThis as any).__frames.length = 0 })
+    const s = Date.now()
+    await page.waitForTimeout(5000)
+    const t1 = (await stateOf(page)).tick
+    const fr: number[] = await page.evaluate(() => (globalThis as any).__frames.slice())
+    const gaps = fr.slice(1).map((f, i) => f - (fr[i] as number)).sort((a, b) => a - b)
+    const sec = (Date.now() - s) / 1000
+    return { label, ticksPerSecond: +((t1 - t0) / sec).toFixed(2), frameMsMedian: Math.round(gaps[gaps.length >> 1] ?? 0), frames: fr.length }
+  }
+  const set = (retro: boolean, lcd: boolean) => page.evaluate(([r, l]) => {
+    const p = (globalThis as any).__passes
+    for (const x of p.retro.passes) x.enabled = r
+    for (const x of p.lcd.passes) x.enabled = l
+  }, [retro, lcd] as const)
+  const out = [await win('all on')]
+  await set(false, true); out.push(await win('retro off'))
+  await set(true, false); out.push(await win('lcd off'))
+  await set(false, false); out.push(await win('retro and lcd off'))
+  writeFileSync(process.env.PROBE_OUT as string, JSON.stringify(out, null, 1))
+})

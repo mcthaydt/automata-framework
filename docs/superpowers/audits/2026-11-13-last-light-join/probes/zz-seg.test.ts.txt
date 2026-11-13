@@ -1,0 +1,46 @@
+import { writeFileSync } from 'node:fs'
+import { test } from '@playwright/test'
+import { begin, stateOf, waitFor } from './driver.ts'
+
+// Temporary measurement probe: GPU time by segment of a frame, each draw followed by gl.finish().
+test.setTimeout(10 * 60_000)
+test('segments', async ({ page }) => {
+  await page.addInitScript(() => {
+    const w = globalThis as any
+    w.__s = { on: false, seg: -1, ms: {} as Record<string, number>, n: {} as Record<string, number>, frames: 0, lastVp: '' }
+    const proto = WebGL2RenderingContext.prototype as any
+    const bucket = (gl: any, kind: string, t0: number) => {
+      const v = gl.getParameter(gl.VIEWPORT)
+      const vp = `${v[2]}x${v[3]}`
+      const s = w.__s
+      if (kind === 'C') s.seg++
+      // a new frame starts at the first clear at the field size after the screen passes
+      if (kind === 'C' && vp === '633x292' && s.lastVp !== '633x292') { s.seg = 0; s.frames++ }
+      s.lastVp = vp
+      gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, w.__px ??= new Uint8Array(4))
+      if (s.seg === 3 && kind === 'D' && !s.src) { const pr = gl.getParameter(gl.CURRENT_PROGRAM); const sh = gl.getAttachedShaders(pr); s.src = sh.map((x: any) => gl.getShaderSource(x)).join('\n=====\n') }
+      const k = `seg${String(s.seg).padStart(2, '0')} ${vp}`
+      s.ms[k] = (s.ms[k] ?? 0) + (performance.now() - t0)
+      s.n[k] = (s.n[k] ?? 0) + 1
+    }
+    for (const [fn, kind] of [['drawElements', 'D'], ['drawArrays', 'D'], ['drawElementsInstanced', 'D'], ['drawArraysInstanced', 'D'], ['clear', 'C']] as const) {
+      const orig = proto[fn]
+      proto[fn] = function (...a: unknown[]) {
+        const t0 = performance.now()
+        const r = orig.apply(this, a)
+        if (w.__s.on) bucket(this, kind, t0)
+        return r
+      }
+    }
+  })
+  await page.setViewportSize({ width: 844, height: 390 })
+  await begin(page)
+  await page.evaluate(() => globalThis.__lastLight?.skip())
+  await waitFor(page, { cutscene: null }, 600_000)
+  await waitFor(page, { tickAtLeast: (await stateOf(page)).tick + 90 }, 300_000)
+  await page.evaluate(() => { (globalThis as any).__s.on = true })
+  await page.waitForTimeout(8000)
+  const s = await page.evaluate(() => { (globalThis as any).__s.on = false; return (globalThis as any).__s })
+  const rows = Object.keys(s.ms).sort().map((k) => `${k}: ${(s.ms[k] / s.frames).toFixed(1)} ms/frame over ${s.n[k] / s.frames} calls`)
+  writeFileSync(process.env.PROBE_OUT as string, JSON.stringify({ frames: s.frames, rows, src: s.src }, null, 1))
+})

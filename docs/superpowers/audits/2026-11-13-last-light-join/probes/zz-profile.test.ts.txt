@@ -1,0 +1,44 @@
+import { writeFileSync } from 'node:fs'
+import { test } from '@playwright/test'
+import { begin, stateOf, waitFor } from './driver.ts'
+
+// Temporary measurement probe: a CPU profile of the page over 6 s of play, bucketed by file, and the GPU-side
+// time as the gap between the main thread's busy time and the frame time.
+test.setTimeout(10 * 60_000)
+test('profile play', async ({ page }) => {
+  await page.setViewportSize({ width: 844, height: 390 })
+  await begin(page)
+  await page.evaluate(() => globalThis.__lastLight?.skip())
+  await waitFor(page, { cutscene: null }, 600_000)
+  await waitFor(page, { tickAtLeast: (await stateOf(page)).tick + 90 }, 300_000)
+  const cdp = await page.context().newCDPSession(page)
+  await cdp.send('Profiler.enable')
+  await cdp.send('Profiler.setSamplingInterval', { interval: 1000 })
+  const t0 = (await stateOf(page)).tick
+  await cdp.send('Profiler.start')
+  const start = Date.now()
+  await page.waitForTimeout(6000)
+  const { profile } = (await cdp.send('Profiler.stop')) as { profile: any }
+  const seconds = (Date.now() - start) / 1000
+  const t1 = (await stateOf(page)).tick
+  const self = new Map<number, number>()
+  const dt = profile.timeDeltas as number[]
+  profile.samples.forEach((id: number, i: number) => self.set(id, (self.get(id) ?? 0) + (dt[i] ?? 0)))
+  const byFn = new Map<string, number>()
+  const byFile = new Map<string, number>()
+  for (const n of profile.nodes) {
+    const us = self.get(n.id) ?? 0
+    const cf = n.callFrame
+    const file = String(cf.url).replace(/^.*\/(@fs|node_modules|src|\.vite)\//, '$1/').slice(-90) || '(native)'
+    const fn = `${cf.functionName || '(anon)'} ${file}:${cf.lineNumber}`
+    byFn.set(fn, (byFn.get(fn) ?? 0) + us)
+    byFile.set(file || '(native)', (byFile.get(file || '(native)') ?? 0) + us)
+  }
+  const top = (m: Map<string, number>, n: number) =>
+    [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, n).map(([k, v]) => `${(v / 1000).toFixed(0)}ms  ${k}`)
+  const total = [...self.values()].reduce((a, b) => a + b, 0)
+  writeFileSync(
+    process.env.PROBE_OUT as string,
+    JSON.stringify({ seconds, ticks: t1 - t0, totalSampledMs: total / 1000, topFunctions: top(byFn, 40), topFiles: top(byFile, 25) }, null, 1),
+  )
+})

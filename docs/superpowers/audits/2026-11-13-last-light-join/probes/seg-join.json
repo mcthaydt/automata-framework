@@ -1,0 +1,14 @@
+{
+  "frames": 19,
+  "rows": [
+    "seg00 633x292: 1.9 ms/frame over 1 calls",
+    "seg01 633x292: 93.1 ms/frame over 128 calls",
+    "seg02 633x292: 3.9 ms/frame over 2 calls",
+    "seg03 633x292: 276.7 ms/frame over 2 calls",
+    "seg04 633x292: 9.5 ms/frame over 2 calls",
+    "seg05 633x292: 16.6 ms/frame over 4 calls",
+    "seg06 1688x780: 60.0 ms/frame over 3 calls",
+    "seg07 1688x780: 39.1 ms/frame over 3 calls",
+    "seg07 844x390: 8.5 ms/frame over 2 calls"
+  ]
+}

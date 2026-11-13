@@ -1,0 +1,26 @@
+[
+  {
+    "label": "all on",
+    "ticksPerSecond": 12.62,
+    "frameMsMedian": 472,
+    "frames": 18
+  },
+  {
+    "label": "retro off",
+    "ticksPerSecond": 12.58,
+    "frameMsMedian": 481,
+    "frames": 18
+  },
+  {
+    "label": "lcd off",
+    "ticksPerSecond": 12.16,
+    "frameMsMedian": 482,
+    "frames": 18
+  },
+  {
+    "label": "retro and lcd off",
+    "ticksPerSecond": 12.77,
+    "frameMsMedian": 470,
+    "frames": 18
+  }
+]

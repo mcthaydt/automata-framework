@@ -9,9 +9,9 @@ Execution session, no subagents. Joins, proves and measures; changes nothing of 
 | 2. Gates on the joined tree | done (this section) |
 | 3. The joined game shot, Ada compared | done (section 3) |
 | 4. Playthroughs (first night, second night) | done (section 4) |
-| 5. Tick rate, measured | not yet |
+| 5. Tick rate, measured | done (section 5): measured, no defect found, nothing changed |
 
-Overall: 4 of 5 items done (80%).
+Overall: 5 of 5 items done (100%). Item 6 (stop under 90 minutes) applies: stopped here.
 
 ## 1. The merges
 
@@ -166,3 +166,79 @@ A first attempt ran both tests at once (Playwright's default two workers) and **
 `figureGone` (the nurse leaving, `driver.ts` line 87, the `hideUntil` wait) and two software-rendered browsers on four cores did not reach it.
 That was the container, not the join: with `--workers=1` both pass, as above. The 300 s limit of that one wait is the next bound the
 camera session's 10-minute cutscene wait did not reach; it is not changed here (a journey run must use one worker in a software renderer).
+
+## 5. The tick rate (Chromium, software GL, the game's dev server; probes in `probes/`, kept as `.txt` so no gate reads them)
+
+Every window is 5 s of the clock in play (or the opening) after the probe's `skip`, with the sim's tick read through the probe and the
+animation frames counted by a `requestAnimationFrame` loop in the page. Nothing is committed to the game's source or tests: no fix was found.
+
+### (a) Was it already this slow? Yes. The join did not change it.
+
+| Build | Viewport | Opening, ticks/s | Play, ticks/s | Median frame |
+|---|---|---|---|---|
+| `claude/last-light-prologue` **before the join**, `8d820269` | 844 by 390 | 12.0 | 12.5 | 479 ms |
+| the **join**, `54830b64`+ | 844 by 390 | 12.2 | 12.6 | 479 to 495 ms |
+| the join | 422 by 195 | 14.4 | 14.5 | 417 ms |
+| the join | 1024 by 768 | 7.5 | 7.7 | 766 to 784 ms |
+| `origin/main`'s `base-3d` (`28d72fb5`) | 844 by 390 | | 36.0 | 163 ms |
+| `origin/main`'s `base-3d` | 1024 by 768 | | 35.2 | 166 ms |
+
+- The camera session's "about 8 ticks a second (42 in 5 s)" is the 1024 by 768 rate (7.5 to 7.7). The journeys' phone size
+  (844 by 390, the config's viewport) runs about 12.5 a second: a 17 s opening (1,020 ticks) takes about 82 s there and 136 s at 1024 by 768.
+- Each frame takes **6 ticks, always** (108 ticks in 18 frames; 180 in 32 for `base-3d`): the loop caps a frame's time at `MAX_FRAME_MS`
+  100 ms, which is 6 steps at 60 Hz. So ticks a second is 6 over the frame time, and a slow frame loses clock time, not steps.
+- `base-3d` has the same loop and renderer and is 3 times faster a frame in the same container (about 165 ms a frame: that is what
+  software GL costs one Pixi 3D scene here). The Last Light's extra is the next table.
+
+### (b) Where the frame goes (profiled, not guessed)
+
+- **Not the sim and not JavaScript.** A CPU profile over 6 s (`probes/profile-join.json`): of 7.4 s sampled, 7.1 s are `(program)` (native
+  time) and about 0.7 s are JavaScript in all; of that the figure painter's `rasterize`/`raster` are 0.35 s (it repaints a cell when its light
+  changes) and the whole sim (`agent-step`, `pending`, `probe-kinds`, `nav`) a few ms. Painting figures at density 2 is not what is slow.
+- **The main thread waits on the GPU process.** A Chromium trace over 6 s: the renderer's main thread spends 6.05 s inside
+  `GLES2::ReadPixels` and `CommandBufferHelper::Finish` (13 calls, about 465 ms each, the software compositor reading the WebGL canvas back);
+  the GPU process's command buffer is busy 7.1 s of the 6 (`CommandBufferStub::OnAsyncFlush`). The renderer is SwiftShader, so a frame's
+  cost is the CPU running the frame's shaders.
+- **What the frame asks for** (a wrapper on the WebGL2 calls): one frame is 128 draws at the field size (633 by 292, the 844 by 390
+  screen at its crisp scale) for the scene, then four more full-field render-texture passes (a clear and a draw each), then 3 draws at the
+  1688 by 780 backing canvas (renderer resolution 2) and 2 at 844 by 390. **The scene is drawn once a frame, not once a sim step** (checked:
+  the same block repeats once per frame, 6 field-size clears of which 5 are the passes').
+- **Time by segment**, a 1-pixel `readPixels` after every draw so each one is timed (this adds a stall per draw: the total, 521 ms a frame,
+  is a little over the 480 ms real frame; `probes/seg-join.json`):
+
+| Segment | Calls | ms a frame |
+|---|---|---|
+| the scene (128 draws, field size) | 128 | 95 |
+| a pass, field size (draw 2 of the 4 passes) | 2 | 4 |
+| **one field-size pass: a fragment shader named in `DUEL[256]`: the palette snap** | **2** | **282** |
+| two more field-size passes | 2 + 4 | 10 + 16 |
+| the upscale to the 1688 by 780 canvas, 3 + 3 draws | 6 | 62 + 41 |
+| the last 844 by 390 pass | 2 | 9 |
+
+  The 282 ms is **one draw**. The shader (`@automata/3d` `duel-snap-filter.ts`, which `renderer` runs as the DUEL snap) holds the 256-colour
+  palette as a constant array and loops it **twice in the same loop per pixel** (nearest to the dithered colour, and nearest to the
+  exact colour so a colour that is already a palette colour stays itself): 512 distance sums a pixel on 185 thousand pixels, about 95
+  million a frame, dynamically indexed into a constant array, which a CPU rasteriser runs slowly and a GPU runs in a fraction of a
+  millisecond. It is more than half of the frame here and none of it on a GPU runner.
+- Switching the retro grade and the LCD pass off (`pass.enabled = false`, through a temporary hook in `look-passes.ts`, reverted) did
+  not move the rate (12.6, 12.6, 12.2, 12.8 ticks a second for all on, retro off, LCD off, both off; `probes/toggle-join.json`): the snap is not
+  one of those two passes, and I did not check whether `enabled = false` skips their draws. The screen mesh (`[lcdScreen]`) and the occluders were not
+  switched off: the segment table puts the whole upscale at 112 ms and the scene at 95, so they cannot be more than that.
+
+### (c) Is the sim's step tied to the frame? No, by design and by test
+
+`createFrameLoop` (`packages/automata/src/shared/runtime/loop/frame-loop.ts`) steps the sim in a fixed-step accumulator
+(`stepMs`, 1000/60), draws once with `alpha = accumulator / stepMs`, and caps one frame at `MAX_FRAME_MS`. A slow frame can drop clock time
+(it takes 6 ticks, not more); it changes no tick's content. Its unit tests (`frame-loop.test.ts`) already prove: "fixed ticks however
+frames group" (60 frames of 1000/60 ms and 30 of 1000/30 both give 60 steps), "a long frame is capped" (one 1000 ms frame gives 6 steps),
+paused time is dropped, and the time source is `frames.now()`. Both nights end in the same state through a page that gets 6 ticks every
+480 ms (item 4). No test was added: there is nothing to pin that is not pinned.
+
+### What I did not do, and what I would propose (reported, not done)
+
+- **No fix.** Nothing found is a plain defect, and the one big cost (the snap's loop) is in the picture's own pass; a change that makes it
+  cheaper changes the shader that makes every pixel's colour. It would have to give the same bytes (a nearest-colour table texture built
+  once, or a loop that exits early): a frame test comparing every colour before and after would decide that, on the GPU runner. For the
+  coordinator.
+- A software-GL cost that does not exist on a GPU is a CI and container cost: journeys wait on ticks, not time, so this only lengthens them
+  (a night is 10.7 to 11.2 minutes), and the `figureGone` wait of 300 s needs one worker (item 4).

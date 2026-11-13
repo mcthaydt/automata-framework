@@ -1,0 +1,46 @@
+import { writeFileSync } from 'node:fs'
+import { test } from '@playwright/test'
+import { begin, stateOf, waitFor } from './driver.ts'
+
+// Temporary measurement probe: sim ticks and animation frames over 5 s of the clock, in the opening and in play.
+test.setTimeout(10 * 60_000)
+test('tick rate', async ({ page }) => {
+  await page.setViewportSize({ width: Number(process.env.PROBE_W ?? 844), height: Number(process.env.PROBE_H ?? 390) })
+  await begin(page)
+  await page.evaluate(() => {
+    const w = globalThis as unknown as { __frames: number[]; __raf: () => void }
+    w.__frames = []
+    w.__raf = () => {
+      w.__frames.push(performance.now())
+      requestAnimationFrame(w.__raf)
+    }
+    requestAnimationFrame(w.__raf)
+  })
+  const window5 = async (label: string) => {
+    const t0 = (await stateOf(page)).tick
+    await page.evaluate(() => {
+      ;(globalThis as unknown as { __frames: number[] }).__frames.length = 0
+    })
+    const start = Date.now()
+    await page.waitForTimeout(5000)
+    const t1 = (await stateOf(page)).tick
+    const frames = await page.evaluate(() => (globalThis as unknown as { __frames: number[] }).__frames.slice())
+    const gaps = frames.slice(1).map((f, i) => f - (frames[i] as number)).sort((a, b) => a - b)
+    const seconds = (Date.now() - start) / 1000
+    return {
+      label,
+      seconds,
+      ticks: t1 - t0,
+      ticksPerSecond: (t1 - t0) / seconds,
+      frames: frames.length,
+      frameMsMedian: gaps[Math.floor(gaps.length / 2)],
+      frameMsMax: gaps[gaps.length - 1],
+    }
+  }
+  const out = [await window5('opening')]
+  await page.evaluate(() => globalThis.__lastLight?.skip())
+  await waitFor(page, { cutscene: null }, 600_000)
+  await waitFor(page, { tickAtLeast: (await stateOf(page)).tick + 90 }, 300_000)
+  out.push(await window5('play'))
+  writeFileSync(process.env.PROBE_OUT as string, JSON.stringify(out, null, 1))
+})

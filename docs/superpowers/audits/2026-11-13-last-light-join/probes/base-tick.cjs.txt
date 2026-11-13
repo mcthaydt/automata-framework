@@ -1,0 +1,27 @@
+const { chromium } = require('/home/user/automata-framework/node_modules/.pnpm/playwright-core@1.63.0/node_modules/playwright-core')
+;(async () => {
+  const [url, w, h] = [process.argv[2], Number(process.argv[3] ?? 844), Number(process.argv[4] ?? 390)]
+  const browser = await chromium.launch()
+  const page = await (await browser.newContext({ viewport: { width: w, height: h } })).newPage()
+  await page.goto(url)
+  await page.waitForFunction(() => document.documentElement.dataset.state === 'ready', null, { timeout: 120000 })
+  for (let i = 0; i < 6; i++) {
+    const lang = page.locator('[data-testid^="first-language-"]:focus')
+    if ((await lang.count()) > 0) { await lang.click(); await page.waitForTimeout(500) }
+    const warn = page.locator('[data-testid="photosensitivity-continue"]')
+    if ((await warn.count()) > 0) { await warn.click(); await page.waitForTimeout(500) }
+  }
+  await page.locator('body').press('KeyX')
+  await page.locator('[data-testid="save-slots-new"]').click({ timeout: 120000 })
+  await page.locator('[data-layer="screens"] [data-screen="play"]').waitFor({ state: 'attached', timeout: 240000 })
+  await page.waitForFunction(() => Number(document.documentElement.dataset.tick ?? -1) >= 10, null, { timeout: 240000 })
+  await page.evaluate(() => { window.__fr = []; const f = () => { window.__fr.push(performance.now()); requestAnimationFrame(f) }; requestAnimationFrame(f) })
+  const tick = () => page.evaluate(() => Number(document.documentElement.dataset.tick))
+  const t0 = await tick(); const s = Date.now()
+  await page.waitForTimeout(5000)
+  const t1 = await tick(); const sec = (Date.now() - s) / 1000
+  const fr = await page.evaluate(() => window.__fr.slice())
+  const gaps = fr.slice(1).map((f, i) => f - fr[i]).sort((a, b) => a - b)
+  console.log(JSON.stringify({ seconds: sec, ticks: t1 - t0, ticksPerSecond: (t1 - t0) / sec, frames: fr.length, frameMsMedian: gaps[gaps.length >> 1], frameMsMax: gaps[gaps.length - 1] }))
+  await browser.close()
+})().catch((e) => { console.error(e); process.exit(1) })

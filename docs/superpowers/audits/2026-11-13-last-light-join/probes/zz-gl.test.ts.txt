@@ -1,0 +1,56 @@
+import { writeFileSync } from 'node:fs'
+import { test } from '@playwright/test'
+import { begin, stateOf, waitFor } from './driver.ts'
+
+// Temporary measurement probe: what GL work one frame asks for: draws by render-target size, uploads, readbacks.
+test.setTimeout(10 * 60_000)
+test('gl per frame', async ({ page }) => {
+  await page.addInitScript(() => {
+    const w = globalThis as any
+    w.__seq = [] as string[]
+    w.__gl = { draws: {} as Record<string, number>, uploads: 0, uploadPixels: 0, reads: 0, frames: 0, clears: {} as Record<string, number>, on: false }
+    const proto = WebGL2RenderingContext.prototype as any
+    const key = (gl: any) => {
+      const v = gl.getParameter(gl.VIEWPORT)
+      return `${v[2]}x${v[3]}`
+    }
+    const ids = new WeakMap<object, number>()
+    const fbId = (gl: any) => { const f = gl.getParameter(gl.FRAMEBUFFER_BINDING); if (f === null) return 0; if (!ids.has(f)) ids.set(f, ids.size + 1); return ids.get(f) }
+    for (const fn of ['drawElements', 'drawArrays', 'drawElementsInstanced', 'drawArraysInstanced']) {
+      const orig = proto[fn]
+      proto[fn] = function (...a: unknown[]) {
+        if (w.__gl.on) { const k = key(this); w.__gl.draws[k] = (w.__gl.draws[k] ?? 0) + 1; w.__seq.push(`D ${k} fb${fbId(this)}`) }
+        return orig.apply(this, a)
+      }
+    }
+    const clear = proto.clear
+    proto.clear = function (...a: unknown[]) {
+      if (w.__gl.on) { const k = key(this); w.__gl.clears[k] = (w.__gl.clears[k] ?? 0) + 1; w.__seq.push(`C ${k} fb${fbId(this)}`) }
+      return clear.apply(this, a)
+    }
+    for (const fn of ['texImage2D', 'texSubImage2D']) {
+      const orig = proto[fn]
+      proto[fn] = function (...a: any[]) {
+        if (w.__gl.on) { w.__gl.uploads++; const wd = typeof a[3] === 'number' ? a[3] : 0, ht = typeof a[4] === 'number' ? a[4] : 0; w.__gl.uploadPixels += wd * ht }
+        return orig.apply(this, a)
+      }
+    }
+    const rp = proto.readPixels
+    proto.readPixels = function (...a: unknown[]) { if (w.__gl.on) w.__gl.reads++; return rp.apply(this, a) }
+    const raf = window.requestAnimationFrame.bind(window)
+    window.requestAnimationFrame = (cb) => raf((t) => { if (w.__gl.on) w.__gl.frames++; cb(t) })
+  })
+  await page.setViewportSize({ width: 844, height: 390 })
+  await begin(page)
+  await page.evaluate(() => globalThis.__lastLight?.skip())
+  await waitFor(page, { cutscene: null }, 600_000)
+  await waitFor(page, { tickAtLeast: (await stateOf(page)).tick + 90 }, 300_000)
+  await page.evaluate(() => { (globalThis as any).__gl.on = true })
+  await page.waitForTimeout(1500)
+  const gl = await page.evaluate(() => { (globalThis as any).__gl.on = false; return (globalThis as any).__gl })
+  const dims = await page.evaluate(() => { const c = document.querySelector('canvas') as HTMLCanvasElement; return [c.width, c.height, c.clientWidth, c.clientHeight, devicePixelRatio] })
+  const seq: string[] = await page.evaluate(() => (globalThis as any).__seq)
+  const rle: string[] = []
+  for (const x of seq) { const last = rle[rle.length - 1]; const m = last?.match(/^(\d+)x (.*)$/); if (m && m[2] === x) rle[rle.length - 1] = `${Number(m[1]) + 1}x ${x}`; else if (last === x) rle[rle.length - 1] = `2x ${x}`; else rle.push(x) }
+  writeFileSync(process.env.PROBE_OUT as string, JSON.stringify({ ...gl, canvas: dims, rle }, null, 1))
+})
