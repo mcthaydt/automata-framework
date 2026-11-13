@@ -627,6 +627,149 @@ describe('Flow and screens (spec §3.6)', () => {
     expect(focusedName()).toBe('settings')
   })
 
+  describe('an engine that drops focus() on a freshly mounted control (WebKit, for about two frames)', () => {
+    const realFocus = HTMLElement.prototype.focus
+    let dropNext: number
+    let asked: string[]
+    let frames: FrameRequestCallback[]
+
+    beforeEach(() => {
+      dropNext = 2
+      asked = []
+      frames = []
+      vi.spyOn(HTMLElement.prototype, 'focus').mockImplementation(function (this: HTMLElement, ...args) {
+        asked.push(this.dataset.testid ?? '')
+        if (dropNext > 0) dropNext--
+        else realFocus.apply(this, args)
+      })
+      vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => frames.push(callback))
+      vi.spyOn(window, 'cancelAnimationFrame').mockImplementation((id) => {
+        frames[id - 1] = () => undefined
+      })
+    })
+
+    /** One display frame: runs what was asked for before it, not what that asks for. */
+    const runFrame = (): void => {
+      const due = frames
+      frames = []
+      for (const callback of due) callback(0)
+    }
+
+    it('asks again each frame until the control has focus, then stops', async () => {
+      const harness = setupHarness({
+        screens: [buttonsScreen('title', ['play', 'settings'])],
+        entry: 'title',
+        transitions: [],
+      })
+      await harness.start()
+      expect(focusedName()).toBeUndefined()
+
+      runFrame()
+      expect(focusedName()).toBeUndefined()
+      runFrame()
+      expect(focusedName()).toBe('play')
+      const askedWhenFocused = asked.length
+      runFrame()
+      runFrame()
+      expect(asked.length).toBe(askedWhenFocused)
+      expect(frames).toHaveLength(0)
+    })
+
+    it('leaves focus alone when the player has already moved it', async () => {
+      const harness = setupHarness({
+        screens: [buttonsScreen('title', ['play', 'settings'])],
+        entry: 'title',
+        transitions: [],
+      })
+      await harness.start()
+      dropNext = 0
+      layers.screens.querySelector<HTMLElement>('[data-testid="settings"]')?.focus()
+
+      runFrame()
+      runFrame()
+      expect(focusedName()).toBe('settings')
+    })
+
+    it('stops asking for a screen once it is left', async () => {
+      const harness = setupHarness({
+        screens: [buttonsScreen('title', ['play']), buttonsScreen('next', ['go'])],
+        entry: 'title',
+        transitions: [{ from: 'title', event: 'play', to: 'next', transition: 'cut' }],
+      })
+      await harness.start()
+      dropNext = 0
+      harness.flow.dispatch('play')
+      await harness.flow.settled()
+      expect(focusedName()).toBe('go')
+      asked.length = 0
+
+      runFrame()
+      runFrame()
+      expect(asked).toEqual([])
+    })
+
+    describe('embedded in a host page, with no window focus until the player clicks or the host focuses the frame', () => {
+      /** The window gains focus: the engine now takes focus() calls, and the `focus` event fires. */
+      const gainWindowFocus = (): void => {
+        dropNext = 0
+        window.dispatchEvent(new Event('focus'))
+      }
+
+      const mountWithoutWindowFocus = async (): Promise<ReturnType<typeof setupHarness>> => {
+        dropNext = Number.POSITIVE_INFINITY
+        const harness = setupHarness({
+          screens: [buttonsScreen('title', ['play', 'settings']), buttonsScreen('next', ['go'])],
+          entry: 'title',
+          transitions: [{ from: 'title', event: 'play', to: 'next', transition: 'cut' }],
+        })
+        await harness.start()
+        for (let frame = 0; frame < 100; frame++) runFrame()
+        expect(focusedName()).toBeUndefined()
+        return harness
+      }
+
+      it('focuses the primary control when the window gains focus, long after the frames ran out', async () => {
+        await mountWithoutWindowFocus()
+        gainWindowFocus()
+        expect(focusedName()).toBe('play')
+      })
+
+      it('does not take focus from a control the player focused meanwhile', async () => {
+        await mountWithoutWindowFocus()
+        dropNext = 0
+        layers.screens.querySelector<HTMLElement>('[data-testid="settings"]')?.focus()
+        window.dispatchEvent(new Event('focus'))
+        expect(focusedName()).toBe('settings')
+      })
+
+      it('does not ask for a screen that has been left', async () => {
+        const harness = await mountWithoutWindowFocus()
+        harness.flow.dispatch('play')
+        await harness.flow.settled()
+        asked.length = 0
+        gainWindowFocus()
+        // Only the screen now showing asks: the one that was left stopped waiting for the window when it went.
+        expect(asked).toEqual(['go'])
+        expect(focusedName()).toBe('go')
+      })
+    })
+
+    it('gives up after about half a second of frames when the control can never take focus', async () => {
+      dropNext = Number.POSITIVE_INFINITY
+      const harness = setupHarness({
+        screens: [buttonsScreen('title', ['play'])],
+        entry: 'title',
+        transitions: [],
+      })
+      await harness.start()
+
+      for (let frame = 0; frame < 100; frame++) runFrame()
+      expect(asked.length).toBeGreaterThan(5)
+      expect(asked.length).toBeLessThanOrEqual(40)
+      expect(frames).toHaveLength(0)
+    })
+  })
+
   it('openMenu() calls current screen openMenu, returns false mid-transition and for screen without one', async () => {
     let menuOpened = false
 

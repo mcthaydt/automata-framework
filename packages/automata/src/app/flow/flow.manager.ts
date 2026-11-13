@@ -92,6 +92,49 @@ function findByName(root: HTMLElement, name: FocusName): HTMLElement | null {
   )
 }
 
+/** How many display frames a dropped focus request is repeated for: about half a second at 60 Hz. */
+const FOCUS_RETRY_FRAMES = 30
+
+/**
+ * Focuses `target`, and asks again if the engine dropped the request, so a screen is not left with nothing focused
+ * for a keyboard or gamepad player (a controller's confirm does nothing until something has focus). Two causes:
+ * - WebKit ignores `focus()` on a control added a moment ago for the first two display frames or so (about 25 ms),
+ *   then takes the same call (no focus event, `activeElement` stays the body). So it asks again on each frame, up
+ *   to `FOCUS_RETRY_FRAMES`.
+ * - A game in a host page's iframe has no window focus until the player clicks or the host focuses the frame, so a
+ *   request made before then may not have taken, however many frames it was repeated for. So it asks once more
+ *   when the window gains focus.
+ * Each asking stops when the control has focus, when focus is anywhere else (the player's, or the screen's own),
+ * when the control has left the page, and when the screen is left (`screen` is its undo list).
+ */
+function focusUntilItTakes(target: HTMLElement, screen: Disposables): void {
+  target.focus()
+  const doc = target.ownerDocument
+  const win = doc.defaultView
+  if (doc.activeElement === target || win === null) return
+  let left = FOCUS_RETRY_FRAMES
+  let pending = 0
+  const stillWanted = (): boolean => {
+    if (!target.isConnected) return false
+    const holder = doc.activeElement
+    return holder === null || holder === doc.body || holder === target
+  }
+  const askAgain = (): void => {
+    if (!stillWanted()) return
+    target.focus()
+    if (doc.activeElement !== target && --left > 0) pending = win.requestAnimationFrame(askAgain)
+  }
+  const askOnWindowFocus = (): void => {
+    if (stillWanted()) target.focus()
+  }
+  pending = win.requestAnimationFrame(askAgain)
+  win.addEventListener('focus', askOnWindowFocus, { once: true })
+  screen.add(() => {
+    win.cancelAnimationFrame(pending)
+    win.removeEventListener('focus', askOnWindowFocus)
+  })
+}
+
 /**
  * Creates the Flow service and its transition queue.
  * Follows the 9-step transition order, runs one transition at a time, fades through the veil, shows the loader
@@ -306,7 +349,7 @@ export function createFlow(options: FlowOptions): FlowHandle {
         section.querySelector<HTMLElement>('[data-kind="primary"]') ??
         tabbables(section)[0] ??
         null
-      if (target !== null && typeof target.focus === 'function') target.focus()
+      if (target !== null && typeof target.focus === 'function') focusUntilItTakes(target, screen)
     }
 
     // (8) Reveal
