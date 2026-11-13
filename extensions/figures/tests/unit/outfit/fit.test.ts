@@ -166,6 +166,8 @@ describe('garments sized from the body (cuffs, collar)', () => {
     ['bust 1', { bust: 1 }],
     ['seat 0', { seat: 0 }],
     ['seat 1', { seat: 1 }],
+    ['thighs 0', { thighs: 0 }],
+    ['thighs 1', { thighs: 1 }],
     ['neck 1 fat 1.2', { neck: 1, fat: 1.2 }],
     ...BODY.flatMap((key) =>
       endsOf(key).map((v) => [`${key} ${v}`, { [key]: v }] as [string, Partial<Sliders>]),

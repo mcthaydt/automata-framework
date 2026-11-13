@@ -23,6 +23,8 @@ export interface Profiles {
   leg: Record<Side, Limb>
   neck: Limb
 }
+/** How much of the thighs slider's factor each leg ring takes, hip to knee (the knee and below none). */
+const THIGH = [1, 1, 0.6, 0.25]
 /** The regions a garment may ask about: the trunk (in figure space), each arm and leg (in figure space) and the neck (in
  * its bone's space, as it is swept). */
 export type Region = 'torso' | 'arm' | 'leg' | 'neck'
@@ -162,6 +164,13 @@ export function profiles(m: Measure, s: Skeleton): Profiles {
         [fat.hipTop, fat.hipTop, fat.swell, fat.swell, fat.joint, fat.joint, fat.swell, fat.end, fat.end],
       ),
     }
+    // The thighs slider: the rings from the hip to above the knee take its factor in full at the hip and less toward the knee,
+    // and each ring's centre moves in by what its half-width lost, so the inner edge (the floor between the legs) holds.
+    if (m.thighs !== 1)
+      leg.rings = leg.rings.map((r, i) => {
+        const q = 1 + (m.thighs - 1) * (THIGH[i] ?? 0)
+        return q === 1 ? r : { ...r, rx: r.rx * q, rz: r.rz * q, dx: (r.dx ?? 0) - x * r.rx * (1 - q) }
+      })
     return { arm, leg }
   }
   const L = side('L', 1),

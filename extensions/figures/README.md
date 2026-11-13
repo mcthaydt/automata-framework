@@ -111,8 +111,8 @@ that draws a base figure with it and without it:
   and world lamps: `stage/light.test.ts`;
 - the diversity sliders and pieces, each drawn with and without it (at its default the pair is unchanged): fat
   (`body/fat.test.ts`), the face at D2 (`body/face-d2.test.ts`), the eyes (`figure/eyes.test.ts`), asymmetry
-  (`body/asymmetry.test.ts`), `bust` and `seat` (`body/bust-seat.test.ts`); every slider pushed to either end:
-  `body/sliders.test.ts`;
+  (`body/asymmetry.test.ts`), `bust` and `seat` (`body/bust-seat.test.ts`), `thighs` (`body/thighs.test.ts`); every slider
+  pushed to either end: `body/sliders.test.ts`;
 - H5 fabrics and the cloth channel: the registry's checks, a base figure with and without a fabric, the head and held items
   untiled, the tile laid last, lit and under the light hook (`paint/fabric.test.ts`); the mapping (`figure/cloth.test.ts`);
 - fit (`outfit/fit.test.ts`): a cuff hugs the arm, the collar is fitted to the neck, and a kind sized from `Wearing.body`
