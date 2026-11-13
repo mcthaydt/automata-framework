@@ -10,7 +10,15 @@ const profile = DEFAULT_LOOK.haze
 
 describe('the haze profile', () => {
   it('is the source look’s: teal, 0 to 10 m, up to 0.85, glowing by the light, 3 m from the eye in first person', () => {
-    expect(profile).toEqual({ colour: '#47655a', near: 0, far: 10, amount: 0.85, glow: 0.5, focusFp: 3 })
+    expect(profile).toEqual({
+      colour: '#47655a',
+      near: 0,
+      far: 10,
+      amount: 0.85,
+      glow: 0.5,
+      focusFp: 3,
+      lit: true,
+    })
     expect(DEFAULT_LOOK.switches.haze).toBe(true)
   })
 
@@ -71,10 +79,17 @@ describe('hazeAt', () => {
 
   it('keeps a colour a game chose as given at a time that sets none', () => {
     const chosen = '#4b5a56'
-    const spread = { ...DEFAULT_LOOK.haze, colour: chosen }
+    // In code a spread of the default inherits `lit` like any field, so a game that chose its colour says `lit: false`.
+    const spread = { ...DEFAULT_LOOK.haze, colour: chosen, lit: false }
     const parsed = parseLook({ haze: { colour: chosen } }).haze
     for (const h of [spread, parsed])
       for (const time of [night, lampLit, timeOfDay('bar')]) expect(hazeAt(h, time).colour).toBe(chosen)
+  })
+
+  it('lights a spread of the default that changes only the colour, as it lights any field it inherits', () => {
+    const spread = { ...DEFAULT_LOOK.haze, colour: '#4b5a56' }
+    expect(spread.lit).toBe(true)
+    expect(hazeAt(spread, night).colour).toBe(litColour('#4b5a56', night))
   })
 
   it('lights a game’s colour only when the game says `lit`', () => {
@@ -90,9 +105,51 @@ describe('the library’s haze colour', () => {
     expect(parseLook({ haze: { far: 6 } }).haze.lit).toBe(true)
   })
 
-  it('is not carried by copying the profile, nor by writing a colour of one’s own', () => {
-    expect({ ...DEFAULT_LOOK.haze }.lit).toBeUndefined()
-    expect(parseLook({ haze: { colour: '#47655a' } }).haze.lit).toBeUndefined()
+  it('is a plain, enumerable field: the type has it, a copy keeps it', () => {
+    expect(Object.keys(DEFAULT_LOOK.haze)).toContain('lit')
+    expect(Object.getOwnPropertyDescriptor(DEFAULT_LOOK.haze, 'lit')?.enumerable).toBe(true)
+    expect({ ...DEFAULT_LOOK.haze }.lit).toBe(true)
+  })
+
+  it('is not carried by a look file that writes a colour and says nothing of `lit`', () => {
+    expect(parseLook({ haze: { colour: '#47655a' } }).haze.lit).toBe(false)
+    expect(parseLook({ haze: { colour: '#4b5a56', lit: undefined } }).haze.lit).toBe(false)
+  })
+
+  it('is lit when the file says so with its own colour, and unlit when it says not', () => {
+    const night = timeOfDay('night')
+    const own = parseLook({ haze: { colour: '#4b5a56', lit: true } }).haze
+    expect(own.lit).toBe(true)
+    expect(hazeAt(own, night).colour).not.toBe('#4b5a56')
+    expect(parseLook({ haze: { lit: false } }).haze.lit).toBe(false)
+    expect(hazeAt(parseLook({ haze: { lit: false } }).haze, night).colour).toBe(DEFAULT_LOOK.haze.colour)
+  })
+
+  describe('through a save and a load', () => {
+    const night = timeOfDay('night')
+    const lampLit = timeOfDay('lampLit')
+    const hazes = (look: typeof DEFAULT_LOOK) => [night, lampLit].map((t) => hazeAt(look.haze, t).colour)
+
+    it('survives a JSON round trip, then parseLook, with its night still lit', () => {
+      const text = JSON.stringify(DEFAULT_LOOK)
+      expect(JSON.parse(text).haze.lit).toBe(true)
+      expect(parseLook(JSON.parse(text)).haze.lit).toBe(true)
+      expect(hazes(parseLook(JSON.parse(text)))).toEqual(hazes(DEFAULT_LOOK))
+    })
+
+    it('survives structuredClone, with and without parseLook', () => {
+      const copy = structuredClone(DEFAULT_LOOK)
+      expect(copy.haze.lit).toBe(true)
+      expect(hazes(copy)).toEqual(hazes(DEFAULT_LOOK))
+      expect(hazes(parseLook(copy))).toEqual(hazes(DEFAULT_LOOK))
+    })
+
+    it('keeps a game’s unlit colour unlit', () => {
+      const own = parseLook({ haze: { colour: '#4b5a56' } })
+      const back = parseLook(JSON.parse(JSON.stringify(own)))
+      expect(back.haze).toEqual(own.haze)
+      for (const t of [night, lampLit]) expect(hazeAt(back.haze, t).colour).toBe('#4b5a56')
+    })
   })
 })
 

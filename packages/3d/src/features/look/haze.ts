@@ -26,7 +26,7 @@ export function hazeOf(
 /**
  * The haze a frame at `time` draws: the time's own colour and amount where it sets them (`hazeOf`). Otherwise the profile's
  * colour, lit by the time as the renderer lights the fog (`lightByTime`) if the profile says it is a day colour to light
- * (`lit`: only the library's own default is), and as given if it is a colour a game chose. Left unlit, the library's colour
+ * (`lit`: the library's default is; a game that chose its colour sets `lit: false`), and as given otherwise. Left unlit, the library's colour
  * veiled a dark room (Night, Lamplight) at the profile's full amount and drew brighter than the day
  * (docs/superpowers/audits/2026-11-12-3d-night-regression); a game's tuned colour lit would not be the one it tuned.
  */

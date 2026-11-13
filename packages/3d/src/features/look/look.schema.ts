@@ -27,9 +27,10 @@ export interface HazeProfile {
   readonly focusFp: number
   /**
    * Whether `colour` is a day colour the renderer lights by the time of day (`hazeAt`), at a time that sets no haze of its
-   * own (Night, Lamplight, the bar). Only the library's own default colour is lit; a colour a game or a look file writes is
-   * used as given, so a game's tuned haze is the haze it drew. A game that wants its colour lit says `lit: true`. The library's
-   * default carries it where a copy of the profile does not (`libraryHaze`), so `{ ...DEFAULT_LOOK.haze, colour }` is the game's.
+   * own (Night, Lamplight, the bar). The library's default is lit, and it is a field like any other: a copy of the profile
+   * keeps it, and a save and a load do too. A colour a game chose is meant to be used as given, so set `lit: false` when you
+   * spread the default and change the colour (`{ ...DEFAULT_LOOK.haze, colour, lit: false }`). A look file that writes a
+   * colour and says nothing of `lit` is unlit (`parseLook`); one that writes no colour keeps the default's.
    */
   readonly lit?: boolean | undefined
 }
@@ -75,7 +76,7 @@ export const lookSchema: z.ZodType<Look, unknown> = z.strictObject({
       lit: z.boolean().optional(),
     })
     .refine((h) => h.far > h.near, { message: 'the haze far distance is beyond its near', path: ['far'] })
-    .default({ colour: '#47655a', near: 0, far: 10, amount: 0.85, glow: 0.5, focusFp: 3 }),
+    .default({ colour: '#47655a', near: 0, far: 10, amount: 0.85, glow: 0.5, focusFp: 3, lit: true }),
   figureShadow: z.number().min(0).max(1).default(0.6),
   switches: z
     .strictObject({
