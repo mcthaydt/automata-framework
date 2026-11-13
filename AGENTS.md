@@ -100,6 +100,20 @@ and 18 "known" test failures piled up, and each piece of work passed through sev
   focus, hit testing or a host journey.
 - Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happening and what to press?
 
+## Where to work: the Mac or the cloud
+
+- Develop on the Mac (a local session) when the change is judged by looking or playing: UI, layout, the editors,
+  input, rendering. The dev server and a real browser answer in seconds there.
+- Develop in a cloud session when the task is specified and checked without a browser: the sim, the content compiler,
+  tooling, unit tests, docs. Cloud sessions run side by side and suit work nobody is steering minute by minute. A cloud
+  session has no WebKit and no GPU, so for browser work it can only push and wait for CI.
+- While a session is developing on the Mac, test suites run only on the Windows machine (the `af-linux` runners):
+  through the pull request's CI, or the focused browser run in `ci.yml`. Running suites on the Mac beside the work
+  starves both, and the tests fail on timeouts.
+- A cloud session passes lint, typecheck and the unit tests in its own container before it pushes. CI confirms; it is
+  not the first test.
+- Every pull request runs on the same two machines, one at a time. More sessions do not merge faster.
+
 ## How to work
 
 - Write the failing test first in `packages/`, `tooling/`, `games/` and `examples/`; confirm it fails for the right
