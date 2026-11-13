@@ -11,6 +11,7 @@ import type { PlaygroundRuntime } from './frame-page.ts'
  */
 const UI_SCREENS = [
   '@automata/ui-screens',
+  '@automata/ui-screens/content',
   '@automata/ui-screens/credits',
   '@automata/ui-screens/error',
   '@automata/ui-screens/loading',
