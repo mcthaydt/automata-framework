@@ -27,6 +27,13 @@ export interface PlaceOptions {
    * width on screen, as FigureBuilder's `crisp: false` and The Last Light's own figures are.
    */
   readonly crisp?: boolean | undefined
+  /**
+   * Puts the cell's top-left on a multiple of `scale` (a texel's whole pixels) instead of any whole pixel, so every texel of
+   * every figure lies on one lattice anchored at the field's origin: what a pattern drawn between texels needs, such as an LCD
+   * mesh whose cell is one texel at the screen's pixels (`@automata/lcd-panel`'s screen filter). The figure then moves a texel
+   * at a time, never more than half a texel from its true place. Only with whole-pixel texels (`crisp`, the default). Default off.
+   */
+  readonly grid?: boolean | undefined
 }
 
 /** A figure behind this many metres of a perspective camera is out of the frame (the contract's `d < 0.1`). */
@@ -50,7 +57,7 @@ export function paintView(pose: CameraPose, at: V3): View {
 /**
  * The contract's placement for a figure standing at `at`, painted as `cell`, or undefined when it is behind a perspective
  * camera. Crisp (the default): `scale = max(1, round(zoom / density))` whole pixels a texel, so a texel is never minified;
- * not crisp: `scale = zoom / density`. Either way the cell's top-left is rounded to a whole pixel. The quad is square to the image plane (its axes the pose's right and up), at
+ * not crisp: `scale = zoom / density`. Either way the cell's top-left is rounded to a whole pixel, or with `grid` to a whole texel. The quad is square to the image plane (its axes the pose's right and up), at
  * `eye + d · fwd` offset so the anchor texel lands on `screen + scale · anchor`, which is what `StageView.draw` does.
  */
 export function place(
@@ -67,10 +74,10 @@ export function place(
   const raw = zoomOf(pose, at)
   const zoom = Math.abs(raw - Math.round(raw)) < 1e-9 && Math.round(raw) >= 1 ? Math.round(raw) : raw
   const scale = options.crisp === false ? zoom / density : Math.max(1, Math.round(zoom / density))
-  const screen: [number, number] = [
-    Math.round(ax - scale * cell.anchor[0]),
-    Math.round(ay - scale * cell.anchor[1]),
-  ]
+  // On the texel lattice a top-left rounds to the nearest multiple of `scale`; otherwise to the nearest pixel.
+  const step = options.grid === true && options.crisp !== false ? scale : 1
+  const snap = (v: number): number => Math.round(v / step) * step
+  const screen: [number, number] = [snap(ax - scale * cell.anchor[0]), snap(ay - scale * cell.anchor[1])]
   // Metres a screen pixel covers at the figure's depth: d / f under perspective, 1 / pixelsPerMetre under orthographic.
   const k = pose.f !== undefined ? depth / pose.f : 1 / (pose.pixelsPerMetre ?? 1)
   const [w, h] = pose.size

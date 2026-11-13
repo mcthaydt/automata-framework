@@ -18,7 +18,7 @@ export {
   VERT,
   type GBuffer,
 } from '../shared/paint/raster'
-export { duel, oklab, rampOf } from '../shared/paint/paint'
+export { duel, oklab, paintedTones, rampOf } from '../shared/paint/paint'
 export { RAMPS, RAMP_OUTLINE } from '../shared/paint/duel-ramps'
 export { placed, superquadric, limb, type Mesh, type Material } from '../shared/body/parts'
 // For a host's own garment kinds (H1): the part groups, skin weights, and the limb and ring shapes they are built from.

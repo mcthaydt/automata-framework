@@ -1,4 +1,4 @@
-import { addLcdPanelPass } from '@automata/lcd-panel/pass'
+import { addLcdPanelPass, lcdPanelScreenFilter } from '@automata/lcd-panel/pass'
 import { CRISP_CLINIC, crispRendererOptions } from '@automata/retro-crisp'
 import { addRetroPass } from '@automata/retro-crisp/pass'
 import type { LookProfiles } from './look-profiles.content.ts'
@@ -26,10 +26,17 @@ export interface LookPassOptions {
   readonly reducedMotion?: () => boolean
 }
 
+/** The renderer's screen filters for the look: the panel's mesh at the screen's pixels when it has `[lcdScreen]`, else none. */
+export function screenFiltersOf(profiles: LookProfiles) {
+  if (profiles.lcdScreen === undefined) return []
+  const { cellPixels, ...screen } = profiles.lcdScreen
+  return [lcdPanelScreenFilter(screen, { cellPixels })]
+}
+
 /**
  * Adds the two passes, once, before the renderer is made (a second call under the same name is refused). Both start on, so play and
  * every cutscene wear them. The film's grain, dust and scratch are the grade's only movement and hold still while `reducedMotion`
- * is true.
+ * is true. `postFilters` is for the renderer's own option: the panel's mesh at the screen's pixels, when the look has `[lcdScreen]`.
  */
 export function lookPassesOf(profiles: LookProfiles, options: LookPassOptions = {}) {
   const retro = addRetroPass({
@@ -47,5 +54,5 @@ export function lookPassesOf(profiles: LookProfiles, options: LookPassOptions = 
       retro: retro.passes.map((pass) => ({ enabled: pass.enabled, clock: pass.clock })),
       lcd: lcd.passes.map((pass) => ({ enabled: pass.enabled })),
     })
-  return { retro, lcd }
+  return { retro, lcd, postFilters: screenFiltersOf(profiles) }
 }

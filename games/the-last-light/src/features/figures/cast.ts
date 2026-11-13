@@ -16,13 +16,16 @@ import { ADA_LOOK_SWATCHES, ADA_SWATCHES, NURSE_SWATCHES } from './old-swatches.
  * At whole pixels (`crisp`): a texel is a whole number of field pixels, never a fraction, so the picture is chunky and clean. The
  * camera is set so that number is 1 in play (the level's views: a 80 mm lens, about 74 field pixels a metre at the figure), and the
  * close-up's shot is framed so it is 2, 3 or 4. The skin keeps its hue in the ward's dim cool light (`holdSkinHue`): Ada was lavender in it.
+ * On its texel lattice (`grid`): a texel starts on a whole texel of the field, so the LCD panel's screen mesh (one texel a cell, `look.toml`'s
+ * `[lcdScreen]`) draws its lines between her texels, never across them.
  */
-export const PLAY_FIGURE = { crisp: true, density: 2, holdSkinHue: true, dimmest: 1 } as const
+export const PLAY_FIGURE = { crisp: true, density: 2, holdSkinHue: true, dimmest: 1, grid: true } as const
 
 /**
  * Ada Voss, the staff nurse on her first night. The prologue puts her in her street clothes (the old character file's `story`:
  * `scenes.prologue = street`): an ivory shirt with a collar, its sleeves rolled to the elbow, under an oxblood waistcoat worn open, faded slim jeans
- * cropped above tan ankle boots, her auburn chin-length bob with a fringe that ends over the brow.
+ * cropped above tan ankle boots, her chin-length bob with a fringe
+ * that ends over the brow, in an ash brown in play (`ashBrown`: the auburn's red step broke her crown into patches).
  *
  * She is the painter's base woman with only what makes her Ada changed (the Owner, 2026-11-12: the characters look like the painter's
  * own faces at density 2): her skin, her hair, her clothes, and a bolder brow (weight .75) and fuller lips; her eyes are the base woman's own (crease, hood, liner). Her body sliders are the
@@ -113,7 +116,7 @@ export const ADA: CharacterDef = {
         waistband: 'denimBand',
       },
       { shoes: 'bootBrown', sole: 'bootSole', boots: true, shaft: 0.2, heel: 1, toe: 'bootToe' },
-      { hair: 'auburn', style: 'bobOpen' },
+      { hair: 'ashBrown', style: 'bobOpen' },
       // The painter's drawn face: eyes with their whites under a lid, brows, lips.
       { eyes: 'eyeBrown', lids: 'lidDeep', white: 'eyeWhite', brows: 'hairBlack', lips: 'lipsAda' },
     ],

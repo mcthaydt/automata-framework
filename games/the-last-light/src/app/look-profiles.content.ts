@@ -1,5 +1,5 @@
 import { defineContentSchema } from '@automata/content/schema'
-import { lcdProfileSchema } from '@automata/lcd-panel'
+import { lcdProfileSchema, lcdScreenOptionsSchema } from '@automata/lcd-panel'
 import { retroProfileSchema } from '@automata/retro-crisp'
 import { z } from 'zod'
 
@@ -42,10 +42,19 @@ const moonlightSchema = z.strictObject({
     .optional(),
 })
 
+/**
+ * The LCD panel's mesh, stripes and scanlines drawn at the screen's pixels (`lcdPanelScreenFilter`), a line on the last pixel of each
+ * `cellPixels` cell, so a figure's texels fall between lines. Left out, the field pass draws them as its `[lcd]` profile says.
+ */
+const lcdScreenSchema = lcdProfileSchema
+  .pick({ grid: true, balance: true, subpixels: true, layout: true, scanlines: true, brightness: true })
+  .extend(lcdScreenOptionsSchema.shape)
+
 /** What `content/look.toml` says: each pass's profile, the gain on the room's lamps and the patches of moonlight. A setting out of range or unknown is refused, naming it. */
 export const lookProfilesSchema = z.strictObject({
   retro: retroProfileSchema.default(() => retroProfileSchema.parse({})),
   lcd: lcdProfileSchema.default(() => lcdProfileSchema.parse({})),
+  lcdScreen: lcdScreenSchema.optional(),
   light: lightGainSchema.default(() => lightGainSchema.parse({})),
   moonlight: z.array(moonlightSchema).default([]),
 })

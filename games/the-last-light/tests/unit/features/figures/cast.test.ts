@@ -139,7 +139,9 @@ function faceAt2(def: typeof ADA) {
   const [w, h] = cell.size
   // The head's rows only: the DUEL palette shares colours between swatches (a lip's is a boot's), so the face is read where only a face is.
   const top = rowWidths(cell).findIndex((width) => width > 0)
-  const bottom = top + 27
+  // The head with its hair and three rows more, so the window follows the head's own size (24 + 3 rows at six heads tall).
+  const headRows = proportions(def, 2).headRowsWithHair
+  const bottom = top + headRows + 3
   const is = (x: number, y: number, swatch: string): boolean => {
     if (x < 0 || y < top || x >= w || y >= bottom) return false
     const i = y * w + x
@@ -155,8 +157,11 @@ function faceAt2(def: typeof ADA) {
       for (let x = 0; x < w; x++) if (is(x, y, swatch)) found.push([x, y])
     return found
   }
-  return { cell, is, skin, all }
+  return { cell, is, skin, all, headRows }
 }
+
+/** A row of the head, as a share of its rows with the hair (`at` 19 rows of 24 is 19 / 24), so the windows follow the head's size. */
+const rowAt = (headRows: number, share: number): number => Math.round(headRows * share)
 
 describe('Ada', () => {
   it('is Ada Voss, brisk, in the street clothes the prologue puts her in, a little under 1.6 m', () => {
@@ -188,6 +193,16 @@ describe('Ada', () => {
     expect(p.height).toBeGreaterThanOrEqual(woman.height - 12)
     expect(p.height).toBeLessThanOrEqual(woman.height)
     expect(p.legRows / p.height).toBeLessThanOrEqual(0.52)
+  })
+
+  it('is about six heads tall at density 2, her features filling her face as the base woman’s do (the Owner, 2026-11-12: “go with what looks the best”)', () => {
+    // Shot in play and painted at x10 at seven, six and five heads and between (`docs/superpowers/audits/2026-11-12-last-light-ada-frames/item2-*`):
+    // the painter's features are one or two texels whatever the head's size, so a larger head spreads the same brows, eyes and mouth over an
+    // emptier face. At six they fill it as base-f's do.
+    const p = proportions(ADA, 2)
+    expect(p.heads).toBeGreaterThanOrEqual(5.6)
+    expect(p.heads).toBeLessThanOrEqual(6.4)
+    expect(p.headRows).toBeGreaterThanOrEqual(20)
   })
 
   it('walks the old brisk walk whole, with the arms close to her body', () => {
@@ -222,7 +237,7 @@ describe('Ada', () => {
     expect(street[1]).toMatchObject({ waistcoat: 'oxblood', open: 1, buttons: 'brass' })
     expect(street[2]).toMatchObject({ jeans: 'fadedDenim', crop: 0.3, turn: 'denimTurn', taper: 1 })
     expect(street[3]).toMatchObject({ shoes: 'bootBrown', boots: true, heel: 1, toe: 'bootToe' })
-    expect(street[4]).toEqual({ hair: 'auburn', style: 'bobOpen' })
+    expect(street[4]).toEqual({ hair: 'ashBrown', style: 'bobOpen' })
   })
 
   it('has the swatches of every cloth she wears: her shirt, boots, hair and skin, the look’s for the rest; her brows and lids are the painter’s own', () => {
@@ -230,7 +245,7 @@ describe('Ada', () => {
       'cream',
       'bootBrown',
       'bootSole',
-      'auburn',
+      'ashBrown',
       ADA.skin,
       'collarLinen',
       'cuffLinen',
@@ -297,7 +312,7 @@ describe('the painted frame shows what they wear', () => {
       0,
     )
 
-  // The painter's own reference for a face at density 2 (the painter's upstream record of its base pair): a brow two texels thick, an eye with its
+  // The painter's own reference for a face at density 2 (the record of its base pair): a brow two texels thick, an eye with its
   // white beside a dark iris under a dark lid, a nose, a mouth. Each is counted from the picture, in the swatch it is painted in.
   it('draws Ada’s brows two texels thick: a run of two dark brow texels, one above the other, under each side of the fringe', () => {
     const { all, is } = faceAt2(ADA)
@@ -307,7 +322,7 @@ describe('the painted frame shows what they wear', () => {
   })
 
   it('draws Ada’s eyes with their whites beside a dark iris, under a dark lid', () => {
-    const { cell, is } = faceAt2(ADA)
+    const { cell, is, headRows } = faceAt2(ADA)
     const [w] = cell.size
     const top = rowWidths(cell).findIndex((width) => width > 0)
     const light = (x: number, y: number): boolean => {
@@ -317,7 +332,7 @@ describe('the painted frame shows what they wear', () => {
     const iris = (x: number, y: number): boolean => is(x, y, 'eyeBrown')
     let whites = 0
     let lidded = 0
-    for (let y = top + 8; y < top + 24; y++)
+    for (let y = top + rowAt(headRows, 8 / 24); y < top + headRows; y++)
       for (let x = 40; x < 90; x++)
         if (light(x, y) && (iris(x - 1, y) || iris(x + 1, y))) {
           whites++
@@ -336,18 +351,18 @@ describe('the painted frame shows what they wear', () => {
   })
 
   it('draws Ada a mouth: lips of at least four texels in the middle of her face, below her eyes', () => {
-    const { cell, is } = faceAt2(ADA)
+    const { cell, is, headRows } = faceAt2(ADA)
     const [w] = cell.size
     const top = rowWidths(cell).findIndex((width) => width > 0)
     let lips = 0
-    // The eyes are about 17 rows under the crown; the mouth's rows are below them and the lips are in the middle, clear of the hair at the sides.
-    for (let y = top + 19; y < top + 27; y++)
+    // The eyes are about 17 rows of 24 under the crown; the mouth's rows are below them and the lips are in the middle, clear of the hair at the sides.
+    for (let y = top + rowAt(headRows, 19 / 24); y < top + headRows + 3; y++)
       for (let x = Math.round(w / 2) - 5; x <= Math.round(w / 2) + 5; x++) if (is(x, y, 'lipsAda')) lips++
     expect(lips).toBeGreaterThanOrEqual(4)
   })
 
   it('draws the mouth in two rows and two tones, as the painter’s reference does: a darker upper lip row over a lit lower lip row of the same width', () => {
-    const { cell } = faceAt2(ADA)
+    const { cell, headRows } = faceAt2(ADA)
     const [w] = cell.size
     const top = rowWidths(cell).findIndex((width) => width > 0)
     const [upper, lower] = ((ADA.swatches?.lipsAda?.paint ?? []) as readonly string[]).map((hex) =>
@@ -356,12 +371,66 @@ describe('the painted frame shows what they wear', () => {
     const at = (x: number, y: number, c: number[]) =>
       c.every((v, k) => cell.painted[(y * w + x) * 4 + k] === v)
     let rows: [number, number] | undefined
-    for (let y = top + 19; y < top + 27 && !rows; y++) {
+    for (let y = top + rowAt(headRows, 19 / 24); y < top + headRows + 3 && !rows; y++) {
       const xs = [...Array(w).keys()].filter((x) => at(x, y, upper))
       const same = xs.filter((x) => at(x, y + 1, lower))
       if (xs.length >= 2 && same.length >= xs.length) rows = [xs.length, same.length]
     }
     expect(rows, 'an upper lip row with a lit lower lip row under it').toBeDefined()
+  })
+
+  // The lower lip was #d28d7a on her #ce9770 skin, .033 apart in OKLab (under two just-noticeable steps), and in play #c58c77 on #b5816a: the
+  // mouth read as one dark band. Three such steps apart reads at a glance; it stays a lit lip, well lighter than the upper (two tones).
+  it('gives the lower lip a tone of its own: three noticeable steps from her skin, and clearly lighter than the upper lip', () => {
+    const lin = (v: number) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)
+    const oklab = (hex: string) => {
+      const [r, g, b] = [1, 3, 5].map((k) => lin(Number.parseInt(hex.slice(k, k + 2), 16) / 255)) as [
+        number,
+        number,
+        number,
+      ]
+      const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b)
+      const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b)
+      const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b)
+      return [
+        0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
+        1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
+        0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s,
+      ]
+    }
+    const apart = (x: string, y: string) => Math.hypot(...oklab(x).map((v, k) => v - (oklab(y)[k] as number)))
+    const [upper = '', lower = ''] = (ADA.swatches?.lipsAda?.paint ?? []) as readonly string[]
+    const skin = (ADA.swatches?.[ADA.skin]?.paint ?? SWATCHES[ADA.skin]?.paint ?? [])[1] ?? ''
+    expect(apart(lower, skin)).toBeGreaterThanOrEqual(0.06)
+    expect((oklab(lower)[0] as number) - (oklab(upper)[0] as number)).toBeGreaterThanOrEqual(0.15)
+  })
+
+  // Her auburn's second tone #662b29 is DUEL row 2's red step (24 degrees of OKLab hue), and the room darkens its base #885041 into row 2's
+  // #733d3b (23): in the hall her crown read as three patches, a maroon band, a mauve patch and pink between, not one head of hair. Every
+  // tone of her hair with colour in it (chroma .035 or more: the near-black deepest has no hue to keep) is a brown, 30 degrees or more.
+  it('paints her hair in browns only: no red step in its ramp', () => {
+    const lin = (v: number) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)
+    const lch = (hex: string) => {
+      const [r, g, b] = [1, 3, 5].map((k) => lin(Number.parseInt(hex.slice(k, k + 2), 16) / 255)) as [
+        number,
+        number,
+        number,
+      ]
+      const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b)
+      const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b)
+      const q = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b)
+      const [a, bb] = [
+        1.9779984951 * l - 2.428592205 * m + 0.4505937099 * q,
+        0.0259040371 * l + 0.7827717662 * m - 0.808675766 * q,
+      ]
+      return { C: Math.hypot(a, bb), h: (Math.atan2(bb, a) * 180) / Math.PI }
+    }
+    const street = ADA.outfits.street ?? []
+    const hair = street.find((piece) => 'hair' in piece) as { hair: string }
+    const paint = (ADA.swatches?.[hair.hair]?.paint ?? []) as readonly string[]
+    expect(paint.length).toBe(4)
+    const red = paint.filter((c) => lch(c).C >= 0.035 && lch(c).h < 30)
+    expect(red).toEqual([])
   })
 
   it('puts no pale texel under the lower lip: the chin’s catch-light is never the texel right under the mouth (it read as a tongue)', () => {
@@ -462,6 +531,7 @@ describe('how a figure is painted in play', () => {
   it('is the painter’s density 2 at whole pixels: a texel is a whole number of field pixels, whatever the camera’s zoom, and the skin keeps its hue in the ward’s cool light', () => {
     // A face reads at density 2 (the painter's note: faces that read at D2): its brows and lids are one or two texels thick at every density,
     // so a finer paint makes them hair-thin lines, and a coarser one dots. The camera is set so a texel is one field pixel (the level's views).
-    expect(PLAY_FIGURE).toEqual({ crisp: true, density: 2, holdSkinHue: true, dimmest: 1 })
+    // On its texel lattice (`grid`), so the LCD panel's screen mesh, one texel a cell, draws its lines between her texels.
+    expect(PLAY_FIGURE).toEqual({ crisp: true, density: 2, holdSkinHue: true, dimmest: 1, grid: true })
   })
 })

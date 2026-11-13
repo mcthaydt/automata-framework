@@ -181,6 +181,7 @@ ones that are not already on `src/entries/index.ts`, and `tests/unit/api.test.ts
 |---|---|---|
 | `gbuffer`, `rasterize`, `resolve`, `cleanup`, `noise3`, `STYLE`, `TRI`, `VERT`, type `GBuffer` | `src/shared/paint/raster.ts` | `kit` |
 | `duel`, `oklab` | `src/shared/paint/paint-style.ts` | `kit` |
+| `paintedTones` | `src/shared/paint/paint-budget.ts` | `kit` |
 | `RAMPS`, `RAMP_OUTLINE` | `src/shared/paint/duel-ramps.ts` | `index` (already), `kit` |
 | `placed`, `superquadric`, `limb`, types `Mesh`, `Material` | `src/shared/body/parts.ts` | `kit` (the types also `index`, already) |
 | `axisAngle`, `normalize`, `apply`, `sub`, `cross`, `dot`, `lerp`, type `V3` | `src/shared/math/math.ts` | `kit` (`V3` also `index`, already) |
@@ -220,3 +221,7 @@ needs its line in `tests/unit/api.test.ts`, made on purpose.
   `src/entries/`). The three entries are `src/entries/index.ts`, `kit.ts` and `view.ts`; no name on them changed, so `STAGE_VERSION`
   stays 1. One painter fix came across with it and moved recorded pixels, named in its commit: a turned face keeps both eyes
   (the Owner: "yes, give me both eyes"); the other fixes that came with it moved none.
+- **1** (additive, for the character kit's held skin, 2026-11-12): `src/entries/kit.ts` adds `paintedTones`, every colour the painter may
+  paint a material in (its four filled tones and the line, fold, shine and rim it derives; for a skin, its tones, line and fold), so a host
+  that holds a skin's hue holds its line and fold too, and knows which of them another material paints as well.
+  Adding a name breaks no consumer (section 6), so `STAGE_VERSION` stays 1.

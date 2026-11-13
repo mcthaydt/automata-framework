@@ -13,7 +13,8 @@ import { begin, stateOf, waitFor } from './driver.ts'
 // from the north): a shot then means the same place and the same view whatever came before it. A `tap` entry (`name:tap:hotspot`) uses a
 // hotspot as a tap does and a `code` entry (`name:code:digits`) enters a code, so a shot can reach a room the story opens (the closet: the
 // cabinet, its code, the closet door), and a `press` entry (`name:press:Close`) presses an on-screen button by its words (a message's
-// Close, so it does not cover her). A `name` of `-` takes no frame.
+// Close, so it does not cover her). A `name` of `-` takes no frame. Keys joined by `+` are held together (`KeyS+KeyD` walks her down and
+// right, so she stops in three-quarter).
 //
 //   AF_WEBGPU=software AF_SHOOT=<folder> AF_SHOOT_STEPS='-:walk:0,-6.2;corridor-end:face:0' pnpm --filter @af-games/the-last-light test:e2e --grep "play frames"
 const OUT = process.env.AF_SHOOT
@@ -71,9 +72,17 @@ test('play frames', async ({ page }) => {
       await page.mouse.move(512 + ticks / 2, 300, { steps: 8 })
       await page.mouse.up()
     } else {
-      await page.keyboard.down(key)
+      const keys = key.split('+')
+      for (const k of keys) await page.keyboard.down(k)
       await waitFor(page, { tickAtLeast: (await stateOf(page)).tick + ticks }, 300_000)
-      await page.keyboard.up(key)
+      // Released in one task, so no tick sees one key of a pair still held (it would turn her side-on before she stops).
+      await page.evaluate((codes) => {
+        for (const code of codes)
+          (document.activeElement ?? document.body).dispatchEvent(
+            new KeyboardEvent('keyup', { code, bubbles: true }),
+          )
+      }, keys)
+      for (const k of keys) await page.keyboard.up(k)
     }
     await waitFor(page, { tickAtLeast: (await stateOf(page)).tick + 75 })
     if (name !== '-') await page.screenshot({ path: join(folder, `${name}.png`) })

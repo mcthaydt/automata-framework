@@ -36,7 +36,8 @@ const PLAY = playOf(content)
 
 // The old game's retro grade and LCD panel, added once before the renderer is made; both are on in play and in every cutscene. The
 // film holds still for a player whose system asks for less motion (the retro pass reads that each frame).
-lookPassesOf(lookProfilesSchema.parse(content.look ?? {}))
+// The panel's mesh at the screen's pixels is the renderer's own filter (`postFilters` below).
+const LOOK_PASSES = lookPassesOf(lookProfilesSchema.parse(content.look ?? {}))
 const RUNTIME = createRuntime(PLAY, {
   words: wordsOf,
   lines: lineOf,
@@ -107,6 +108,7 @@ export const game = defineGame({
       ...RENDERER_SCALE,
       barFraction: BAR_FRACTION,
       barColor: BAR_COLOR,
+      postFilters: LOOK_PASSES.postFilters,
       look: LOOK,
       time: TIME,
       lighting: LIGHTING,

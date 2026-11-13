@@ -19,6 +19,11 @@ export const ADA_SWATCHES: Swatches = {
     strands: true,
     paint: ['#885041', '#662b29', '#49251c', '#372423'],
   },
+  // The hair she wears in play: the auburn above has DUEL row 2's red step (#662b29) in its ramp, and the room darkens its base into row 2's
+  // #733d3b: her crown read as three patches (maroon, mauve, pink). Row 15 is DUEL's one brown row that stays brown as it darkens (52 to 66
+  // degrees of hue); shot in the hall beside auburn, auburn without its gloss and a lighter row 15, this ash brown alone reads as one head of
+  // hair with a lit band and a shadow (the ada frames folder, session 4, item 2b). No gloss: the plain finish.
+  ashBrown: { ramp: 15, base: 2, strands: true, paint: ['#7e6144', '#614a3c', '#453125', '#372423'] },
   eyeDark: { ramp: 28, base: 0, flat: true },
   fair: {
     ramp: 27,
@@ -49,8 +54,9 @@ export const ADA_LOOK_SWATCHES: Swatches = {
   denimTurn: { ramp: 0, base: 4, paint: ['#a6aeba', '#828b98', '#626871', '#434549'] },
   denimBand: { ramp: 0, base: 2, paint: ['#626871', '#434549', '#2e3d47', '#1d2c43'] },
   // The painter's `lipsWarm` has its upper lip (#a76057) a step from the warm skin, so at density 2 on a lit face the mouth is one pale smudge.
-  // The upper lip is the painter's deeper brown-red (#7c4b47) over its own lit lower lip (#d28d7a): two rows, two tones, as the reference's mouth.
-  lipsAda: { ramp: 16, base: 3, flat: true, paint: ['#7c4b47', '#d28d7a', '#904647', '#904647'] },
+  // The upper lip is the painter's deeper brown-red (#7c4b47) over a lit lower lip: two rows, two tones, as the reference's mouth. The lower
+  // lip is a rose a step deeper than the painter's #d28d7a, which sat .033 from her skin in OKLab and read as skin in play.
+  lipsAda: { ramp: 16, base: 3, flat: true, paint: ['#7c4b47', '#c17e7a', '#904647', '#904647'] },
   // A toe cap a step lighter than the boot, never the skin's own peach: #bf7e63 read as bare toes under the jeans at density 2 on a lit face.
   bootToe: { ramp: 24, base: 4, paint: ['#945d4f', '#784c49', '#583126', '#372423'] },
 }
