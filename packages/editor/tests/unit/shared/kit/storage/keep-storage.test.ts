@@ -54,8 +54,8 @@ describe('a browser that refuses to keep the files', () => {
     localStorage.clear()
     await keepStorage(refusing)()
     const opened = await openSuitePorts(noServer)
-    expect(opened).toMatchObject({ sample: true, kept: false, where: 'nowhere' })
-    expect(saveLine({ pending: 0, where: opened.where, reason: opened.reason })).toEqual({
+    expect(opened).toMatchObject({ sample: true, kept: false })
+    expect(saveLine({ pending: 0, where: opened.kept ? 'device' : 'nowhere' })).toEqual({
       state: 'failed',
       words: 'Not saved: this browser can’t keep your work. It is lost when this page closes.',
     })

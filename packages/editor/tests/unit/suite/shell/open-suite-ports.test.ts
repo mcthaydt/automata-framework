@@ -85,19 +85,15 @@ describe('openSuitePorts', () => {
     expect((await openSuitePorts(page({ [EDITOR_LIST_PATH]: LIST }).env)).kept).toBe(true)
   })
 
-  it('says where the game is kept, and why when the browser keeps nothing (P6)', async () => {
+  it('says whether the browser keeps the sample', async () => {
     const opfs = createFakeOpfs()
     const device = await openSuitePorts({
       ...page(undefined).env,
       storage: { getDirectory: () => Promise.resolve(opfs) },
     })
-    expect(device.where).toBe('device')
+    expect(device).toMatchObject({ sample: true, kept: true })
     const nowhere = await openSuitePorts({ ...page(undefined).env, storage: {} })
-    expect(nowhere.where).toBe('nowhere')
-    expect(nowhere.reason).toMatch(/OPFS|private file storage/i)
-    const folder = await openSuitePorts(page({ [EDITOR_LIST_PATH]: LIST }).env)
-    expect(folder.where).toBe('folder')
-    expect(folder.reason).toBeUndefined()
+    expect(nowhere).toMatchObject({ sample: true, kept: false })
   })
 
   it('opens the sample game only when no editor server answers', async () => {

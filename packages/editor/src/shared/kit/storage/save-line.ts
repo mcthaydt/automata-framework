@@ -10,10 +10,6 @@ export interface SaveLineInput {
   /** The last write's refusal in words, when it failed. */
   readonly failed?: string | undefined
   readonly where: Where
-  /** Why the browser keeps nothing, when it said. */
-  readonly reason?: string | undefined
-  /** What the sync loop says about GitHub, once the game is kept there. */
-  readonly sync?: { readonly line: string } | undefined
 }
 
 export interface SaveLine {
@@ -29,7 +25,6 @@ export function saveLine(input: SaveLineInput): SaveLine {
   if (input.where === 'nowhere') return { state: 'failed', words: NOWHERE }
   if (input.failed !== undefined) return { state: 'failed', words: `Not saved: ${input.failed}` }
   if (input.pending > 0) return { state: 'saving', words: 'Saving…' }
-  if (input.sync !== undefined) return { state: 'saved', words: input.sync.line }
   return {
     state: 'saved',
     words: input.where === 'folder' ? 'Saved in your game folder' : 'Saved on this device',

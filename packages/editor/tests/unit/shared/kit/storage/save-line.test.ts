@@ -32,27 +32,4 @@ describe('saveLine', () => {
     })
     expect(saveLine({ pending: 3, where: 'nowhere' }).state).toBe('failed')
   })
-
-  it('adds the reason a browser keeps nothing when it is known', () => {
-    expect(
-      saveLine({ pending: 0, where: 'nowhere', reason: 'Private storage is unavailable.' }).words,
-    ).toContain('It is lost when this page closes.')
-  })
-
-  it('follows the sync line once nothing waits here', () => {
-    expect(saveLine({ ...device, sync: { line: 'Saved on this device and on GitHub' } })).toEqual({
-      state: 'saved',
-      words: 'Saved on this device and on GitHub',
-    })
-    expect(saveLine({ ...device, sync: { line: 'Checking GitHub…' } }).words).toBe('Checking GitHub…')
-    expect(
-      saveLine({ ...device, pending: 1, sync: { line: 'Saved on this device and on GitHub' } }).words,
-    ).toBe('Saving…')
-  })
-
-  it('keeps a stopped or offline sync a saved state, since the device has the work', () => {
-    expect(
-      saveLine({ ...device, sync: { line: 'Saved on this device. Not on GitHub yet: no internet.' } }).state,
-    ).toBe('saved')
-  })
 })
