@@ -158,3 +158,19 @@ comes back on the every-editor page. After the merge, `suite-save-line` must run
 - A real Chromium profile with site data blocked was not driven by hand; the refusal is proved by `keep-storage` and by
   the layout case "in a browser that keeps nothing" (the suite given `kept: false`).
 - The 3D and the editors' layout suites and the journeys were not re-run in full here; see "Fixes" for what was.
+
+## Fixes
+
+Each in its own commit, the test red first where there is behaviour to test (the hook ran each package's unit tests on
+every commit, never skipped):
+
+| Finding | Commit | Test, red then green |
+|---|---|---|
+| 1, `kept` lost on the 3D and content pages | `887c4f30` | `Suite-topbar.test.ts` "on a sample nobody said is kept, the line says it is not saved": red on the branch (the line said "Saved on this device"), green after; `kept` now defaults to `false` and both pages pass it |
+| 4, Stepper and ColorField keyed by label | `49d193ec` | `typing-widgets.test.ts` "offers a typed number back to the stepper it was typed in, and to no other": red (`[[12, 0], [12, 1]]`), green after; the two older reload cases now clear the page between renders, as a reload does |
+| 3, the coordinator's ruling C | `91f45676` | `suite-save-line.test.ts` at phone portrait and landscape (844 x 390), a small phone, iPad Pro 11 portrait and landscape and iPad mini portrait, with a mouse and with touch: the whole warning, not cut across or below, game name, Undo and Redo on screen, no page scroll. Red at 5 cases (every size wider than 600 px), green after; `suite.test.ts` (the sample suite's targets, 44/48 px under touch) green with it: 102 of 102 |
+| 2, "Save a copy" that does not exist | `b338ce89` | `save-line.test.ts` and `keep-storage.test.ts` on the new words, red then green; `copy.md` row changed with them |
+| 6, sign-in-only props | `ee066fe3` | removal; `open-suite-ports.test.ts` now asks `kept` only |
+| 5, plan IDs in comments | `e0ae21d6` | comments only |
+
+There is no "Save a copy" action to name (finding 2): the warning now promises none. Not fixed, as notes: 7, 8, 9, 10.

@@ -4473,8 +4473,6 @@ interface OpenedSuitePorts {
     readonly ports: SuitePorts;
     readonly sample: boolean;
     readonly kept: boolean;
-    readonly where: Where;
-    readonly reason: string | undefined;
     readonly gameUrl: string | undefined;
     readonly game: string | undefined;
     readonly publish: PublishClient | undefined;
