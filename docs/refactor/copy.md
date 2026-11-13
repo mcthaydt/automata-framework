@@ -266,4 +266,4 @@ Reference, Privacy, Terms and Contact; the targets are named by the publish sect
 | The top bar, in a folder | `Saved in your game folder` only on a wide screen, even while words were typed and unsaved | the same words at every size, and `Saving…` while words wait or a write runs | 1 (a person should know the work is safe, on a phone too) |
 | The top bar, in a browser that keeps the game | nothing | `Saved on this device` | 1 and 5 |
 | The top bar, a write that failed | `Saved…` | `Not saved: ` and the store's own words | 1 and 5 |
-| The top bar, a browser that keeps nothing | a banner on Home only | `Not saved: this browser can’t keep files. Save a copy to keep your work.` at the top of every editor | 1 (the banner was one screen; the work is on all of them) |
+| The top bar, a browser that keeps nothing | a banner on Home only | `Not saved: this browser can’t keep your work. It is lost when this page closes.` at the top of every editor | 1 (the banner was one screen; the work is on all of them) |

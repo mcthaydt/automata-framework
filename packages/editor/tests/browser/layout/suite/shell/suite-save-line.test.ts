@@ -77,7 +77,7 @@ describe.each(PHONES)('the saved line at $name ($width x $height)', (size) => {
     )
     if (where === 'in a browser that keeps nothing')
       expect(words.textContent, 'the whole warning is on screen').toBe(
-        'Not saved: this browser can’t keep files. Save a copy to keep your work.',
+        'Not saved: this browser can’t keep your work. It is lost when this page closes.',
       )
     whole(words, 'the saved line')
     const brand = document.querySelector<HTMLElement>('.brand')

@@ -57,7 +57,7 @@ describe('a browser that refuses to keep the files', () => {
     expect(opened).toMatchObject({ sample: true, kept: false, where: 'nowhere' })
     expect(saveLine({ pending: 0, where: opened.where, reason: opened.reason })).toEqual({
       state: 'failed',
-      words: 'Not saved: this browser can’t keep files. Save a copy to keep your work.',
+      words: 'Not saved: this browser can’t keep your work. It is lost when this page closes.',
     })
     // A change made now lives in memory for this page only: nothing reaches the device, and a later page starts over.
     const path = 'content/tuning.toml'

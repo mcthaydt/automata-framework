@@ -21,7 +21,8 @@ export interface SaveLine {
   readonly words: string
 }
 
-const NOWHERE = 'Not saved: this browser can’t keep files. Save a copy to keep your work.'
+// No action is promised: the sample in such a browser has no way to save a copy, so the line says what will happen.
+const NOWHERE = 'Not saved: this browser can’t keep your work. It is lost when this page closes.'
 
 export function saveLine(input: SaveLineInput): SaveLine {
   // A browser that keeps nothing never says Saved, whatever is typed: the work is in memory only.

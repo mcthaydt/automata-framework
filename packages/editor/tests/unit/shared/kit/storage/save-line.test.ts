@@ -24,11 +24,11 @@ describe('saveLine', () => {
     })
   })
 
-  it('says when the browser keeps nothing, and that a copy keeps the work; nothing is ever called Saved', () => {
+  it('says when the browser keeps nothing, and that the work goes with the page; nothing is ever called Saved', () => {
     const line = saveLine({ pending: 0, where: 'nowhere' })
     expect(line).toEqual({
       state: 'failed',
-      words: 'Not saved: this browser can’t keep files. Save a copy to keep your work.',
+      words: 'Not saved: this browser can’t keep your work. It is lost when this page closes.',
     })
     expect(saveLine({ pending: 3, where: 'nowhere' }).state).toBe('failed')
   })
@@ -36,7 +36,7 @@ describe('saveLine', () => {
   it('adds the reason a browser keeps nothing when it is known', () => {
     expect(
       saveLine({ pending: 0, where: 'nowhere', reason: 'Private storage is unavailable.' }).words,
-    ).toContain('Save a copy')
+    ).toContain('It is lost when this page closes.')
   })
 
   it('follows the sync line once nothing waits here', () => {
