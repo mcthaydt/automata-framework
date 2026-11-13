@@ -64,8 +64,16 @@ export default defineGame({
           },
           world.pieces,
         )
-        // What the scene is lit as and the passes it added, for the journey.
+        // What the scene is lit as, the passes it added and the frames presented so far, for the journey: a feedback
+        // pass shows from the second frame, and the journey waits on this count, not on a number of animation frames.
         stage.app.canvas.dataset.time = night.name
+        let frames = 0
+        stage.app.renderer.runners.postrender.add({
+          postrender: () => {
+            frames += 1
+            stage.app.canvas.dataset.frames = String(frames)
+          },
+        })
         stage.app.canvas.dataset.passes = skyLookPasses(passes)
           .map((pass) => pass.name)
           .join(',')

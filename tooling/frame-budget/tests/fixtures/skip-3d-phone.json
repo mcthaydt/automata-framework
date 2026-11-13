@@ -1,0 +1,7 @@
+{
+  "schema": "af-frame-budget-skip/1",
+  "project": "frame-budget-3d-phone",
+  "skippedAt": "2026-11-12T00:00:00.000Z",
+  "reason": "software-renderer",
+  "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+}

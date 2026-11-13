@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { BudgetFile } from '#src/budget.ts'
-import { SOFTWARE_SKIP, softwareSkip, stressPageOf } from '#src/stress-3d.ts'
+import { BudgetFile, FrameBudgetSkip } from '#src/budget.ts'
+import { SOFTWARE_SKIP, softwareSkip, softwareSkipRecord, stressPageOf } from '#src/stress-3d.ts'
 
 // The 3D look's frame budgets (spec 6): a phone at 30 frames a second, an iPad at 60, and the first figure posed in
 // 5 ms. The numbers are the spec's targets until the Owner's GPU run replaces them with measured ones.
@@ -34,6 +34,20 @@ describe('the 3D probe on a machine with no GPU', () => {
 
   it('a GPU is measured', () => {
     expect(softwareSkip('ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)')).toBeUndefined()
+  })
+})
+
+describe('the record of a project skipped for software', () => {
+  it('names the project and the renderer, and is a skip record the check reads', () => {
+    const gpu = 'llvmpipe (LLVM 17.0.6, 256 bits)'
+    const record = softwareSkipRecord('frame-budget-3d-phone', gpu, new Date('2026-11-12T08:00:00Z'))
+    expect(FrameBudgetSkip.parse(record)).toEqual({
+      schema: 'af-frame-budget-skip/1',
+      project: 'frame-budget-3d-phone',
+      skippedAt: '2026-11-12T08:00:00.000Z',
+      reason: 'software-renderer',
+      gpu,
+    })
   })
 })
 

@@ -143,6 +143,9 @@ test('pointing the sees-the-player switch at Follow instead: the guard’s first
   if (!(await to.isVisible())) await editors.getByRole('button', { name: 'Details' }).click()
   await expect(to).toBeVisible()
   await to.selectOption('follow')
+  // The editor writes the file a moment after the change, and the game reads the file when it loads: play only once the
+  // switch is saved. The file still holds the earlier test's 24 m sight, so a game started too soon hunts.
+  await fileMatches(GUARD_FILE, /to = "follow"\s+priority = 70/)
   await editors.screenshot({ path: test.info().outputPath('4-switch-to-follow.png') })
   await play(page)
   await page.waitForFunction(

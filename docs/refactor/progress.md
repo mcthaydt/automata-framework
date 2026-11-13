@@ -875,3 +875,43 @@ starts in `AF_E2E_CLAIMED_PORTS`. A game and its editor (`--game-url`) are claim
 | Two copies at once, separate checkouts, `CI=1 GITHUB_ACTIONS=true` | Old code: the second copy fails with "already used" (2d-story) and "Port 5900 is already in use" (examples-2d). New code: both pass (2d-story 5 of 5 twice; examples-2d `ui-primitives` 14 of 14 each) | PR description |
 | Single runs, one copy | emberwick-phone-chromium 10 of 10; base-3d-dev 1 of 1 (starts all three of base-3d's servers) | PR description |
 | Not run | The rest of base-3d (`base-3d`, WebKit), examples-3d, 3d-story, other Emberwick projects, Firefox, the site, playground and frame-budget journeys, and the GPU runner | PR description |
+
+## CI green, second pass (2026-11-12, branch `claude/ci-green`)
+
+Chromium on SwiftShader only (`AF_WEBGPU=software`), Node 24.21.0. No WebKit, Firefox, real GPU or runner was available.
+
+| Step | Status | Record |
+|---|---|---|
+| Merged `origin/main`; `TURBO_FORCE=true pnpm check` on the result | Red once, then green: everything passed except `changeset status --since=origin/main` (the layout-contract test fix changed a published package) | `.changeset/layout-contract-fixture-line-height.md`; final run 56 typecheck and 66 unit tasks uncached, 13 min |
+| Release checks: `test:dist` failed for `@automata/framework` | Done: the package was right (the words JSON ships and is imported `with { type: 'json' }`); the test looked up an exports pattern as a file name and rejected `.json` imports. It also failed for `@automata/tools` behind the first failure (a stray backtick in a comment broke its template-literal stripping), so the import reader is the TypeScript parser now | `tooling/release/tests/unit/dist-reading.test.ts`; `test:dist` 20 of 20; `build:examples`, `build:demos`, `api-report`, `api-index`, `agent-skills`, `plugin:validate` and the packed-install smoke pass |
+| `worldkit-sky` journey timed out at 120 s | Done: it waited for 90 animation frames; the example now sets `data-frames` and the journey waits for 3 | Chromium, 5 of 5, 9.7 to 11.4 s each (was 47.7 s) |
+| Nightly parity job's `test:browser:2d` | Reproduced three times in Chromium, no failure | 4 m 48 s, 4 m 23 s, 5 m 18 s |
+| `pnpm budget:frame` exit 1 on a runner with no GPU | Not changed; the probe skips the 3D projects on a software renderer before it writes a result, and the check then asks for those results | Owner's decision: a GPU runner for the job, or exit 0 for an all-software run |
+| Pre-commit hook took 10 minutes | Not changed; `--filter="...[HEAD]"` selects all 57 packages for a change in `packages/automata`, and turbo's hash includes dependency files | `--filter="[HEAD]"` recommended |
+| Not run | WebKit (examples-2d `examples-ipad`, 41 tests need it), Firefox, a real GPU, the Mac and Linux runners | |
+
+## Hook scope and the software frame-budget skip (2026-11-12, branch `claude/hook-scope-budget-skip`)
+
+The Owner: "yes to the hook change, software run counts as a skip". Chromium on SwiftShader, Node 24.21.0; no WebKit, Firefox, real GPU or runner. Closes the two "Not changed" rows of the CI-green second pass above.
+
+| Step | Status | Record |
+|---|---|---|
+| Commit hook: changed packages only | Done, in two steps. `--filter="[HEAD]"` (`cbc9083a`) stops adding dependents, but turbo still selected all 57 packages for a change in `packages/automata`, `sim`, `content` or `tools` (`RootInternalDepChanged`: the root workspace depends on `@automata/tools`). So `4be1afc9` maps the staged files to their packages itself and passes `--filter=./<dir>` | `tooling/repo-hygiene/src/staged-unit-tests-cli.ts`; tests `staged-packages.test.ts` (6 cases, a naive prefix match fails 2) and `lefthook.test.ts`, written first |
+| Hook scope, measured | test:unit tasks selected for a one-line change, `...[HEAD]` / `[HEAD]` / the script: `packages/automata` 57 / 57 / 1; `sim` 57 / 57 / 1; `content` 57 / 57 / 1; `tools` 57 / 57 / 1; `packages/3d` 22 / 1 / 1; `extensions/physics` 14 / 1 / 1; two packages staged: 2; only `docs/` or a root file staged: no unit run, exit 0 | `turbo run test:unit --dry=json` through the real script; the hook's own run on `4be1afc9` selected `tooling/repo-hygiene` only |
+| `pnpm budget:frame` on a runner with no GPU | Done: the probe writes a skip record (`af-frame-budget-skip/1`) in place of the result for a 3D project it skips on a software renderer, and the check counts it as accounted for. All-software is `skipped`, exit 0, and the summary says `nothing was measured`. Still failing closed: a budgeted project with neither result nor skip record, a skip record naming a GPU, a malformed record, an unset budget, a software result beside a hardware one, a result over budget | `a4067754`; 6 new cases red first (a skip record read as a malformed result), 63 of 63 now, no existing assertion changed |
+| The probe and the check, on this machine | `pnpm test:frame-budget` exit 0, 2 passed and 2 skipped, 47.7 s; `pnpm budget:frame` exit 0: `frame budget: SKIPPED, nothing was measured`. Without the two skip records the same results exit 1 with `INVALID frame-budget-3d-ipad` and `-3d-phone`. The 2D numbers (work p95 102 ms phone, 97 ms desktop) are SwiftShader and say nothing about the budget | `frame-budget-results/` (not committed) |
+| `ci.yml` frame-budget job comment | Done on the Owner's words "change the comment": comment lines only, the parsed workflow is identical before and after | `f8c5e5c6`; `workflow-invariants.test.ts` 10 of 10 |
+| Gates | `TURBO_FORCE=true pnpm check` at `7c2d6137` (the commits after it change a workflow comment and this file only): lint, typecheck (56 of 56 tasks, none cached), boundaries, style, source-names, knip and `test:unit` (66 of 66, none cached) passed, 16 m 50 s; the last step, `check:changesets`, failed only because this clone had no `origin/main` ref, and passes once fetched (79 changesets, 0 problems; none needed, only private tooling changed). `pnpm secrets` exit 0, 3,769 commits, no leaks. The frame-budget package's unit tests: 63 of 63 | the `pnpm check` stage log |
+| Not run | WebKit, Firefox, a real GPU, a GPU runner: nothing was measured against the budget; a budget row still needs the Owner's GPU run | |
+
+## Artifact storage only on failure (2026-11-12, branch `claude/artifacts-on-failure`)
+
+The Owner's ruling: "stop using the artifact storage unless something fails". The repository's Actions artifact
+quota was full, so traces no longer uploaded when a run failed.
+
+| Change | Evidence | Check |
+|---|---|---|
+| Evidence uploads are failure-only and kept 7 days at most. Of seven `upload-artifact` steps (ci.yml 5, 3d.yml 1, release-checks.yml 1, game-ci.yml 1; no `download-artifact` anywhere) five already were. `frame-budget-results` went from `always()` and 30 days to `failure()` and 7; game-ci's build upload from every run to `failure()` | `tooling/repo-hygiene/tests/unit/workflow-invariants.test.ts`: new rule 7; it failed first on exactly those two steps, then passed | `pnpm test:unit` in `tooling/repo-hygiene` (164 of 164) |
+| Still uploads on a green run | `evidence` (ci.yml, push to main, 90 days): the golden-hash file; its comment says the website reads it, nothing in the repository downloads it. It is the one name on the rule's allow-list | — |
+| `pnpm evidence` step of the parity job: emberwick's `test:evidence` named `tests/browser/golden.test.ts`, which "lay the game out by feature" (95dc5c33) moved to `tests/browser/testing/`. The path is fixed, and `tooling/repo-hygiene/tests/unit/script-paths.test.ts` fails when any package or root script names a test file that is not on disk (it failed first on that one script; no other script was wrong) | Before: vitest "No test files found". After: `pnpm --filter @af-games/emberwick test:evidence` runs the golden test in Node and Chromium (2 of 2) | `pnpm test:unit` in `tooling/repo-hygiene` (173 of 173) |
+| Not run | The workflows themselves (they run on GitHub); the evidence step in Firefox and WebKit (not installed here), and the evidence collector over all four engines; `actionlint` (`pnpm lint:actions` needs Docker, none here), the YAML parses | — |

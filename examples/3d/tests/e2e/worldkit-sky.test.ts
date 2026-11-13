@@ -19,18 +19,9 @@ test('draws the street at night with the stars, rain and glow passes of the kit,
   // The scene says which time of day it is lit as and which passes it added; a pass added twice is refused by core.
   await expect(canvas).toHaveAttribute('data-time', 'night')
   await expect(canvas).toHaveAttribute('data-passes', 'world-kit:stars,world-kit:glow,world-kit:rain')
-  // A WebGL feedback loop shows only from the second frame the look presents, so let some frames draw first.
-  await canvas.evaluate(
-    (el) =>
-      new Promise<void>((resolve) => {
-        let frames = 0
-        const next = (): void => {
-          frames += 1
-          if (frames >= 90) resolve()
-          else el.ownerDocument.defaultView?.requestAnimationFrame(next)
-        }
-        next()
-      }),
-  )
+  // A WebGL feedback loop shows only from the second frame the look presents, and a shader it cannot link is reported
+  // as that frame draws. The scene counts the frames it has presented, so wait for the second and one more instead of
+  // for a fixed number of animation frames, which a software renderer takes tens of seconds to draw.
+  await expect(canvas).toHaveAttribute('data-frames', /^(?:[3-9]|\d{2,})$/)
   expect(errors).toEqual([])
 })
