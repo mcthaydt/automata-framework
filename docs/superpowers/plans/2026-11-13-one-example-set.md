@@ -28,7 +28,7 @@ Biome. Markdown is not formatted by a tool.
 |---|---|---|---|---|---|---|---|
 | F1 The set's shape: the catalog, the package, the entry | 0 | `claude/example-set-shape` | 1 | Sonnet | **now** | done on `claude/example-set-f1` (no pull request yet; gates in `audits/2026-11-13-example-set-f1/README.md`) | 100% |
 | F2 A whole-pixel field and a look file, in the framework | 0 | `claude/example-set-field` | 1 | Sonnet | after the joined prologue branch | not started | 0% |
-| F3 The site can show a 3D example (the mechanism, on fixtures) | 0 | `claude/example-set-site` | 1 | Sonnet | **now**, after F1 | not started | 0% |
+| F3 The site can show a 3D example (the mechanism, on fixtures) | 0 | `claude/example-set-site` | 1 | Sonnet | **now**, after F1 | done on `claude/example-set-f3` (no pull request yet; gates in `audits/2026-11-13-example-set-f3/README.md`) | 100% |
 | F4 The site shows the set | 0 | `claude/example-set-site` | 1 | Sonnet | after ship-3d B10, `pixi-3d-public`, E1 | not started | 0% |
 | F5 `scene()` plays the place: the walker, the cast, the view, the look | 0 | `claude/example-set-play` | 2 | Sonnet | after F2, K1, L1 | not started | 0% |
 | W1 Two photos and their swatches | 1 | `claude/example-set-props` | 0.5 | Sonnet | **now** | not started | 0% |
@@ -440,19 +440,19 @@ Starts now, after F1. It ships nothing 3D: until F4 the reader returns no entry 
 - Modify: `site/src/shared/framework/examples.ts` (a second reader, `sceneExamples(root, dir?)`), `site/src/shared/framework/example-catalog.ts` (a group, "One small world, in 3D"), `site/scripts/build-demos.ts` (`buildScenes()`: one `vite build` of the examples folder into `static/scenes/`, skipped when the reader returns none), `site/src/features/examples/ExamplePage.svelte` and `ExamplesIndex.svelte`, `site/src/features/home/HomeExamples.svelte`
 - Create: `site/src/features/examples/SceneFrame.svelte`, `site/tests/unit/framework/scene-examples.test.ts`, `site/tests/fixtures/scene-examples/` (two tiny `scene` files, one importing only public names and one importing a private one), `site/tests/e2e/scene-examples.e2e.ts`
 
-- [ ] **Step 1: failing unit test.** Over the fixture folder, `sceneExamples()` returns one entry for the public
+- [x] **Step 1: failing unit test.** Over the fixture folder, `sceneExamples()` returns one entry for the public
   example with `id`, `title`, `shows`, `controls`, `source` and `frameUrl = /scenes/<name>/index.html`, and none for
   the private one; over the real `examples/3d` today it returns `[]`. Run
   `pnpm --filter @automata/site test -- scene-examples`. Expected: FAIL, `sceneExamples` is not exported.
-- [ ] **Step 2:** the reader, the build step, and `SceneFrame.svelte`: a still (or a plain panel with the title when
+- [x] **Step 2:** the reader, the build step, and `SceneFrame.svelte`: a still (or a plain panel with the title when
   there is none) and one Play button, 48 px high, that says "Play"; the frame loads only when it is pressed, so a
   phone on a slow line pays for 3D only when asked; under the frame, one line of what to press (the header's
   `Controls`); then the code.
-- [ ] **Step 3: failing e2e, then green**, on a build made with the fixture folder (an env var names it, read only by
+- [x] **Step 3: failing e2e, then green**, on a build made with the fixture folder (an env var names it, read only by
   the test's build): at 390 × 844 and 1280 × 800 the page shows the words above the frame, has no horizontal scroll,
   the Play button's box is at least 48 px and inside the viewport, focus moves into the frame on Play and back out
   with Escape, and the words pass the copy check `pnpm check:site` already runs.
-- [ ] **Step 4:** gates (`pnpm build && pnpm check:site`, the site's unit tests); commit.
+- [x] **Step 4:** gates (`pnpm build && pnpm check:site`, the site's unit tests); commit.
 
 **Done means:** the mechanism is proved on fixtures; the real site build is byte-identical in its page list (0 pages
 added: `sceneExamples()` is empty on `main`), which the log records with the two page counts.
