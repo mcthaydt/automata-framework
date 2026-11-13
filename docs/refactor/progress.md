@@ -929,3 +929,15 @@ with 2D before doing 3D", then "write up the ordered cut list".
 | The list: the steps in order, with the files each one removes and edits | Written at `main` `a234a3a2`; no product code changed | [2026-11-13-2d-launch-cut-list.md](2026-11-13-2d-launch-cut-list.md) |
 | The Owner's three decisions, the same day: "Keep story tools, keep online play with colyssus, move 3D out as our failed attempt" | The list revised: online play is no longer cut; the story tools are untangled from 3D (step 3) before 3D leaves `main` (step 4); two pieces of new work named (publishing the story tools, and the published editor page) | the same page |
 | Not run | Nothing was built, tested or deleted: every "who uses it" is a `git grep`, and each step still has to pass `pnpm check` | |
+
+## Pull requests run only the tests they affect (2026-11-13, branch `claude/ci-affected-only`)
+
+The Owner: "we should only run tests that are relevant to the pr". Node 24, no runner and no browser journey run.
+
+| Step | Status | Record |
+|---|---|---|
+| Unit tests and journey steps run for the affected packages on a pull request | Done in `ci.yml`: `pnpm test:unit:affected` in the checks job, `pnpm $E2E_SCRIPT` (`test:e2e:affected`) in the 2D journeys job. Both go through `tooling/repo-hygiene/src/affected-run-cli.ts`, which lists the packages it runs or prints `SKIPPED` | `tooling/repo-hygiene/tests/unit/ci-affected.test.ts`, `affected-run.test.ts`, `gate-scripts.test.ts` |
+| Everything runs when turbo cannot see the change | `scope` now sets `tests_full`: true for a file outside the workspace folders, or in documentation a test reads (`docs/guides`, `docs/archive`, the runbook, README); false only for workspace files and the progress log, plans, specs and changesets | The step is run for real on synthetic merge commits in `ci-affected.test.ts` |
+| Pushes to main, the nightly run, a manual run, `pnpm check` | Unchanged: every unit test and every journey | |
+| Not run | The workflow on GitHub (no runner here), `actionlint`, the journeys | |
+

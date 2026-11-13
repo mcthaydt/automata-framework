@@ -10,6 +10,13 @@ name: ci
 # Emberwick's game CI run for a pull request only when it is ready for review and changes more than docs/ and
 # Markdown files; marking a draft ready starts them. Pushes to main, the nightly run and manual runs are unchanged.
 #
+# Only the tests that are relevant to a pull request (Owner, 2026-11-13: "we should only run tests that are relevant to
+# the pr"): the unit tests and each journey step run for the packages the change affects, dependents included (turbo
+# --affected: `pnpm test:unit:affected`, `pnpm test:e2e:affected`, which print what they ran or that they were skipped),
+# and for every package when the change is outside the workspace folders or in documentation a test reads (`scope`,
+# tests_full). The whole-repository checks (lint, typecheck, boundaries, style, knip, the dependency, secret and
+# changeset checks) and the push to main, the nightly run and a manual run always run everything: they are the net.
+#
 # What it leaves to other workflows: the 3D suites run in
 # 3d.yml, and the release-only checks (build, API report, API index, agent skills, plugin validation,
 # consumer smoke) in release-checks.yml, which release-packages.yml calls before it publishes.
@@ -72,6 +79,7 @@ jobs:
       docs_only: ${{ steps.scope.outputs.docs_only }}
       parity_full: ${{ steps.scope.outputs.parity_full }}
       stranger: ${{ steps.scope.outputs.stranger }}
+      tests_full: ${{ steps.scope.outputs.tests_full }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -87,22 +95,32 @@ jobs:
       # packages the pull request affects (turbo --affected, dependents included) when every change is inside a
       # workspace package or documentation; a change anywhere else (root config, a workflow, vendor/) is invisible
       # to turbo's package graph, so it runs every suite. Pushes to main and the nightly always run every suite.
+      # tests_full (Owner, 2026-11-13: "we should only run tests that are relevant to the pr"): the same rule for the
+      # unit tests and the journeys, with documentation held to a narrower exemption, because tests do read it (the
+      # website builds docs/guides, examples-runner reads docs/archive, repo-hygiene reads the runbook and the
+      # README). Only the progress log, the plans, the specs and the changesets are read by nothing, so a pull request
+      # that changes only those runs no package's tests at all.
       - id: scope
         if: github.event_name == 'pull_request'
         run: |
           docs_only=false
           parity_full=true
+          tests_full=true
           stranger=true
+          # The folders pnpm-workspace.yaml lists (a test keeps this in step with it).
+          workspace='packages|extensions|tooling|examples|games|site'
           if [ "$(git rev-list --parents -n 1 HEAD | wc -w)" -eq 3 ]; then
             changed="$(git diff --name-only HEAD^1 HEAD)"
             if ! printf '%s\n' "$changed" | grep -qvE '^docs/|\.md$'; then docs_only=true; fi
-            if ! printf '%s\n' "$changed" | grep -qvE '^(packages|extensions|tooling|examples|games|docs)/|\.md$'; then parity_full=false; fi
+            if ! printf '%s\n' "$changed" | grep -qvE "^($workspace|docs)/|\.md\$"; then parity_full=false; fi
+            if ! printf '%s\n' "$changed" | grep -qvE "^($workspace)/|^docs/(refactor|superpowers)/.*\.md\$|^docs/status\.md\$|^\.changeset/[^/]+\.md\$"; then tests_full=false; fi
             # The stranger's journey (a new game from the packed packages) runs when a package, the journey itself or
             # anything outside the workspace folders changes (a workflow, a lockfile); not for a game, an example or docs.
             if ! printf '%s\n' "$changed" | grep -qE '^(packages/|tooling/consumer-smoke/)|^[^/]+$|^\.github/'; then stranger=false; fi
           fi
           echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
           echo "parity_full=$parity_full" >> "$GITHUB_OUTPUT"
+          echo "tests_full=$tests_full" >> "$GITHUB_OUTPUT"
           echo "stranger=$stranger" >> "$GITHUB_OUTPUT"
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
@@ -119,7 +137,18 @@ jobs:
       - run: pnpm style
       # Unused files, exports and dependencies (knip.jsonc).
       - run: pnpm knip
+      # Every unit test on a push to main, the nightly run, a manual run, and a pull request that changes something
+      # outside the workspace folders (see `scope`). Any other pull request runs the packages it affects, dependents
+      # included (turbo --affected; the checkout is GitHub's merge commit, whose first parent is the base tip), and the
+      # log says so, or says the step was skipped when nothing is affected.
       - run: pnpm test:unit
+        if: github.event_name != 'pull_request' || steps.scope.outputs.tests_full == 'true'
+      - name: unit tests of the packages this pull request affects
+        run: pnpm test:unit:affected
+        if: github.event_name == 'pull_request' && steps.scope.outputs.tests_full != 'true'
+        env:
+          TURBO_SCM_BASE: HEAD^1
+          TURBO_SCM_HEAD: HEAD
       # Each of these first proves it fails on its planted fixture, then checks the repository. The audit is
       # `pnpm audit --prod --audit-level=high`; the secret scan runs the pinned gitleaks over the full history
       # (fetch-depth 0 above).
@@ -235,10 +264,22 @@ jobs:
       needs.checks.outputs.docs_only != 'true'))
     runs-on: ${{ vars.AF_E2E_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}
     timeout-minutes: 60
+    env:
+      # Owner, 2026-11-13: "we should only run tests that are relevant to the pr". A pull request that changes only
+      # workspace packages runs each journey step for the packages it affects, dependents included, and a step with
+      # none prints that it was skipped (affected-run-cli.ts). Everything else (a push to main, the nightly run, a
+      # manual run, a pull request that changes the lockfile, a workflow, vendor/ or documentation the tests read: see
+      # `scope`) runs every journey.
+      E2E_SCRIPT: ${{ (github.event_name == 'pull_request' && needs.checks.outputs.tests_full != 'true') && 'test:e2e:affected' || 'test:e2e' }}
+      # The checkout is GitHub's merge commit, whose first parent is the base tip.
+      TURBO_SCM_BASE: HEAD^1
+      TURBO_SCM_HEAD: HEAD
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # The merge commit and its parents, so the affected run can compare HEAD^1..HEAD.
+          fetch-depth: 2
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
@@ -256,15 +297,15 @@ jobs:
         if: runner.environment == 'self-hosted'
       # The packed `automata` bin is the one a developer installs: built here for the journeys that run it.
       - run: pnpm exec turbo run build --filter @automata/tools
-      - name: 2D journeys
-        run: pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples-2d --filter @af-examples/2d-story
+      - name: 2D journeys (a pull request runs those its change affects)
+        run: pnpm $E2E_SCRIPT --filter @af-games/emberwick --filter @af-examples/examples-2d --filter @af-examples/2d-story
       # The real `automata editor` on a temp copy of a game: iPad and phone in Chromium, the iPad in WebKit.
-      - name: The editor's journeys
-        run: pnpm test:e2e --filter @automata/editor
+      - name: The editor's journeys (a pull request runs them when its change affects the editor)
+        run: pnpm $E2E_SCRIPT --filter @automata/editor
       # The website's gates (links, metadata, policy, layout, the playground's page) in Chromium and WebKit, on its static
       # build; turbo builds it first (the demos, the API index and the playground with it).
-      - name: The website
-        run: pnpm test:e2e --filter @automata/site
+      - name: The website (a pull request runs it when its change affects the site)
+        run: pnpm $E2E_SCRIPT --filter @automata/site
       # A stranger makes a game from the packed packages in an empty folder outside the repository, checks, plays and
       # packages it (tooling/consumer-smoke). Turbo builds the packages it packs first.
       - name: The stranger's journey
