@@ -21,6 +21,12 @@ describe('the scene examples reader', () => {
     expect(found[0]?.source).toContain("import { defineGame } from '@automata/framework'")
   })
 
+  // The set is private content, and its own package depends on the 3D runtime, which a stranger cannot install yet:
+  // an example that names only the set would ship that runtime's code all the same.
+  it("leaves out an example that imports only the set while the set's own package depends on a private package", () => {
+    expect(sceneExamples(FIXTURES, '.').map((example) => example.id)).not.toContain('scene-station')
+  })
+
   it('returns nothing over the real 3D examples folder today', () => {
     expect(sceneExamples()).toEqual([])
   })

@@ -14,6 +14,9 @@ export default defineConfig({
     }),
   ],
   resolve: {
-    alias: { '@automata/lcd-panel': new URL('../scene-stand-ins/lcd-panel.ts', import.meta.url).pathname },
+    alias: {
+      '@automata/lcd-panel': new URL('../scene-stand-ins/lcd-panel.ts', import.meta.url).pathname,
+      '@af-examples/set-3d': new URL('../scene-stand-ins/set-3d.ts', import.meta.url).pathname,
+    },
   },
 })

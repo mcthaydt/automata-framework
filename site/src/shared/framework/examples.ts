@@ -1,6 +1,11 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
-import { isUnpublishedExtension, readCatalog, SET_MODULE } from '@automata/examples-runner/catalog'
+import {
+  isUnpublishedExtension,
+  readCatalog,
+  SET_MODULE,
+  SET_PACKAGE,
+} from '@automata/examples-runner/catalog'
 import { type PlaygroundExample, playgroundCatalog } from '../../../playground/src/playground-catalog.ts'
 import { repositoryRoot } from './root.ts'
 
@@ -68,9 +73,39 @@ export interface SceneExample {
   readonly still?: string
 }
 
+type Manifest = {
+  readonly name?: string
+  readonly private?: boolean
+  readonly dependencies?: Record<string, string>
+}
+const manifestOf = (dir: string): Manifest | undefined => {
+  const path = join(dir, 'package.json')
+  return existsSync(path) ? (JSON.parse(readFileSync(path, 'utf8')) as Manifest) : undefined
+}
+
+/**
+ * Whether a stranger could not install what the set's own package depends on. The set is private content an example
+ * may import, so its runtime dependencies ship in every example built on it: one that is an unpublished extension, or a
+ * private workspace package, keeps every such example off the site, whatever the example's own file names.
+ */
+function setNeedsPrivate(root: string): boolean {
+  const workspace = ['packages', 'extensions'].flatMap((group) => {
+    const dir = join(root, group)
+    return existsSync(dir) ? readdirSync(dir).map((name) => manifestOf(join(dir, name))) : []
+  })
+  const privateNames = new Set(
+    workspace.filter((manifest) => manifest?.private === true).map((manifest) => manifest?.name),
+  )
+  const set = manifestOf(join(root, 'examples/set-3d'))
+  return Object.keys(set?.dependencies ?? {}).some(
+    (name) => isUnpublishedExtension(name) || privateNames.has(name),
+  )
+}
+
 /**
  * The `scene` examples of the 3D examples folder (`dir`, from the repository root; absolute paths are kept) that the
- * site may show: valid ones that import no unpublished extension, the rule `playgroundCatalog` keeps for the 2D pages.
+ * site may show: valid ones that import no unpublished extension, the rule `playgroundCatalog` keeps for the 2D pages,
+ * and none built on the set while the set itself depends on one (`setNeedsPrivate`).
  * While the 3D kits are private the real folder gives none, so the site gains no page. `AF_SITE_SCENES_DIR` names
  * another folder, for the one build that proves the pages on fixtures (tests/e2e/scene-examples.e2e.ts); nothing else reads it.
  */
@@ -78,10 +113,13 @@ export function sceneExamples(
   root: string = repositoryRoot,
   dir: string = process.env.AF_SITE_SCENES_DIR ?? 'examples/3d',
 ): SceneExample[] {
+  // The set is the workspace's own package, wherever the examples folder is (a fixture folder has none of its own).
+  const setIsPrivate = setNeedsPrivate(repositoryRoot)
   return readCatalog(resolve(root, dir))
     .filter((entry) => entry.module === SET_MODULE)
     .filter((entry) => entry.header !== undefined && entry.problems.length === 0)
     .filter((entry) => !entry.imports.some(isUnpublishedExtension))
+    .filter((entry) => !(setIsPrivate && entry.imports.includes(SET_PACKAGE)))
     .map((entry) => {
       const header = entry.header as NonNullable<typeof entry.header>
       return {
