@@ -35,6 +35,15 @@ describe('a figure painted at the density its camera needs', () => {
     for (const zoom of [1, 4, 9]) expect(painter.paint(input(0), zoom).density).toBe(2)
   })
 
+  it('paints at the density a game picks each frame, whatever the zoom: a play camera’s for its field, a cutscene’s own', () => {
+    let wanted: 1 | 2 = 1
+    const painter = new AutoPainter(MAN, { density: () => wanted })
+    for (const zoom of [1, 4, 9]) expect(painter.paint(input(0), zoom).density).toBe(1)
+    wanted = 2
+    expect(painter.paint(input(1 / 30), 1).density).toBe(2)
+    expect(painter.paint(input(2 / 30), 1).size).toEqual([128, 192])
+  })
+
   it('stops at the cap a game sets, and at 8 when it lifts it', () => {
     expect(new AutoPainter(MAN, { maxDensity: 2 }).paint(input(0), 8).density).toBe(2)
     expect(new AutoPainter(MAN).paint(input(0), 8).density).toBe(4)

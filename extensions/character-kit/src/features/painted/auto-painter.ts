@@ -7,8 +7,11 @@ import { type Density, densityChooser } from './density.ts'
 import { Painter, type PaintInput } from './painter.ts'
 
 export interface AutoPainterOptions {
-  /** A density to hold whatever the zoom, or `'auto'` (the default): the density the zoom needs, by `densityNeeded`. */
-  readonly density?: Density | 'auto' | undefined
+  /**
+   * A density to hold whatever the zoom, `'auto'` (the default): the density the zoom needs, by `densityNeeded`, or the density a game
+   * picks each frame (a play camera's for its field, a cutscene's own), whatever the zoom.
+   */
+  readonly density?: Density | 'auto' | (() => Density) | undefined
   /** The highest density `'auto'` may pick (4 by default: a new cell at 8 costs about four times one at 4); a game may lift it to 8. */
   readonly maxDensity?: Density | undefined
   /**
@@ -33,7 +36,7 @@ interface Entry {
 export class AutoPainter {
   private readonly painters = new Map<Density, Entry>()
   private readonly chooser: ReturnType<typeof densityChooser>
-  private readonly pinned: Density | undefined
+  private readonly pinned: Density | (() => Density) | undefined
   /** The figure's own clock: the sum of the steps, as a lone figure adds them. */
   private elapsed = 0
   /** The time it has walked in all, less whole cycles, and the seconds a walk's cycle takes. */
@@ -56,7 +59,8 @@ export class AutoPainter {
 
   /** The cell for this frame at the density `zoom` needs (the zoom of a density-1 texel on screen: `zoomOf`). */
   paint(input: PaintInput, zoom: number): Cell {
-    const density = this.pinned ?? this.chooser.pick(zoom)
+    const density =
+      typeof this.pinned === 'function' ? this.pinned() : (this.pinned ?? this.chooser.pick(zoom))
     const before = this.walked
     const moving = input.state.moving
     this.elapsed += input.dt

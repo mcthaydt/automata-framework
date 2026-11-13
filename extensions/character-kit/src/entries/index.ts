@@ -31,7 +31,7 @@ export type { Rows } from '../features/hair/rows.ts'
 export type { Strands } from '../features/hair/strands.ts'
 export type { Sweep } from '../features/hair/sweep.ts'
 export type { Tail } from '../features/hair/tail.ts'
-export type { Density } from '../features/painted/density.ts'
+export { type Density, densityNeeded } from '../features/painted/density.ts'
 export {
   type PaintedFigureOptions,
   type PaintedState,

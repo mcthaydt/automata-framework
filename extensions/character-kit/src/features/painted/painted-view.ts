@@ -21,9 +21,10 @@ export interface PaintedFigureOptions {
   /**
    * Texels per texel of the base cell: 1 is 64 × 96, 2 is 128 × 192, 4 and 8. `'auto'` (the default) paints at the density the camera
    * drawing the figure needs, each frame, by `densityFor`: a far camera at 1, a close shot at 4, so a texel is no coarser than a screen
-   * pixel where the painter can make it so. A number pins it.
+   * pixel where the painter can make it so. A number pins it; a function is asked each frame (a game that holds one density in play and
+   * another in its cutscenes).
    */
-  readonly density?: Density | 'auto' | undefined
+  readonly density?: Density | 'auto' | (() => Density) | undefined
   /**
    * The highest density `'auto'` may pick: 4 by default, since a new cell at 8 takes four times as long to paint as one at 4 and holds
    * 4.5 MB. A game whose close shots are close enough to use 8 (a texel a pixel at zoom 8) lifts it.
