@@ -214,8 +214,13 @@ const leverFrame: Generator = (p) => {
 const trunk: Generator = (p) => {
   const w = p.width ?? 0.9
   const n = Math.max(0, Math.round(p.straps ?? 2))
+  // Each band is the body's and the lid's own rounded shapes, a little proud of them, so it follows the lid's arch down to
+  // its edges instead of standing past them as a square tab.
   const straps = merge(
-    ...Array.from({ length: n }, (_, i) => box([-w / 2 + ((i + 0.5) * w) / n, 0, 0], [0.05, 0.495, 0.505])),
+    ...Array.from({ length: n }, (_, i) => {
+      const x = -w / 2 + ((i + 0.5) * w) / n
+      return merge(rbox([x, 0, 0], [0.05, 0.342, 0.506], 0.15), rbox([x, 0.34, 0], [0.05, 0.163, 0.506], 0.5))
+    }),
   )
   return {
     pieces: [

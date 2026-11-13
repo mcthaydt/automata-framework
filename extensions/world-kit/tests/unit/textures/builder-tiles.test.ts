@@ -61,7 +61,13 @@ function md5Of(spec: TextureSpec): string {
     .digest('hex')
 }
 
-const made = specs()
+/** Photos the kit gained after the source's last commit, so its golden has no frame for them. Each is named here, so a
+ * photo that appears unasked, or a source photo that goes, still fails the key check below. */
+const LATER_PHOTOS: readonly string[] = ['ballast', 'sleeper']
+const later = (key: string): boolean => LATER_PHOTOS.includes(key.split('/')[0] as string)
+
+const all = specs()
+const made = Object.fromEntries(Object.entries(all).filter(([key]) => !later(key)))
 /** The sha-256 of the source's `tests/golden/tiles.json` at its last commit (f7c5356): the fixture is that file, byte for
  * byte, so nothing but the source can have changed it (Biome leaves it alone, as it does the painter's goldens). */
 const SOURCE_SHA256 = '10add88bd8289642dbbcad5888754c480adf3f0cbca99ceef549fa7e8e7517f7'
@@ -77,6 +83,13 @@ describe('the source’s tiles golden', () => {
 
   it('has the keys the kit’s photos and swatches make, and no others', () => {
     expect(Object.keys(made)).toEqual(Object.keys(fixture))
+  })
+
+  it('names every photo the kit gained after the source, and each is in the kit', () => {
+    const kitPhotos = Object.keys(photos)
+    const sourcePhotos = new Set(Object.keys(fixture).map((key) => key.split('/')[0]))
+    expect(kitPhotos.filter((photo) => !sourcePhotos.has(photo)).sort()).toEqual([...LATER_PHOTOS].sort())
+    expect(Object.keys(all).filter(later).length).toBeGreaterThan(0)
   })
 
   // The source's guard on its own re-records: a flat photo's tone tile is one label at wear 0, so its frame pins wear

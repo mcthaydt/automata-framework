@@ -235,6 +235,21 @@ describe('the indoor things’ parameters', () => {
     expect(bounds(one, ['lever1'])[0][2] as number).toBeLessThan(bounds(shut, ['lever1'])[0][2] as number)
   })
 
+  // A strap is a band round the trunk: where the lid curves down to its front and back edges, the strap follows it and
+  // never stands up past it as a tab.
+  it("the trunk's straps follow the lid's curve and do not stand past its edges", () => {
+    const trunk = built('trunk')
+    const top = (label: string, nearEdge: (z: number) => boolean): number => {
+      const positions = piece(trunk, label).mesh.positions
+      let highest = -Infinity
+      for (let i = 0; i < positions.length; i += 3)
+        if (nearEdge(positions[i + 2] as number)) highest = Math.max(highest, positions[i + 1] as number)
+      return highest
+    }
+    for (const nearEdge of [(z: number) => z <= -0.22, (z: number) => z >= 0.22])
+      expect(top('straps', nearEdge)).toBeLessThanOrEqual(top('lid', nearEdge) + 0.01)
+  })
+
   it('the trunk is as wide as asked and has the straps asked for', () => {
     expect(sizeOf(built('trunk', { width: 1.2 }))[0]).toBeCloseTo(1.2, 1)
     const strapVertices = (n: number): number =>
