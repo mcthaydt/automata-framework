@@ -57,7 +57,10 @@ describe('the room’s world', () => {
   })
 
   it('stands every wall face above the 2 m camera bounds, and steps a channel down from its platforms', () => {
-    const faces = pieces('wall').filter((piece) => piece.line !== undefined)
+    // The room's own wall faces: a step or a band off a wall has the wall's line too (for the occluder rule), but is not a wall.
+    const faces = pieces('wall').filter(
+      (piece) => piece.line !== undefined && piece.id.split(':')[1] === 'wall',
+    )
     expect(faces.length).toBeGreaterThan(0)
     const tops = faces.map((face) => Math.max(...face.mesh.positions.filter((_, i) => i % 3 === 1)))
     for (const top of tops) expect(top).toBeGreaterThan(2)

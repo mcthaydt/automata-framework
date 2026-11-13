@@ -27,6 +27,18 @@ describe('loadModels', () => {
     expect(models.get('m/c.glb')).toBeUndefined()
   })
 
+  it('samples a model’s texture by nearest texel with no mips, as the look’s snap and the world’s tiles do, whatever decoded it', async () => {
+    // `Texture.from(bitmap)` is linear by default, which blurs a model's texels into colours the palette does not hold.
+    const linear: DecodeTexture = async () =>
+      new Texture({
+        source: new TextureSource({ width: 4, height: 4, scaleMode: 'linear', autoGenerateMipmaps: true }),
+      })
+    const models = await loadModels(['m/a.glb'], assetsOf({ 'm/a.glb': encodeGlb(fixtureBox()) }), linear)
+    const source = models.get('m/a.glb')?.texture.source
+    expect(source?.scaleMode).toBe('nearest')
+    expect(source?.autoGenerateMipmaps).toBe(false)
+  })
+
   it('marks each model’s material as shared, with a fresh copy for a prop that fades (review of #249, 2)', async () => {
     const assets = assetsOf({ 'm/a.glb': encodeGlb(fixtureBox()) })
     const models = await loadModels(['m/a.glb'], assets, decode)

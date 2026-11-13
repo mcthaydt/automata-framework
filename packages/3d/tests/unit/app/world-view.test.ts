@@ -123,6 +123,72 @@ describe('drawWorld', () => {
     expect((view.mesh('a:wall:0.0.0') as Mesh3D).visible).toBe(true)
     expect((view.mesh('a:floor') as Mesh3D).visible).toBe(true)
   })
+  describe('every face and prop between the eye and the figure', () => {
+    const frameOf = (
+      eye: { x: number; y: number; z: number },
+      feet: { x: number; y: number; z: number },
+    ) => ({
+      eye,
+      look: { ...feet, y: 1 },
+      feet,
+      head: { ...feet, y: 1.62 },
+      seconds: 1,
+      reduced: true,
+    })
+    // Room b's ceiling (2.2 m) under room a's (3 m) leaves a bulkhead over the opening, facing into a.
+    const two: AfSector2 = {
+      ...level,
+      sectors: [
+        ...level.sectors,
+        {
+          id: 'b',
+          floor: { z: 0 },
+          ceiling: { z: 2.2 },
+          light: 1,
+          corners: [
+            [4, 0],
+            [8, 0],
+            [8, 4],
+            [4, 4],
+          ],
+        },
+      ],
+    }
+    const built = buildWorld(two, LIB).pieces
+    const bulkhead = built.find((piece) => piece.id.split(':')[1] === 'upper')?.id as string
+
+    it('cuts a bulkhead over a portal when the line to the figure crosses it, and keeps it when the line passes under', () => {
+      const parent = new Container3D()
+      const occluders = createOccluders(parent)
+      const view = drawWorld({ parent, occluders, colourOf: () => 0 }, built)
+      occluders.update(frameOf({ x: 0, y: 3.5, z: 2 }, { x: 6, y: 0, z: 2 }))
+      expect((view.mesh(bulkhead) as Mesh3D).visible).toBe(false)
+      occluders.reset()
+      occluders.update(frameOf({ x: 0, y: 3.5, z: 2 }, { x: 4.5, y: 0, z: 2 }))
+      expect((view.mesh(bulkhead) as Mesh3D).visible).toBe(true)
+    })
+    it('fades a prop that hangs on the line to the figure, and leaves one that does not', () => {
+      const piece = (id: string, x: number): WorldPiece => ({
+        id,
+        sector: 'a',
+        light: 1,
+        part: 'prop',
+        mesh: box([x, 1.75, 1], [1, 0.2, 0.2]),
+        surface: 'trimWhite',
+      })
+      const parent = new Container3D()
+      const occluders = createOccluders(parent)
+      const view = drawWorld({ parent, occluders, colourOf: () => 0 }, [
+        ...pieces,
+        piece('on', 2),
+        piece('off', 0.5),
+      ])
+      occluders.update(frameOf({ x: 2, y: 3, z: -5 }, { x: 2, y: 0, z: 2 }))
+      expect((view.mesh('on') as Mesh3D).material.alpha).toBe(0.25)
+      expect((view.mesh('off') as Mesh3D).material.alpha).toBe(1)
+    })
+  })
+
   describe('a wall-mounted piece', () => {
     // A frame on the south wall (z = 0, the room on +z, facing south) and one on the north wall (z = 4, facing north).
     const hung = buildWorld(

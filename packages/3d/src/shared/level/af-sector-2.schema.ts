@@ -79,10 +79,31 @@ export interface AfSectorEntry2<P = Plane> {
 }
 
 /** A thing placed in the level: a preset (`use`) or a generator (`kind`), where it stands, its turn, its parameters. */
+/**
+ * How a prop's model sits on its blockout when the default fit is not the place the model should stand. The default is the
+ * largest uniform scale that keeps the model inside the blockout's box on every axis, resting on its base, centred on its
+ * footprint and turned with it; each member changes one thing of that.
+ */
+export interface PropFit {
+  /** The uniform scale, in place of the one that fits the box. */
+  readonly scale?: number | undefined
+  /** Metres to move the model, after it is fitted: `[x, up, z]`. */
+  readonly offset?: readonly [number, number, number] | undefined
+  /** Degrees to turn the model about up beyond the blockout's own turn (a model whose front is not the blockout's). */
+  readonly turn?: number | undefined
+}
+
 export interface PropPlace {
   readonly id: string
   readonly use?: string | undefined
   readonly kind?: string | undefined
+  /**
+   * A model file (`.bin` or `.glb`) that replaces the prop's generated parts on screen. The generated prop is the blockout: it
+   * owns the prop's place, turn, footprint, height and collider, and the model is fitted to it (`fit`). With no `model` the
+   * blockout draws. The game lists the file for the renderer to load (`modelsOf`).
+   */
+  readonly model?: string | undefined
+  readonly fit?: PropFit | undefined
   /** `[x, z]` on the floor, or `[x, z, height]`. */
   readonly at: readonly number[]
   /** Degrees clockwise from east (90 faces south). */
@@ -94,10 +115,18 @@ export interface PropPlace {
 
 const positionSchema = z.array(z.number()).min(2).max(3)
 
+const propFitSchema: z.ZodType<PropFit> = z.looseObject({
+  scale: z.number().optional(),
+  offset: z.tuple([z.number(), z.number(), z.number()]).optional(),
+  turn: z.number().optional(),
+})
+
 export const propPlaceSchema: z.ZodType<PropPlace> = z.looseObject({
   id: z.string(),
   use: z.string().optional(),
   kind: z.string().optional(),
+  model: z.string().optional(),
+  fit: propFitSchema.optional(),
   at: positionSchema,
   angle: z.number().optional(),
   with: z.record(z.string(), z.unknown()).optional(),
