@@ -1,19 +1,59 @@
 # AutomataFramework: Agent Rules
 
-AF is a TypeScript framework for small, deterministic web games. The simulation runs on Koota and is checked bit
+AF is a TypeScript framework for small, deterministic 2D web games. The simulation runs on Koota and is checked bit
 for bit in Node, Chromium, WebKit and Firefox. PixiJS draws the game. `web`, `itch`, `ruken` and `tauri` are peer
-distribution targets, chosen when the game is built. The Owner's direction, decision by decision, is in
-[`docs/archive/direction-log.md`](docs/archive/direction-log.md).
+distribution targets, chosen when the game is built.
+
+## What we are doing now
+
+**Make 2D perfect and ship 2D only.** The Owner's words, 2026-11-13. A first 3D attempt was made and is being moved
+out of `main`; [`docs/refactor/2026-11-13-2d-launch-cut-list.md`](docs/refactor/2026-11-13-2d-launch-cut-list.md) is
+the order of work until it is done. If a task does not make the 2D launch better or sooner, it waits.
 
 ## Read order
 
-1. [`docs/README.md`](docs/README.md): what AF is and where things are.
-2. [`docs/status.md`](docs/status.md): what works today and what is next.
-3. [`docs/refactor/progress.md`](docs/refactor/progress.md): the refactor's tasks, with evidence.
-4. [`docs/refactor/2026-11-05-core-and-2d-spec.md`](docs/refactor/2026-11-05-core-and-2d-spec.md): the layout and
-   the rules below, with reasons. Its plan is next to it.
+1. This page.
+2. [`docs/README.md`](docs/README.md): what AF is and where things are.
+3. The cut list above, while the cut is running; then [`docs/status.md`](docs/status.md).
 
-The 2026-10 specs, plans and task lists are in `docs/archive/`. They are history, not a source of tasks.
+Everything under `docs/archive/`, `docs/refactor/` (but the cut list) and `docs/superpowers/` is history, not a source
+of tasks.
+
+## Staying on the rails
+
+These exist because the project went off them once: 3D and a showcase game took over before 2D shipped, 70 branches
+and 18 "known" test failures piled up, and each piece of work passed through seven sessions and as many documents.
+
+**Scope**
+- Nothing new starts without the Owner's words: no new package, extension, game, example, editor, target or
+  dependency. "It would be useful later" is not a reason. Say what you found and ask.
+- No 3D work in this repository until the Owner says 2D has shipped.
+- Build nothing ahead of its user. Code stays only if a game, an example or a journey in this repository uses it.
+- Keep the change to what was asked. A second problem found on the way is reported, not fixed in the same change,
+  unless it blocks the task.
+- A decision the Owner has made is not reopened. If new facts make it look wrong, say so once, with the facts.
+
+**Pace**
+- One piece of work is one branch and one pull request, small enough to review in one sitting. It merges or closes
+  within two days. Never build on a branch that is not in `main`.
+- At most three pull requests open, and one in CI at a time: the runners are the Owner's own machines.
+- The process is: say what you will build (in the pull request, a few lines), build it test first, have it reviewed.
+  No committed plans, audits, handoffs or progress pages; what a reader needs goes in the pull request and the
+  commit message. The cut list's own record is the one exception, until the cut is done.
+- Stop and tell the Owner when a task has taken twice what was expected, when the third fix for the same failure
+  has not worked, or when a look has been through two rounds without his "fine". Do not start a fourth attempt.
+- Do not delegate to subagents or start other sessions unless asked.
+
+**Truth**
+- `main` is green. A test that fails on `main` is fixed, or its cause removed, before any other work. There is no
+  list of known failures to merge past, and no step may hide behind a failing one. Until the cut has removed 3D, its
+  night journeys fail on `main`: the cut list's pull requests and the merges the Owner names go past them, and each
+  says so.
+- A test that fails once and passes on retry is a defect to find, not a flake to note. It does not block that merge,
+  but it is reported the same day with its text, and a second sighting is fixed before other work.
+- "Done" means merged to `main` and green there. Otherwise say where it is: "on a branch", "in CI", "not started".
+- Report what you ran, what you did not run and why, and what is still open. Never round up.
+- Speak plainly to the Owner: the conclusion first, short, no jargon he did not use.
 
 ## The laws
 
@@ -60,6 +100,20 @@ The 2026-10 specs, plans and task lists are in `docs/archive/`. They are history
   focus, hit testing or a host journey.
 - Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happening and what to press?
 
+## Where to work: the Mac or the cloud
+
+- Develop on the Mac (a local session) when the change is judged by looking or playing: UI, layout, the editors,
+  input, rendering. The dev server and a real browser answer in seconds there.
+- Develop in a cloud session when the task is specified and checked without a browser: the sim, the content compiler,
+  tooling, unit tests, docs. Cloud sessions run side by side and suit work nobody is steering minute by minute. A cloud
+  session has no WebKit and no GPU, so for browser work it can only push and wait for CI.
+- While a session is developing on the Mac, test suites run only on the Windows machine (the `af-linux` runners):
+  through the pull request's CI, or the focused browser run in `ci.yml`. Running suites on the Mac beside the work
+  starves both, and the tests fail on timeouts.
+- A cloud session passes lint, typecheck and the unit tests in its own container before it pushes. CI confirms; it is
+  not the first test.
+- Every pull request runs on the same two machines, one at a time. More sessions do not merge faster.
+
 ## How to work
 
 - Write the failing test first in `packages/`, `tooling/`, `games/` and `examples/`; confirm it fails for the right
@@ -68,21 +122,23 @@ The 2026-10 specs, plans and task lists are in `docs/archive/`. They are history
 - A hash that moves is investigated, not re-recorded per engine. Say why in the commit when it must move.
 - Look at the real expected, actual and diff images before accepting a visual change, and explain each change.
 - Facts come from artifacts: hashes, sizes and timings are measured, never written by hand.
-- Keep the change to what was asked. Preserve other people's changes. Do not delegate to subagents unless asked.
-- Update `docs/refactor/progress.md` and the plan's log in the same session as the work. Tick a plan step only when
-  its checks pass. Leave a gate unchecked if it did not run, and say which.
+- Preserve other people's changes.
 
 ## Gates
 
 - `pnpm format` before committing; Conventional Commits.
 - `pnpm check` runs lint, typecheck, `boundaries`, `style`, `knip`, the unit tests, `changeset status` and
   `check-changesets`.
-- Pull requests run `pnpm check` plus parity and the 2D journeys. `release-checks.yml` (before every publish, nightly
+- Pull requests run the whole-repository checks (lint, typecheck, `boundaries`, `style`, `knip`, the dependency, secret
+  and changeset checks), then only the unit tests, parity suites and 2D journeys of the packages the change affects,
+  dependents included (`pnpm test:unit:affected`, `test:browser:affected`, `test:e2e:affected`; a step with nothing
+  affected says it was skipped). A change outside the workspace folders (root config, the lockfile, a workflow, `vendor/`)
+  or in documentation a test reads runs everything, as do pushes to main, the nightly run and manual runs. `release-checks.yml` (before every publish, nightly
   and by hand, not on pull requests) runs `pnpm build`, `pnpm api-report`, `pnpm api-index`, `pnpm agent-skills` and the
   packed-install smoke. After changing a published package's exports or doc comments, run `pnpm build`, then
   `pnpm api-report --update` and `pnpm api-index --write` (the cheatsheet and the agent package's API reference), and
   commit what they write.
-- The gate runs every unit test (`pnpm check` runs `pnpm test:unit`, 3D included) and the 2D browser suites
+- `pnpm check` and a push to main run every unit test (`pnpm test:unit`, 3D included) and the 2D browser suites
   (`pnpm test:browser:2d`); `.github/workflows/3d.yml` runs the 3D browser suites and journeys, and `pnpm ci:local` runs both.
 - Only published packages get a changeset, and it is `patch`. Private ones (the editors, figures) need none. The one exception is `.changeset/first-public-release.md`, a `minor` that takes the shared version to 0.1.0 once.
 - Browser, visual and journey suites run on the GPU runner, and cross-engine parity runs in Chromium, WebKit and
@@ -91,7 +147,10 @@ The 2026-10 specs, plans and task lists are in `docs/archive/`. They are history
 
 ## Branches and pull requests
 
-- Work on a branch and open a draft pull request. Do not leave backup or handoff branches; a draft PR or a tag does
-  that job. When a branch's pull request is merged, delete the branch.
-- `main` and the branches with an open pull request are the only long-lived branches.
-- Credentials, money, real-device tests, release approvals and branch deletions are the Owner's.
+- `main` and the branches with an open pull request are the only branches. No backup, handoff or notes branches; a
+  tag does that job. GitHub deletes a pull request's branch when it merges; any other deletion is the Owner's.
+- Merge with a merge commit, never a squash, so ancestry shows what is in `main`.
+- Never force-push. Never loosen, skip or re-record a test to get green; a golden moves only with the Owner seeing
+  before and after.
+- Workflow files (`.github/workflows/*`) change only on the Owner's words, quoted in the commit.
+- Credentials, money, real-device tests, release approvals, tags and branch deletions are the Owner's.

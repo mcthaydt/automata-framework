@@ -90,3 +90,37 @@ describe('the browser scripts', () => {
     },
   )
 })
+
+// Owner, 2026-11-13: "we should only run tests that are relevant to the pr". A pull request runs the unit tests and the
+// journeys of the packages it affects through these two scripts; the full scripts stay what a push to main, the nightly
+// run, `pnpm check` and the commit hook's neighbours run. ci-affected.test.ts pins which one the workflow calls when.
+describe('the affected-only scripts', () => {
+  it('test:unit:affected runs the unit tests the way test:unit does, for the affected packages only', () => {
+    const affected = scripts['test:unit:affected']
+    const full = scripts['test:unit']
+    expect(affected, 'test:unit:affected exists').toBeDefined()
+    // AF_UNIT_FULL makes the figures package run its whole suite, not only the goldens the commit hook runs.
+    expect(affected).toContain('AF_UNIT_FULL=1')
+    expect(affected).toContain('affected-run-cli.ts test:unit')
+    expect(affected).toContain('--testTimeout=90000')
+    expect(affected).toContain('VITEST_MAX_WORKERS=')
+    // The 3D packages are part of the gate: no filter drops them.
+    expect(affected).not.toContain('--filter')
+    expect(full).toContain('AF_UNIT_FULL=1')
+  })
+
+  it('test:e2e:affected passes the filters through, as test:e2e does', () => {
+    const affected = scripts['test:e2e:affected']
+    expect(affected, 'test:e2e:affected exists').toBeDefined()
+    expect(affected).toContain('affected-run-cli.ts test:e2e')
+    expect(affected).toContain('--log-order stream')
+  })
+
+  it('leaves the full scripts and `pnpm check` as they are', () => {
+    expect(scripts['test:unit']).toBe(
+      'AF_UNIT_FULL=1 VITEST_MAX_WORKERS=${VITEST_MAX_WORKERS:-${CI:+2}} turbo run test:unit -- --testTimeout=90000',
+    )
+    expect(scripts['test:e2e']).toBe('turbo run test:e2e --log-order stream')
+    expect(scripts.check).toContain('pnpm test:unit &&')
+  })
+})
