@@ -49,11 +49,14 @@ export interface LitCellsOptions {
    * room's colour never tints it, so a face is never lavender in a cool dim room. None (the default): every texel is the lit sprite's.
    */
   readonly skin?: readonly number[] | undefined
+  /** Of `skin`, the colours another of the figure's materials paints too (`sharedColours`): held only where the skin closes round them. */
+  readonly shared?: readonly number[] | undefined
 }
 
 /** A cache of at most `limit` lit cells, the oldest dropped first. */
 export function litCells(limit = LIT_CELLS, options: LitCellsOptions = {}): LitCells {
   const skin = options.skin === undefined || options.skin.length === 0 ? undefined : new Set(options.skin)
+  const shared = new Set(options.shared ?? [])
   const kept = new Map<string, { readonly rgba: Uint8ClampedArray; readonly key: string }>()
   return {
     lit(figure, light) {
@@ -71,7 +74,7 @@ export function litCells(limit = LIT_CELLS, options: LitCellsOptions = {}): LitC
           const grey = r === g && g === b
           // The same light with no colour of its own: what the skin is stepped by.
           const neutral = grey ? rgba : lightSprite(figure, { ...light.lighting, flat: [peak, peak, peak] })
-          holdSkinHue(unlit.painted, neutral, rgba, skin)
+          holdSkinHue(unlit.painted, neutral, rgba, skin, unlit.size[0], shared)
         }
         hit = { rgba, key: `${unlit.key}|${light.key}` }
         kept.set(id, hit)

@@ -157,6 +157,7 @@ describe('the public surface', () => {
         'normalize',
         'oklab',
         'onHead',
+        'paintedTones',
         'placed',
         'qmul',
         'rampOf',

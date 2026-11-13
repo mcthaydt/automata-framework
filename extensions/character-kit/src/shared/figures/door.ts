@@ -63,6 +63,7 @@ export {
   type Limb,
   lerp,
   limb,
+  paintedTones,
   qmul,
   type Ring,
   smooth,
