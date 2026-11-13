@@ -112,8 +112,58 @@ Not run: WebKit and Firefox (not installed here; parity pending for CI), `pnpm t
 suites other than the frame shoots, the 3D workflow. Not needed: `api-report` and `api-index` (no published package's exports or doc
 comments changed), a changeset (only the private game changed).
 
+## Round 2: seat below 0.2? (the coordinator: "one texel is not what the Owner asked for")
+
+The coordinator allowed `seat` under 0.2 (the build guard widened for `seat` only) and asked for a strip first.
+`seat-0.2-0.1-0.0-and-base-man-back-and-profiles-d2-x3.png`: density 2, x3, the back (N), both three-quarter backs (NE, NW) and both
+profiles (E, W), at seat 0.2 (now), 0.1 and 0.0, and the painter's base man in her clothes as a measure of "ordinary". Opened.
+
+By eye the three seat rows are the same picture. In texels (shirt at the shoulders / waistcoat's narrowest / jeans' widest at the seat):
+
+| | N | NE | NW | E | W |
+|---|---|---|---|---|---|
+| seat 0.2 (now) | 30 / 17 / 30 | 23 / 12 / 23 | 21 / 12 / 25 | 16 / 15 / 17 | 17 / 14 / 17 |
+| seat 0.1 | 30 / 17 / 30 | 23 / 12 / 23 | 21 / 12 / 24 | 16 / 15 / 17 | 17 / 14 / 17 |
+| seat 0.0 | 30 / 17 / 30 | 23 / 12 / 23 | 21 / 12 / 24 | 16 / 15 / 17 | 17 / 14 / 17 |
+| base man in her clothes | 42 / 24 / 33 | 33 / 15 / 24 | 33 / 14 / 33 | 20 / 17 / 20 | 20 / 18 / 20 |
+
+**Chosen: stay at 0.2.** 0.0 moves one texel in one view (NW 25 to 24) and none elsewhere, so widening the guard buys nothing the eye
+can see. The guard is left as it is. Nothing re-shot: her data did not change in this round, so the sheet and frames above are current.
+
+Why the slider cannot do it: `seat` is a deliberately narrow range in the painter. At 0 the hips' rings are 0.93 as deep and 0.94 as
+wide as at 0.5 (`measure` in `extensions/figures/src/shared/body/genes.ts`; the ends are pinned by the painter's own
+`extensions/figures/tests/unit/body/bust-seat.test.ts`, "seat 0.93–1.12 deep and 0.94–1.06 wide"). What makes the woman's seat full is
+elsewhere: the frame (her `frame` 0.95) gives the torso's depth `D` a factor `lerp(1, 1.12, f)` and the hip rings' width
+`lerp(0.95, 1.06, f)` on the build term (`extensions/figures/src/shared/outfit/fit.ts`, the three rings from `hipY + 0.08 k` down), and
+the jeans grow that torso shell a fixed one clearance from the belt down (`legsOf`, `trousers.ts`). `frame`, `fat` and `chunk` also set
+her head's width, so they are not hers to move while her face is frozen. The base man's ratio, seat to shoulders, is about 0.79 from
+behind (33 to 42); hers is 1.0 (30 to 30).
+
+### The next step, the generator's (the Owner's to see first; NOT done)
+
+One change, smallest first, in `extensions/figures/src/shared/body/genes.ts`:
+
+```ts
+// now
+seat: { rz: about(s.seat, 0.93, 1.12), dz: 0.012 * (0.5 - s.seat) * 2, rx: about(s.seat, 0.94, 1.06) },
+// proposed: a flat seat really flat; 0.5 still exactly 1
+seat: { rz: about(s.seat, 0.8, 1.12), dz: 0.012 * (0.5 - s.seat) * 2, rx: about(s.seat, 0.85, 1.06) },
+```
+
+What it would move:
+- `bust-seat.test.ts`'s pinned ends (0.93 and 0.94 at seat 0) would be re-set to 0.8 and 0.85: the painter's own spec of the slider.
+- `about` is exactly 1 at 0.5, so every figure at the default seat (the base pair, which leave `seat` out) paints the same: the base
+  pair's goldens should not move. Not run, so not claimed: the figures `goldens` project and the kit's recorded cells must be run to
+  show it, and any figure in a library or fixture with a seat under 0.5 would move.
+- Ada at seat 0.2 would take about 0.88 of the default depth and 0.91 of the width at the seat: by the scale above, some three texels
+  narrower from behind at density 2. Measured only once the change exists.
+
+A second lever, if that is not enough, is the jeans' seat: `legsOf` grows the torso shell by `ease` (1 clearance for `jeans`) all the way
+down; a smaller ease behind the hip rings would take a texel off every figure in jeans or trousers, and would move the kit's recorded
+runway cells. Larger, and the Owner's.
+
 ## For the tracker
 
 | Session | Model | Branch | Row |
 |---|---|---|---|
-| Ada build (look) | Opus 5.5, no subagents | `claude/last-light-ada-build` | 2026-11-13, from `3954f492`. The Owner: "her hips are too wide and her arms being bent like that is odd", "maybe not hips but ass". **Done, tests first, pushed:** her standing arms take the painter's `loose` stand (`standElbow 0.34`, `hang 0.02`; was `elbow + idleElbow` 0.70 rad, hung 0.12) (`da1f5b98`); her seat `hips 0.55 -> 0.5`, `seat 0.5 -> 0.2`, at density 2 from behind no wider than her shoulders (31 -> 30), the build guard now holds an unnamed slider to the default (`65820dfa`). The rest of the seat's fullness is the generator's (base woman shown); not changed. Frames: `docs/superpowers/audits/2026-11-13-last-light-ada-build/`. |
+| Ada build (look) | Opus 5.5, no subagents | `claude/last-light-ada-build` | 2026-11-13, from `3954f492`. The Owner: "her hips are too wide and her arms being bent like that is odd", "maybe not hips but ass". **Done, tests first, pushed:** her standing arms take the painter's `loose` stand (`standElbow 0.34`, `hang 0.02`; was `elbow + idleElbow` 0.70 rad, hung 0.12) (`da1f5b98`); her seat `hips 0.55 -> 0.5`, `seat 0.5 -> 0.2`, at density 2 from behind no wider than her shoulders (31 -> 30), the build guard now holds an unnamed slider to the default (`65820dfa`). The rest of the seat's fullness is the generator's (base woman shown); not changed. Round 2: seat 0.1 and 0.0 measured (one texel in one view), so 0.2 stays and the guard is unchanged; the generator's seat range (`genes.ts`, `about(s.seat, 0.93…/0.94…)`) is the next step, written down, not done. Frames: `docs/superpowers/audits/2026-11-13-last-light-ada-build/`. |
