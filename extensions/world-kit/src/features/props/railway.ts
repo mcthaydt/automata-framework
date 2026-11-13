@@ -135,4 +135,104 @@ const signal: Generator = (p) => {
   }
 }
 
-export const RAILWAY: Readonly<Record<string, Generator>> = { rails, platformEdge, canopy, signal }
+/**
+ * A ticket window: a counter with a partition above it, an opening in the partition and a glass sash that slides up over
+ * the header when `open` is true and covers the opening when it is false. `width` 1.6 m. The sash is in front of the
+ * partition, so it adds no depth: the counter is as deep as the whole. Bounds with the defaults: 1.6 × 2.1 × 0.5.
+ */
+const ticketWindow: Generator = (p) => {
+  const w = p.width ?? 1.6
+  const mat = p.mat ?? 'oak'
+  const opening = w - 0.6
+  const partition = merge(
+    // The header above the opening and a pillar either side of it, the partition's back on the counter's back.
+    box([0, 1.55, -0.22], [w, 0.55, 0.06]),
+    box([-w / 2 + 0.15, 1.04, -0.22], [0.3, 0.51, 0.06]),
+    box([w / 2 - 0.15, 1.04, -0.22], [0.3, 0.51, 0.06]),
+  )
+  return {
+    pieces: [
+      part(box([0, 0, 0], [w, 1, 0.5]), mat, 'counter'),
+      part(box([0, 1, 0], [w, 0.04, 0.5]), p.counterTop ?? mat, 'counterTop'),
+      part(partition, p.frame ?? 'panelPainted', 'partition'),
+      // Raised by the height of the opening, the sash stands over the header, clear of the opening.
+      part(
+        box([0, p.open === false ? 1.03 : 1.58, -0.18], [opening + 0.04, 0.54, 0.03]),
+        p.glass ?? 'glassDay',
+        'sash',
+        { noCast: true },
+      ),
+    ],
+    top: { y: 1.04, size: [w, 0.5] },
+  }
+}
+
+/** Where each lever of a frame leans, in degrees about x: upright-ish (toward +z) at rest, well back (toward −z) pulled. */
+const LEVER_REST = 10
+const LEVER_PULLED = -35
+
+/**
+ * A signal box's lever frame: a frame on the floor with a row of `levers` 0.25 m apart, each a piece of its own so a
+ * lever that is `pulled` (its index in the list, counted from the −x end) is the only piece that changes. A pulled lever
+ * lies back toward −z. `levers` 4. Bounds with the defaults: 1.2 × 1.3 × 0.6.
+ */
+const leverFrame: Generator = (p) => {
+  const n = Math.max(1, Math.round(p.levers ?? 4))
+  const pulled: readonly number[] = Array.isArray(p.pulled) ? p.pulled : []
+  const w = n * 0.25 + 0.2
+  const xs = Array.from({ length: n }, (_, i) => -w / 2 + 0.1 + (i + 0.5) * 0.25)
+  const frame = merge(
+    box([0, 0, 0], [w, 0.3, 0.6]),
+    // The back plate the levers pivot on, with a pin at each pivot.
+    box([0, 0.3, -0.25], [w, 0.55, 0.04]),
+    ...xs.map((x) => rod([x, 0.32, -0.2], [x, 0.32, 0.2], 0.02, 6)),
+  )
+  const lever = (x: number, down: boolean) =>
+    turnX(
+      merge(rod([0, 0, 0], [0, 0.98, 0], 0.018, 6), rbox([0, 0.94, 0], [0.05, 0.07, 0.05], 0.5)),
+      down ? LEVER_PULLED : LEVER_REST,
+      [x, 0.32, 0],
+    )
+  return {
+    pieces: [
+      part(frame, p.frame ?? 'ironDark', 'frame'),
+      ...xs.map((x, i) =>
+        part(
+          lever(x, pulled.includes(i)),
+          pulled.includes(i) ? (p.pulledLever ?? 'carRed') : (p.lever ?? 'steelGrey'),
+          `lever${i}`,
+        ),
+      ),
+    ],
+  }
+}
+
+/**
+ * A travelling trunk: a box with an arched lid, `straps` bands over it and a clasp on the front. `width` 0.9 m. Bounds with
+ * the defaults: 0.9 × 0.5 × 0.5.
+ */
+const trunk: Generator = (p) => {
+  const w = p.width ?? 0.9
+  const n = Math.max(0, Math.round(p.straps ?? 2))
+  const straps = merge(
+    ...Array.from({ length: n }, (_, i) => box([-w / 2 + ((i + 0.5) * w) / n, 0, 0], [0.05, 0.495, 0.505])),
+  )
+  return {
+    pieces: [
+      part(rbox([0, 0, 0], [w, 0.34, 0.5], 0.15), p.mat ?? 'crateWood', 'body'),
+      part(rbox([0, 0.34, 0], [w, 0.16, 0.5], 0.5), p.mat ?? 'crateWood', 'lid'),
+      part(straps, p.strap ?? 'ironDark', 'straps'),
+      part(box([-0.03, 0.3, 0.24], [0.06, 0.1, 0.03]), p.clasp ?? 'brass', 'clasp'),
+    ],
+  }
+}
+
+export const RAILWAY: Readonly<Record<string, Generator>> = {
+  rails,
+  platformEdge,
+  canopy,
+  signal,
+  ticketWindow,
+  leverFrame,
+  trunk,
+}

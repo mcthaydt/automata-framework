@@ -81,6 +81,39 @@ behind the fascia at the sheet's angles and it looks like a table; a real statio
 glass; raised, the arm reads clearly as "clear". The lamp is small, so at the game's scale it will be a few pixels: the
 light it carries is what will say "lit".
 
+## W3: indoor props and the platform lamp
+
+New in `railway.ts`: `ticketWindow`, `leverFrame`, `trunk`; in `library/props.json` three presets of the same names and
+`lamp.platform` (core's `streetLamp`, `height 3.4`, pole `ironDark`, head `lampHead`, glass `bulbWarm`, a `sodium` light
+as core's own street lamp has); the tests are in `railway.test.ts`; the README's section lists the seven kinds, their
+bounds and the preset.
+
+Steps, with evidence:
+
+- Step 1 (failing): the new kinds' tests and the preset's, written first: 30 failures (`unknown-generator`, and no preset
+  `lamp.platform`).
+- Step 2: generators and presets. One test failed on the first run for a real reason: a pulled lever leaned the wrong way
+  (the sign of the turn about x was the other way round from the comment); after fixing the two constants, 22 files, 333
+  tests, all pass.
+
+Choices the plan left open: the window's glass sash is a piece in front of the partition, so "open: false is no deeper
+than its counter" holds with the counter as deep as the whole; a lever at rest leans 10° toward +z and a pulled one lies
+back 35° toward −z, each lever a piece of its own (`lever0` …) so only a pulled lever's piece changes (it is red); the
+frame is `0.25 × levers + 0.2` m wide, so four levers give the plan's 1.2 m.
+
+Sheet: [`w3-indoor.png`](w3-indoor.png): the window open and shut, the lever frame at rest and with levers 1 and 2 pulled,
+the trunk and `lamp.platform`, each from two yaws, by the same scratch renderer as W2 (flat DUEL colours, no texture, no
+light).
+
+What I see. *Ticket window*: a wooden counter with a painted partition and a pane above: shut, the pane covers the opening;
+open, it stands over the header and the opening shows. Reads as a booth. It is stiff: no grille, no shelf, no little
+details a stationmaster would have; the dark green partition is a big plain slab. *Lever frame*: the best of the set:
+four slim levers with knobs on a frame with a back plate, and the pulled ones, red, lie back clearly. A pulled lever
+swings behind the back plate, so from the front only its tip shows: right for a signal box, hard to read at small scale.
+*Trunk*: a leather-and-wood trunk with an arched lid, two straps and a brass clasp; the straps' ends poke up past the
+lid's rounded back edge as small tabs: a flaw, harmless at the game's scale. *`lamp.platform`*: a thin dark pole with a
+lamp head on a short arm: reads as a platform lamp; the head is small.
+
 ## For the tracker
 
 (Rows for `docs/superpowers/progress.md`, for the coordinator to copy. Filled in as the tasks finish.)

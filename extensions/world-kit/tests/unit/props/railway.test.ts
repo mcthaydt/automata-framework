@@ -1,4 +1,5 @@
-// The railway's things: track, platform edge, canopy and signal. Each is registered, draws the same twice, keeps to the
+// The railway's things: track, platform edge, canopy, signal, ticket window, lever frame and trunk, and the platform lamp
+// preset. Each kind is registered, draws the same twice, keeps to the
 // size it documents, and does what its parameters say. A level of them builds and its surfaces pass the kit's reads check.
 import {
   type Built,
@@ -22,6 +23,9 @@ const SIZES: Readonly<Record<string, Size>> = {
   platformEdge: [6, 0.9, 0.6],
   canopy: [6, 3.6, 3],
   signal: [1.2, 5, 0.5],
+  ticketWindow: [1.6, 2.1, 0.5],
+  leverFrame: [1.2, 1.3, 0.6],
+  trunk: [0.9, 0.5, 0.5],
 }
 const KINDS = Object.keys(SIZES)
 
@@ -184,9 +188,87 @@ describe('the parameters', () => {
   })
 })
 
+describe('the indoor things’ parameters', () => {
+  /** A piece's mesh, or undefined where the build has none of that label. */
+  const meshOf = (b: Built, label: string): MeshData | undefined =>
+    b.pieces.find((p) => p.label === label)?.mesh
+
+  it('the ticket window is as wide as asked', () => {
+    expect(sizeOf(built('ticketWindow', { width: 2 }))[0]).toBeCloseTo(2, 1)
+  })
+
+  it('the ticket window with its hatch shut is no deeper than its counter', () => {
+    const shut = built('ticketWindow', { open: false })
+    expect(sizeOf(shut)[2] as number).toBeLessThanOrEqual((sizeOf(shut, ['counter'])[2] as number) + 1e-6)
+  })
+
+  it('the ticket window’s hatch is up when open and down when shut; the rest does not move', () => {
+    const top = (open: boolean): number => bounds(built('ticketWindow', { open }), ['sash'])[0][1] as number
+    expect(top(true)).toBeGreaterThan(top(false) + 0.3)
+    for (const label of ['counter', 'partition'])
+      expect(meshOf(built('ticketWindow', { open: true }), label)).toEqual(
+        meshOf(built('ticketWindow', { open: false }), label),
+      )
+  })
+
+  it('the lever frame has the levers asked for, one piece each, and is as wide as they need', () => {
+    const levers = (n: number): string[] =>
+      built('leverFrame', { levers: n })
+        .pieces.map((p) => p.label)
+        .filter((l) => l.startsWith('lever') && l !== 'leverFrame')
+    expect(levers(4)).toHaveLength(4)
+    expect(levers(6)).toHaveLength(6)
+    expect(sizeOf(built('leverFrame', { levers: 6 }))[0]).toBeGreaterThan(
+      sizeOf(built('leverFrame'))[0] as number,
+    )
+  })
+
+  it('a pulled lever leans toward −z and the rest of the frame is the same', () => {
+    const shut = built('leverFrame', { pulled: [] })
+    const one = built('leverFrame', { pulled: [1] })
+    expect(one.pieces.map((p) => p.label)).toEqual(shut.pieces.map((p) => p.label))
+    for (const { label, mesh } of one.pieces) {
+      const same = JSON.stringify(mesh) === JSON.stringify(meshOf(shut, label))
+      expect(same, label).toBe(label !== 'lever1')
+    }
+    // Lever 1's far end is behind where it was: its lowest z is more negative.
+    expect(bounds(one, ['lever1'])[0][2] as number).toBeLessThan(bounds(shut, ['lever1'])[0][2] as number)
+  })
+
+  it('the trunk is as wide as asked and has the straps asked for', () => {
+    expect(sizeOf(built('trunk', { width: 1.2 }))[0]).toBeCloseTo(1.2, 1)
+    const strapVertices = (n: number): number =>
+      meshOf(built('trunk', { straps: n }), 'straps')?.positions.length ?? 0
+    expect(strapVertices(2)).toBeGreaterThan(0)
+    expect(strapVertices(4)).toBe(2 * strapVertices(2))
+    expect(strapVertices(0)).toBe(0)
+  })
+})
+
+describe('the preset lamp.platform', () => {
+  it('resolves, to core’s street lamp at 3.4 m with the lamp head and a warm bulb', () => {
+    const resolved = resolveProp({ use: 'lamp.platform' }, worldKitLibrary)
+    if (isFault(resolved)) throw new Error(`no preset lamp.platform: ${resolved.code}`)
+    expect(resolved.kind).toBe('streetLamp')
+    expect(resolved.params).toMatchObject({ height: 3.4, head: 'lampHead', glass: 'bulbWarm' })
+  })
+
+  it('draws a lamp 3.4 m tall that carries a light, and builds in a level with no problem', () => {
+    const resolved = resolveProp({ use: 'lamp.platform' }, worldKitLibrary)
+    if (isFault(resolved)) throw new Error(resolved.code)
+    const lamp = resolved.generator(resolved.params)
+    expect(lamp.lights?.length ?? 0).toBeGreaterThan(0)
+    expect(sizeOf(lamp)[1]).toBeGreaterThan(3.4)
+    expect(sizeOf(lamp)[1]).toBeLessThan(3.7)
+    expect(
+      buildWorld(levelWith([{ id: 'l', use: 'lamp.platform', at: [3, 3] }]), worldKitLibrary).problems,
+    ).toEqual([])
+  })
+})
+
 describe('in a level', () => {
   const level = levelWith(
-    KINDS.map((kind, i) => ({ id: kind, use: kind, at: [1 + (i % 2) * 3, 1 + Math.floor(i / 2) * 3] })),
+    KINDS.map((kind, i) => ({ id: kind, use: kind, at: [1.5 + (i % 3) * 2, 1.5 + Math.floor(i / 3) * 2] })),
   )
 
   it('builds with no problem and every prop in its room', () => {

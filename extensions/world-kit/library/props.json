@@ -575,5 +575,27 @@
   },
   "signal": {
     "kind": "signal"
+  },
+  "ticketWindow": {
+    "kind": "ticketWindow"
+  },
+  "leverFrame": {
+    "kind": "leverFrame"
+  },
+  "trunk": {
+    "kind": "trunk"
+  },
+  "lamp.platform": {
+    "kind": "streetLamp",
+    "height": 3.4,
+    "pole": "ironDark",
+    "head": "lampHead",
+    "glass": "bulbWarm",
+    "light": {
+      "kind": "sodium",
+      "shaft": true,
+      "aim": [0, -1, 0.15],
+      "cone": 72
+    }
   }
 }

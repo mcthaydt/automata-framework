@@ -43,7 +43,7 @@ Every swatch is a parameter with a default (`mat`, `metal`, `tyre`), so a game p
 
 ## A railway's things
 
-Four props for a line, a yard or a tram stop, each a preset of the same name and a generator (`kind = "rails"`) that draws
+Seven props for a line, a yard, a signal box or a tram stop, each a preset of the same name and a generator (`kind = "rails"`) that draws
 without one. A prop's origin is the centre of its base and its front is +z; the track and the platform edge run along x.
 
 | Kind | Parameters | Bounds with the defaults (m) |
@@ -52,6 +52,11 @@ without one. A prop's origin is the centre of its base and its front is +z; the 
 | `platformEdge` | `length` (6), `height` (0.9), `line` (true: the white line on the coping) | 6 × 0.9 × 0.6 |
 | `canopy` | `length` (6), `depth` (3), `posts` (2), `height` (3.2: the front's underside; the roof pitches up toward the back) | 6 × 3.6 × 3 |
 | `signal` | `clear` (false: the arm level; true: raised 40°), `lit` (true: a red glass and a light), `height` (5); the arm reaches out along +x | 1.2 × 5 × 0.5 |
+| `ticketWindow` | `width` (1.6), `open` (true: the glass sash slid up over the header; false: it covers the opening) | 1.6 × 2.1 × 0.5 |
+| `leverFrame` | `levers` (4, 0.25 m apart), `pulled` (`[]`: indexes, from the −x end, of the levers lying back toward −z) | 1.2 × 1.3 × 0.6 |
+| `trunk` | `width` (0.9), `straps` (2) | 0.9 × 0.5 × 0.5 |
+
+The preset `lamp.platform` is core's street lamp at 3.4 m with the dark lamp head and a warm bulb, for a platform or a yard.
 
 The track's ground is `ballast`, its sleepers `sleeper`: the two photos `assets/photos` holds for them (Poly Haven's
 `gravel_stones` and `rough_wood`, CC0).
