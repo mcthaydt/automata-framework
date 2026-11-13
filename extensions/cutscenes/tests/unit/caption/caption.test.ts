@@ -4,6 +4,7 @@ import { mountInPlay, type PlayMount } from '@automata/framework/testing'
 import type { Sim } from '@automata/sim'
 import { flushSync } from 'svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { cutscenesExtension } from '#src/entries/index.ts'
 import { captionSlot } from '#src/features/caption/caption-slot.ts'
 import type { CutsceneScript } from '#src/shared/sim/cutscene.schema.ts'
 import { createCutGame, load, type Order, play } from '#src/testing/cut-game.ts'
@@ -102,6 +103,22 @@ describe('the cutscene caption', () => {
       for (let tick = 0; tick < 30; tick++) stepOnce() // half a second on
       expect(caption()?.querySelector('[data-testid=cutscene-caption-typed]')?.textContent).toBe('The g')
       expect(caption()?.textContent).toBe('The gate sticks in the rain.')
+    })
+
+    it('types through the extension too: a game gives its `typed` to cutscenesExtension, never to the slot', async () => {
+      ;({ sim } = await createCutGame([SCRIPT]))
+      const slot = cutscenesExtension({
+        words: (key) => TEXT[key],
+        lines: slow,
+        scripts: { wake: SCRIPT },
+        typed,
+      }).extension.ui?.slots?.['hud.overlay']
+      if (slot === undefined) throw new Error('the extension drew no caption')
+      mounted = mountInPlay(slot, sim)
+      stepOnce(load())
+      stepOnce(play('wake'))
+      for (let tick = 0; tick < 30; tick++) stepOnce()
+      expect(caption()?.querySelector('[data-testid=cutscene-caption-typed]')?.textContent).toBe('The g')
     })
 
     it('shows a line with no delivery all at once, whatever it is given to type with', async () => {
