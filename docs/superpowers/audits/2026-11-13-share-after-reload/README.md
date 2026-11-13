@@ -57,3 +57,15 @@ The loaded run on `origin/main` itself was not made: the failure is not timing, 
   that contradicts a recorded contract, so it is the Owner's call.
 - A private window clears IndexedDB when it closes. "Saved on this device" is true for a reload, not for closing the
   window; the line does not say so yet.
+
+## Gates
+
+- `pnpm format`, `TURBO_FORCE=true pnpm check` (exit 0; a first run hit `EADDRINUSE` in `examples-runner`'s ports test, which
+  passes alone and in the second full run), `pnpm build`, `pnpm api-report --update` (editor report: the new `indexeddb`
+  kind and `SuitePortsEnv.indexedDb`), `pnpm api-index --write` (nothing to commit). No changeset: only the private editor changed.
+- Editor `layout`, `storage` and `canvas` suites: all pass except two cases in `layout (firefox)` (`theme.test.ts`, the
+  canvas reports `unavailable`, no WebGL in this container). They fail the same way on `cd01f69dd`, so they are not from this change.
+- `share-leaves-the-browser` in `editor-ipad-chromium`, `editor-phone-chromium` and `editor-ipad-webkit`: 8 passed, 1 skipped
+  (Copy, Chromium only, as written).
+- Not run: the other journeys (they have their own failures on `claude/editor-journeys-green`), the 3D suites, the GPU runner,
+  a real iPad. No golden, hash or picture moved.
