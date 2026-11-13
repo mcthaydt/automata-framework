@@ -22,6 +22,14 @@ interface Built {
   readonly pass: FullscreenPass
 }
 
+/** What a pass reads: a `FullscreenPass` keeps its reads by name, the snap's pass lists them (colour and its table, no depth). */
+function readsOf(pass: unknown): Record<string, unknown> {
+  const own = (pass as { reads?: readonly string[] }).reads
+  return own === undefined
+    ? (pass as { _reads: Record<string, unknown> })._reads
+    : Object.fromEntries(own.map((name) => [name, true]))
+}
+
 /** The passes `effect` adds to a graph, with what each reads; `bound` collects what the renderer's texture system is told to bind. */
 function builtBy(effect: Pass3D, webgl = false, bound: [unknown, number][] = []): Built[] {
   const added: Built[] = []
@@ -30,7 +38,7 @@ function builtBy(effect: Pass3D, webgl = false, bound: [unknown, number][] = [])
     importDepth: (getter: () => unknown) => ({ imported: getter() }),
     addPass: (pass: unknown) =>
       added.push({
-        reads: (pass as { _reads: Record<string, unknown> })._reads,
+        reads: readsOf(pass),
         pass: pass as FullscreenPass,
       }),
   }
@@ -45,10 +53,13 @@ function builtBy(effect: Pass3D, webgl = false, bound: [unknown, number][] = [])
 }
 
 describe('the pass that presents the frame', () => {
-  it('the snap reads colour only', () => {
-    const passes = builtBy(new DuelSnapEffect(0.04))
+  // The snap also reads its candidate table (a texture of its own, not a graph resource): never the scene's depth.
+  it('the snap reads colour and its table, and no depth', () => {
+    const effect = new DuelSnapEffect(0.04)
+    const passes = builtBy(effect)
     expect(passes).toHaveLength(1)
-    expect(Object.keys(passes[0]?.reads ?? {})).toEqual(['color'])
+    expect(Object.keys(passes[0]?.reads ?? {})).toEqual(['color', 'table'])
+    effect.destroy()
   })
 
   it('the present pass reads colour, and on WebGPU the empty depth of the engine in place of the scene depth', () => {
