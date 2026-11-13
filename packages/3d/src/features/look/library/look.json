@@ -17,7 +17,8 @@
     "far": 10,
     "amount": 0.85,
     "glow": 0.5,
-    "focusFp": 3
+    "focusFp": 3,
+    "lit": true
   },
   "figureShadow": 0.6,
   "switches": {

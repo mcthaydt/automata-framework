@@ -19,5 +19,15 @@ export function parseLook(input: unknown): Look {
         ? { ...base, ...value }
         : value
   }
+  // A colour the file chose is used as given: only the default's own colour is lit, so a file that writes a colour and says
+  // nothing of `lit` is unlit, whatever the default says. A file that writes no colour keeps the default's `lit`.
+  const haze = given['haze']
+  if (
+    typeof haze === 'object' &&
+    haze !== null &&
+    'colour' in haze &&
+    (haze as { lit?: unknown }).lit === undefined
+  )
+    merged['haze'] = { ...(merged['haze'] as object), lit: false }
   return lookSchema.parse(merged)
 }

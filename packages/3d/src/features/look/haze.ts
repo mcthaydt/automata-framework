@@ -6,6 +6,8 @@
 
 import { type EffectFragment, PostEffect } from '@pixi/3d'
 import { UniformGroup } from 'pixi.js'
+import { lightByTime } from '../../shared/time-of-day/time-light.ts'
+import type { TimeOfDay } from '../../shared/time-of-day/time-of-day.ts'
 import type { HazeProfile } from './look.schema.ts'
 
 /** The haze's share at a texel `behind` metres past the focus: 0 before `near`, rising linearly to `amount` at `far`. */
@@ -19,6 +21,20 @@ export function hazeOf(
   time: { readonly colour: string; readonly amount: number } | undefined,
 ): HazeProfile {
   return time === undefined ? h : { ...h, colour: time.colour, amount: time.amount }
+}
+
+/**
+ * The haze a frame at `time` draws: the time's own colour and amount where it sets them (`hazeOf`). Otherwise the profile's
+ * colour, lit by the time as the renderer lights the fog (`lightByTime`) if the profile says it is a day colour to light
+ * (`lit`: the library's default is; a game that chose its colour sets `lit: false`), and as given otherwise. Left unlit, the library's colour
+ * veiled a dark room (Night, Lamplight) at the profile's full amount and drew brighter than the day
+ * (docs/superpowers/audits/2026-11-12-3d-night-regression); a game's tuned colour lit would not be the one it tuned.
+ */
+export function hazeAt(h: HazeProfile, time: TimeOfDay): HazeProfile {
+  if (time.scene.haze !== undefined) return hazeOf(h, time.scene.haze)
+  if (h.lit !== true) return h
+  const lit = lightByTime(Number.parseInt(h.colour.slice(1), 16), time)
+  return { ...h, colour: `#${lit.toString(16).padStart(6, '0')}` }
 }
 
 const channels = (hex: string): [number, number, number] => {

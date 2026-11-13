@@ -37,6 +37,7 @@ import { loadModels, type ModelLibrary, type ModelStore } from '../shared/render
 import type { EntityView3d, EntityViewResolver3d } from '../shared/render/views/view-3d.ts'
 import { lightByTime, lightHemisphere } from '../shared/time-of-day/time-light.ts'
 import { type TimeOfDay, timeOfDay } from '../shared/time-of-day/time-of-day.ts'
+import { hazeFocusHooks } from './haze-focus.ts'
 
 export interface Pixi3dOptions extends PixiRendererOptions {
   /** Component id → its 3D view (`mesh`, `box`). `entityViews` stays the 2D layer's, drawn over the 3D view. */
@@ -235,11 +236,13 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
   })
   // The rule runs after the camera has moved, on the pose it just wrote.
   const occluding = occluderHooks(camera, occluders, { height: options.camera.height ?? PLAYER_HEIGHT })
+  // The haze counts from the player the camera frames, as the rule above reads the pose the camera just wrote.
+  const hazing = passes?.haze === undefined ? undefined : hazeFocusHooks(camera, passes.haze)
   return {
     view,
     occluders,
     consumer,
-    hooks: mergeHooks(entities, cameraDriver(camera, options.camera), occluding),
+    hooks: mergeHooks(entities, cameraDriver(camera, options.camera), occluding, hazing),
     light,
     camera,
     passes,

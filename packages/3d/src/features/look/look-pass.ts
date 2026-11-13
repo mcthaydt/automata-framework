@@ -12,7 +12,7 @@ import { RegistryClash } from '../../shared/registry/registry-clash.ts'
 import type { TimeOfDay } from '../../shared/time-of-day/time-of-day.ts'
 import { DuelSnapEffect } from './duel-snap-filter.ts'
 import { GradeEffect } from './grade-effect.ts'
-import { HazeEffect, hazeOf } from './haze.ts'
+import { HazeEffect, hazeAt } from './haze.ts'
 import type { Look } from './look.schema.ts'
 import { OutlineEffect } from './outline-filter.ts'
 import { PresentEffect } from './present-pass.ts'
@@ -62,7 +62,7 @@ export function createLookPasses(look: Look, time: TimeOfDay): LookPasses {
   const outline = look.switches.outline ? new OutlineEffect(look.outline) : undefined
   const early = REGISTERED.filter((pass) => pass.beforeSnap === true).map((pass) => pass.make(look, time))
   const extra = REGISTERED.filter((pass) => pass.beforeSnap !== true).map((pass) => pass.make(look, time))
-  const haze = look.switches.haze ? new HazeEffect(hazeOf(look.haze, time.scene.haze)) : undefined
+  const haze = look.switches.haze ? new HazeEffect(hazeAt(look.haze, time)) : undefined
   const grade = look.switches.grade ? new GradeEffect() : undefined
   const after = [...(outline ? [outline] : []), ...extra]
   // Any pass but the snap may sample the scene depth, the ones before it as much as the ones after (the grade is off until a

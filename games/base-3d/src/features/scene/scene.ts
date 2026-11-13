@@ -21,7 +21,7 @@ import type {
   MotionLibrary,
 } from '@automata/3d/figures'
 import { clipsWithActions } from '@automata/3d/figures'
-import { Q16 } from '@automata/3d/sim'
+import { CAMERA_DEFAULTS, Q16 } from '@automata/3d/sim'
 import type { FieldRecord } from '@automata/sim'
 import type { View3D } from '@pixi/3d'
 import type { AreaSource } from '../../shared/area.ts'
@@ -92,8 +92,17 @@ export function inMetres(factory: View3dFactory, yaw = 0): View3dFactory {
   return factory.models === undefined ? wrapped : Object.assign(wrapped, { models: factory.models })
 }
 
-/** The room's fog: none for 5 m, full at 14 m, its colour the sky the fogged walls meet (DUEL, ramp 12 step 0). */
-export const FOG: SceneFog = { near: 5, far: 14, color: 0x31222a }
+/**
+ * The room's fog, counted from the eye: none as far as the player (the default gameplay camera stands
+ * `CAMERA_DEFAULTS.distance`, 16 m, back), full 9 m beyond, its colour the sky the fogged walls meet (DUEL, ramp 12
+ * step 0). It was 5 to 14 m for the 5 m camera the room was first played with; under the 16 m camera that put the whole
+ * room past full fog, by day and by night alike.
+ */
+export const FOG: SceneFog = {
+  near: CAMERA_DEFAULTS.distance,
+  far: CAMERA_DEFAULTS.distance + 9,
+  color: 0x31222a,
+}
 
 // The lip along each channel's edge: a bright DUEL colour so the player can see where to roll from. The room's other
 // colours are its swatches' (`content/world-swatches`): a lighter floor than the walls so the platforms read, a dark

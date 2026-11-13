@@ -11,7 +11,25 @@ import { changed, colourAt, DUEL, drawn, pixels, SIZE, SKY, target } from './sup
 
 const hasWebGL2 = document.createElement('canvas').getContext('webgl2') !== null
 const frame = { alpha: 1, frameMs: 16, paused: false }
-const WHITE = DEFAULT_PALETTE.colors.map((hex) => Number.parseInt(hex.slice(1), 16))
+const PALETTE = DEFAULT_PALETTE.colors.map((hex) => Number.parseInt(hex.slice(1), 16))
+const luma = (c: number): number =>
+  (0.2126 * ((c >> 16) & 255) + 0.7152 * ((c >> 8) & 255) + 0.0722 * (c & 255)) / 255
+
+/**
+ * The colour the ball draws as in `dry`, `steps` down its own ramp (8 steps a ramp). The ball is the only bright thing in
+ * the frame. Which white it snaps to depends on the night's veil over it (the lit haze draws it ramp 10's lightest, the
+ * day-coloured veil it once took drew it ramp 0's), so the mirror is read from the ball as drawn, not from a fixed ramp.
+ */
+function ballStepsDown(dry: Uint8Array, steps: number): number | undefined {
+  const counts = new Map<number, number>()
+  for (let i = 0; i < dry.length / 4; i++) {
+    const c = colourAt(dry, i)
+    if (luma(c) > 0.8) counts.set(c, (counts.get(c) ?? 0) + 1)
+  }
+  const ball = [...counts].sort((a, b) => b[1] - a[1])[0]?.[0]
+  const index = ball === undefined ? -1 : PALETTE.indexOf(ball)
+  return index < 0 ? undefined : PALETTE[index - steps]
+}
 
 let open: { dispose(): void } | undefined
 afterEach(() => {
@@ -76,9 +94,11 @@ describe.runIf(hasWebGL2)('wet-ground reflections on WebGL2', () => {
     const moved = drawn(dry, wet)
     expect(moved.length).toBeGreaterThan(5)
     expect(moved.every((i) => DUEL.has(colourAt(wet, i)))).toBe(true)
-    // The ball is the palette's lightest grey, step 7 of ramp 0; a puddle takes one step down. Its mirror is on the ground
-    // below it: the lower half of the frame, round its middle. (The rest of the puddle mirrors the sky.)
-    const mirror = moved.filter((i) => colourAt(wet, i) === WHITE[6])
+    // The ball is white, the lightest step of its ramp; a puddle takes one step down. Its mirror is on the ground below it:
+    // the lower half of the frame, round its middle. (The rest of the puddle mirrors the sky.)
+    const mirrored = ballStepsDown(dry, 1)
+    expect(mirrored).toBeDefined()
+    const mirror = moved.filter((i) => colourAt(wet, i) === mirrored)
     expect(mirror.length).toBeGreaterThan(5)
     expect(mirror.every((i) => Math.floor(i / SIZE.width) > SIZE.height / 2)).toBe(true)
     expect(mirror.every((i) => Math.abs((i % SIZE.width) - SIZE.width / 2) < SIZE.width * 0.2)).toBe(true)
@@ -96,7 +116,9 @@ describe.runIf(hasWebGL2)('wet-ground reflections on WebGL2', () => {
     // Only the glowing ball is mirrored (a handful of pixels, against a puddle's whole ground), two steps down.
     expect(moved.length).toBeLessThan(300)
     expect(moved.every((i) => DUEL.has(colourAt(wet, i)))).toBe(true)
-    const mirror = moved.filter((i) => colourAt(wet, i) === WHITE[5])
+    const mirrored = ballStepsDown(dry, 2)
+    expect(mirrored).toBeDefined()
+    const mirror = moved.filter((i) => colourAt(wet, i) === mirrored)
     expect(mirror.length).toBeGreaterThan(5)
     expect(mirror.every((i) => Math.abs((i % SIZE.width) - SIZE.width / 2) < SIZE.width * 0.2)).toBe(true)
   })
