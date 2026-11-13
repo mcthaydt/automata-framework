@@ -1,5 +1,0 @@
----
-'@automata/content': patch
-'@automata/tools': patch
----
-A game declares achievements in `ship.config.ts` beside its leaderboards: an id, a title, a description and one goal on one of its boards (`reach` a score, or the `top_percent` of players). `@automata/content/game-config` exports `AchievementConfig` and `AchievementGoal` and its schema checks the declaration; it names no host. `automata ship prepare --target ruken` writes each achievement into `ruken.toml` (and a board's `title`), refuses a top share Ruken has no rule for with the shares it allows, and puts Ruken's own achievement errors in plain words. The web, itch.io and desktop builds accept the declaration and do nothing with it. `automata check` has a new `achievements` step, and `automata words` writes the achievements' source words to `messages/achievements/en.json` and translates them like any other catalog. `@automata/content/game-config` can now be loaded by plain Node from source.

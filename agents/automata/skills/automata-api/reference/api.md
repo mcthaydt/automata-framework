@@ -1,6 +1,6 @@
-# Automata API reference, version 0.0.5
+# Automata API reference, version 0.1.0
 
-> Every export of every published `@automata/*` entry point at version 0.0.5, generated from the published `.d.ts` files. An export that is not listed here does not exist in this version.
+> Every export of every published `@automata/*` entry point at version 0.1.0, generated from the published `.d.ts` files. An export that is not listed here does not exist in this version.
 
 ## `@automata/audio-synth`
 
