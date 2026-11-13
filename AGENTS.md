@@ -46,8 +46,11 @@ and 18 "known" test failures piled up, and each piece of work passed through sev
 
 **Truth**
 - `main` is green. A test that fails on `main` is fixed, or its cause removed, before any other work. There is no
-  list of known failures to merge past, and no step may hide behind a failing one.
-- A test that fails once and passes on retry is a defect to find, not a flake to note.
+  list of known failures to merge past, and no step may hide behind a failing one. Until the cut has removed 3D, its
+  night journeys fail on `main`: the cut list's pull requests and the merges the Owner names go past them, and each
+  says so.
+- A test that fails once and passes on retry is a defect to find, not a flake to note. It does not block that merge,
+  but it is reported the same day with its text, and a second sighting is fixed before other work.
 - "Done" means merged to `main` and green there. Otherwise say where it is: "on a branch", "in CI", "not started".
 - Report what you ran, what you did not run and why, and what is still open. Never round up.
 - Speak plainly to the Owner: the conclusion first, short, no jargon he did not use.
@@ -127,7 +130,7 @@ and 18 "known" test failures piled up, and each piece of work passed through sev
 ## Branches and pull requests
 
 - `main` and the branches with an open pull request are the only branches. No backup, handoff or notes branches; a
-  tag does that job. When a pull request merges, its branch is deleted.
+  tag does that job. GitHub deletes a pull request's branch when it merges; any other deletion is the Owner's.
 - Merge with a merge commit, never a squash, so ancestry shows what is in `main`.
 - Never force-push. Never loosen, skip or re-record a test to get green; a golden moves only with the Owner seeing
   before and after.
