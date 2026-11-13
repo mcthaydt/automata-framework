@@ -177,3 +177,22 @@ Home is the sim's own).
 cells sit at the top of their 48 px rows, so Node's row looks taller.)
 
 Home's preloaded script: 46,597 bytes of 48,000.
+
+## Finding 6 (the coordinator's two small things in the Finding 1 pictures)
+
+**Where:** Home, "Built for agents", the code and drawing panel.
+
+**Cause.** (a) The "What it draws" label was absolutely positioned over the bottom-left of the canvas, where a block passes as
+it wraps. (b) The code is taller than its box and its long lines run past the edge, with nothing in words saying it scrolls.
+
+**Fix.** (a) The drawing has its own 16:9 box and the label is a strip of its own under it. (b) A line of words under the code,
+"Scroll to read the whole file" (`AGENT_SECTION.scrollHint`), and the code region is `aria-describedby` that line, so a screen
+reader hears it too. The region is still keyboard- and touch-scrollable (unchanged: focusable, `overflow` both ways).
+
+**Tests:** `tests/unit/home/home.test.ts` (the hint is there and describes the region; failed first), `tests/e2e/site.e2e.ts`
+(phone and desktop: top to bottom the code, the hint, the drawing, then the label, with no overlap).
+
+**Pictures:** before `f6-before-{phone,desktop}.png`, after `f6-after-{phone,desktop}.png`. (The sticky header over the top of
+the desktop pictures is the capture, not the page.)
+
+Home's preloaded script: 46,821 bytes of 48,000.

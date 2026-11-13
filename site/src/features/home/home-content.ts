@@ -114,6 +114,8 @@ export const MADE_WITH = [
 export const AGENT_SECTION = {
   kicker: 'Built for agents',
   title: 'Made for Claude Code, Cursor and Codex.',
+  /** Said under the code, which is longer than its box: it scrolls down, and sideways where a line is long. */
+  scrollHint: 'Scroll to read the whole file',
   sub: 'A game is small files with plain names. Your agent finds the right one to change, changes it, and checks that it still works.',
   points: [
     ['Agent skills', 'tell your agent where gameplay lives and the rules it must keep.'],

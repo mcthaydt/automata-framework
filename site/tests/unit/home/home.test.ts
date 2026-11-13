@@ -6,6 +6,7 @@ import { render, waitFor } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
 import Home from '#src/features/home/Home.svelte'
 import {
+  AGENT_SECTION,
   CHANGELOG_SECTION,
   CREATE_COMMAND,
   DEMO_BAR,
@@ -62,6 +63,14 @@ describe('Home', () => {
     expect(section.textContent).toContain(facts.golden.file)
     expect(section.textContent).toContain(`${facts.golden.ticks} ticks`)
     expect(section.textContent).not.toMatch(/same result/i)
+  })
+
+  it('says in words, beside the code, that it scrolls, and the code region is described by those words', () => {
+    const view = render(Home)
+    const region = view.container.querySelector('.show .sample .code-scroll')!
+    const hint = view.container.querySelector(`#${region.getAttribute('aria-describedby')}`)
+    expect(hint?.textContent?.trim()).toBe(AGENT_SECTION.scrollHint)
+    expect(AGENT_SECTION.scrollHint).toMatch(/scroll/i)
   })
 
   it('names the four places a game goes, each with a command automata ship accepts', () => {

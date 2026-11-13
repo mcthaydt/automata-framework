@@ -556,5 +556,31 @@ for (const size of [
       for (const colour of ['82,210,255', '127,189,57', '228,92,95']) expect(colours).toContain(colour)
       expect(await horizontalOverflow(page)).toEqual([])
     })
+
+    test('says the code scrolls, in a line under it, and keeps "What it draws" off the drawing', async ({
+      page,
+    }) => {
+      await open(page, '/')
+      const hint = page.locator('.show .hint')
+      await hint.scrollIntoViewIfNeeded()
+      await expect(hint).toBeVisible()
+      await expect(hint).toContainText(/scroll/i)
+      const boxes = await page.evaluate(() => {
+        const rect = (selector: string) => {
+          const box = document.querySelector(selector)!.getBoundingClientRect()
+          return { top: box.top, bottom: box.bottom, left: box.left, right: box.right }
+        }
+        return {
+          code: rect('.show .sample .code-scroll'),
+          hint: rect('.show .hint'),
+          canvas: rect('.show .run canvas'),
+          label: rect('.show .runbar'),
+        }
+      })
+      // Top to bottom: the code, the line about scrolling it, the drawing, then the label on a strip of its own.
+      expect(boxes.hint.top).toBeGreaterThanOrEqual(boxes.code.bottom - 1)
+      expect(boxes.canvas.top).toBeGreaterThanOrEqual(boxes.hint.bottom - 1)
+      expect(boxes.label.top).toBeGreaterThanOrEqual(boxes.canvas.bottom - 1)
+    })
   })
 }

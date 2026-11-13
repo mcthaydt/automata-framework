@@ -31,9 +31,10 @@ $effect(() => {
     </div>
     <div class="show home-panel">
       <div class="head"><span class="tab">{example.file}</span><span class="sp">{example.dir}</span></div>
-      <CodeBlock code={example.code} lang="ts" label="" regionLabel="The example's code, whole" class="sample" />
+      <CodeBlock code={example.code} lang="ts" label="" regionLabel="The example's code, whole" describedBy="shapes-code-hint" class="sample" />
+      <p id="shapes-code-hint" class="hint">{AGENT_SECTION.scrollHint}</p>
       <div class="run">
-        {#if Preview}<Preview />{/if}
+        <div class="stage">{#if Preview}<Preview />{/if}</div>
         <span class="runbar"><i aria-hidden="true"></i>What it draws</span>
       </div>
     </div>
@@ -56,27 +57,37 @@ $effect(() => {
     overflow-y: auto;
     overscroll-behavior: contain;
   }
+  /* Under the code, in words: the file is longer than its box and its long lines run past the edge. */
+  .hint {
+    margin: 0;
+    padding: 8px 20px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font: 400 12px/18px var(--font-mono);
+  }
   .run {
-    position: relative;
-    aspect-ratio: 16 / 9;
     border-top: 1px solid var(--line);
     background: #0f131b;
   }
-  .run :global(canvas) {
+  /* The drawing has its own box, so a block that falls to the bottom never passes behind the label under it. */
+  .stage {
+    position: relative;
+    aspect-ratio: 16 / 9;
+  }
+  .stage :global(canvas) {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
   }
   .runbar {
-    position: absolute;
-    bottom: 10px;
-    left: 12px;
     display: flex;
     align-items: center;
     gap: 8px;
+    padding: 10px 20px;
+    border-top: 1px solid var(--line);
     color: var(--muted);
-    font: 400 12px/1 var(--font-mono);
+    font: 400 12px/18px var(--font-mono);
   }
   .runbar i {
     width: 7px;
@@ -91,6 +102,10 @@ $effect(() => {
     }
     .show :global(.sample .code-scroll) {
       max-height: 16rem;
+    }
+    .hint,
+    .runbar {
+      padding-inline: 14px;
     }
   }
 </style>
