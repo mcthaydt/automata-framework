@@ -81,7 +81,10 @@ export const ADA: CharacterDef = {
   // old brisk gait's own numbers stand her on one hip with a bent, hung arm, as the old hand-painted atlas does, so only her `armOut` of the
   // old file stays. `standOut` did not exist then: the arms hung at `armOut` standing too.
   // The generated images' A-pose is 15 to 20 degrees; in the room her hands hang close to her body.
-  gaitOverrides: { ...OLD_BRISK, armOut: 0.03, standOut: 0.03 },
+  // Standing, her arms hang as the painter's own `loose` stand hangs them (the base woman's): a soft 0.34 bend, 0.02 forward. The old
+  // brisk stand (its walk's elbow plus a 0.45 idle bend, hung 0.12 forward) held them bent and out, like someone about to draw (the
+  // Owner, 2026-11-13: "her arms being bent like that is odd"). Her walk keeps the old brisk swing.
+  gaitOverrides: { ...OLD_BRISK, armOut: 0.03, standOut: 0.03, standElbow: 0.34, hang: 0.02 },
   hand: 'R',
   face: { camera: 0.6, turn: 0.15, blink: 3.7, drawn: true },
   hair: { stiff: 70, damp: 9, trail: 0.3, bounce: 0.08 },

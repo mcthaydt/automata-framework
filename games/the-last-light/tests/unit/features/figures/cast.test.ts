@@ -207,7 +207,14 @@ describe('Ada', () => {
 
   it('walks the old brisk walk whole, with the arms close to her body', () => {
     expect(ADA.gait).toBe('brisk')
-    expect(ADA.gaitOverrides).toEqual({ ...OLD_BRISK, armOut: 0.03, standOut: 0.03 })
+    expect(ADA.gaitOverrides).toMatchObject({ ...OLD_BRISK, armOut: 0.03, standOut: 0.03, hang: 0.02 })
+  })
+
+  it('stands with her arms hanging loose at her sides, as the painter’s own `loose` stand hangs them (the Owner, 2026-11-13: “her arms being bent like that is odd”)', () => {
+    // The old brisk gait stood her with the walk's elbow and the idle's on top (0.25 + 0.45 rad) and the arms hung forward 0.12: bent
+    // and held out, about to draw. The painter's `loose` gait (the base woman's) stands at a 0.34 bend, hung 0.02 forward.
+    expect(ADA.gaitOverrides?.standElbow).toBe(0.34)
+    expect(ADA.gaitOverrides?.hang).toBe(0.02)
   })
 
   it('has a drawn face at every density, which is the painter’s own: no decal dots', () => {
