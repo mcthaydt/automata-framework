@@ -42,8 +42,12 @@ export interface Sliders {
   /** 0.5 today's chest, for any frame: the chest's ring over a real range of depths (0 flatter … 1 fuller, 0.92–1.15 of today's),
    * its underside keeping its turn, so in profile it is a form, not a deeper tube. Under the painted blocks. */
   bust: number
-  /** 0.5 today's seat: the hips' rings deeper behind (0.93–1.12) and a little wider (0.94–1.06), seen in profile and from behind. */
+  /** 0.5 today's seat: the hips' rings deeper behind (0.8–1.12) and a little wider (0.85–1.06), seen in profile and from behind. */
   seat: number
+  /** 0.5 today's legs: the thighs narrower (0, 0.7 of the girth at the hip) or fuller (1, 1.15), tapering to no change at the
+   * knee, each ring moved in by what it lost so the inner edge, and the floor between the legs, holds. Seen from behind and
+   * in front as the width across the hips. */
+  thighs: number
   /** The head's own structure (HeadShape); left out, an average head. */
   face?: Partial<HeadShape>
 }
@@ -128,6 +132,7 @@ export const DEFAULT_SLIDERS: Sliders = {
   bodyAsymmetry: 0,
   bust: 0.5,
   seat: 0.5,
+  thighs: 0.5,
 }
 /** Everything the body and the garments need, in metres. */
 export interface Measure {
@@ -158,6 +163,8 @@ export interface Measure {
    * factors and backward offset (m at k 1), exactly 1, 1 and 0 at seat 0.5. A fork's garment follows the body with these. */
   bust: { rz: number; dz: number }
   seat: { rz: number; dz: number; rx: number }
+  /** The thighs' girth factor at the hip, exactly 1 at thighs 0.5 (fit.ts tapers it to 1 at the knee). */
+  thighs: number
 }
 /** A range widened about its middle: `lo` at 0, exactly 1 at 0.5, `hi` at 1 (two lerps meeting at 1; one lerp(lo, hi, v) would not be 1). */
 const about = (v: number, lo: number, hi: number) =>
@@ -208,7 +215,8 @@ export function measure(input: Partial<Sliders>): Measure {
     foot: lerp(1, 1.25, c),
     face: { ...DEFAULT_HEAD, ...s.face },
     bust: { rz: about(s.bust, 0.92, 1.15), dz: 0.01 * (s.bust - 0.5) * 2 },
-    seat: { rz: about(s.seat, 0.93, 1.12), dz: 0.012 * (0.5 - s.seat) * 2, rx: about(s.seat, 0.94, 1.06) },
+    seat: { rz: about(s.seat, 0.8, 1.12), dz: 0.012 * (0.5 - s.seat) * 2, rx: about(s.seat, 0.85, 1.06) },
+    thighs: about(s.thighs, 0.7, 1.15),
     fat: {
       swell: 1 + 0.35 * s.fat,
       joint: 1 + 0.5 * s.fat,
