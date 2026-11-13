@@ -42,7 +42,7 @@ export interface Sliders {
   /** 0.5 today's chest, for any frame: the chest's ring over a real range of depths (0 flatter … 1 fuller, 0.92–1.15 of today's),
    * its underside keeping its turn, so in profile it is a form, not a deeper tube. Under the painted blocks. */
   bust: number
-  /** 0.5 today's seat: the hips' rings deeper behind (0.93–1.12) and a little wider (0.94–1.06), seen in profile and from behind. */
+  /** 0.5 today's seat: the hips' rings deeper behind (0.8–1.12) and a little wider (0.85–1.06), seen in profile and from behind. */
   seat: number
   /** The head's own structure (HeadShape); left out, an average head. */
   face?: Partial<HeadShape>
@@ -208,7 +208,7 @@ export function measure(input: Partial<Sliders>): Measure {
     foot: lerp(1, 1.25, c),
     face: { ...DEFAULT_HEAD, ...s.face },
     bust: { rz: about(s.bust, 0.92, 1.15), dz: 0.01 * (s.bust - 0.5) * 2 },
-    seat: { rz: about(s.seat, 0.93, 1.12), dz: 0.012 * (0.5 - s.seat) * 2, rx: about(s.seat, 0.94, 1.06) },
+    seat: { rz: about(s.seat, 0.8, 1.12), dz: 0.012 * (0.5 - s.seat) * 2, rx: about(s.seat, 0.85, 1.06) },
     fat: {
       swell: 1 + 0.35 * s.fat,
       joint: 1 + 0.5 * s.fat,

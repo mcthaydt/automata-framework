@@ -91,12 +91,12 @@ describe('Measure.bust and Measure.seat are exactly the default at 0.5', () => {
     expect(m.seat).toEqual({ rz: 1, dz: 0, rx: 1 })
     expect(measure({}).bust).toEqual({ rz: 1, dz: 0 })
   })
-  it('the ends are a real range: bust 0.92–1.15 of the depth, seat 0.93–1.12 deep and 0.94–1.06 wide', () => {
+  it('the ends are a real range: bust 0.92–1.15 of the depth, seat 0.8–1.12 deep and 0.85–1.06 wide', () => {
     expect(measure({ bust: 0 }).bust.rz).toBeCloseTo(0.92, 9)
     expect(measure({ bust: 1 }).bust.rz).toBeCloseTo(1.15, 9)
-    expect(measure({ seat: 0 }).seat.rz).toBeCloseTo(0.93, 9)
+    expect(measure({ seat: 0 }).seat.rz).toBeCloseTo(0.8, 9)
     expect(measure({ seat: 1 }).seat.rz).toBeCloseTo(1.12, 9)
-    expect(measure({ seat: 0 }).seat.rx).toBeCloseTo(0.94, 9)
+    expect(measure({ seat: 0 }).seat.rx).toBeCloseTo(0.85, 9)
     expect(measure({ seat: 1 }).seat.rx).toBeCloseTo(1.06, 9)
   })
 })
