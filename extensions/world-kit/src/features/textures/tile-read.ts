@@ -40,14 +40,20 @@ export function textureOf(swatch: TexturedSwatch): TextureSpec | undefined {
   return typeof t?.photo === 'string' ? (t as unknown as TextureSpec) : undefined
 }
 
-/** The ladder a swatch's labels are read against: its own ramp and step, and its accent's. */
+/** The ladder a swatch's labels are read against: its own ramp and step, its accent's, and its texture's joint swatch's. */
 export function ladderOf(swatch: TexturedSwatch, swatches: Readonly<Record<string, TexturedSwatch>>): Ladder {
   const row = (s: TexturedSwatch): { ramp: number; step: number } => ({
     ramp: DUEL_RAMP_NAMES.indexOf(s.ramp),
     step: s.step,
   })
   const accent = swatch.accent === undefined ? undefined : swatches[swatch.accent]
-  return { base: row(swatch), accent: accent === undefined ? undefined : row(accent) }
+  const jointName = textureOf(swatch)?.joint
+  const joint = jointName === undefined ? undefined : swatches[jointName]
+  return {
+    base: row(swatch),
+    accent: accent === undefined ? undefined : row(accent),
+    joint: joint === undefined ? undefined : row(joint),
+  }
 }
 
 /** The labels a tile file holds. */

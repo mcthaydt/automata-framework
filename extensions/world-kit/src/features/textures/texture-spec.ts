@@ -22,6 +22,11 @@ export interface TextureSpec {
   readonly range?: readonly [number, number] | undefined
   /** Tone mode: the hue distance that takes the accent (0 for none). */
   readonly accent?: number | undefined
+  /** Tone mode: the swatch the joint (grout, mortar) is drawn in. The texels well under the surface's light are the joint,
+   * labelled apart from the accent, so the joint keeps its own colour where the accent changes the surface's. */
+  readonly joint?: string | undefined
+  /** Tone mode: how many tone steps under the surface's light a texel is a joint (with `joint`). */
+  readonly jointDepth?: number | undefined
   /** Photo mode: how many colours the photo keeps before they snap to DUEL. */
   readonly colours?: number | undefined
   /** The smallest cluster, in texels, the clean-up keeps. */
@@ -40,6 +45,7 @@ export const TEXTURE_DEFAULTS = {
   contrast: 0.07,
   range: [-2, 1] as readonly [number, number],
   accent: 0.06,
+  jointDepth: 2,
   colours: 8,
   cluster: 4,
   wear: 0.3,

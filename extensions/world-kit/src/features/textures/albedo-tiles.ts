@@ -5,24 +5,33 @@ import type { AlbedoTile } from '@automata/3d'
 import { DEFAULT_PALETTE } from '@automata/content/palette'
 import { tileColours } from './tile-colours.ts'
 import { TILE_FILES } from './tile-files.ts'
-import { decodeTileFile, ladderOf, type TexturedSwatch, textureOf } from './tile-read.ts'
+import { decodeTileFile, ladderOf, type TexturedSwatch, type TileFile, textureOf } from './tile-read.ts'
 
 const PALETTE = DEFAULT_PALETTE.colors.map((h) => Number.parseInt(h.slice(1), 16))
 
 /**
  * The tile of a swatch by name (a name may carry a seed, `name#123`, which only sets where the tile starts on a surface
  * tiled in the world), or `undefined` for a flat swatch or one with no tile. Each tile is made once.
+ *
+ * `own` is a game's tile files, by swatch name, for surfaces it paints itself rather than from a photo (a pixel painter's
+ * floor): a swatch with one needs no `texture`, and the game's tile wins over a kit tile of the same name.
  */
 export function albedoTiles(
   swatches: Readonly<Record<string, TexturedSwatch>>,
+  own: Readonly<Record<string, TileFile>> = {},
 ): (name: string) => AlbedoTile | undefined {
   const made = new Map<string, AlbedoTile | undefined>()
   const base = (name: string): AlbedoTile | undefined => {
     if (made.has(name)) return made.get(name)
     const swatch = swatches[name]
-    const file = TILE_FILES[name]
+    const mine = own[name]
+    const file = mine ?? TILE_FILES[name]
     let tile: AlbedoTile | undefined
-    if (swatch !== undefined && file !== undefined && textureOf(swatch) !== undefined) {
+    if (
+      swatch !== undefined &&
+      file !== undefined &&
+      (mine !== undefined || textureOf(swatch) !== undefined)
+    ) {
       const labels = decodeTileFile(file)
       const index = tileColours(labels, ladderOf(swatch, swatches))
       const rgba = new Uint8Array(index.length * 4)

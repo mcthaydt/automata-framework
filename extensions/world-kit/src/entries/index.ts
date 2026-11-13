@@ -17,3 +17,4 @@ export {
   waivedBy,
 } from '../features/reads/reads-against.ts'
 export { albedoTiles } from '../features/textures/albedo-tiles.ts'
+export { TILE_FORMAT, type TileFile } from '../features/textures/tile-read.ts'
