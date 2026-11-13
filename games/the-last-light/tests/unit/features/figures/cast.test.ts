@@ -182,7 +182,8 @@ describe('Ada', () => {
     const base = (BASE[1] as { def: CharacterDef }).def.sliders as Record<string, unknown>
     for (const [key, value] of Object.entries(ADA.sliders as Record<string, unknown>)) {
       if (typeof value !== 'number' || key === 'height') continue
-      expect(Math.abs(value - Number(base[key])), key).toBeLessThanOrEqual(0.3)
+      // A slider the base woman leaves out (her seat) is the painter's default, 0.5 (`DEFAULT_SLIDERS` in the figures' genes).
+      expect(Math.abs(value - Number(base[key] ?? 0.5)), key).toBeLessThanOrEqual(0.3)
     }
     expect(ADA.genes).toBeUndefined()
   })
@@ -215,6 +216,18 @@ describe('Ada', () => {
     // and held out, about to draw. The painter's `loose` gait (the base woman's) stands at a 0.34 bend, hung 0.02 forward.
     expect(ADA.gaitOverrides?.standElbow).toBe(0.34)
     expect(ADA.gaitOverrides?.hang).toBe(0.02)
+  })
+
+  it('has a seat no wider than her shoulders, from the front and from behind (the Owner, 2026-11-13: “maybe not hips but ass”)', () => {
+    for (const direction of [0, 4]) {
+      const cell = paintedCell(ADA, direction, 2)
+      const { top, height } = silhouette(cell)
+      const band = (widths: number[], from: number, to: number) =>
+        Math.max(...widths.slice(top + Math.round(height * from), top + Math.round(height * to) + 1))
+      const shoulders = band(rowWidths(cell, { def: ADA, swatch: 'cream' }), 0.16, 0.3)
+      const seat = band(rowWidths(cell, { def: ADA, swatch: 'fadedDenim' }), 0.42, 0.62)
+      expect(seat, `direction ${direction}`).toBeLessThanOrEqual(shoulders)
+    }
   })
 
   it('has a drawn face at every density, which is the painter’s own: no decal dots', () => {

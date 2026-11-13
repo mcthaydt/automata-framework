@@ -29,7 +29,7 @@ export const PLAY_FIGURE = { crisp: true, density: 2, holdSkinHue: true, dimmest
  *
  * She is the painter's base woman with only what makes her Ada changed (the Owner, 2026-11-12: the characters look like the painter's
  * own faces at density 2): her skin, her hair, her clothes, and a bolder brow (weight .75) and fuller lips; her eyes are the base woman's own (crease, hood, liner). Her body sliders are the
- * base woman's, slimmed a little (less fat and chunk, narrower hips, thinner arms); nothing is pushed by an earlier round. Her bob is the painter's own `bobFringe`: a chin-length dome whose fringe stops a texel over the brow, so her brows and eyes show.
+ * base woman's, slimmed a little (less fat and chunk, narrower hips, a flatter seat, thinner arms); nothing is pushed by an earlier round. Her bob is the painter's own `bobFringe`: a chin-length dome whose fringe stops a texel over the brow, so her brows and eyes show.
  */
 export const ADA: CharacterDef = {
   id: 'ada',
@@ -43,7 +43,13 @@ export const ADA: CharacterDef = {
     muscle: 0.3,
     fat: 0.25, // the base's 0.35
     shoulders: 0.3,
-    hips: 0.55, // the base's 0.65
+    // Her hips and seat as slim as her data draws them (the Owner, 2026-11-13, of her seat: "maybe not hips but ass"): a flatter
+    // seat (0.2, the default 0.5 less the 0.3 a test holds her to) and hips 0.5 (the base's 0.65; under 0.5 the floor between her
+    // legs closes at density 2). From behind her jeans' seat was a texel wider than her shoulders at density 2 (31 to 30) and is now
+    // no wider (30); in profile it is a texel shallower (18 to 17). The fullness left is the painter's own woman's seat under the
+    // jeans' one clearance of cloth: the generator's, not hers.
+    hips: 0.5,
+    seat: 0.2,
     arms: 0.3, // the base's 0.35
     head: 1.25, // the base's 1.15: a face two rows taller at density 2, so the lower lip has its second row and no catch-light sits under the mouth like a tongue
     chunk: 0.6, // the base's 0.85
