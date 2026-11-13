@@ -8,10 +8,10 @@ Execution session, no subagents. Joins, proves and measures; changes nothing of 
 | 1. Merges | done (this section) |
 | 2. Gates on the joined tree | done (this section) |
 | 3. The joined game shot, Ada compared | done (section 3) |
-| 4. Playthroughs (first night, second night) | not yet |
+| 4. Playthroughs (first night, second night) | done (section 4) |
 | 5. Tick rate, measured | not yet |
 
-Overall: 3 of 5 items done (60%).
+Overall: 4 of 5 items done (80%).
 
 ## 1. The merges
 
@@ -151,3 +151,18 @@ context is not a touch one, as with every shot of that harness). Measured from t
 | Screen pixels one painted texel of Ada covers | 4 by 4 (edges every 4 px) | 2 by 2 (edges every 2 px) |
 | Field pixels per texel (the game's `crisp` rule: two) | 2 (a field pixel is 2 screen px) | 2 (a field pixel is 1 screen px) |
 | Her height on screen, crown to boot sole | 479 px (rows 208 to 686), 62.4% of the height | 236 px (rows 110 to 345), 60.5% of the height |
+
+## 4. The playthroughs (Chromium, software GL, `AF_WEBGPU=software`, the joined tree, `playthrough.test.ts`)
+
+| Journey | Result | Time |
+|---|---|---|
+| The first night: the prologue plays to its end through the page and the credits come up | **passed** | 11.2 min |
+| The second night: from a fresh page two nights end in the same state (the file's second test plays two nights) | **passed** | 21.4 min (about 10.7 a night) |
+
+The camera session's first night took 9.6 min; this one 11.2 min, with `pnpm`'s other work idle, so the join may have added a little to a
+frame, or the container is slower today; item 5 measures the rate.
+
+A first attempt ran both tests at once (Playwright's default two workers) and **both failed**: each waited 300 s of the clock for the fact
+`figureGone` (the nurse leaving, `driver.ts` line 87, the `hideUntil` wait) and two software-rendered browsers on four cores did not reach it.
+That was the container, not the join: with `--workers=1` both pass, as above. The 300 s limit of that one wait is the next bound the
+camera session's 10-minute cutscene wait did not reach; it is not changed here (a journey run must use one worker in a software renderer).
