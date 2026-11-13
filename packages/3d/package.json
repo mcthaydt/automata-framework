@@ -46,6 +46,7 @@
     "test": "vitest run",
     "test:unit": "vitest run --project unit",
     "test:browser": "vitest run --project browser --project webgpu",
+    "test:slow": "vitest run --config vitest.slow.config.ts",
     "typecheck": "tsc -p ."
   },
   "dependencies": {

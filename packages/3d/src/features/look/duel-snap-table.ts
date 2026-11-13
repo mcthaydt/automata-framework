@@ -35,30 +35,54 @@ export const SHADER_PALETTE: readonly (readonly [number, number, number])[] = DE
 export const offsetOf = (cell: number, strength: number): number =>
   ((BAYER[cell] as number) / 16 - 0.5) * strength
 
+/** The palette, flat (r, g, b for each colour), for the two CPU models' loops. */
+const FLAT: Float64Array = Float64Array.from(SHADER_PALETTE.flat())
+
+/**
+ * The CPU model of the shader's loop over `list` (palette indices in order; every colour when it is `undefined`): the colour
+ * the dithered point is nearest, unless the colour itself is a palette colour, which stays itself.
+ */
+function snapOver(
+  rgb: readonly [number, number, number],
+  cell: number,
+  strength: number,
+  list: readonly number[] | undefined,
+): number {
+  const off = offsetOf(cell, strength)
+  const wr = rgb[0] + off
+  const wg = rgb[1] + off
+  const wb = rgb[2] + off
+  let best = 1e9
+  let pick = -1
+  let exact = 1e9
+  let same = -1
+  const count = list === undefined ? SHADER_PALETTE.length : list.length
+  for (let k = 0; k < count; k++) {
+    const i = list === undefined ? k : (list[k] as number)
+    const r = FLAT[i * 3] as number
+    const g = FLAT[i * 3 + 1] as number
+    const b = FLAT[i * 3 + 2] as number
+    const e = (r - wr) * (r - wr) + (g - wg) * (g - wg) + (b - wb) * (b - wb)
+    if (e < best) {
+      best = e
+      pick = i
+    }
+    const x = (r - rgb[0]) * (r - rgb[0]) + (g - rgb[1]) * (g - rgb[1]) + (b - rgb[2]) * (b - rgb[2])
+    if (x < exact) {
+      exact = x
+      same = i
+    }
+  }
+  return exact < EXACT ? same : pick
+}
+
 /** The index of the palette colour the shader's 256-colour loop gives `rgb` (0 to 1 a channel) in Bayer cell `cell`. */
 export function referenceSnap(
   rgb: readonly [number, number, number],
   cell: number,
   strength: number,
 ): number {
-  const off = offsetOf(cell, strength)
-  let best = 1e9
-  let pick = -1
-  let exact = 1e9
-  let same = -1
-  SHADER_PALETTE.forEach((p, i) => {
-    const e = (p[0] - (rgb[0] + off)) ** 2 + (p[1] - (rgb[1] + off)) ** 2 + (p[2] - (rgb[2] + off)) ** 2
-    if (e < best) {
-      best = e
-      pick = i
-    }
-    const x = (p[0] - rgb[0]) ** 2 + (p[1] - rgb[1]) ** 2 + (p[2] - rgb[2]) ** 2
-    if (x < exact) {
-      exact = x
-      same = i
-    }
-  })
-  return exact < EXACT ? same : pick
+  return snapOver(rgb, cell, strength, undefined)
 }
 
 /** The candidate lists for one dither strength, and the texels the shader reads them from. */
@@ -90,25 +114,7 @@ export function tableSnap(
   cell: number,
   strength: number,
 ): number {
-  const off = offsetOf(cell, strength)
-  let best = 1e9
-  let pick = -1
-  let exact = 1e9
-  let same = -1
-  for (const i of table.candidates(cellOf(rgb))) {
-    const p = SHADER_PALETTE[i] as readonly [number, number, number]
-    const e = (p[0] - (rgb[0] + off)) ** 2 + (p[1] - (rgb[1] + off)) ** 2 + (p[2] - (rgb[2] + off)) ** 2
-    if (e < best) {
-      best = e
-      pick = i
-    }
-    const x = (p[0] - rgb[0]) ** 2 + (p[1] - rgb[1]) ** 2 + (p[2] - rgb[2]) ** 2
-    if (x < exact) {
-      exact = x
-      same = i
-    }
-  }
-  return exact < EXACT ? same : pick
+  return snapOver(rgb, cell, strength, table.candidates(cellOf(rgb)))
 }
 
 const SQUARES: readonly number[] = SHADER_PALETTE.map((p) => p[0] * p[0] + p[1] * p[1] + p[2] * p[2])
