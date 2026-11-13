@@ -5,9 +5,9 @@
 import { DEFAULT_PALETTE } from '@automata/content/palette'
 import { type EffectFragment, type EffectIO, PostEffect, type RenderGraph } from '@pixi/3d'
 import { UniformGroup } from 'pixi.js'
-import { BAYER, EXACT } from '#src/features/look/duel-snap.ts'
-import { paletteGlsl, paletteWgsl } from '#src/features/look/duel-snap-filter.ts'
-import { addColourOnlyPass } from '#src/features/look/present-pass.ts'
+import { BAYER, EXACT } from '../features/look/duel-snap.ts'
+import { paletteGlsl, paletteWgsl } from '../features/look/duel-snap-filter.ts'
+import { addColourOnlyPass } from '../features/look/present-pass.ts'
 
 const COLOURS = DEFAULT_PALETTE.colors
 const EXACT_GLSL = EXACT.toExponential(6)
