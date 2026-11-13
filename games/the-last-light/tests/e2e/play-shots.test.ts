@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { test } from '@playwright/test'
 import { begin, stateOf, waitFor } from './driver.ts'
 
-// Shoots play frames at chosen places, by hand: 1024 by 768, the opening skipped through the probe, Ada walked by holding a key for a number
+// Shoots play frames at chosen places, by hand: 1024 by 768 (`AF_SHOOT_SIZE=844x390` shoots a phone held sideways), the opening skipped through the probe, Ada walked by holding a key for a number
 // of sim ticks (a software renderer runs the sim slowly, so a position cannot be waited for; a wall stops her). Saves pictures and asserts
 // none. Without `AF_SHOOT` it is skipped. `AF_SHOOT_STEPS` is `name:Key:ticks` entries joined by `;` (default: the hall's south wall, facing us);
 // each takes its frame once the sim has settled 75 ticks after the key is up. A `drag` entry (`name:drag:px`) turns the camera instead: the
@@ -30,7 +30,8 @@ test.use({ hasTouch: false, isMobile: false, deviceScaleFactor: 1 })
 test.setTimeout(30 * 60_000)
 
 test('play frames', async ({ page }) => {
-  await page.setViewportSize({ width: 1024, height: 768 })
+  const [width = 1024, height = 768] = (process.env.AF_SHOOT_SIZE ?? '1024x768').split('x').map(Number)
+  await page.setViewportSize({ width, height })
   const folder = OUT as string
   mkdirSync(folder, { recursive: true })
   await begin(page)

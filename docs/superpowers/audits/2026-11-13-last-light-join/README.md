@@ -139,3 +139,15 @@ What I saw, opening the pictures:
   walls (the camera branch's occluder rule); the join did not make them (they are in the camera branch's own frames).
 
 Verdict: the join did not change Ada.
+
+### The Owner's asked-for frames (the coordinator's request, shot before item 4)
+
+`shots-gameplay/hall-south.png` (1024 by 768) and `shots-phone-landscape/hall-south.png` (844 by 390, the same room and spot: the hall's
+south wall, facing us, the default step; `AF_SHOOT_SIZE=844x390` is a new option of the shooting harness, `play-shots.test.ts`; the
+context is not a touch one, as with every shot of that harness). Measured from the pictures (edge spacing of her sprite, her rows):
+
+| | 1024 by 768 | 844 by 390 |
+|---|---|---|
+| Screen pixels one painted texel of Ada covers | 4 by 4 (edges every 4 px) | 2 by 2 (edges every 2 px) |
+| Field pixels per texel (the game's `crisp` rule: two) | 2 (a field pixel is 2 screen px) | 2 (a field pixel is 1 screen px) |
+| Her height on screen, crown to boot sole | 479 px (rows 208 to 686), 62.4% of the height | 236 px (rows 110 to 345), 60.5% of the height |
