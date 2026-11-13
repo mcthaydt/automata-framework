@@ -67,6 +67,18 @@ describe('community files', () => {
     for (const id of ['version', 'target', 'browser', 'seed', 'steps']) expect(bug).toContain(`id: ${id}`)
   })
 
+  it('no community file names Ruken, which AF does not ship to', () => {
+    const files = [
+      '.github/CONTRIBUTING.md',
+      'CODE_OF_CONDUCT.md',
+      '.github/ISSUE_TEMPLATE/config.yml',
+      '.github/ISSUE_TEMPLATE/bug-report.yml',
+      '.github/ISSUE_TEMPLATE/feature-request.yml',
+      '.github/PULL_REQUEST_TEMPLATE.md',
+    ]
+    for (const file of files) expect(read(file), file).not.toMatch(/ruken/i)
+  })
+
   it('there is a feature request form', () => {
     expect(read('.github/ISSUE_TEMPLATE/feature-request.yml')).toMatch(/^name: /m)
   })

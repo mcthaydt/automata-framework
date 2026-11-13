@@ -6,7 +6,7 @@ maintainer today, so the clearer a report or a change is, the sooner it lands.
 ## Reporting a problem
 
 - **A bug:** [open a bug report](https://github.com/mcthaydt/automata-framework/issues/new/choose). Say which AF
-  version, which target (web, itch, Ruken or desktop) and which browser. If the game behaves differently from one run
+  version, which target (web, itch or desktop) and which browser. If the game behaves differently from one run
   or browser to the next, give the seed: the same seed, content and inputs must give the same result everywhere, so a
   difference is always a bug.
 - **An idea:** open a feature request and describe the game that needs it. AF adds code only when a game, an example

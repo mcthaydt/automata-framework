@@ -23,7 +23,6 @@ body:
       options:
         - web
         - itch
-        - Ruken
         - desktop (Tauri)
         - not a game (tooling, editor, docs)
     validations:
