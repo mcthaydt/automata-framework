@@ -19,6 +19,7 @@ const workflow = parse(readFileSync(join(root, '.github/workflows/ci.yml'), 'utf
     string,
     {
       env?: Record<string, string>
+      outputs?: Record<string, string>
       steps: { id?: string; name?: string; if?: string; run?: string; env?: Record<string, string> }[]
     }
   >
