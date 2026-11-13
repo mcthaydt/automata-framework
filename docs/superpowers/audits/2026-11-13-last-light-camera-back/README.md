@@ -7,10 +7,10 @@ original game somewhat closely". Branch `claude/last-light-camera-back`, from `c
 | Step | State |
 |---|---|
 | 1. Measure the original | done (this section) |
-| 2. Match it | not yet |
-| 3. Ada frozen, checked | not yet |
-| 4. Everything the camera touches | not yet |
-| 5. Shoot and look | not yet |
+| 2. Match it | done (section 2) |
+| 3. Ada frozen, checked | done (section 3) |
+| 4. Everything the camera touches | done but the journeys (section 4; journeys in section 6) |
+| 5. Shoot and look | done (section 5) |
 | 6. Gates | not yet |
 
 ## 1. The original, measured
@@ -127,3 +127,48 @@ recipe from the join's, so they are compared tree to tree, not with that file.
   with her density-1 sprite: she is whole in every case.
 - **The turn** (stick, swipe, mouse; vertical locked): untouched; the views' tilt is data. The journey `camera.test.ts`: section 6.
 - **The occluder fade**: untouched (props above 1 m, her sprite's width in metres); `room-sight.test.ts` passes on the new views.
+
+## 5. Shot and looked at
+
+Same spots in the game and the original: the hall's south wall (0.6, 6.5), the corridor (0, -4) and the closet (3.1, -4.6), the
+smallest room (the hall is the largest), Ada facing the camera, the camera at its starting heading. The game's frames are the play-shots
+harness (`tools/shoot-af.sh`: walk steps by coordinates, the closet opened through the key cabinet's code), Chromium, software GL, before
+in a worktree at `3954f4924`, after on this branch. Sheets (before | after | original): **`sheet-1024x768.png`**, **`sheet-844x390.png`**;
+the frames are in `before/`, `after/` and `original/`. Every one was opened and looked at.
+
+| Ada's height on screen (hall, south wall) | before | after | original |
+|---|---|---|---|
+| 1024 by 768 | 479 px, 62.4% | **about 246 px, 32%** (rows 350 to about 595) | 188 px, 24.5% |
+| 844 by 390 | 236 px, 60.5% | **about 122 px, 31%** (rows 180 to about 302) | 97 px, 24.9% |
+
+(The corridor and the closet have the same camera and she stands on its look, so she is the same size there; by eye, she is.)
+
+**What matches the original.** The lens and the tilt are its own, so the room has its look: the floor's tiles recede the same way, the
+walls lean in the same way, and you look down into a room rather than at a person. Each room reads as a room: in the corridor both walls,
+the trolley, the bucket, the far doorway and the floor between are in frame; the closet is seen whole, its shelf, the cabinet, the clock
+and its door frame, with the hall's tiles through the doorway; the hall shows the benches, the papers on the floor and the desk's corner.
+She is small in it and easy to find: the brightest thing in each frame (her cream shirt), in the middle.
+
+**What does not, and why.**
+- She is about 1.3 times the original's share of the height (32% against 24.5% in the hall, 20% in the corridor), and the frame shows
+  about 60% of the original's room (4.6 m tall at her feet against 7.2 to 8 m). That is the crisp rule at density 2: one field pixel a
+  texel is the farthest whole step. The next one out is density 1 everywhere (16%), which the Owner's density-2 face rule rules out.
+- The original's hall camera was fixed (it slid 12%), so at the south wall she stood at the bottom of a frame filled by the hall. The game
+  locks on: the room's box holds the look 1.1 m inside the wall, so she stands a little below the middle and **a black band shows below
+  the hall's cut south wall** (the bottom 140 px at 1024 by 768, 90 px at 844 by 390): the far side of a wall the occluder rule cut.
+  The before frame did not show it because it showed only 2.6 m. Not changed here: it is the follow rule's, not the scale's (see the tracker
+  rows).
+- The original's corridor and closet floated in black (its 16 m camera saw past every wall); the game's nearer camera fills the frame
+  with the room and the next one through the walls the occluder cut, so there is less black. Nearer to the Owner's ask, not the original.
+
+**Her face at each size** (accepted smaller). At 1024 by 768 (density 2, a texel 2 by 2 screen pixels) her head is about 28 texels across:
+the brows, both eyes with their whites and the mouth read, smaller; the face is a face. At 844 by 390 (density 1 in play, a texel 2 by 2
+screen pixels) her head is about 14 texels: brows and eyes are a dark line and two dots, the mouth a dot; it reads as a face with eyes,
+not an expression. In cutscenes she stays density 2 on the phone (section 2).
+
+**The HUD.** The pause button (top right), the objective line and the context button ("Fuse box", "Supply shelf") are where they were and
+the same size in every after frame; nothing of the HUD changed. Their sizes are the HUD journeys' to prove (section 6).
+
+**The LCD screen mesh.** `look.toml`'s screen mesh is a line every 4 screen pixels; a texel of hers was one 4-pixel cell (two field pixels)
+and is now half a cell, so a mesh line crosses every other texel of hers. Looked at 1:1 in the after frames: the faint grid is there over her
+as over the room, as in the original (whose figures were under a pixel a texel). Not changed: the look is the Owner's.
