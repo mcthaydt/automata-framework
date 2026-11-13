@@ -129,12 +129,16 @@ and 18 "known" test failures piled up, and each piece of work passed through sev
 - `pnpm format` before committing; Conventional Commits.
 - `pnpm check` runs lint, typecheck, `boundaries`, `style`, `knip`, the unit tests, `changeset status` and
   `check-changesets`.
-- Pull requests run `pnpm check` plus parity and the 2D journeys. `release-checks.yml` (before every publish, nightly
+- Pull requests run the whole-repository checks (lint, typecheck, `boundaries`, `style`, `knip`, the dependency, secret
+  and changeset checks), then only the unit tests, parity suites and 2D journeys of the packages the change affects,
+  dependents included (`pnpm test:unit:affected`, `test:browser:affected`, `test:e2e:affected`; a step with nothing
+  affected says it was skipped). A change outside the workspace folders (root config, the lockfile, a workflow, `vendor/`)
+  or in documentation a test reads runs everything, as do pushes to main, the nightly run and manual runs. `release-checks.yml` (before every publish, nightly
   and by hand, not on pull requests) runs `pnpm build`, `pnpm api-report`, `pnpm api-index`, `pnpm agent-skills` and the
   packed-install smoke. After changing a published package's exports or doc comments, run `pnpm build`, then
   `pnpm api-report --update` and `pnpm api-index --write` (the cheatsheet and the agent package's API reference), and
   commit what they write.
-- The gate runs every unit test (`pnpm check` runs `pnpm test:unit`, 3D included) and the 2D browser suites
+- `pnpm check` and a push to main run every unit test (`pnpm test:unit`, 3D included) and the 2D browser suites
   (`pnpm test:browser:2d`); `.github/workflows/3d.yml` runs the 3D browser suites and journeys, and `pnpm ci:local` runs both.
 - Only published packages get a changeset, and it is `patch`. Private ones (the editors, figures) need none. The one exception is `.changeset/first-public-release.md`, a `minor` that takes the shared version to 0.1.0 once.
 - Browser, visual and journey suites run on the GPU runner, and cross-engine parity runs in Chromium, WebKit and
