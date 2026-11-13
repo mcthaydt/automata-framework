@@ -96,12 +96,16 @@ function findByName(root: HTMLElement, name: FocusName): HTMLElement | null {
 const FOCUS_RETRY_FRAMES = 30
 
 /**
- * Focuses `target`, and asks again on each display frame while the engine keeps dropping the request. WebKit ignores
- * `focus()` on a control that was added a moment ago: no focus event, and `activeElement` stays the body, for the
- * first two frames or so (about 25 ms), then takes the same call. A player on a keyboard or gamepad would be left
- * with nothing focused on the title screen. Asking again stops when the control has focus, when focus has gone
- * anywhere else (the player's, or the screen's own), when the control leaves the page, when the screen is left
- * (`screen` is its undo list) and after `FOCUS_RETRY_FRAMES` frames.
+ * Focuses `target`, and asks again if the engine dropped the request, so a screen is not left with nothing focused
+ * for a keyboard or gamepad player (a controller's confirm does nothing until something has focus). Two causes:
+ * - WebKit ignores `focus()` on a control added a moment ago for the first two display frames or so (about 25 ms),
+ *   then takes the same call (no focus event, `activeElement` stays the body). So it asks again on each frame, up
+ *   to `FOCUS_RETRY_FRAMES`.
+ * - A game in a host page's iframe has no window focus until the player clicks or the host focuses the frame, so a
+ *   request made before then may not have taken, however many frames it was repeated for. So it asks once more
+ *   when the window gains focus.
+ * Each asking stops when the control has focus, when focus is anywhere else (the player's, or the screen's own),
+ * when the control has left the page, and when the screen is left (`screen` is its undo list).
  */
 function focusUntilItTakes(target: HTMLElement, screen: Disposables): void {
   target.focus()
@@ -110,15 +114,25 @@ function focusUntilItTakes(target: HTMLElement, screen: Disposables): void {
   if (doc.activeElement === target || win === null) return
   let left = FOCUS_RETRY_FRAMES
   let pending = 0
-  const askAgain = (): void => {
-    if (!target.isConnected) return
+  const stillWanted = (): boolean => {
+    if (!target.isConnected) return false
     const holder = doc.activeElement
-    if (holder !== null && holder !== doc.body && holder !== target) return
+    return holder === null || holder === doc.body || holder === target
+  }
+  const askAgain = (): void => {
+    if (!stillWanted()) return
     target.focus()
     if (doc.activeElement !== target && --left > 0) pending = win.requestAnimationFrame(askAgain)
   }
+  const askOnWindowFocus = (): void => {
+    if (stillWanted()) target.focus()
+  }
   pending = win.requestAnimationFrame(askAgain)
-  screen.add(() => win.cancelAnimationFrame(pending))
+  win.addEventListener('focus', askOnWindowFocus, { once: true })
+  screen.add(() => {
+    win.cancelAnimationFrame(pending)
+    win.removeEventListener('focus', askOnWindowFocus)
+  })
 }
 
 /**
