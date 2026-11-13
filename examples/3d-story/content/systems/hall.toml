@@ -21,13 +21,13 @@ initial = "patrol"
 
 [agents.speed]
 patrol = 1.4
-hunt = 2.2
+hunt = 3.5
 search = 1.4
 catch = 0
 
 [[agents.senses]]
 [agents.senses.sight]
-range = 4
+range = 7
 
 [[agents.senses]]
 [agents.senses.touch]
@@ -35,7 +35,7 @@ radius = 0.6
 
 [[agents.transitions]]
 from = "patrol"
-to = "hunt"
+to = "search"
 priority = 30
 when = [ { sees = true } ]
 
@@ -79,6 +79,53 @@ dwell = 4
 [[agents.routine]]
 node = "door"
 dwell = 1
+
+[[agents.routine]]
+node = "west"
+dwell = 1
+
+[[agents]]
+id = "sentry"
+modes = ["patrol", "alarm"]
+initial = "patrol"
+
+[agents.speed]
+patrol = 0
+alarm = 0
+
+[[agents.senses]]
+
+[agents.senses.sight]
+range = 8
+
+[[agents.transitions]]
+from = "patrol"
+to = "alarm"
+priority = 20
+
+[[agents.transitions.when]]
+sees = true
+
+[[agents.transitions.do]]
+
+[agents.transitions.do.noise]
+at = "self"
+loudness = 15
+kind = "alarm"
+
+[[agents.transitions.do]]
+set = "alarm"
+to = true
+
+[[agents.transitions]]
+from = "alarm"
+to = "patrol"
+priority = 10
+
+[[agents.transitions.when]]
+
+[agents.transitions.when.not]
+sees = true
 
 [[agents.routine]]
 node = "west"
