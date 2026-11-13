@@ -77,7 +77,7 @@ plain base interior and exterior with a waiting room and a street added, for jud
 
 ## Photo textures
 
-Every material is a photo. `assets/photos/` holds 38 CC0 photos (`photos.json` has each one's source, licence and
+Every material is a photo. `assets/photos/` holds 40 CC0 photos (`photos.json` has each one's source, licence and
 credit), and `library/tiles/` holds the small DUEL tile each swatch is drawn with. A tile is made from its photo by
 `photoToTile`: flatten, facet, scale down, index to the palette, wear, clean. It is deterministic, so the committed
 tile is checked, not trusted: it carries its photo's sha-256, and a missing, stray or stale tile is an error.
