@@ -264,9 +264,122 @@ Not run: WebKit and Firefox (not installed here; the kit's `browser` project lis
 re-shoots (step 5: no new value was chosen, so her data is unchanged). Not needed: a changeset (`@automata/figures` and
 `@automata/character-kit` are private), `api-report` and `api-index` (no published package's exports changed).
 
+## Round 4: a thighs slider in the painter, then Ada's thighs (the coordinator, on the Owner's words)
+
+Authorised in the brief: add the `thighs` slider round 3 wrote down, prove no existing figure moves, then use it on Ada.
+
+### The generator (`63be52ae`)
+
+`extensions/figures/src/shared/body/genes.ts`: `Sliders.thighs` (default 0.5) and `Measure.thighs = about(s.thighs, 0.7, 1.15)`,
+exactly 1 at 0.5 as `seat` and `bust` are. `extensions/figures/src/shared/outfit/fit.ts`, after the leg's rings are fattened:
+
+```ts
+const THIGH = [1, 1, 0.6, 0.25] // how much of the factor each leg ring takes, hip to knee; the knee and below none
+if (m.thighs !== 1)
+  leg.rings = leg.rings.map((r, i) => {
+    const q = 1 + (m.thighs - 1) * (THIGH[i] ?? 0)
+    return q === 1 ? r : { ...r, rx: r.rx * q, rz: r.rz * q, dx: (r.dx ?? 0) - x * r.rx * (1 - q) }
+  })
+```
+
+Each ring's width and depth take the factor, and its centre moves in by what its half-width lost, so the inner edge (the floor
+between the legs) holds and only the outer edge moves. No ring, part or garment changed; the garments size from `girth` and follow.
+The skeleton (`g.hips`) is untouched, so the leg-gap tests are untouched by construction.
+
+Tests first (`extensions/figures/tests/unit/body/thighs.test.ts`, beside `bust-seat.test.ts`): the measure (1 at 0.5 and left out,
+0.7 and 1.15 at the ends), the rings (every inner edge held at both ends, the hip rings 0.7 and 1.15, the knee and below equal), every
+view painted byte-identical at 0.5 and left out, and from behind at 0 at least two texels narrower across the hips and thighs and at 1
+at least one wider, with the floor between the legs below the knee kept. Eight failed for the right reason (`expected undefined to be
+1`, `45 vs 45`), then passed. `fit.test.ts` lists `thighs 0` and `thighs 1` among the bodies every garment must clear; `sliders.test.ts`
+pushes it to either end through `BODY` (it reads `DEFAULT_SLIDERS`).
+
+**No existing figure moved** (run on `63be52ae` before Ada's data changed):
+
+- figures `AF_UNIT_FULL=1 pnpm test:unit` (unit and goldens): 55 files, 747 tests, all pass (730 before; 12 new, the rest the new fit rows);
+- figures Chromium `browser`, `webgpu`, `goldens` (`AF_WEBGPU=software`): 11 files, 303 tests, all pass;
+- character kit `test:unit`, recorded runway cells included: 49 files, 379 tests, all pass;
+- character kit `browser (chromium)` and `webgpu`: 10 files passed, 3 skipped; 66 tests passed, 3 skipped (as at the join).
+
+Where a slider must be listed: nothing else enumerates them. The kit has no slider schema (a character's sliders are the painter's
+`Sliders` type); the game's build guard walks Ada's own sliders. Not changed: `packages/3d/src/features/figures/body/genes.ts`, the 3D
+package's own copy of the body ranges for mesh figures (out of the brief's scope).
+
+### Ada's thighs: the strip
+
+`thighs-strip-0.5-0.2-0.15-0.1-and-base-man-d2-x3.png`: density 2, x3 nearest neighbour, painted in Node (the kit's `paintedCell`),
+views N, NE, NW, E, W, S, at thighs 0.5 (today), 0.2, 0.15 and 0.1, and the base man in her clothes. Opened. Shirt (`cream`) widest at
+16 to 30 % of her height / waistcoat (`oxblood`) narrowest at 30 to 42 % / jeans (`fadedDenim`) widest at 42 to 62 %, then jeans over
+shoulders:
+
+| | N | NE | NW | E | W | S |
+|---|---|---|---|---|---|---|
+| thighs 0.5 (today) | 30/17/30 (1.00) | 23/12/23 (1.00) | 21/12/24 (1.14) | 16/14/16 (1.00) | 17/14/16 (0.94) | 30/18/27 (0.90) |
+| thighs 0.2 | 30/17/27 (0.90) | 23/12/20 (0.87) | 21/12/24 (1.14) | 16/14/16 (1.00) | 17/14/16 (0.94) | 30/17/24 (0.80) |
+| **thighs 0.15 (chosen)** | 30/17/26 (**0.87**) | 23/12/20 (0.87) | 21/12/23 (1.10) | 16/14/16 (1.00) | 17/14/16 (0.94) | 30/17/24 (0.80) |
+| thighs 0.1 | 30/17/25 (0.83) | 23/12/19 (0.83) | 21/12/23 (1.10) | 16/14/16 (1.00) | 17/14/16 (0.94) | 30/17/24 (0.80) |
+| base man in her clothes | 42/24/33 (0.79) | 33/15/24 (0.73) | 33/14/33 (1.00) | 20/17/20 (1.00) | 20/18/20 (1.00) | 42/23/29 (0.69) |
+
+What I see: at 0.5 the jeans flare out under the waistcoat's hem from behind and in both three-quarter backs, as wide as her shoulders.
+From 0.2 down they drop straight from the hem, narrower than the shoulders; 0.15 and 0.1 are a texel or two slimmer again. The front at
+0.1 still reads as a woman's legs, not sticks. The profiles measure the same at every value.
+**Chosen: 0.15**, the middle of the asked 0.83 to 0.9 from behind, with a texel in hand before 0.1.
+
+### Her seat once more, at thighs 0.15
+
+`thighs-0.15-seat-0.5-0.2-0.0-and-base-man-d2-x3.png`, the same views. Opened.
+
+| | N | NE | NW | E | W | S |
+|---|---|---|---|---|---|---|
+| seat 0.5 | 30/17/26 | 23/12/20 | 21/12/24 | 16/14/18 | 17/15/17 | 30/17/24 |
+| **seat 0.2 (kept)** | 30/17/26 | 23/12/20 | 21/12/23 | 16/14/16 | 17/14/16 | 30/17/24 |
+| seat 0.0 | 30/17/26 | 23/12/20 | 21/12/23 | 16/14/15 | 17/14/15 | 30/17/24 |
+
+The seat still does not show from behind (26 at every value). At 0.0 the profiles lose one more texel and her back line under the
+waistcoat becomes a straight drop; 0.2 keeps a slight curve and reads as a woman's profile. **Kept at 0.2**; its guard is unchanged.
+
+### Her data (`6e2bdfc4`)
+
+| Line in `ADA` | Before | After |
+|---|---|---|
+| `sliders.thighs` | not set (the painter's default `0.5`) | `0.15` |
+
+`cast.test.ts`: a new test, from behind and three-quarter back her jeans are 0.8 to 0.9 of her shoulders (failed first at 30 / 30);
+the build guard ("each body slider within 0.3 of the base woman's") allows 0.35 for `thighs` only, with the Owner's words in the test
+and the commit. The floor-between-the-legs test (density 2 and 4) passes unchanged.
+
+### Pictures (all opened)
+
+- `ada-eight-standing-d2-thighs-before-after-x3.png`: the eight directions standing, density 2, x3, painted in Node. Rows: before
+  (`655a0ea8f`'s data: `thighs` left out; at 0.5 the painter's rings are the very objects they were, so this is that commit's picture),
+  after (`thighs` 0.15), the base woman, the base woman in Ada's clothes. Widths before / after (shirt / jeans): direction 0 30/27 →
+  30/24, 1 21/27 → 21/17, 3 23/23 → 23/20, 4 30/30 → 30/26, 5 21/24 → 21/23, 7 22/19 → 21/16; 2 and 6 unchanged.
+- `hall-south-thighs-1024x768.png`: the gameplay frame, the same harness (`games/the-last-light/tests/e2e/play-shots.test.ts`, default
+  step `hall-south:KeyS:150`, 1024 by 768, Chromium, `AF_WEBGPU=software`). `hall-south-ada-thighs-before-after-x2.png`: her, cropped
+  x2, from `hall-south-after-1024x768.png` (round 1, the same data as `655a0ea8f`) and from the new frame. Her idle pose differs between
+  shots for the reason round 1 gives (a software renderer lands on different idle frames); compare the jeans only.
+
+### What I see
+
+- **From behind, the ask.** In the sheet the back and both three-quarter backs no longer bulge under the waistcoat: the jeans drop straight
+  from its hem and are clearly narrower than her shoulders (26 to 30), where before they matched them. She is still fuller than the
+  base man in her clothes (0.87 to 0.79) and her legs are a woman's, not sticks.
+- **From the front, in play.** The jeans now sit inside her forearms at the hip, with a step in from the shirt's shoulders; before they
+  reached out to her hands. The front reads natural.
+
+### Still weak
+
+- From the front her jeans are still one block from the waistcoat's hem to the knee: the jeans' torso shell joins the two legs down
+  to the crotch (round 1's note). Narrower now, not split.
+- NW (direction 5) still measures the jeans wider than the shirt's band (23 to 21; 24 to 21 before). Not looked into.
+
+### Round 4's gates
+
+GATES_PLACEHOLDER
+
 ## For the tracker
 
 | Session | Model | Branch | Row |
 |---|---|---|---|
 | Ada build (look) | Opus 5.5, no subagents | `claude/last-light-ada-build` | 2026-11-13, from `3954f492`. The Owner: "her hips are too wide and her arms being bent like that is odd", "maybe not hips but ass". **Done, tests first, pushed:** her standing arms take the painter's `loose` stand (`standElbow 0.34`, `hang 0.02`; was `elbow + idleElbow` 0.70 rad, hung 0.12) (`da1f5b98`); her seat `hips 0.55 -> 0.5`, `seat 0.5 -> 0.2`, at density 2 from behind no wider than her shoulders (31 -> 30), the build guard now holds an unnamed slider to the default (`65820dfa`). The rest of the seat's fullness is the generator's (base woman shown); not changed. Round 2: seat 0.1 and 0.0 measured (one texel in one view), so 0.2 stays and the guard is unchanged; the generator's seat range (`genes.ts`, `about(s.seat, 0.93…/0.94…)`) is the next step, written down, not done. Frames: `docs/superpowers/audits/2026-11-13-last-light-ada-build/`. |
 | Ada seat, generator (look) | Opus 5.5, no subagents | `claude/last-light-ada-build` | 2026-11-13, from `bdf1bd1a`. **Done, test first, pushed:** the painter's `seat` slider's low end, `genes.ts` `about(s.seat, 0.93→0.8, 1.12)` deep and `about(s.seat, 0.94→0.85, 1.06)` wide (`830308e3`). No golden or recorded kit cell moved (figures 730 + 303, kit 379 + 66). **Stopped at step 4:** from behind Ada's jeans stay 30 texels (her shoulders 30) at seat 0.2 down to 0.0. The width is her two thighs (leg spacing and girth), which neither the seat nor the jeans' ease (0 gives 28) reaches. Her data is unchanged; in profile her seat is a texel shallower at 0.2 with the new range. Next, written down, not done: a `thighs` slider that keeps her legs' gap, or untying the head's width from `fat`/`chunk`/`frame`. Strip: `seat-range-0.8-strip-…-d2-x3.png`. |
+| Ada thighs, generator (look) | Opus 5.5, no subagents | `claude/last-light-ada-build` | 2026-11-13, from `655a0ea8f`. **Done, tests first, pushed:** the painter's `thighs` slider (`genes.ts` `about(thighs, 0.7, 1.15)`; `fit.ts` the leg's rings hip to knee, inner edge held) (`63be52ae`); no golden or recorded kit cell moved (figures 747 + 303, kit 379 + 66). Ada `thighs` 0.15 (`6e2bdfc4`): from behind her jeans 30 → 26 texels to 30 at the shoulders (0.87; base man 0.79), front 27 → 24; seat kept 0.2; the build guard allows 0.35 for thighs only. Sheet and frame: `ada-eight-standing-d2-thighs-before-after-x3.png`, `hall-south-thighs-1024x768.png`. |
