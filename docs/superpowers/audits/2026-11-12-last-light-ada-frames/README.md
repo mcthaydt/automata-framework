@@ -267,3 +267,28 @@ corners #685f59 / #6c6159 before, #805548 / #815546 after: warm browns, as the r
 grey smudge under the nose and the grey corners are gone. A single orange-brown texel sits at her left cheek's edge (the skin's own line,
 #753b09, darkened along the skin's ramp); it reads as the jaw's edge at 1:1. Not touched: the hair (item 2). Recorded cells: none moved (the
 painter's goldens pass, 730 tests; the hold is opt-in). Kit unit 373, game unit 446 pass.
+
+## Session 4, item 2: the hair (cause found; no generic fix stands; `f69303f` for the face; `s4-item2-*.png`)
+
+Her crown in play, texel by texel (the hall, 1024 by 768): warm browns (#87594a), a grey-mauve (#785652, #74514e, #7d5a57) and a maroon
+(#5f302e, #613230, #683937, the "blotch" on her right side). Her painted front cell's hair is three tones above the eyes: #49251c (46 texels),
+the auburn gloss's shine #a76057 (44), the base #885041 (33). Lit in Node under four room lights (cool to very dim), #49251c holds, #885041
+plays #733d3b and #a76057 plays #904647 or #712b3b.
+
+- **Stage by stage.** With the retro grade's `moodBlend` at 0 (`s4-item2-hair-grade-on-off-x2.5.png`, grade on left, off right) the crown's
+  patch stays, pinker and less grey: the grey is the grade's saturation (.85) on a rose; the rose is the lit sprite's. The grade is the room's
+  and is not changed.
+- **Not a hue drift.** Auburn's paint spans 22 to 36 degrees of OKLab hue; every lit crown colour falls inside it (#904647 at 20.6 within five
+  degrees, #733d3b at 23). DUEL has no lit brown between #885041 and #49251c in auburn's hue: row 2's step 1 is #662b29 (24 degrees, chroma
+  .086), which is auburn's own paint[1] and where the room's darkening takes #885041. The maroon is that step; the mauve is the shine's rose.
+- **Tried and dropped: holding the hair on its own ramp**, the same mechanism as the skin (built, tested, shot: `s4-item2-hair-held-try-x2.5.png`,
+  before left, held right). It took the shine to a pale pink-tan band across the crown (it reads as scalp) and left the maroon (it is on the
+  ramp). No evidence the hair needs the hold, so it is not in the kit. Clothes are not held either; they take the room's colour.
+- **What would fix it is data, the Owner's call:** a hair ramp without a red step (DUEL offers none in auburn's hue on a lit step; #583126 is
+  step 0, which the light holds unlit), or a browner hair swatch (the reference woman's hair is a mauve-brown, base-f's `hairBraid`). Not
+  changed: the Owner chose auburn.
+
+Found on the way, fixed (`f69303f`, kit, tests first): the skin's line #753b09 sat at the dark end of the held ramp, so her deepest tone and fold
+darkened to an orange and her jaw edge played orange specks; a held texel now takes its swatch's painted ramp (`skinRamp`). The five-of-eight
+ring became a border vote per patch (`holdHue`). `s4-item2-head-before-after-x2.5.png`: item 1's frame left, this one right: no orange speck at
+the jaw, nostrils and mouth corners warm, the hair as it was.
