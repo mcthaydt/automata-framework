@@ -1,5 +1,43 @@
 # @mcthaydt/automata-content
 
+## 0.1.0
+
+### Minor Changes
+
+- 12bda87: The first public release: the four packages are on npmjs.org, free to install with no sign-in. `npx @automata/tools create-game my-game` makes a small game that runs, with a level you can open in the editor, a test and its own release workflow.
+  
+  BREAKING: this release replaces everything published before it under `@mcthaydt/*`. The packages are now `@automata/framework`, `@automata/content`, `@automata/sim` and `@automata/tools`; the browser packages (host, runtime, render, ui, game, testing) are one package, and the build tools (ship, cli, node) are one package, `@automata/tools`. The browser runtime no longer uses Effect, `NetworkPort` and `AuthoritativeSnapshot` are gone, and the root entry of `@automata/framework` is smaller (600 names became 274). Change your imports and your `package.json` to the new names.
+  
+  - `automata editor` opens the 2D level editor and the Tuner, which shows your game beside its settings, with nothing else installed; it names the game it opened in plain words.
+  - `automata check` runs the determinism and layout checker, and a `levels` step that fails when a level project and the game files saved from it disagree; `--only <step>` runs one step.
+  - `automata ship prepare` and `publish` take `--target web|itch|tauri|ruken` and check a web build for secrets, inlined assets, `eval` and root-absolute paths.
+  - `@automata/content` has `level-2d`, the 2D level format the editor writes and games read, two browser-safe entries (`schema`, `palette`), and tunables that may carry a `label`, `feel`, `unit` and `scale`. In dev, a content save updates the running game in place.
+  - `@automata/framework` has plainer default screens and messages, `startGame(game, { at })`, and `checkLayout` targets for editors.
+  - The messages and `--help` of every command say what to do next in plain words.
+
+### Patch Changes
+
+- 5386c34: `@automata/framework/testing` now exports `fakeClock`, and `@automata/framework` exports `systemClock`, so a renderer can time a wait without Effect. `@automata/content` adds `compileContentResult` and `@automata/tools` adds `manifestOf` and `rukenHeadersOf`, plain-value forms of what the Effect API did.
+- 474d2f9: A game declares achievements in `ship.config.ts` beside its leaderboards: an id, a title, a description and one goal on one of its boards (`reach` a score, or the `top_percent` of players). `@automata/content/game-config` exports `AchievementConfig` and `AchievementGoal` and its schema checks the declaration; it names no host. `automata ship prepare --target ruken` writes each achievement into `ruken.toml` (and a board's `title`), refuses a top share Ruken has no rule for with the shares it allows, and puts Ruken's own achievement errors in plain words. The web, itch.io and desktop builds accept the declaration and do nothing with it. `automata check` has a new `achievements` step, and `automata words` writes the achievements' source words to `messages/achievements/en.json` and translates them like any other catalog. `@automata/content/game-config` can now be loaded by plain Node from source.
+- 30e8765: The comments in the generated API reference say what each name does and why, not which project the code first came from.
+- 856e7eb: Compiling a game's messages no longer empties the Paraglide folder on the way. The compile goes to a temporary folder and only the files that changed reach `outdir`, so a dev server watching it no longer loads a page with its message modules missing, and a compile that changes nothing touches nothing.
+- ee474b0: A character definition in `project.toml` may have an `animation`: a picture cut into equal frames and named clips over them (`ContentAnimation`, `animationSchema`). A project without one reads as before.
+- 3357672: A game can read a level's tile rows, auto stacks and objects, the frame of a tile in its tileset, the placeholder colours and how a character looks (`pictureOf`), the same way the editor draws them.
+- 4b4328b: A game's default controls can be data: `content/controls.toml` (the `controls` kind in `@automata/content/controls`) and `controlsFrom(command, file)` in the framework build the same input map `keys()` does.
+- b0f31b6: A credits name is held to every language's font. `@automata/content/schema` gains `verbatim()`, beside `localized()`: text drawn as written in every language, with no message key. The font build cuts every face to it and refuses a build in which a language's faces lack one of its characters, naming the file, the key and the characters. The credits kind marks a name with it, and `creditsSchemaWith` takes the name's schema as an optional second argument.
+- 0500f40: `@automata/content/locale` now names the six default languages (`DEFAULT_LOCALES`: en, ja, ko, es-419, pt-BR, zh-Hans) and each one's own name for itself (`ENDONYMS`), and `endonymOf` answers from them before asking `Intl.DisplayNames`, so every engine and the font build spell a name the same way.
+- f863ad0: `PROMPT_COPY`, `STICK_DIRECTIONS` and `Picture` have doc comments: what each holds and where a game uses it, so the API index and the cheatsheet describe them.
+- fa85558: The default palette is DUEL: 256 colours as 32 ramps of 8, replacing Endesga 64. `@automata/content/palette` adds `DUEL_RAMPS`, `rampOf`, `step` and `nearestDuel`. A game without `content/palette.toml` now gets DUEL, so its content hash changes.
+- 551a11f: The workspace's source entries of `@automata/content` (and the `@automata/sim` modules they reach) load under plain Node: relative imports name their `.ts` file, and the atlas error's field is no longer a parameter property. `automata check --only no-eval` now passes for a game inside the repository; a published install was never affected.
+- 156126a: A built game carries each font's licence text. The Vite plugin emits the texts the font build writes beside the subsets (`<font>-OFL.txt`) into the build's assets, next to the faces, whenever the build carries any font subset.
+- ceb2a01: The font build cuts each language's subset to every word a game shows (its content, its interface words in `messages/ui`, and the words of `@automata/framework`, `@automata/ui-screens` and `@automata/net-ui`), and with a `content/fonts.toml` every language the content compiles must be served by a font: no language falls back to the device's fonts. A font may name `reserved_name` and `license_file`: its subsets are renamed `<font> <language>` (the OFL's Reserved Font Name) and the licence ships beside them. The build also writes `fonts.css`, one `@font-face` per font and language and a `:root:lang()` rule that sets `--af-font`, so a language change changes the face with no code. `gameWords` is exported from `@automata/content/assets`, and `subsetWoff2` takes an optional rename.
+- a66b4e0: The test of the Vite plugin's HMR update no longer fails on a runner whose file watcher reports a setup write late: it waits for the watcher to catch up before it makes the change it counts. No behaviour of the plugin changes.
+- 3aef585: A game's language may be named with a three-digit region, so `content/messages/es-419.json` (Latin American Spanish, one of the framework's six default languages) is a translation instead of being refused as "not a language tag".
+- Updated dependencies [551a11f]
+- Updated dependencies [12bda87]
+- Updated dependencies [0990eea]
+  - @automata/sim@0.1.0
+
 ## 0.0.5
 
 ### Patch Changes
