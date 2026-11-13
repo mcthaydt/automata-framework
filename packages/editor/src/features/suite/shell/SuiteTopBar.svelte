@@ -169,5 +169,8 @@ const {
   }
   .tools > :global(*) {
     flex-shrink: 0;
+    /* A tool here is as wide as what is in it and the bar scrolls: a `max-width: 100%` (the views' group has one) would
+       cap it at this scroller's width, and its tabs would spill out of the box over the next tool. */
+    max-width: none;
   }
 </style>
