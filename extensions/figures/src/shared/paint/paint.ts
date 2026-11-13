@@ -15,6 +15,7 @@ export {
   densityOf,
   familyTones,
   GLOSS_SHEEN,
+  paintedTones,
   SHEEN_MAX,
   SHEEN_MIN,
   sheenScale,

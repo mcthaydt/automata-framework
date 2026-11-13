@@ -2,7 +2,19 @@
 
 import { GROUP, type Material } from '../body/parts'
 import { RAMP_OUTLINE, RAMPS } from './duel-ramps'
-import { DUEL, duel, duelLab, EDGE_LEVELS, hex, INK, KEY, mixTones, oklab } from './paint-style'
+import {
+  DUEL,
+  duel,
+  duelLab,
+  EDGE_LEVELS,
+  hex,
+  INK,
+  KEY,
+  mixTones,
+  oklab,
+  PAINT,
+  tonesOf,
+} from './paint-style'
 import type { GBuffer } from './raster'
 /**
  * The outside light: each coloured texel's albedo times the light there, snapped to DUEL. A texel the painter filled (no
@@ -453,6 +465,18 @@ function litLine(line: number, deep: number, skin = false) {
     H = Math.atan2(B, A) + (skin ? 0.25 : 0),
     c = skin ? C * 0.85 : C < 0.015 ? 0 : Math.min(0.12, C * 1.35 + 0.01)
   return duelLab(target, c * Math.cos(H), c * Math.sin(H))
+}
+/**
+ * Every colour the painter may paint a material in: its four tones as `prepare` fills them, then the darks and lights `extraTones` derives
+ * from them (a line: the selective outline's lit side; a fold: a line inside the figure, the jaw over the neck; a gloss's shine and a dark
+ * ramp's rim). `skin` derives them as for the figure's skin. The face stamp shades in the four tones. A host that keys a material's
+ * colours (to hold a skin's hue under a room's light) needs all of them: a skin's line or fold left out is lit as cloth.
+ */
+export function paintedTones(m: Material, skin = false, cool = PAINT.cool): number[] {
+  const tones = fillTones(tonesOf(m), m.flat ? 0 : cool)
+  const dark = !skin && !m.strands && !m.flat && oklab(tones[1])[0] < DARK_MID
+  const { line, fold, shine, rim } = extraTones(tones, m.ramp, skin, dark)
+  return [...new Set(skin ? [...tones, line, fold] : [...tones, line, fold, shine, rim])]
 }
 const extras = new Map<string, { line: number; fold: number; shine: number; rim: number }>()
 export function extraTones(tones: number[], ramp: number, skin = false, black = false) {
