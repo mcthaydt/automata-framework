@@ -88,12 +88,29 @@ clothes: her seat from behind is as full as Ada's, and the jeans add their one c
 - **No recorded picture or pinned hash of the game moved**: the game's unit suite (61 files, 474 tests) passes with no re-record. The
   game has no pinned cell hash of Ada; her cells are held by measured tests (`cast.test.ts`), and three of those are new or changed: the
   arms' stand values, the seat no wider than the shoulders from the front and behind, and the build guard's default for an unnamed slider.
-- **No painter golden moved** (see gates).
-- `content.hash`: see gates.
+- **No painter golden moved**: the figures' `goldens` project (in the unit suite and in Chromium) passes unchanged.
+- `content.hash` and `sim-content.hash` did not move: the game's build recompiled its content and left the tree clean (her figure is code, not content).
 
 ## Gates
 
-(filled in below as they ran)
+Node 24.22.1, pnpm 10.34.6, `pnpm install --frozen-lockfile`, on `65820dfa` (the docs commit after it changes no code).
+
+| Gate | Result |
+|---|---|
+| `pnpm format` | exit 0, no file changed (741 warnings, 190 infos, as on the branch) |
+| `TURBO_FORCE=true pnpm check` | **exit 0**: lint, typecheck, boundaries, style, knip, `test:unit` over 67 tasks (0 cached, 13 min 17 s), `changeset status`, `check-changesets` (87, 0 problems) |
+| `TURBO_FORCE=true pnpm build` | **exit 0**, 16 of 16, 0 cached |
+| The game's unit suite (in `check`) | 61 files, 474 tests, all pass |
+| The game's build (content compile) | passes; `content.hash` unmoved |
+| `@automata/figures` unit, `goldens` in it (in `check`) | 54 files, 730 tests, all pass |
+| `@automata/figures` browser (chromium), webgpu, goldens, `AF_WEBGPU=software` | 11 files, 303 tests, all pass |
+| `@automata/character-kit` unit (in `check`) | 49 files, 379 tests, all pass |
+| `@automata/character-kit` browser (chromium) and webgpu, `AF_WEBGPU=software` | 10 files passed, 3 skipped; 66 tests passed, 3 skipped (the tests' own no-adapter guards, as at the join) |
+| The play-shots harness, before and after | ran (the frames above) |
+
+Not run: WebKit and Firefox (not installed here; parity pending for CI), `pnpm test:browser:2d`, the game's own browser, e2e and journey
+suites other than the frame shoots, the 3D workflow. Not needed: `api-report` and `api-index` (no published package's exports or doc
+comments changed), a changeset (only the private game changed).
 
 ## For the tracker
 
