@@ -15,7 +15,8 @@ export class RetroEffect extends PostEffect {
 
   /** `profile` is what a game sets of it (the rest is the clinic's). `enabled: false` leaves the pass out of the frame. */
   constructor(profile: unknown = {}, options: { readonly enabled?: boolean } = {}) {
-    super(options)
+    // Works on the picture as shown, so it runs after tone mapping (@pixi/3d beta.3 stages a post effect before it by default).
+    super({ stage: 'afterToneMapping', ...options })
     this.#profile = parseRetroProfile(profile)
     this.uniforms = new UniformGroup(
       Object.fromEntries(RETRO_UNIFORMS.map((name) => [name, { value: 0, type: 'f32' as const }])),

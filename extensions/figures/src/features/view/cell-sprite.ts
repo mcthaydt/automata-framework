@@ -1,7 +1,15 @@
 // biome-ignore-all lint/style/noNonNullAssertion: the compiler needs these assertions until the strict flags (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) replace each with a check
-import { FlatMaterial, type ShaderBit, type ShaderDescriptor, Sprite3D, type View3D } from '@pixi/3d'
+import {
+  type BaseMaterial3DOptions,
+  FlatMaterial,
+  type ShaderBit,
+  type ShaderDescriptor,
+  Sprite3D,
+  type View3D,
+} from '@pixi/3d'
 import { BufferImageSource, Texture } from 'pixi.js'
 import type { Cell } from '../../shared/stage/cell'
+import { cellFogBit } from './cell-fog'
 import { CELL_TEMPLATE } from './cell-template'
 
 /**
@@ -28,8 +36,7 @@ import { CELL_TEMPLATE } from './cell-template'
 const cellDepthBit: ShaderBit = {
   name: 'cellDepth',
   textures: ['cellDepth'],
-  // `texSize`: the cell's width and height in texels (`CELL_TEMPLATE` snaps the texture coordinate to a texel's centre with it).
-  bindings: { material: { depthProj: 'vec4<f32>', texSize: 'vec4<f32>' } },
+  bindings: { material: { depthProj: 'vec4<f32>' } },
   gl: {
     fragment: {
       material: `
@@ -57,12 +64,16 @@ const cellDepthBit: ShaderBit = {
   },
 }
 
-/** A flat material that, under WebGPU, compiles from `CELL_TEMPLATE` so its fragment entry can return a depth. The template has
- * no GLSL stage, so it is set only once the renderer is known to be WebGPU (`CellSprite.gpu`); under WebGL the material is a
- * plain flat one and the bit's GLSL writes `gl_FragDepth`. */
+/** A flat material that fogs as beta.2 fogged an unlit colour (`cellFogBit`: the engine's own fog is off) and that, under WebGPU,
+ * compiles from `CELL_TEMPLATE` so its fragment entry can return a depth. The template has no GLSL stage, so it is set only once
+ * the renderer is known to be WebGPU (`CellSprite.gpu`); under WebGL the material is a plain flat one and the bit's GLSL writes
+ * `gl_FragDepth`. A quad with no depth of its own is one too, and never gets the template. */
 class CellMaterial extends FlatMaterial {
   /** Whether the renderer drawing this material is WebGPU. */
   webgpu = false
+  constructor(options: BaseMaterial3DOptions) {
+    super({ ...options, fog: false, extraBits: [...(options.extraBits ?? []), cellFogBit] })
+  }
   override getPrimaryDescriptor(view: View3D): ShaderDescriptor {
     const d = super.getPrimaryDescriptor(view),
       want = this.webgpu ? CELL_TEMPLATE : undefined
@@ -86,26 +97,18 @@ export class CellSprite {
 
   /** `depth`: write the per-texel depth (needs `showDepths` each frame). */
   constructor(private readonly depth = false) {
-    this.sprite = depth
-      ? new Sprite3D({
-          material: this.makeMaterial(Texture.EMPTY, Texture.EMPTY),
-          billboardMode: 'none',
-          label: 'CellSprite',
-        })
-      : new Sprite3D({
-          texture: Texture.EMPTY,
-          billboardMode: 'none',
-          alphaMode: 'mask',
-          label: 'CellSprite',
-        })
+    this.sprite = new Sprite3D({
+      material: this.makeMaterial(),
+      billboardMode: 'none',
+      label: 'CellSprite',
+    })
   }
 
-  private makeMaterial(base: Texture, depth: Texture): CellMaterial {
+  private makeMaterial(): CellMaterial {
     const material = new CellMaterial({
-      baseColorTexture: base,
+      baseColorTexture: Texture.EMPTY,
       alphaMode: 'mask',
-      extraBits: [cellDepthBit],
-      textures: { cellDepth: depth },
+      ...(this.depth ? { extraBits: [cellDepthBit], textures: { cellDepth: Texture.EMPTY } } : {}),
     })
     this.material = material
     return material
@@ -129,7 +132,6 @@ export class CellSprite {
       const tex = new Texture({ source: this.colour })
       if (this.depth) {
         this.makeDepthTexture(w, h)
-        this.material!.data.texSize = [w, h, 0, 0]
       }
       this.sprite.texture = tex
       this.size = size

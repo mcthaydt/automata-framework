@@ -88,7 +88,7 @@ describe('readCatalog', () => {
     })
   })
 
-  // D-1: @automata/3d stays private until Pixi 3D is public, yet its examples are free core examples (M3R-D20).
+  // @automata/3d is not published yet, yet its examples are free core examples (M3R-D20).
   it("accepts an unpublished extension's entries in the render3d module", () => {
     expect(entry('render3d/render3d-boxes.ts')).toMatchObject({
       problems: [],

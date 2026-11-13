@@ -155,19 +155,26 @@ wall's edges are kept off screen or axis-aligned.
 
 **Per-texel depth under WebGL and WebGPU.** The depth shader bit (`cellDepthBit`, `src/features/view/cell-sprite.ts`) has a GLSL
 stage (`gl_FragDepth`) and a WGSL one. Under WebGPU a bit alone cannot write `@builtin(frag_depth)`: `@pixi/3d`'s default material
-template returns a bare `@location(0) vec4<f32>`, so a depth-writing quad compiles from the package's own template
-(`CELL_TEMPLATE`, `src/features/view/cell-template.ts`: a copy of `@pixi/3d`'s with the fragment entry returning a colour and a
-depth), set through the material's `getPrimaryDescriptor().template` once `StageView` has seen the renderer is WebGPU.
-`tests/unit/view/template.test.ts` reads the installed `@pixi/3d` and fails, in words, when its template moves on. WebGPU
-binds every material texture as filterable float, which `r32float` is not, so under WebGPU the depths go up as the floats' own
-bytes in an `rgba8unorm` texture and the shader rebuilds them with `bitcast`. The batch's one sampler is linear whatever a texture's
-own filter says, so the template snaps the texture coordinate to its texel's centre by hand (a magnified texel would otherwise blend
-with its neighbours, and a packed depth would turn to garbage); the window depth is
+template ends its fragment entry with `{{fragmentWriteOutputs}}`, which returns colour locations only, so a depth-writing quad compiles
+from the package's own template (`CELL_TEMPLATE`, `src/features/view/cell-template.ts`: a copy of `@pixi/3d`'s with three edits, the
+fragment entry returning a colour and a depth), set through the material's `getPrimaryDescriptor().template` once `StageView` has seen
+the renderer is WebGPU. `tests/unit/view/template.test.ts` reads the installed `@pixi/3d` and fails, in words, when its template moves
+on. WebGPU binds every material texture as filterable float, which `r32float` is not, so under WebGPU the depths go up as the floats'
+own bytes in an `rgba8unorm` texture and the shader rebuilds them with `bitcast`. Each texture is sampled with its own style (since
+`@pixi/3d` 0.1.0-beta.3), and both of a cell's are `nearest`, so a magnified texel does not blend and a packed depth is read whole;
+the window depth is
 `zNdc · 0.5 + 0.5` under both renderers (the projection matrix `StageView` passes holds −1…1 clip depth). `StageView.perTexelDepth`
 is true under both; any other renderer warns once (`perTexelDepthWarning`) and `perTexelDepth` is false. The browser suite
 draws every stage case under WebGL and, where the browser's WebGPU presents a frame, under WebGPU, and requires 0 pixels of difference
 from `compose` in each. A colour texture is created `rgba8unorm` (Pixi's default for a byte buffer is `bgra8unorm`, which swaps
 red and blue under WebGPU).
+
+**Fog.** A cell is an unlit picture of display colours. `CellMaterial` turns the engine's fog off and mixes the display value toward the
+engine's fog colour itself (`cellFogBit`, `src/features/view/cell-fog.ts`), the straight mix of display values `@pixi/3d` 0.1.0-beta.2 gave an
+unlit colour; beta.3's own fog mixes in linear light and encodes again, which reads lighter in the middle of the range. `tests/browser`
+(`view-fog.test.ts`, and the WebGPU twin) check every opaque pixel of a fogged quad against the unfogged one, for a `StageView` quad and
+a `FigureSprite`, under both renderers. A host states one fog on its view; the colour the fully fogged cell reaches is what the view's
+fog colour decodes to (the framework's `viewFog` hands the colour that decodes to beta.2's).
 Another limit: a billboard
 is the painter's orthographic view at 18°, so under another camera tilt a texel's depth is where its surface really is but
 its place is the billboard's: a wall's cut line is right to a few millimetres, not exact, off the painter's pitch.

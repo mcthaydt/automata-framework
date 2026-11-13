@@ -12,5 +12,6 @@ export {
   type OutfitGoldens,
 } from '../testing/golden-checks.ts'
 export { figureOf, type GoldenOutfit } from '../testing/golden-outfits.ts'
+export { type ShaderCompile, watchShaderCompile } from '../testing/shader-compile.ts'
 export { snapshot } from '../testing/snapshot.ts'
 export { type TestTarget, testTarget } from '../testing/test-target.ts'

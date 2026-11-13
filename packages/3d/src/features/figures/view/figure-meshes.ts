@@ -4,8 +4,9 @@
 // matrices (figure space), so they are not nested. One material a material name, owned by this figure: the view
 // tints them by the room's light, so no two figures share one.
 
-import { Container3D, FlatMaterial, Geometry3D, Mesh3D, PhongMaterial } from '@pixi/3d'
+import { Container3D, Geometry3D, Mesh3D, PhongMaterial } from '@pixi/3d'
 import type { M, V3 } from '../../../shared/math/math.ts'
+import { beta2Colour, UnlitMaterial } from '../../../shared/render/views/unlit-material.ts'
 import type { Mesh, Weight } from '../body/mesh.ts'
 import type { Skeleton } from '../body/rig.ts'
 import type { Built } from '../figure/build.ts'
@@ -17,7 +18,7 @@ import { restInverses, skinPart, type VertexData } from './figure-skin.ts'
 
 /** A material of the figure, its drawn colour and whether it keeps that colour in any light. */
 export interface FigureMaterial {
-  readonly material: FlatMaterial | PhongMaterial
+  readonly material: UnlitMaterial | PhongMaterial
   readonly colour: number
   readonly flat: boolean
 }
@@ -65,7 +66,9 @@ function materialOf(built: BuiltMaterial, palette: readonly string[], lit: boole
   const colour = materialColour(built, palette)
   const flat = built.flat === true
   const material =
-    flat || lit ? new FlatMaterial({ baseColor: colour }) : new PhongMaterial({ baseColor: colour })
+    flat || lit
+      ? new UnlitMaterial({ baseColor: beta2Colour(colour) })
+      : new PhongMaterial({ baseColor: colour })
   return { material, colour, flat }
 }
 

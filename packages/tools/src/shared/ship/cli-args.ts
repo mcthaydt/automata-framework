@@ -19,7 +19,7 @@ export type CliCommand =
       readonly activate: boolean
       readonly game: string | undefined
       readonly target: ShipTarget
-      /** Upload to Ruken's local stack only, so the build may contain `@pixi/3d`. Ruken only. */
+      /** Upload to Ruken's local stack only: a build its author keeps on this machine. Ruken only. */
       readonly private?: true
       /** Push the desktop bundles in `dist-tauri/` to itch.io's Downloadable channels. itch only. */
       readonly from?: 'tauri'

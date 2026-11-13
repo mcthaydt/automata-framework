@@ -26,6 +26,21 @@ export interface CaseReadback extends Readback {
   perTexelDepth: boolean
 }
 
+/** A linear fog, as a test states it: where it starts and ends (metres along the view) and the display colour the cells it fogs
+ * fully reach, 0 to 1 a channel. The engine decodes its fog colour with a 2.2 gamma, so the view is handed that colour's encode. */
+export interface TestFog {
+  near: number
+  far: number
+  colour: [number, number, number]
+}
+
+const fogOf = (f: TestFog) => ({
+  type: 'linear' as const,
+  near: f.near,
+  far: f.far,
+  color: f.colour.map((c) => c ** (1 / 2.2)) as [number, number, number],
+})
+
 /** A transparent, unsmoothed canvas that keeps its drawing buffer, so it can be read back. */
 async function startApp(w: number, h: number, preference: Renderer): Promise<Application> {
   const app = new Application()
@@ -76,7 +91,12 @@ function dispose(app: Application): void {
  * The named case's frame, drawn through `StageView` under `preference`; `twice` draws it a second time from a rebuilt
  * frame before the readback (what determinism asks of a page that draws again).
  */
-export async function drawCase(name: string, preference: Renderer, twice = false): Promise<CaseReadback> {
+export async function drawCase(
+  name: string,
+  preference: Renderer,
+  twice = false,
+  fog?: TestFog,
+): Promise<CaseReadback> {
   const c = CASES[name]
   if (!c) throw new Error(`no case ${name}`)
   let frame = c.frame()
@@ -85,6 +105,7 @@ export async function drawCase(name: string, preference: Renderer, twice = false
     stage = new StageView([w, h], c.range)
   try {
     app.stage.addChild(stage.view)
+    if (fog) stage.view.fog = fogOf(fog)
     if (c.wall) {
       // The case's wall, in the scene beside the figures: a plane facing +z, one colour through the same texture path as a cell.
       const { z, x, y, rgba } = c.wall,
@@ -118,14 +139,20 @@ export async function drawCase(name: string, preference: Renderer, twice = false
 }
 
 /** The pixel a texel is: one base figure (`who` 0 or 1) in view `view` of the 8, as the sheets draw it, in this page. */
-export async function drawStanding(who: number, view: number): Promise<Readback> {
+export async function drawStanding(
+  who: number,
+  view: number,
+  fog?: TestFog,
+  preference: Renderer = 'webgl',
+): Promise<Readback & { depth: number }> {
   const cast = member(BASE[who].def, 2),
     [cw, ch] = cast.cell,
     ppm = ch / cast.metres,
-    app = await startApp(cw, ch, 'webgl'),
+    app = await startApp(cw, ch, preference),
     scene = new View3D({ width: cw, height: ch, toneMapping: 'none' })
   try {
     app.stage.addChild(scene)
+    if (fog) scene.fog = fogOf(fog)
     // One figure facing view `view`, the camera on +z at 18°, orthographic, a texel a pixel.
     const fig = new FigureSprite(cast)
     scene.root.addChild(fig.sprite)
@@ -139,7 +166,8 @@ export async function drawStanding(who: number, view: number): Promise<Readback>
     scene.camera.lookAt({ x: target[0], y: target[1], z: target[2] })
     for (let i = 0; i < 3; i++)
       fig.update(1 / 60, { facing: (view * Math.PI) / 4, moving: false, eye, target })
-    return await settle(app)
+    // The figure's quad is square to the view and stands at the origin, so every point of it is this far along the view axis.
+    return { ...(await settle(app)), depth: 20 + aim * Math.sin(pitch) }
   } finally {
     dispose(app)
   }

@@ -2,8 +2,9 @@ import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-// The 3D template needs @automata/3d, which stays private until Pixi 3D is public. Until then `create-game` offers the
-// template only where that package is: inside this repository's workspace, or where AF_BETA_3D=1 says the author has it.
+// The 3D template needs @automata/3d, which is not published yet (Pixi 3D itself is, on npmjs.org). Until it is,
+// `create-game` offers the template only where that package is: inside this repository's workspace, or where
+// AF_BETA_3D=1 says the author has it.
 
 /** What an author is told when they ask for a 3D game and the package is not there. */
 export const THREE_D_NOT_PUBLIC =

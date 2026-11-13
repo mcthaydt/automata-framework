@@ -87,7 +87,8 @@ export class HazeEffect extends PostEffect {
 
   /** The pass for `haze` (already `hazeOf` the time). It is focused `focusFp` m from the eye until `focus` says more. */
   constructor(haze: HazeProfile) {
-    super()
+    // Works on the picture as shown, so it runs after tone mapping (@pixi/3d beta.3 stages a post effect before it by default).
+    super({ stage: 'afterToneMapping' })
     const [r, g, b] = channels(haze.colour)
     this.uniforms = new UniformGroup({
       uR: { value: r, type: 'f32' },

@@ -35,7 +35,7 @@ float hash3(int a, int b, int c) {
 }`
 export const HASH_WGSL = `
 fn hash3(a: i32, b: i32, c: i32) -> f32 {
-  var n = u32(a) * 0x27d4eb2du ^ u32(b) * 0x165667b1u ^ u32(c) * 0x9e3779b1u;
+  var n = (u32(a) * 0x27d4eb2du) ^ (u32(b) * 0x165667b1u) ^ (u32(c) * 0x9e3779b1u);
   n = (n ^ (n >> 15u)) * 0x85ebca6bu;
   n = n ^ (n >> 13u);
   return f32(n) / 4294967296.0;
@@ -146,7 +146,9 @@ fn toward(c: vec3<f32>, t: vec3<f32>, amt: f32) -> vec3<f32> {
  * Where the surface a pixel shows is, in view space (x right, y up, z toward the viewer, so -z is the distance in front): the
  * pixel's content-space `uv` runs y down, the clip terms (`uFxClip` .z and .w, the projection's scale) say how wide the view
  * is, and an orthographic camera (`uOrtho` over 0.5) does not widen it with distance. `viewPos` is the engine's for a lens
- * camera and takes y the other way up here, so the passes that need a place use this.
+ * camera and takes y the other way up here, so the passes that need a place use this. The projection's y scale (`uFxClip.w`)
+ * carries the sign of how the target is flipped on a backend (negative on WebGPU, and on WebGL in `@pixi/3d` 0.1.0-beta.3
+ * when the view draws into a texture), and the `ndc` here is already y up from the uv, so only its size is used.
  */
 export const SURFACE_GLSL = `
 float surfaceDepth(float d) {
@@ -156,7 +158,7 @@ vec3 surfacePos(vec2 uv) {
   float lz = surfaceDepth(sampleDepth(uv));
   vec2 ndc = vec2(uv.x * 2.0 - 1.0, 1.0 - uv.y * 2.0);
   float w = uOrtho > 0.5 ? 1.0 : lz;
-  return vec3(ndc.x * w / uFxClip.z, ndc.y * w / uFxClip.w, -lz);
+  return vec3(ndc.x * w / uFxClip.z, ndc.y * w / abs(uFxClip.w), -lz);
 }
 `
 export const SURFACE_WGSL = `
@@ -169,6 +171,6 @@ fn surfacePos(uv: vec2<f32>) -> vec3<f32> {
   let ndc = vec2<f32>(uv.x * 2.0 - 1.0, 1.0 - uv.y * 2.0);
   var w = lz;
   if (fx.uOrtho > 0.5) { w = 1.0; }
-  return vec3<f32>(ndc.x * w / fxh.uFxClip.z, ndc.y * w / fxh.uFxClip.w, -lz);
+  return vec3<f32>(ndc.x * w / fxh.uFxClip.z, ndc.y * w / abs(fxh.uFxClip.w), -lz);
 }
 `

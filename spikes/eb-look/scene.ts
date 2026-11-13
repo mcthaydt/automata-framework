@@ -54,6 +54,9 @@ const pref = q.get('pref') === 'webgpu' ? 'webgpu' : 'webgl'
 // only the pieces that bake light, or only those a state can move (doors, props, leaves). ?figures=painted draws the cast as
 // the character kit's painted figures (the builder's own pair, lit by the room) instead of core's meshes.
 const on = (key: string) => q.get(key) !== '0'
+// ?fog=near,far,rrggbb puts linear fog on the view (a night room's haze); the sky behind it is the colour the fog reaches.
+const fogQuery = /^(\d+(?:\.\d+)?),(\d+(?:\.\d+)?),([0-9a-f]{6})$/i.exec(q.get('fog') ?? '')
+const fog = fogQuery === null ? undefined : { near: Number(fogQuery[1]), far: Number(fogQuery[2]), color: Number.parseInt(fogQuery[3] ?? '0', 16) }
 // ?lcd=1 and ?retro=1 turn on the LCD panel and the retro grade the way a game does: one call each, before the renderer is made, with
 // the old game's own numbers (the clinic profiles, which `{}` is). The retro pass goes before core's snap whatever the order; the panel after.
 if (q.get('retro') === '1') addRetroPass({ profile: {} })
@@ -140,7 +143,7 @@ const castView: View3dFactory = (row, id, models, light) => {
   const member = cast[index]
   if (member === undefined) return undefined
   const { stand: _stand, ...def } = BASE_PAIR[member.who as 'man' | 'woman']
-  const view = figure(def, { library: figureLibrary, motion })(row, id, models, light)
+  const view = figure(def, { library: figureLibrary, motion, ...(q.get('still') === '1' ? { now: () => 0 } : {}) })(row, id, models, light)
   if (view === undefined) return undefined
   const update = view.update
   // EB's angle is map degrees clockwise from east; AF's yaw 0 faces +z (south).
@@ -191,6 +194,7 @@ const game = defineGame({
       look,
       time: on('time') ? time : undefined,
       lighting: on('light') ? lighting : undefined,
+      ...(fog === undefined ? {} : { fog }),
       backgroundColor: Number.parseInt(skyMid.slice(1), 16),
       views: { [Cast.id]: painted ? paintedView : castView },
       scene: (view, stage, occluders, light) => {

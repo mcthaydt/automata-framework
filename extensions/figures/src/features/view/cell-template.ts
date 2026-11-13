@@ -3,19 +3,19 @@ import type { ShaderBitTemplate } from '@pixi/3d'
 /**
  * The WGSL template of a depth-writing `CellSprite` under WebGPU.
  *
- * `@pixi/3d`'s default material template (`gpuTemplate` in `MaterialSystemGpu`, module-internal) returns a bare
- * `@location(0) vec4<f32>` from its fragment entry, so no shader bit can write `@builtin(frag_depth)`: the return type has
- * to change. This is a copy of that template with four edits, and no others: the fragment entry returns `CellFragment`
- * (a colour and a window depth), declares `var cellDepth` (1, the far plane, until `cellDepthBit` sets it), returns it with the
- * colour, and snaps the texture coordinate to its texel's centre (`@pixi/3d`'s batch sampler is linear, so a texture's own
- * `nearest` is ignored under WebGPU). `tests/unit/view/template.test.ts` reads the installed `@pixi/3d` and fails, in words, when its template
- * moves on, before a frame is wrong.
+ * `@pixi/3d`'s default material template (`gpuTemplate` in `MaterialSystemGpu`, module-internal) ends its fragment entry with
+ * `{{fragmentWriteOutputs}}`, which returns a `FragmentOutput` of colour locations only, so no shader bit can write
+ * `@builtin(frag_depth)`: the return type has to change. This is a copy of that template with three edits, and no others: the
+ * fragment entry returns `CellFragment` (a colour and a window depth), declares `var cellDepth` (1, the far plane, until `cellDepthBit`
+ * sets it) where the original declares its outputs, and returns both where the original writes them. The slots a bit may use,
+ * the bind groups (the global one as a uniform buffer, as beta.3 asks) and the exposure line are the original's.
+ * `tests/unit/view/template.test.ts` reads the installed `@pixi/3d` and fails, in words, when its template moves on, before a frame is wrong.
  *
  * Used only beside `cellDepthBit`, and only under WebGPU: it has no GLSL stage. A shader's cache key includes the template's id,
  * so it never shares an entry with a plain flat material's.
  */
 export const CELL_TEMPLATE: ShaderBitTemplate = {
-  bindGroups: ['global', 'camera', 'batch'],
+  bindGroups: [{ name: 'global', ubo: true }, 'camera', 'batch'],
   gpu: `
 
 
@@ -37,11 +37,8 @@ fn mainVertex(input: VertexInput,
   
   let inst = uRenderableInstanceStorage[ii];
   let renderable = uRenderableStorage[inst.id];
-  let textureSlots = inst.texSlots;
   let vMaterialIndex = renderable.materialIndex;
-  {{vertexMaterialAccess}}
-
-  _textureSlots = textureSlots;
+  {{vertexStoreAccess}}
 
   let batchWorldMatrix = uRenderableStorage[0].transform;
   var modelMatrix = batchWorldMatrix * renderable.transform;
@@ -70,7 +67,6 @@ fn mainVertex(input: VertexInput,
   output.vNormal        = worldNormal;
   output.vUV            = uv;
   output.vMaterialIndex = renderable.materialIndex;
-  output.vTextureSlots  = textureSlots;
 
   return output;
 }
@@ -78,9 +74,7 @@ fn mainVertex(input: VertexInput,
 struct CellFragment { @location(0) color: vec4<f32>, @builtin(frag_depth) depth: f32 }
 
 @fragment
-fn mainFragment(inputIn: FragmentInput) -> CellFragment {
-  var input = inputIn;
-  _textureSlots = input.vTextureSlots;
+fn mainFragment(input: FragmentInput) -> CellFragment {
   var cellDepth: f32 = 1.0;
   var normal = normalize(input.vNormal);
   var albedo: vec3<f32> = vec3<f32>(1.0);
@@ -88,11 +82,7 @@ fn mainFragment(inputIn: FragmentInput) -> CellFragment {
   var alpha: f32 = 1.0;
 
   let vMaterialIndex = input.vMaterialIndex;
-  {{fragmentMaterialAccess}}
-
-  // Nearest sampling, by hand: the batch's one sampler (uSampler) is linear whatever a texture's own filter says, so a magnified
-  // texel would blend with its neighbours (and a packed depth would turn to garbage). Sample each texel at its centre.
-  input.vUV = (clamp(floor(input.vUV * material.texSize.xy), vec2<f32>(0.0), material.texSize.xy - 1.0) + 0.5) / material.texSize.xy;
+  {{fragmentStoreAccess}}
 
   {{fragmentMaterial}}
 
@@ -100,7 +90,7 @@ fn mainFragment(inputIn: FragmentInput) -> CellFragment {
 
   {{fragmentLighting}}
 
-  finalColor *= global.uExposure;
+  finalColor *= inputExposure(global.uExposure, global.uDisplayExposure);
 
   {{fragmentEnd}}
 

@@ -18,7 +18,7 @@ export const CORE_MODULES: readonly string[] = [
   'sim',
   'content',
   'ui',
-  // The 3D runtime is free (M3R-D20): its examples are core, though its package stays unpublished while D-1 stands.
+  // The 3D runtime is free (M3R-D20): its examples are core, though its package is not published yet.
   'render3d',
   // Procedural characters, drawn only by render3d, so private with it (M3R-D7) and core like it.
   'figures',
@@ -102,8 +102,8 @@ const EXTENSION_PACKAGES: ReadonlySet<string> = new Set([
   '@automata/retro-crisp',
 ])
 /**
- * Extensions that stay private for now, whose entries examples may still import: `@automata/3d` is built on the
- * closed `@pixi/3d` beta and is published when Pixi 3D is, and `@automata/cutscenes`, `@automata/character-kit`,
+ * Extensions that stay private for now, whose entries examples may still import: `@automata/3d` is not published yet
+ * (the Owner decides when), and `@automata/cutscenes`, `@automata/character-kit`,
  * `@automata/world-kit`, `@automata/lcd-panel` and `@automata/retro-crisp` build on
  * `@automata/3d`, so they wait for it. The website's playground leaves
  * its examples out (`playgroundCatalog`), because it is public.

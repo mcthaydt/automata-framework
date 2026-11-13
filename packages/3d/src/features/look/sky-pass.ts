@@ -234,9 +234,11 @@ export function skyShaders(time: TimeOfDay, layers: readonly HorizonLayer[]): Ef
 vec4 effect(vec2 uv) {
   vec4 base = sampleColor(uv);
   if (sampleDepth(uv) < 0.9999) return base;
+  // uv runs down the frame, so ndc.y is positive below the middle; only the projection's size is wanted from uFxClip.w, never its sign,
+  // which is negative where the view draws into a texture (@pixi/3d 0.1.0-beta.3).
   vec2 ndc = uv * 2.0 - 1.0;
   float yaw = degrees(uAimYaw + atan(ndc.x / uFxClip.z));
-  float elev = uAimPitch - atan(ndc.y / uFxClip.w);
+  float elev = uAimPitch - atan(ndc.y / abs(uFxClip.w));
   // The haze below the horizon: the ground past the map, as the air at the horizon, darker toward the viewer.
   if (elev < 0.0) {
     float k = 1.0 - 0.5 * min(1.0, -elev / 0.25) + ((((int(floor(yaw * 4.0)) + int(floor(elev * 400.0))) & 1) != 0) ? 0.02 : -0.02);
@@ -259,7 +261,7 @@ fn effect(uv: vec2<f32>) -> vec4<f32> {
   if (sampleDepth(uv) < 0.9999) { return base; }
   let ndc = uv * 2.0 - 1.0;
   let yaw = degrees(fx.uAimYaw + atan(ndc.x / fxh.uFxClip.z));
-  let elev = fx.uAimPitch - atan(ndc.y / fxh.uFxClip.w);
+  let elev = fx.uAimPitch - atan(ndc.y / abs(fxh.uFxClip.w));
   if (elev < 0.0) {
     var k = 1.0 - 0.5 * min(1.0, -elev / 0.25) - 0.02;
     if (((i32(floor(yaw * 4.0)) + i32(floor(elev * 400.0))) & 1) != 0) { k = k + 0.04; }
@@ -329,7 +331,8 @@ export class SkyEffect extends PostEffect {
 
   /** The sky for `time` behind `layers` (back to front). */
   constructor(time: TimeOfDay, layers: readonly HorizonLayer[] = []) {
-    super()
+    // Works on the picture as shown, so it runs after tone mapping (@pixi/3d beta.3 stages a post effect before it by default).
+    super({ stage: 'afterToneMapping' })
     this.fragment = skyShaders(time, layers)
     this.uniforms = new UniformGroup({
       uAimYaw: { value: 0, type: 'f32' },

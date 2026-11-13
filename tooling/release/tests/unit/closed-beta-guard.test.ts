@@ -4,7 +4,8 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { publishablePackages } from '#src/publishable-packages.ts'
 
-// `@pixi/3d` is a closed beta and the figure builder is a private repository: nothing published may bundle either. The root
+// Which 3D packages AF publishes is the Owner's decision, still to come; until then no published package may import
+// `@pixi/3d` (public on npmjs.org, MIT, but no published package declares it) or `@automata/figures` (private). The root
 // hoists both for the workspace, so a published package that imported one by mistake would resolve and build. `pnpm boundaries`
 // forbids both in every published package; this pins that the list covers them all, so a package that joins the publish set
 // (release-list.test.ts) cannot join without the guard.
@@ -27,7 +28,7 @@ function forbidden(): Map<string, string[]> {
   return named
 }
 
-describe('the closed beta stays out of every published package', () => {
+describe('Pixi 3D and the figures stay out of every published package', () => {
   const named = forbidden()
   for (const { dir, manifest } of publishablePackages(root)) {
     it(`${manifest.name} (${dir}) may import neither @pixi/3d nor @automata/figures`, () => {

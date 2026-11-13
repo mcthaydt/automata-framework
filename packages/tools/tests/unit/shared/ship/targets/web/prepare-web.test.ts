@@ -86,10 +86,11 @@ describe('prepareWeb', () => {
     expect(failure({ distDir, config, gameDir })._tag).toBe('SecretInBuild')
   })
 
-  // A web page is public: the closed beta never goes there, nor its extras.
-  it('stops on the private Pixi 3D beta, and on its extras', () => {
+  // Pixi 3D is public (npmjs.org, MIT), so a 3D game goes on the web like a 2D one; its extras never do (they probe
+  // `new Function` at load).
+  it('passes a build that carries @pixi/3d, and stops on its extras', () => {
     const core = game({ ...goodBuild, 'assets/main.js': 'x("pixi3d-shadow-budget")' })
-    expect(failure({ distDir: core.distDir, config })._tag).toBe('Pixi3dInPublicBuild')
+    expect(prepare({ distDir: core.distDir, config })).toEqual(Either.right({ files: 2 }))
     const extras = game({ ...goodBuild, 'assets/main.js': 'x("generateSpawnBurst")' })
     expect(failure({ distDir: extras.distDir, config })._tag).toBe('Pixi3dExtrasInBuild')
   })

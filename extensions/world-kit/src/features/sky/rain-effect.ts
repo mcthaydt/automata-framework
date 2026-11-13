@@ -62,7 +62,8 @@ export class RainEffect extends PostEffect {
 
   /** `density` 0 to 1 (how many columns have a streak); `colour` a 0 to 1 triple, already a DUEL colour. */
   constructor(density: number, colour: readonly [number, number, number]) {
-    super()
+    // Works on the picture as shown, so it runs after tone mapping (@pixi/3d beta.3 stages a post effect before it by default).
+    super({ stage: 'afterToneMapping' })
     this.uniforms = new UniformGroup({
       uDensity: { value: density, type: 'f32' },
       uClock: { value: 0, type: 'f32' },

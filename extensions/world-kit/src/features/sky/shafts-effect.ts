@@ -180,7 +180,8 @@ export class ShaftsEffect extends TrackingEffect {
   private view: ArrayLike<number> = TrackingEffect.NO_VIEW
 
   constructor(lamps: readonly ShaftLamp[] = [], options: ShaftsOptions = {}) {
-    super()
+    // Works on the picture as shown, so it runs after tone mapping (@pixi/3d beta.3 stages a post effect before it by default).
+    super({ stage: 'afterToneMapping' })
     this.uniforms = new UniformGroup({
       uOrtho: { value: 0, type: 'f32' },
       uMotes: { value: options.motes === false ? 0 : 1, type: 'f32' },

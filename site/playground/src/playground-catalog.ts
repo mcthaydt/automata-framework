@@ -32,7 +32,7 @@ export interface PlaygroundExample {
 
 /**
  * The site's example data from the runner's catalog: valid examples only, sorted by id. An example of an
- * unpublished extension is left out: the site is public, and that extension is not (D-1).
+ * unpublished extension is left out: the site is public, and that extension is not published yet.
  */
 export function playgroundCatalog(
   entries: readonly CatalogEntry[],

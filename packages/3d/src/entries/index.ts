@@ -1,5 +1,5 @@
-// @automata/3d: AF's 3D renderer on @pixi/3d. Private while D-1 stands: the
-// beta's terms allow no public deployment, so `ship prepare` refuses a public build that contains it (X-b).
+// @automata/3d: AF's 3D renderer on @pixi/3d (npmjs.org, MIT). Not published yet; a game's build may carry it
+// anywhere a 2D one goes.
 // Import `@automata/3d/no-eval` first, before anything else. The view's schema, the lens and the
 // heading maths are the pure `./camera-view` entry; the heading's sim plugin is the `./sim` entry.
 
@@ -162,6 +162,7 @@ export { type ModelMesh, parseGlb, parsePack } from '../shared/render/model/pars
 export { type BoxMaterial, type BoxSize, box } from '../shared/render/views/box-view.ts'
 export { type MeshViewOptions, mesh } from '../shared/render/views/mesh-view.ts'
 export { interpolatePose3d, type Pose3d, placeView3d } from '../shared/render/views/pose-3d.ts'
+export { beta2Colour, UnlitMaterial } from '../shared/render/views/unlit-material.ts'
 export type { EntityView3d, EntityViewResolver3d, View3dFactory } from '../shared/render/views/view-3d.ts'
 export { levelTime, lightByTime, lightHemisphere } from '../shared/time-of-day/time-light.ts'
 export { TIMES, type TimeOfDay, type TimeOverrides, timeOfDay } from '../shared/time-of-day/time-of-day.ts'

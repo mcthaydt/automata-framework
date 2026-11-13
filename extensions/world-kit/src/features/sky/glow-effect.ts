@@ -110,7 +110,8 @@ export class GlowEffect extends PostEffect {
   protected override readonly uniforms: UniformGroup
 
   constructor(options: GlowOptions = {}) {
-    super()
+    // Works on the picture as shown, so it runs after tone mapping (@pixi/3d beta.3 stages a post effect before it by default).
+    super({ stage: 'afterToneMapping' })
     const outer = Math.min(MAX_REACH, options.outer ?? 2)
     this.uniforms = new UniformGroup({
       uThreshold: { value: options.threshold ?? 0.85, type: 'f32' },

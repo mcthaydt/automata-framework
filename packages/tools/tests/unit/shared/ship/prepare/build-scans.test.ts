@@ -43,18 +43,17 @@ describe('scanBuild', () => {
     expect(Either.isRight(run(scanBuild({ distDir: dist({ 'a.js': 'let a = 1' }) })))).toBe(true)
   })
 
-  it('finds a secret first, then the closed beta, in a public build', () => {
+  it('finds a secret in a build that carries @pixi/3d', () => {
     const both = dist({ 'a.js': `x("pixi3d-shadow-budget"); const k = "${key}"` })
     expect(failure(run(scanBuild({ distDir: both })))._tag).toBe('SecretInBuild')
-    const beta = dist({ 'a.js': 'x("pixi3d-shadow-budget")' })
-    expect(failure(run(scanBuild({ distDir: beta })))._tag).toBe('Pixi3dInPublicBuild')
   })
 
-  it('lets a private build carry the closed beta, but never its extras', () => {
-    const beta = dist({ 'a.js': 'x("pixi3d-shadow-budget")' })
-    expect(Either.isRight(run(scanBuild({ distDir: beta, audience: 'private' })))).toBe(true)
+  // Pixi 3D is public (npmjs.org, MIT): any build may carry it. Its extras probe `new Function`, so none may carry those.
+  it('lets a build carry @pixi/3d, but never its extras', () => {
+    const pixi3d = dist({ 'a.js': 'x("pixi3d-shadow-budget")' })
+    expect(Either.isRight(run(scanBuild({ distDir: pixi3d })))).toBe(true)
     const extras = dist({ 'a.js': 'x("generateSpawnBurst")' })
-    expect(failure(run(scanBuild({ distDir: extras, audience: 'private' })))._tag).toBe('Pixi3dExtrasInBuild')
+    expect(failure(run(scanBuild({ distDir: extras })))._tag).toBe('Pixi3dExtrasInBuild')
   })
 
   it('reads the game folder’s .env values, so a leaked one is found', () => {

@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { afterAll, describe, expect, it } from 'vitest'
 import { THREE_D_NOT_PUBLIC, threeDAvailable } from '#src/shared/create-game/three-d-gate.ts'
 
-// The 3D template needs @automata/3d, which is private until Pixi 3D is public. It is offered where that package is
+// The 3D template needs @automata/3d, which is not published yet. It is offered where that package is
 // found (inside this repository's workspace) and where AF_BETA_3D=1 says the author has it.
 
 const made: string[] = []

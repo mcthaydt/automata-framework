@@ -75,17 +75,14 @@ export const TRIM_HEIGHT = 0.12
 
 /**
  * Shows `mesh` at `opacity`: hidden at 0, blended below 1, opaque (writing depth) at 1. A mesh destroyed since it was
- * registered (its material gone) is skipped. A change of alpha mode asks the mesh to recheck its shadow, which
- * `@pixi/3d` does not do on its own (a blended mesh casts none).
+ * registered (its material gone) is skipped. A blended mesh casts no shadow: `@pixi/3d` strips the shadow bit from a
+ * blended or transmissive material when it reads the mesh's pass mask, so the alpha mode is all this sets.
  */
 function showAt(mesh: Mesh3D, opacity: number): void {
   if (mesh.destroyed) return
   mesh.visible = opacity > 0
   const mode = opacity < 1 ? 'blend' : 'opaque'
-  if (mesh.material.alphaMode !== mode) {
-    mesh.material.alphaMode = mode
-    mesh.updateShadow()
-  }
+  if (mesh.material.alphaMode !== mode) mesh.material.alphaMode = mode
   mesh.material.alpha = opacity
 }
 

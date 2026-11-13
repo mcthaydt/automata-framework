@@ -1,7 +1,7 @@
 // @automata/3d/camera-view: the pure entry ("one owner for camera-view", amended
 // 2026-10-30). The view's schema, defaults and ranges, the lens and the heading maths, for the renderer and the 3D
 // level editor. It imports no Pixi and no `@pixi/3d` (its test reads the module graph), so a tool may use it without
-// the closed beta. The schema and the heading are the sim entry's own definitions, re-exported; `occlude` (how the
+// the renderer. The schema and the heading are the sim entry's own definitions, re-exported; `occlude` (how the
 // angled camera treats a wall or a prop) is the sector format's, re-exported the same way.
 
 export { fovOf, LENS_MM } from '../features/camera/fov.ts'

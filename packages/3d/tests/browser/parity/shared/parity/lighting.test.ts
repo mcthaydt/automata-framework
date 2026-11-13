@@ -2,11 +2,12 @@
 // container has no WebGL, so these skip there and the GPU runner runs them (M3.1b).
 import '#src/entries/no-eval.ts'
 import type { RenderRow, StepResult } from '@automata/sim'
-import { FlatMaterial, Mesh3D, PlaneGeometry } from '@pixi/3d'
+import { Mesh3D, PlaneGeometry } from '@pixi/3d'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createPixi3dRenderer, type Pixi3dRenderer } from '#src/app/create-renderer.ts'
 import { sceneLightingSchema } from '#src/shared/render/light/scene-lighting.schema.ts'
 import { box } from '#src/shared/render/views/box-view.ts'
+import { UnlitMaterial } from '#src/shared/render/views/unlit-material.ts'
 import { builtRenderer } from '#src/testing/built-renderer.ts'
 import { snapshot } from '#src/testing/snapshot.ts'
 import { testTarget } from '#src/testing/test-target.ts'
@@ -57,7 +58,7 @@ async function start(
       for (const x of floors ? [-3, 3] : []) {
         const floor = new Mesh3D({
           geometry: new PlaneGeometry({ width: 5.8, height: 6, widthSegments: 12, heightSegments: 12 }),
-          material: new FlatMaterial({ baseColor: 0xffffff }),
+          material: new UnlitMaterial({ baseColor: 0xffffff }),
         })
         floor.position.set(x, 0, 0)
         floor.rotation.set(-Math.PI / 2, 0, 0)

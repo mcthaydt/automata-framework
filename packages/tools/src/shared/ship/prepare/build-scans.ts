@@ -1,13 +1,13 @@
 import { Effect } from 'effect'
 import { type FileError, tryFile } from '../../node/errors.ts'
-import { Pixi3dExtrasInBuild, Pixi3dInPublicBuild, SecretInBuild, VersionMismatch } from '../errors.ts'
+import { Pixi3dExtrasInBuild, SecretInBuild, VersionMismatch } from '../errors.ts'
 import { checkVersion } from './check-version.ts'
 import { findPixi3d } from './pixi3d-markers.ts'
 import { findSecretsInBuild, readEnvValues } from './secret-scan.ts'
 
 // The checks that every target that publishes a build makes, in the same words: the release tag is the game's version,
-// and nothing secret or private is in the build. Ruken, itch.io, the web and the desktop each call them, so a rule
-// changes in one place.
+// nothing secret is in the build, and nor is Pixi 3D's extras, which need `eval`. Ruken, itch.io, the web and the
+// desktop each call them, so a rule changes in one place.
 
 /** A release's version must be its tag's. A branch build has no tag and passes. */
 export function checkTag(version: string, tag: string | undefined): Effect.Effect<void, VersionMismatch> {
@@ -25,17 +25,15 @@ export interface ScanBuildInput {
    * key formats and high-entropy strings are checked.
    */
   readonly gameDir?: string | undefined
-  /**
-   * Who the build is for. A `public` build (the default) refuses `@pixi/3d`, a closed beta (X-b); a `private` one
-   * (Ruken's local stack) may carry it. Either refuses `@pixi/3d/extras` (S7-g).
-   */
-  readonly audience?: 'public' | 'private' | undefined
 }
 
-/** Secrets first, then the closed beta. The first thing found stops the build. */
+/**
+ * Secrets first, then `@pixi/3d/extras` (S7-g: its particle code probes `new Function` at load, which a no-eval CSP
+ * refuses). `@pixi/3d` itself is public (npmjs.org, MIT) and passes. The first thing found stops the build.
+ */
 export function scanBuild(
   input: ScanBuildInput,
-): Effect.Effect<void, SecretInBuild | Pixi3dInPublicBuild | Pixi3dExtrasInBuild | FileError> {
+): Effect.Effect<void, SecretInBuild | Pixi3dExtrasInBuild | FileError> {
   return Effect.gen(function* () {
     const { distDir, gameDir } = input
     const secrets = yield* tryFile(distDir, () =>
@@ -45,7 +43,5 @@ export function scanBuild(
 
     const pixi3d = yield* tryFile(distDir, () => findPixi3d(distDir))
     if (pixi3d.extras.length > 0) return yield* new Pixi3dExtrasInBuild({ found: pixi3d.extras })
-    if ((input.audience ?? 'public') === 'public' && pixi3d.core.length > 0)
-      return yield* new Pixi3dInPublicBuild({ found: pixi3d.core })
   })
 }

@@ -19,7 +19,6 @@ on:
       # Their own files.
       - "games/base-3d/**"
       - "examples/3d/**"
-      - "vendor/pixi-3d/**"
       - "agents/**"
       # Every package: the 3D packages, and the core ones they build on.
       - "packages/**"

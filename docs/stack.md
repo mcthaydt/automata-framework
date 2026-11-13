@@ -8,7 +8,7 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 
 | Library | Tier | Version | License |
 |---|---|---|---|
-| [PixiJS 8](#pixijs-8) | Core | `pixi.js` 8.22.0 | MIT |
+| [PixiJS 8](#pixijs-8) | Core | `pixi.js` 8.23.0 | MIT |
 | [Koota](#koota) | Core | `koota` 0.6.6 | ISC |
 | [Zod](#zod) | Core | `zod` 4.6.6 | MIT |
 | [Svelte 5](#svelte-5) | Core | `svelte` 5.57.1 | MIT |
@@ -22,7 +22,7 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 
 | Package | Version | License |
 |---|---|---|
-| `pixi.js` | 8.22.0 | MIT |
+| `pixi.js` | 8.23.0 | MIT |
 
 - **Tier:** Core
 - **What it does in AF:** Draws the game in 2D: WebGL2 by default, WebGPU opt-in per game (ADR 0002).

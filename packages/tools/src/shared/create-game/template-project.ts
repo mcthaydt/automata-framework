@@ -59,7 +59,7 @@ export const packageFile = (
           '@automata/content': frameworkSpec(options),
           '@automata/sim': frameworkSpec(options),
           ...extra(options),
-          'pixi.js': '8.22.0',
+          'pixi.js': '8.23.0',
           svelte: '5.57.1',
           zod: '4.6.6',
           ...targetDependencies(targetsOf(options)).dependencies,

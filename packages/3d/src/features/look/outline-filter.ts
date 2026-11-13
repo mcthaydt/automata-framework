@@ -126,7 +126,8 @@ export class OutlineEffect extends PostEffect {
   protected override readonly uniforms: UniformGroup
 
   constructor(options: OutlineOptions) {
-    super()
+    // Works on the picture as shown, so it runs after tone mapping (@pixi/3d beta.3 stages a post effect before it by default).
+    super({ stage: 'afterToneMapping' })
     const [kx, ky] = options.key ?? [-0.7071, -0.7071]
     this.uniforms = new UniformGroup({
       uGap: { value: options.gap, type: 'f32' },

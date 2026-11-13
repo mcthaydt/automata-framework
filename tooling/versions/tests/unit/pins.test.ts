@@ -98,13 +98,13 @@ describe('publishedPeerFloors', () => {
 describe('pinsFromScaffoldSource', () => {
   it('reads the exact pins create-game writes, as object keys or assignments, and skips ranges and workspace links', () => {
     const source = `
-      dependencies: { '@automata/sim': 'workspace:*', effect: '3.22.2', 'pixi.js': '8.22.0' },
+      dependencies: { '@automata/sim': 'workspace:*', effect: '3.22.2', 'pixi.js': '8.23.0' },
       dependencies['@ruken/sdk'] = '^0.0.0'
       devDependencies['@tauri-apps/cli'] = '2.12.3'
     `
     expect(pinsFromScaffoldSource(source)).toEqual([
       { name: 'effect', version: '3.22.2' },
-      { name: 'pixi.js', version: '8.22.0' },
+      { name: 'pixi.js', version: '8.23.0' },
       { name: '@tauri-apps/cli', version: '2.12.3' },
     ])
   })

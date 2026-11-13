@@ -6,6 +6,9 @@ import type { SceneLighting } from './scene-lighting.schema.ts'
 import { type BakeExtras, bakeVertices, type VertexBake } from './vertex-bake.ts'
 import { type LampLevels, levelOf, prepareLighting, tintInto } from './vertex-light.ts'
 
+/** What the scene's bakes ask of `bakeVertices` beyond the caller's own extras. */
+const engine = (options: BakeOptions): BakeExtras => ({ ...options, engineColours: true })
+
 export interface BakeOptions extends BakeExtras {
   /** Occluder boxes (by `id`) that never shadow this mesh: its own broad collider, say. */
   readonly ignore?: readonly string[] | undefined
@@ -217,7 +220,14 @@ export function createSceneLight(lighting: SceneLighting, shadows?: FigureShadow
       const attributes = source.attributes as Record<string, Attribute | undefined>
       const positions = threeFloats(attributes.aPosition, 'positions')
       const normals = threeFloats(attributes.aNormal, 'normals')
-      const bake = bakeVertices(positions, normals, placement(mesh), lighting, options.ignore, options)
+      const bake = bakeVertices(
+        positions,
+        normals,
+        placement(mesh),
+        lighting,
+        options.ignore,
+        engine(options),
+      )
       const colors = new Float32Array(bake.vertexCount * 4)
       bake.write(levels, colors)
       // The baked copy keeps positions, normals, UVs and indices. Anything else on the source (tangents, joints and
@@ -252,7 +262,7 @@ export function createSceneLight(lighting: SceneLighting, shadows?: FigureShadow
       if (entry === undefined) return
       const { positions, normals, options } = entry
       const matrix = placement(mesh)
-      entry.bake = bakeVertices(positions, normals, matrix, lighting, options.ignore, options)
+      entry.bake = bakeVertices(positions, normals, matrix, lighting, options.ignore, engine(options))
       entry.floor = floorOf(positions, normals, matrix)
       grounds.clear()
       const buffer = entry.geometry.attributes.aColor?.buffer

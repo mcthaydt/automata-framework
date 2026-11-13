@@ -7,7 +7,6 @@ import type { ShipConfig } from '../../config/ship-config.ts'
 import type { TauriConfig } from '../../config/tauri-config.schema.ts'
 import {
   type Pixi3dExtrasInBuild,
-  type Pixi3dInPublicBuild,
   type SecretInBuild,
   TauriBuildFailed,
   TauriBuildInvalid,
@@ -40,7 +39,6 @@ export type PrepareTauriError =
   | VersionMismatch
   | TauriBuildInvalid
   | SecretInBuild
-  | Pixi3dInPublicBuild
   | Pixi3dExtrasInBuild
   | TauriToolchainMissing
   | TauriBuildFailed
@@ -66,7 +64,7 @@ const osOf = (platform: NodeJS.Platform): keyof typeof BUNDLES =>
 /**
  * Builds the desktop bundles for this OS. In order, and stopping at the first that fails: the
  * release tag; the `tauri` section, a semver version, the `index.html` entry and a CSP without eval; the public-build
- * scans (secrets, `@pixi/3d`); the toolchain (`cargo`, WebKitGTK on Linux, the `tauri` CLI). Only then is the
+ * scans (secrets, `@pixi/3d/extras`); the toolchain (`cargo`, WebKitGTK on Linux, the `tauri` CLI). Only then is the
  * project written to `<game>/.automata/tauri/` (its `target/` cache is kept between builds), `tauri build` run
  * there with its output shown, and each bundle copied to `<game>/dist-tauri/<id>-<version>-<os>-<kind><ext>`.
  */

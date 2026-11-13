@@ -88,8 +88,8 @@ describe('playgroundCatalog', () => {
     expect(catalog.map((example) => example.id)).toEqual(['aa-a', 'zz-b'])
   })
 
-  // the website is public, so an example of an unpublished extension (the closed beta's
-  // @automata/3d) never reaches it.
+  // the website is public, so an example of an unpublished extension (@automata/3d, until the Owner publishes it)
+  // never reaches it.
   it('leaves out an example that imports an unpublished extension', () => {
     const catalog = playgroundCatalog(
       [

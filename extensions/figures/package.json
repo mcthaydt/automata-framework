@@ -35,18 +35,18 @@
     "viewer": "vite viewer"
   },
   "dependencies": {
-    "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz",
+    "@pixi/3d": "0.1.0-beta.3",
     "zod": "4.6.6"
   },
   "peerDependencies": {
-    "pixi.js": "8.22.0"
+    "pixi.js": "8.23.0"
   },
   "devDependencies": {
     "@automata/vitest-preset": "workspace:*",
     "@napi-rs/canvas": "1.0.10",
     "@types/node": "24.19.1",
     "@vitest/browser-playwright": "5.0.3",
-    "pixi.js": "8.22.0",
+    "pixi.js": "8.23.0",
     "playwright": "1.63.0",
     "tsx": "4.23.15",
     "typescript": "6.0.3",

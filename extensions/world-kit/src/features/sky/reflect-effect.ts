@@ -47,7 +47,7 @@ vec4 effect(vec2 uv) {
     float zq = -Q.z;
     if (uOrtho < 0.5 && zq <= 0.01) break;
     float w = uOrtho > 0.5 ? 1.0 : zq;
-    vec2 at = vec2(Q.x * uFxClip.z / w * 0.5 + 0.5, 0.5 - Q.y * uFxClip.w / w * 0.5);
+    vec2 at = vec2(Q.x * uFxClip.z / w * 0.5 + 0.5, 0.5 - Q.y * abs(uFxClip.w) / w * 0.5);
     if (at.x < 0.0 || at.y < 0.0 || at.x > 1.0 || at.y > 1.0) break;
     float d = sampleDepth(at);
     bool sky = d >= 0.9999;
@@ -93,7 +93,7 @@ fn effect(uv: vec2<f32>) -> vec4<f32> {
     if (fx.uOrtho < 0.5 && zq <= 0.01) { break; }
     var w = zq;
     if (fx.uOrtho > 0.5) { w = 1.0; }
-    let at = vec2<f32>(Q.x * fxh.uFxClip.z / w * 0.5 + 0.5, 0.5 - Q.y * fxh.uFxClip.w / w * 0.5);
+    let at = vec2<f32>(Q.x * fxh.uFxClip.z / w * 0.5 + 0.5, 0.5 - Q.y * abs(fxh.uFxClip.w) / w * 0.5);
     if (at.x < 0.0 || at.y < 0.0 || at.x > 1.0 || at.y > 1.0) { break; }
     let d = sampleDepth(at);
     let sky = d >= 0.9999;
@@ -128,7 +128,8 @@ export class ReflectEffect extends TrackingEffect {
   private view: ArrayLike<number> = TrackingEffect.NO_VIEW
 
   constructor(options: ReflectOptions = {}) {
-    super()
+    // Works on the picture as shown, so it runs after tone mapping (@pixi/3d beta.3 stages a post effect before it by default).
+    super({ stage: 'afterToneMapping' })
     this.ground = options.ground ?? 0
     this.uniforms = new UniformGroup({
       uOrtho: { value: 0, type: 'f32' },

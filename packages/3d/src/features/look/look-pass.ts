@@ -4,6 +4,8 @@
 // (stars, rain and bloom are the world kit's). An extension's pass has its own switch, so the look's `switches` name only
 // core's. The last pass draws to the canvas and must not sample the depth, and a pass before it that did leaves its binding
 // behind (`present-pass.ts`): the snap samples none, and a `PresentEffect` ends the list whenever any pass but the snap is in it.
+// Every pass here, core's and the extensions', runs at `'afterToneMapping'`: each works on the picture as it shows (palette colours it
+// compares, steps and draws), and a pass at `@pixi/3d`'s default stage would read them as linear light and put the scene in a float target.
 
 import type { Pass3D } from '@pixi/3d'
 import { RegistryClash } from '../../shared/registry/registry-clash.ts'

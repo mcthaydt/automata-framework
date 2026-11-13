@@ -3,7 +3,7 @@
 // (perspective) or pixels a metre (orthographic). Pure: it reads the camera and changes nothing, so it runs in Node.
 import type { CameraPose, V3 } from '../../shared/figures/door.ts'
 
-/** What `poseOf` reads of a `Camera3D` (`@pixi/3d` 0.1.0-beta.2): a position, a rotation, and the lens. */
+/** What `poseOf` reads of a `Camera3D` (`@pixi/3d` 0.1.0-beta.3): a position, a rotation, and the lens. */
 export interface CameraLike {
   readonly position: { x: number; y: number; z: number }
   readonly quaternion: { x: number; y: number; z: number; w: number }
@@ -31,8 +31,9 @@ function rotate(q: CameraLike['quaternion'], v: V3): V3 {
 /**
  * The camera's pose for a frame of `size` pixels. A camera looks down its local −z, so its axes are the rotation's
  * images of +x (right), +y (up) and −z (forward), and `right × up = −forward` as the contract has it. `zoom` is folded
- * in the way `Camera3D.computeProjection` does: it divides a perspective camera's field of view and multiplies an
- * orthographic camera's size, so the pose is the projection the view draws with, not the one `fov` alone would give.
+ * in the way `Camera3D.computeProjection` does: it divides `tan(fov / 2)` of a perspective camera and the size of an
+ * orthographic one (so a larger zoom magnifies in both), and the pose is the projection the view draws with, not the one
+ * `fov` alone would give. (In `@pixi/3d` beta.2 it divided the field of view itself and multiplied the size.)
  */
 export function poseOf(camera: CameraLike, size: readonly [number, number]): CameraPose {
   const [w, h] = size
@@ -47,8 +48,8 @@ export function poseOf(camera: CameraLike, size: readonly [number, number]): Cam
     size: [w, h] as [number, number],
   }
   if (camera.mode === 'perspective') {
-    const fov = (camera.fov / camera.zoom) * (Math.PI / 180)
-    return { ...axes, f: h / 2 / Math.tan(fov / 2) }
+    const tanHalf = Math.tan((camera.fov * (Math.PI / 180)) / 2) / camera.zoom
+    return { ...axes, f: h / 2 / tanHalf }
   }
-  return { ...axes, pixelsPerMetre: w / (2 * camera.orthographicSize * camera.zoom) }
+  return { ...axes, pixelsPerMetre: w / (2 * (camera.orthographicSize / camera.zoom)) }
 }

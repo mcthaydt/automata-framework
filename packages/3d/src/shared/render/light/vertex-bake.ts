@@ -19,8 +19,21 @@ const srgbChannels = (colour: number): readonly [number, number, number] => [
   (colour & 255) / 255,
 ]
 
+/**
+ * The gamma `@pixi/3d` 0.1.0-beta.3 puts between a linear value and the screen (`srgbToLinear` and the view's encode are a pure
+ * 2.2 curve): a vertex colour is read as linear light, and the view's output pass encodes it.
+ */
+const ENGINE_GAMMA = 2.2
+
 /** What the bake knows about one mesh beyond its vertices. */
 export interface BakeExtras {
+  /**
+   * Write each vertex colour as the engine reads it, not as the screen should show it. Beta.2's unlit material showed a vertex
+   * colour as written; beta.3 treats it as linear light and encodes it for the display, so what the screen should show (an `srgb`
+   * lighting's `albedo × light`, a texture's light, a glow's step; a `linear` lighting's light value, which beta.2 also drew as it stood)
+   * is raised to 2.2 to come out as it was written. Off by default: a caller that wants the screen's value (`groundLuma`) reads those.
+   */
+  readonly engineColours?: boolean | undefined
   /** Whole steps the mesh's room is darker than normal (negative: brighter): its light is multiplied by `shade` each. */
   readonly shadeSteps?: number | undefined
   /**
@@ -90,6 +103,11 @@ function transform(
   ]
 }
 
+/** What a value the screen should show becomes in the vertex buffer: itself, or (`engineColours`) as linear light, for either lighting space. */
+function engineColour(extras: BakeExtras): (shown: number) => number {
+  return extras.engineColours === true ? (shown) => shown ** ENGINE_GAMMA : (shown) => shown
+}
+
 /**
  * A light value as the vertex colour of an unlit mesh. With the mesh's albedo (an sRGB channel, 0 to 1) the screen shows
  * `albedo × light`, at most 1, and the mesh is on a white base: the product is written as it is. Without one, the light is
@@ -114,12 +132,13 @@ export function bakeVertices(
   extras: BakeExtras = {},
 ): VertexBake {
   const vertexCount = positions.length / 3
-  if (extras.glow !== undefined) return bakeGlow(vertexCount, lighting, extras.glow)
+  if (extras.glow !== undefined) return bakeGlow(vertexCount, lighting, extras.glow, engineColour(extras))
   const model = lightModel(lighting)
   const base = new Float32Array(vertexCount * 3)
   const sector = lighting.shade ** (extras.shadeSteps ?? 0)
   const albedo =
     extras.albedo === undefined || lighting.colorSpace !== 'srgb' ? undefined : srgbChannels(extras.albedo)
+  const toEngine = engineColour(extras)
   const slots: LampSlot[] = lighting.lamps.map((lamp) => ({
     id: lamp.id,
     colour: lightChannels(lamp.color, lighting.colorSpace),
@@ -163,7 +182,7 @@ export function bakeVertices(
         for (let c = 0; c < 3; c++) {
           // Through a Float32Array, so the comparison is against the value the buffer will hold.
           const light = stepped[c] as number
-          const value = Math.fround(extras.textured === true ? light : onScreen(light, albedo?.[c]))
+          const value = Math.fround(toEngine(extras.textured === true ? light : onScreen(light, albedo?.[c])))
           if (out[o + c] !== value) {
             out[o + c] = value
             changed = true
@@ -180,7 +199,12 @@ export function bakeVertices(
 }
 
 /** A glowing mesh's bake: one colour for every vertex, the swatch's step less what its lamps' levels dim it by. */
-function bakeGlow(vertexCount: number, lighting: SceneLighting, glow: BakeGlow): VertexBake {
+function bakeGlow(
+  vertexCount: number,
+  lighting: SceneLighting,
+  glow: BakeGlow,
+  toEngine: (shown: number) => number,
+): VertexBake {
   const lamps = lighting.lamps.filter((lamp) => glow.lamps?.includes(lamp.id))
   return {
     vertexCount,
@@ -189,7 +213,7 @@ function bakeGlow(vertexCount: number, lighting: SceneLighting, glow: BakeGlow):
       const level = lamps.length === 0 ? 1 : Math.min(...lamps.map((lamp) => levelOf(lamp, levels)))
       const rgb = glow.steps[Math.max(0, Math.min(glow.steps.length - 1, glow.base - glowDim(level)))] ?? 0
       // On a white base an unlit mesh shows its vertex colour as written.
-      const channel = (shift: number): number => Math.fround(((rgb >> shift) & 255) / 255)
+      const channel = (shift: number): number => Math.fround(toEngine(((rgb >> shift) & 255) / 255))
       const colour = [channel(16), channel(8), channel(0)] as const
       let changed = false
       for (let i = 0; i < vertexCount; i++) {
