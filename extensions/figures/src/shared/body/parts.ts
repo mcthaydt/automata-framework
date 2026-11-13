@@ -41,6 +41,10 @@ export interface Material {
   paint?: string[]
   /** Its own key-light thresholds (paint.ts), where the style's do not suit it (skin sits mostly on its light tone). */
   tones?: [number, number, number]
+  /** The face's tone budget on this skin (paint-surface.ts `faceForm`), where the style's `model` does not suit it: `light`,
+   * the least share of the face in its lightest step (a face at a small size reads best as a bright mass, so .6 makes it
+   * mostly the lightest step). Left out, the style's. The shadow a nose or a fringe casts on it is the painter's, not this. */
+  face?: { light?: number }
   /** A blend of two ramps, the painter's to mix (paint.ts tonesOf), in place of `paint`: `at` of the way from each of
    * `from`'s tones to `to`'s (a fade's tier: the hair's toward the skin's). `edge` (0–1, default 0; c9): sheer cloth
    * stretched over a limb is denser at its rim, where the surface turns from the eye. At a texel whose normal faces the

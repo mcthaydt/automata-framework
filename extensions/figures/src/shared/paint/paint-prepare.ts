@@ -3,7 +3,7 @@ import { depthOf, type Fabric, fabricOf, newWeave, type Weave } from './fabric'
 import { DARK_MID, densityOf, edgeTonesOf, extraTones, fillTones, INK_RGB } from './paint-budget'
 import type { FaceStamp } from './paint-face'
 import { type Bends, drawHands, type HandStamp } from './paint-hands'
-import { duel, HAIR_SEAMS, hex, oklab, type PaintStyle, tonesOf } from './paint-style'
+import { duel, HAIR_SEAMS, hex, INK, oklab, type PaintStyle, tonesOf } from './paint-style'
 import type { GBuffer } from './raster'
 
 /** The cloth channel (figure/cloth.ts), for a fabric (fabric.ts): each texel's `(cos t, sin t, v)` as the figure's third raster
@@ -40,7 +40,7 @@ export function prepare(ctx: PaintInputs) {
   const { cloth, g, hands, materials, skin, style, weaveOut } = ctx
   const { w, h } = g,
     n = w * h,
-    ink = INK_RGB
+    ink = style.ink === INK ? INK_RGB : duel(hex(style.ink))
   const tones = materials.map((m) => fillTones(tonesOf(m), m.flat ? 0 : style.cool)),
     D = densityOf(w),
     ppm = 36.9 * D

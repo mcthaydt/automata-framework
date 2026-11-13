@@ -71,6 +71,13 @@ export interface Gait {
   /** Standing, the arms out from the body (rad), in place of `armOut`: a gait at ease hangs them close. Left out, the
    * walk's `armOut` (a stiff or flared gait keeps its own). */
   standOut?: number
+  /** Standing, how far each foot stands from the middle, a share of the hip joints' half-width: 0.75 as it always was (the
+   * feet a little in under the hips), 1 under the joints, above it the legs apart, below it together. Left out, the
+   * stand's own (`Stand.under`) and, with no stand, the greater of `track` and 0.75. */
+  standTrack?: number
+  /** Standing, the chest pitched forward by this much (rad), the head coming up half as far to keep its eyes ahead: a stoop.
+   * Left out (or 0), the stand is upright as it always was. */
+  standStoop?: number
   /** Standing, the elbow's whole bend (rad; the far arm's three quarters of it), in place of `elbow` + `idleElbow`: a
    * relaxed arm only softens at the elbow. */
   standElbow?: number

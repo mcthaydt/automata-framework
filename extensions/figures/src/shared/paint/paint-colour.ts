@@ -2,7 +2,7 @@
 
 import { GROUP } from '../body/parts'
 import { depthAt, labelAt } from './fabric'
-import { budget, isLeg, LINE, lightTexels, MIRROR, OUTLINE, RIM, tint } from './paint-budget'
+import { budget, INK_RGB, isLeg, LINE, lightTexels, MIRROR, OUTLINE, RIM, tint } from './paint-budget'
 import type { AfterStainsAndHolo } from './paint-detail'
 import { stampFace } from './paint-stamp'
 import { EDGE_LEVELS } from './paint-style'
@@ -175,7 +175,15 @@ export function stampAndBudget(ctx: AfterStainsAndHolo) {
       kept,
       (m) => skinny[m],
     )
-  budget(albedo, w, h, D, kept, (k: number) => material[tone[k] >= OUTLINE && material[k] < 0 ? owner[k] : k])
+  budget(
+    albedo,
+    w,
+    h,
+    D,
+    kept,
+    (k: number) => material[tone[k] >= OUTLINE && material[k] < 0 ? owner[k] : k],
+    ctx.ink === INK_RGB ? -1 : ctx.ink,
+  )
   if (light) lightTexels(light, g, albedo, D)
   if (weave) {
     // The tile, last: the ground as painted, budgeted and lit, then a step along its own row by the label (row.ts tiled).

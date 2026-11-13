@@ -25,6 +25,8 @@
     "goldens": "node --import ../../packages/3d/scripts/extensionless-ts.ts scripts/record-goldens.ts",
     "goldens:core": "node --import ../../packages/3d/scripts/extensionless-ts.ts scripts/record-core-figures.ts",
     "goldens:runway": "tsx scripts/record-runway-cells.ts",
+    "study:runway": "tsx scripts/runway-study.ts",
+    "study:heroine": "tsx scripts/heroine-study.ts",
     "test": "vitest run",
     "test:unit": "vitest run --project unit",
     "test:slow": "vitest run --config vitest.slow.config.ts",

@@ -222,5 +222,45 @@
         }
       }
     ]
+  },
+  "bobFull": {
+    "about": "A full bob: one smooth shell that lies a row or two over the crown and swells out to about a head and a fifth wide at the ears, down to the jaw all the way round and turned under at the hem, with a parting from the hairline to the crown; no tail, and the ears and the neck are hidden.",
+    "finish": "smooth",
+    "pieces": [
+      {
+        "scalp": {
+          "from": [[0, 0.5], [0.6, 0.45], [1, -0.2], [1.4, -0.6], [2.3, -0.6], [3.1416, -0.55]],
+          "foot": [[0, 0.05], [1, 0.8], [3.1416, 0.8]],
+          "reach": 0.8,
+          "under": 0.12,
+          "parting": 0.1,
+          "lift": 0.03,
+          "crown": 0.01,
+          "ridges": [9, 0.05],
+          "comb": "back",
+          "sheen": { "count": 14, "from": 0.45, "to": 0.95 }
+        }
+      }
+    ]
+  },
+  "bobRound": {
+    "about": "A round bob: one smooth shell that stands about a sixth of a head over the crown, swells to about a head and a tenth at the cheek and curves in under the jaw, with a parting and strand rows down it; no tail, and the ears and the neck are hidden.",
+    "finish": "smooth",
+    "pieces": [
+      {
+        "scalp": {
+          "from": [[0, 0.5], [0.6, 0.45], [1, -0.2], [1.4, -0.6], [2.3, -0.6], [3.1416, -0.55]],
+          "foot": [[0, 0.05], [1, 0.5], [3.1416, 0.5]],
+          "reach": 0.8,
+          "under": 0.3,
+          "parting": 0.1,
+          "lift": 0.16,
+          "crown": 0.01,
+          "ridges": [14, 0.09],
+          "comb": "back",
+          "sheen": { "count": 14, "from": 0.45, "to": 0.95 }
+        }
+      }
+    ]
   }
 }

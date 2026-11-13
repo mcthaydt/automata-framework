@@ -75,6 +75,19 @@ export interface Scalp {
   } /** A fade's grade up the band (0 its foot, 1 its top): from each height up, a tone (the skin below the first). */
   grade?: [number, Tone][] /** Only this far round either side of the front (a line-up at the temples). */
   span?: number
+  /** The lift at its foot, by angle: knots of [angle from the front, lift] (eased between, mirrored, as `from`), the shell
+   * swelling from `lift` at the crown to this at its hem, over `reach` of its height from the foot. Left out, the lift is
+   * `lift` throughout, thinned at the hairline by `edge`. A bob's crown stays a row or two over the skull while its hem
+   * stands out to the width of a head and a fifth. */
+  foot?: Line
+  /** Of the shell's height, how far up from its foot `foot` (or `edge`) blends into `lift` (default 0.25). */
+  reach?: number
+  /** Of the shell's height, how much of its foot turns under: the lift falls to nothing at the very edge along a quarter
+   * circle, so the hem is a rounded lip lying on the head, in the shade, not a cut edge standing off it. */
+  under?: number
+  /** A parting: the angle from the front (+ toward the figure's left) of one column of the shell, drawn in the hair's
+   * deep step from the hairline to the crown (`Tone` 'parting'). */
+  parting?: number
 }
 /** Rows from the hairline round `at` (the front by default), `span` either side of it, to one point (a direction from
  * the skull's centre, in head units) or each straight back to the nape. */

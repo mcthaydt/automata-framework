@@ -177,7 +177,10 @@ export function build(member: CastMember, s: Skeleton, outfit: string, item: str
   }
 }
 /** The drawn face's structure and colours (paint.ts FaceStamp). */
-type DrawnFace = Pick<FaceStamp, 'shape' | 'iris' | 'lash' | 'white' | 'brow' | 'lips'>
+type DrawnFace = Pick<
+  FaceStamp,
+  'shape' | 'iris' | 'lash' | 'white' | 'brow' | 'lips' | 'off' | 'keep' | 'full'
+>
 /** From the outfit's swatches: the iris and lash the eyes' first two tones, the whites (dimmed to the skin, paint.ts
  * eyeWhite), the brow the brows' (the hair's) second tone, the lips' three; where the outfit names none, the skin's own
  * ramp gives the lips. Their near-blacks are their ramps' dark family (paint.ts darkOf), as the hair's are. */
@@ -194,6 +197,17 @@ function drawnFace(member: CastMember, look?: FaceLook): DrawnFace {
     white: eyeWhite(tones(look?.white)?.[0] ?? duel(0xeadbc9), skin[1]),
     brow: tones(look?.brows ?? 'brow')?.[1] ?? eyes[1],
     lips: [lips[0], lips[1], lips[2]],
+    // The marks the outfit leaves off, and the eyes kept in the rows the hair leaves (paint.ts FaceStamp): present only when asked for.
+    ...(look?.nose === false || look?.mouth === false
+      ? {
+          off: [
+            ...(look.nose === false ? ['nose' as const] : []),
+            ...(look.mouth === false ? ['mouth' as const] : []),
+          ],
+        }
+      : {}),
+    ...(look?.keep ? { keep: true } : {}),
+    ...(look?.full ? { full: true } : {}),
   }
 }
 /** Projects the posed parts into the cell: orthographic along the camera's pitch, the root on the feet texel. */

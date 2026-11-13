@@ -17,6 +17,7 @@ export const swatchSchema = z.strictObject({
   streaks: n.optional(),
   paint: ramp.optional(),
   tones: z.tuple([n, n, n]).optional(),
+  face: z.strictObject({ light: n.optional() }).optional(),
   mix: z.strictObject({ from: ramp, to: ramp, at: n, edge: n.optional() }).optional(),
   stain: z.strictObject({ paint: ramp, hem: n, below: n }).optional(),
   holo: z.union([z.boolean(), z.literal('mirror')]).optional(),

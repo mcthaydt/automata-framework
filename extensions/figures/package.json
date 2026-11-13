@@ -32,6 +32,7 @@
     "actors": "tsx scripts/actors-demo.ts",
     "c5": "tsx scripts/c5-finish-sheet.ts",
     "c9": "tsx scripts/c9-sheet.ts",
+    "study": "tsx scripts/painter-look-study.ts",
     "viewer": "vite viewer"
   },
   "dependencies": {

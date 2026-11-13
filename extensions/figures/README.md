@@ -102,6 +102,7 @@ that draws a base figure with it and without it:
   `outfit/shoe-form.test.ts`, `motion/form.test.ts`;
 - prints and the skirt and cape groups: `paint/prints.test.ts`; the painter's material features (holo, mirror, see-through,
   stain and wash, strands, a dark gloss as leather): `paint/materials.test.ts`, pinned by `paint/identity.test.ts`;
+- a full bob (the scalp's `foot`, `reach`, `under` and `parting`, and the library's `bobFull`): `hair/bob.test.ts`;
 - hair options (the sheen finish, `capped`, cornrows, beads): `hair/options.test.ts`; the hair hooks: `hair/hooks.test.ts`;
   the low pony, the bun, the fall, the `smooth` and `curl` finishes: `hair/hang.test.ts`; a fringe and front hair:
   `hair/fringe.test.ts`, `hair/front.test.ts`;
@@ -110,6 +111,11 @@ that draws a base figure with it and without it:
 - `Figure.depth` (finite at every opaque texel, restored from the cell cache): `figure/depth.test.ts`; per-texel depth in the
   stage: `stage/stage.test.ts`, `stage/depth-cases.test.ts`; a base figure through `stageFrame` with the light hook, a fabric
   and world lamps: `stage/light.test.ts`;
+- the face's tone budget (`Material.face.light`) and the `skinFair` swatch: `paint/face-tone.test.ts`;
+- the `eyes` garment's face options (`mark`, `nose`, `mouth`, `keep`): `figure/eye-marks.test.ts`;
+- the relaxed stand's feet (`Gait.standTrack`; the arms are `standOut`, which was already a gait number): `motion/stand-track.test.ts`;
+- the outline's colour (`PaintStyle.ink`): `paint/outline-colour.test.ts`;
+- a stooping stand (`Gait.standStoop`): `motion/stand-stoop.test.ts`;
 - the diversity sliders and pieces, each drawn with and without it (at its default the pair is unchanged): fat
   (`body/fat.test.ts`), the face at D2 (`body/face-d2.test.ts`), the eyes (`figure/eyes.test.ts`), asymmetry
   (`body/asymmetry.test.ts`), `bust` and `seat` (`body/bust-seat.test.ts`); every slider pushed to either end:

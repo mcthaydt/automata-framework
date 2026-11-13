@@ -81,6 +81,8 @@ export function budget(
   D: number,
   kept: Uint8Array,
   mat: (k: number) => number,
+  /** An outline colour that is not black (`PaintStyle.ink`): never the colour a speck joins, as black never is by its distance. */
+  ink = -1,
 ) {
   const n = w * h,
     col = new Int32Array(n).fill(-1),
@@ -114,7 +116,7 @@ export function budget(
           yy = y + dy
         if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue
         const q = col[yy * w + xx]
-        if (q < 0 || q === c || count.get(q)! < floor || mat(yy * w + xx) !== m) continue
+        if (q < 0 || q === c || q === ink || count.get(q)! < floor || mat(yy * w + xx) !== m) continue
         const d = dist(c, q)
         if (d < bd) {
           bd = d
@@ -146,7 +148,7 @@ export function budget(
           yy = y + dy
         if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue
         const q = col[yy * w + xx]
-        if (q < 0 || q === c || count.get(q)! < floor) continue
+        if (q < 0 || q === c || q === ink || count.get(q)! < floor) continue
         const d = dist(c, q)
         if (d < bd) {
           bd = d

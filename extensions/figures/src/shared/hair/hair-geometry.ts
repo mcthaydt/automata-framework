@@ -274,15 +274,21 @@ export function shell(
   o: Scalp,
   f: HeadForm,
   keep?: (i: number) => boolean,
-): { mesh: Mesh; lit?: Mesh } {
+): { mesh: Mesh; lit?: Mesh; part?: Mesh } {
   const cols = 56,
-    rows = 18,
+    // A foot or a lip needs the rows to follow its curve.
+    rows = o.foot || o.under ? 36 : 18,
     lift = (t: number, a: number, y: number) => {
       const comb = o.ridges
         ? 1 + o.ridges[1] * Math.cos(o.ridges[0] * combPhase(k, o.comb ?? [0, 1, 0], a, y)) * smooth(t * 3)
         : 1
-      // Thinner at the hairline (`edge`, of the lift), fuller toward the crown.
-      return (o.lift * lerp(o.edge ?? 1, 1, smooth(t * 4)) + (o.crown ?? 0) * Math.max(0, y)) * comb
+      // Thinner at the hairline (`edge`, of the lift), fuller toward the crown; or, with a `foot`, the foot's lift by angle,
+      // easing to `lift` over `reach` of the shell's height.
+      const blend = smooth(t * (1 / (o.reach ?? 0.25))),
+        base = o.foot ? lerp(along(o.foot, a), o.lift, blend) : o.lift * lerp(o.edge ?? 1, 1, blend),
+        // The lip: the lift falls to nothing along a quarter circle over the foot's last `under`.
+        lip = o.under && t < o.under ? Math.sqrt(1 - (1 - t / o.under) ** 2) : 1
+      return (base + (o.crown ?? 0) * Math.max(0, y)) * comb * lip
     }
   const point = (i: number, j: number) => {
     const a = -Math.PI + (2 * Math.PI * j) / cols,
@@ -312,16 +318,36 @@ export function shell(
       hi = o.sheen.to + r * 0.5
     return Math.abs(q - n) < (o.sheen.width ?? 0.22) * spindle((y - lo) / (hi - lo))
   }
+  // The parting: the one column whose middle is nearest the angle asked for (none when `parting` is left out).
+  const split =
+    o.parting === undefined
+      ? -1
+      : Math.round(
+          ((((o.parting + Math.PI) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)) / ((2 * Math.PI) / cols) -
+            0.5,
+        ) % cols
+  const parted = (j: number) => split >= 0 && split === j
   const mesh = grid(
     rows,
     cols,
     point,
     true,
     () => k.c,
-    (i, j) => cut(i, j) || streak(i, j),
+    (i, j) => cut(i, j) || streak(i, j) || parted(j),
   )
   return {
     mesh,
+    part:
+      split < 0
+        ? undefined
+        : grid(
+            rows,
+            cols,
+            point,
+            true,
+            () => k.c,
+            (i, j) => cut(i, j) || !parted(j),
+          ),
     lit: o.sheen
       ? grid(
           rows,
@@ -329,7 +355,7 @@ export function shell(
           point,
           true,
           () => k.c,
-          (i, j) => cut(i, j) || !streak(i, j),
+          (i, j) => cut(i, j) || !streak(i, j) || parted(j),
         )
       : undefined,
   }
