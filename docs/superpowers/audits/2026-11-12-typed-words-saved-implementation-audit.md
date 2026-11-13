@@ -174,3 +174,9 @@ every commit, never skipped):
 | 5, plan IDs in comments | `e0ae21d6` | comments only |
 
 There is no "Save a copy" action to name (finding 2): the warning now promises none. Not fixed, as notes: 7, 8, 9, 10.
+
+**Gates on the fixed branch:** `pnpm build` 0; `pnpm api-report --update` 0 (`editor.api.md` loses the two dropped
+members); `pnpm api-index --write` 0, "0 undocumented", nothing tracked changed; the whole uncached `pnpm check`
+(`TURBO_FORCE=true`) exit 0, 66 of 66 tasks, on `b906930b4` (the first uncached run found the two widgets' imports unsorted, fixed
+in that commit). Chromium layout: `suite-save-line` and `suite` 102 of 102 with a mouse and with touch. Not re-run
+after the fixes: the 3D and the editors' layout suites, and the typed-words journeys.
