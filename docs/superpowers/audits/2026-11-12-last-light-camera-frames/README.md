@@ -242,7 +242,35 @@ Frames (Chromium, software GL, 1024 by 768; every one looked at). The shots help
   for each); both waits timed out at 10 minutes, as both playthroughs did at the end of session 2 (a route step's wait, not bisected). Their
   numbers above are computed by the test only.
 
+## Session 3, item (e): the gates (partly) and the playthroughs' stall
+
+**The playthroughs' stall, measured** (the coordinator moved it first; the message reached this session after (d) was done). Logging the
+probe's tick every 5 s in Chromium on software GL: the sim runs about **8 ticks a second** (42 ticks per 5 s through the opening), so the
+17-second opening takes about 145 s of the clock and the 16-second lights-out about 120 s. Before each route step the driver waited at most
+2 minutes for a cutscene to end (`perform`'s `waitFor(cutscene: null)`), so the step after lights-out stopped: session 2's "9.7 minutes in,
+a 2-minute wait". The rest and found shots of item (d) stopped the same way (their page was still in lights-out at 10 minutes). Fixed in
+the driver (`CUTSCENE_BUDGET_MS`, 10 minutes, the wait still on the game's state); `63004dd`. **Not bisected:** whether the sim ran faster
+before this branch (it would then have fitted in 2 minutes) is not known; the 8 ticks a second is worth a look on its own. **After the fix the first-night playthrough passes** (`playthrough.test.ts`, "the
+prologue plays to its end ... the credits come up", 9.6 minutes, Chromium, software GL); the second night (two nights on one page, about 20
+minutes) did not fit in the session and was not run.
+
+Gates run this session (Chromium, software GL; WebKit, Firefox and a real GPU not run):
+- `@automata/3d` unit: 150 files, 1631 tests, pass (before f84df11; its occluder tests again after, 60/60).
+- Pre-commit's affected unit suites at f84df11: 24 packages, all pass (the game 61 files, `@automata/3d` 150, base-3d 20, editor-3d 161,
+  character-kit 49, cutscenes 14, and the rest).
+- The whole uncached `pnpm check`, stage by stage: lint, typecheck, boundaries pass; style failed on two links in this README's tracker
+  rows (written relative to the tracker) and passes now; source-names pass; **knip fails on two files that are not this session's:**
+  `extensions/character-kit/scripts/ada-density2.ts` and `ada-density2-candidates.ts` (the Ada work's density-2 studies; also on
+  `claude/last-light-ada`), whose header names a `pnpm ada-d2` script that `package.json` does not define: for the Ada session (the kit is
+  its). `changeset status --since=origin/main` passes; `check-changesets`: 85 changesets, 0 problems. The `pnpm check` unit stage was not
+  run whole (the affected suites above were).
+- **Not run:** `pnpm build`, `pnpm api-report --update`, `pnpm api-index --write` (so `DrawingCamera.subject` and session 2's exports are
+  not in the reports yet), the 3D browser suites and recorded pictures, base-3d's e2e, editor-3d's walk tests and journeys, the second-night
+  playthrough, the game's other journeys, item (f). No changeset: `@automata/3d` and the game are private here; `@automata/framework` was not changed this session.
+
 ## For the tracker
+
+| 4. Look, game branch, camera session 3 | LOOK session (camera, no subagents) | `claude/last-light-camera` | 2026-11-12/13, from `346efdb`. Frames and numbers: the camera folder (`audits/2026-11-12-last-light-camera-frames/README.md`, the `s3-` sheets). **Done, pushed:** (d) the prologue's cutscenes at the near scale: a cutscene paints the play figure (density 2 pinned, crisp: a texel is `round(zoom / 2)` field pixels; no shot picks a density); before, every shot drew its figures 7 to 74% off a whole texel and two push-ins popped a texel mid-shot; now every frame of every shot holds within 3% of two field pixels (the opening's close-up four), by lens from each shot's own place, the opening's first shot re-aimed behind her, its last a crane onto the play camera (its end matches play's spawn), lights-out's camera backing off as the figure comes; `cutscene-scale.test.ts` reads every frame; `321f9d3`. Found on the way and fixed: the noticeboard insert showed the dark behind its wall (the occluder rule kept a figure under the look point in sight): `DrawingCamera.subject` (opt-in, `@automata/3d`: a figure or nobody), the game names the framed figure (`shot-subject.ts`); `f84df11`; frames `d761f87`. (e, part) the playthroughs' stall measured: the sim runs about 8 ticks a second in software GL, so a 16 s cutscene outlasted the driver's 2-minute wait before a route step; the wait is 10 minutes now (`63004dd`), not bisected; the first-night playthrough then passes (9.6 min). Gates: `@automata/3d` unit 1631/1631; affected unit suites of 24 packages pass; lint, typecheck, boundaries, style, source-names, changeset status, check-changesets pass; knip fails on two character-kit study scripts of the Ada work (not this branch's to fix). **Not done / where to resume:** see the README's item (e): the second-night playthrough and the other journeys, `pnpm build`, `api-report --update`, `api-index --write`, the 3D browser suites and recorded pictures, base-3d e2e, editor-3d walk tests and journeys, item (f) (facing pops in a turning sequence; the strip-light band over her head); rest and found cutscenes not shot (computed only). `content.hash` moves (cutscenes are content). Chromium on software GL only. |
 
 This session's row (camera session 2) for `docs/superpowers/progress.md` (workstream 2), verbatim (done, not done, where to resume); the tracker itself is back at
 `claude/last-light-prologue`'s version, as the coordinator ruled.
