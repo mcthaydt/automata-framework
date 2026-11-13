@@ -538,6 +538,16 @@ describe('peeking is an offset of at most 1.2 m with no rotation', () => {
     for (let frame = 0; frame < 300; frame++) r.update(FRAME)
     expectNear(positionOf(camera), homeEye(FOCUS), 3)
   })
+  it('leans no further than the view’s `peekReach`, so a near camera keeps the figure in its frame', () => {
+    const near = VIEWS.map((view) => ({ ...view, peekReach: 0.2 }))
+    const { camera, rig: r } = rig({ views: near })
+    r.follow(0, 0, 0)
+    r.update(FRAME)
+    r.peek({ x: 3, z: 4 })
+    for (let frame = 0; frame < 300; frame++) r.update(FRAME)
+    const eye = positionOf(camera)
+    expect(Math.hypot(eye.x, eye.z - homeEye(FOCUS).z)).toBeCloseTo(0.2, 3)
+  })
 })
 
 describe('gameplay shake is a screen translation', () => {

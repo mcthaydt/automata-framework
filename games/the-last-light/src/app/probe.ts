@@ -1,3 +1,4 @@
+import { CameraHeading, CameraYaw } from '@automata/3d/sim'
 import { CutsceneState } from '@automata/cutscenes/sim'
 import { useCommands } from '@automata/interact'
 import { Combine, EnterCode, Use } from '@automata/interact/sim'
@@ -14,6 +15,9 @@ import { adaAt } from './presentation.ts'
 
 declare const __AUTOMATA_DEBUG__: boolean
 
+/** Turn units in a whole turn, as the sim counts a heading. */
+const TURN = 65_536
+
 /** What a journey reads. */
 export interface ProbeState {
   readonly tick: number
@@ -22,6 +26,8 @@ export interface ProbeState {
   readonly facts: Readonly<Record<string, unknown>>
   readonly items: readonly string[]
   readonly ada: { readonly x: number; readonly z: number } | undefined
+  /** The camera's heading, in turn units (65,536 a turn); undefined with no Ada. */
+  readonly heading: number | undefined
   /** How many events of each type the sim has made since the page started. */
   readonly events: Readonly<Record<string, number>>
 }
@@ -34,6 +40,13 @@ export interface Probe {
   code(code: string): void
   lamp(): void
   skip(): void
+  /** Walks Ada to a point on the plan (metres), as a tap's walk does: a shot is placed in the room's coordinates, whatever the camera's heading. */
+  walk(x: number, z: number): void
+  /**
+   * Turns the camera toward a heading in degrees (0 looks toward +z), the shorter way, by one `camera-yaw` command, as a drag does. The sim
+   * turns at most 45 degrees a tick, so a journey sends it again until `heading` says it is there.
+   */
+  face(deg: number): void
 }
 
 declare global {
@@ -71,6 +84,7 @@ export function installProbe(
           facts: puzzle.facts,
           items: puzzle.items,
           ada: adaAt(sim),
+          heading: sim.query(Ada, CameraHeading)[0]?.get(CameraHeading).heading,
           events: { ...counts },
         }
       },
@@ -86,6 +100,18 @@ export function installProbe(
       code: (code) => send(EnterCode.id, { code }),
       lamp: () => send(ToggleLight.id, {}),
       skip: () => send('cutscene.skip', {}),
+      walk: (x, z) => {
+        const ada = live.sim?.query(Ada)[0]
+        if (ada !== undefined) send('nav.walk-to', { entity: ada.sid, to: { x, z } })
+      },
+      face: (deg) => {
+        const heading = live.sim?.query(Ada, CameraHeading)[0]?.get(CameraHeading).heading
+        if (heading === undefined) return
+        // The shorter way round, in whole turn units (65,536 a turn), at most the 45 degrees the sim takes in a tick.
+        const turn =
+          ((((Math.round((deg * TURN) / 360) - heading) % TURN) + TURN + TURN / 2) % TURN) - TURN / 2
+        send(CameraYaw.id, { units: Math.max(-TURN / 8, Math.min(TURN / 8, turn)) })
+      },
     }
   }
   return { note }

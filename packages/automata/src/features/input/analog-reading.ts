@@ -24,6 +24,11 @@ export interface AnalogOptions<Z extends z.ZodType> {
   read(reading: AnalogReading, held: z.output<Z>): Partial<z.input<Z>>
   /** Bind the `camera-drag` gesture: the play screen mounts the drag surface. */
   readonly drag?: boolean
+  /**
+   * Which mouse buttons drag the camera: `secondary` (the default, so a primary click on the scene is never a turn) or
+   * `either`, an ordinary 3D drag, for a game whose scene takes no click. Read only with `drag`.
+   */
+  readonly mouseDrag?: 'secondary' | 'either' | undefined
   /** Show the touch stick; its vector is `stick('left')`. */
   readonly touchStick?: boolean
 }

@@ -66,7 +66,7 @@ export interface CameraRig {
    * and approached at most 0.25 a second. Reduce motion holds 1. `1` or none lets go.
    */
   framing(wanted?: number): void
-  /** A peek: an offset along the floor (x, z) in metres, cut back to 1.2 m, with no rotation; none lets go. */
+  /** A peek: an offset along the floor (x, z) in metres, cut back to the view's `peekReach` (1.2 m), with no rotation; none lets go. */
   peek(offset?: { readonly x: number; readonly z: number }): void
   /**
    * Gameplay shake: the picture moves by this many pixels (x right, y up), whole pixels and 3 at most on each axis,
@@ -268,7 +268,7 @@ export function angledCamera(options: AngledCameraOptions): CameraRig {
           : { look: lerp(eased.look, target.look, t), eye: lerp(eased.eye, target.eye, t) }
 
       // A peek slides the eye and the look together along the floor, eased in and out: no rotation.
-      const wanted = clampPeek(peek ?? { x: 0, z: 0 })
+      const wanted = clampPeek(peek ?? { x: 0, z: 0 }, view.peekReach)
       peeked = snap
         ? wanted
         : { x: peeked.x + (wanted.x - peeked.x) * t, z: peeked.z + (wanted.z - peeked.z) * t }

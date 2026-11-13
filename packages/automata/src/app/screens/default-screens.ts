@@ -282,7 +282,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         onHold: (id: string) => input.hold(id),
         onRelease: (id: string) => input.release(id),
         swipe: touchMode === 'swipe' ? new SwipeTracker(input.gesture) : undefined,
-        drag: bindsCameraDrag ? new CameraDragTracker(input.drag) : undefined,
+        drag: bindsCameraDrag ? new CameraDragTracker(input.drag, { mouse: map?.dragMouse }) : undefined,
         stick:
           map?.touchStick === true
             ? {

@@ -88,6 +88,7 @@ export function inputs(...maps: readonly InputMap[]): InputMap {
     touchButtons: maps.flatMap((map) => (map.touch ? map.touchButtons : [])),
     touchMode,
     touchStick: maps.some((map) => map.touchStick),
+    dragMouse: maps.some((map) => map.dragMouse === 'either') ? 'either' : 'secondary',
     profile,
     labels: Object.assign({}, ...maps.map((map) => map.labels)),
     toCommand,

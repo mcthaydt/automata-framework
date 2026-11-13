@@ -34,6 +34,7 @@ function actionsForPadButton(profile: InputProfile, index: number): string[];
 interface AnalogOptions<Z extends z.ZodType> {
     read(reading: AnalogReading, held: z.output<Z>): Partial<z.input<Z>>;
     readonly drag?: boolean;
+    readonly mouseDrag?: 'secondary' | 'either' | undefined;
     readonly touchStick?: boolean;
 }
 ```
@@ -1073,6 +1074,7 @@ interface InputMap {
     readonly profile: InputProfile;
     readonly labels: Readonly<Record<string, string>>;
     readonly touchStick: boolean;
+    readonly dragMouse?: 'secondary' | 'either' | undefined;
     toCommand(held: Iterable<string>, tick: number, reading?: AnalogReading): readonly Command[];
     attach(target: Window): InputSource;
 }
@@ -2395,6 +2397,12 @@ type Translate<Messages> = <K extends keyof Messages & string>(key: K, ...inputs
 
 ```ts
 function turnUnitsFromPixels(dxPx: number, degPerPixel: number, invert: boolean): number;
+```
+
+### `turnUnitsFromStick` (function)
+
+```ts
+function turnUnitsFromStick(x: number, unitsPerTick: number, camera: CameraSettings): number;
 ```
 
 ### `typedBus` (function)

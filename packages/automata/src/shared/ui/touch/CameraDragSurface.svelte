@@ -1,7 +1,7 @@
 <!--
   @component
   The camera drag surface: the player turns the camera by dragging the scene,
-  a finger anywhere outside the controls or the mouse with its secondary button.
+  a finger anywhere outside the controls or the mouse with its secondary button (or its primary, when the tracker allows).
 
   All the rules of who drags are the tracker's (runtime `CameraDragTracker`); this forwards pointer events with their
   `clientX`. It is a fixed layer drawn under the play screen's controls, so a contact on a touch button, the stick,
@@ -26,7 +26,11 @@ let dragging: number | undefined
  */
 let menuPending = false
 
-const MOUSE_SECONDARY_HELD = 2
+/** The `PointerEvent.buttons` bit of the mouse button that started the drag: primary 1, secondary 2. */
+let heldBit = 0
+const MOUSE_SECONDARY = 2
+/** `PointerEvent.button` to its `buttons` bit: 0 primary is 1, 2 secondary is 2. */
+const bitOf = (button: number): number => (button === MOUSE_SECONDARY ? 2 : 1)
 
 function stop(): void {
   dragging = undefined
@@ -39,7 +43,9 @@ function down(event: PointerEvent): void {
   event.preventDefault()
   dragging = event.pointerId
   dragState = event.pointerType === 'mouse' ? 'mouse' : 'touch'
-  if (dragState === 'mouse') menuPending = true
+  heldBit = bitOf(event.button)
+  // Only a secondary-button drag opens a context menu on its release.
+  if (dragState === 'mouse' && event.button === MOUSE_SECONDARY) menuPending = true
   try {
     ;(event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId)
   } catch {
@@ -48,13 +54,9 @@ function down(event: PointerEvent): void {
 }
 
 function move(event: PointerEvent): void {
-  // A mouse that drags with its secondary button up lost the release (alt-tab, a swallowed mouseup): the drag ends
-  // rather than turning the camera as the mouse hovers.
-  if (
-    event.pointerId === dragging &&
-    event.pointerType === 'mouse' &&
-    (event.buttons & MOUSE_SECONDARY_HELD) === 0
-  ) {
+  // A mouse that drags with its button up lost the release (alt-tab, a swallowed mouseup): the drag ends rather than
+  // turning the camera as the mouse hovers.
+  if (event.pointerId === dragging && event.pointerType === 'mouse' && (event.buttons & heldBit) === 0) {
     up(event)
     return
   }

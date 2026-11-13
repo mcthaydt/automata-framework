@@ -7,6 +7,7 @@ import { Container3D } from '@pixi/3d'
 import type { CharacterDef, V3 } from '../../shared/figures/door.ts'
 import { AutoPainter } from './auto-painter.ts'
 import type { Density } from './density.ts'
+import { holdFacing } from './facing-hold.ts'
 import { type PaintedStage, type StageMember, stageFor } from './painted-stage.ts'
 import { type Exposure, type RoomLight, roomLight } from './room-light.ts'
 import { checkState, type PaintedState } from './state.ts'
@@ -106,6 +107,8 @@ export function paintedFigure(def: CharacterDef, options: PaintedFigureOptions =
       holdSkinHue: options.holdSkinHue,
     })
     let facing = Math.PI
+    // The eighth drawn last frame, held against flicker as the camera turns (`holdFacing`).
+    let held: number | undefined
     let state = STANDING
     let last = now()
     let onStage: { remove(): void } | undefined
@@ -119,11 +122,13 @@ export function paintedFigure(def: CharacterDef, options: PaintedFigureOptions =
         const t = now()
         const at: V3 = [node.position.x, node.position.y, node.position.z]
         const seen = view(at)
+        const shown = holdFacing(facing, seen.azimuth, held)
+        held = shown.eighth
         const cell = painter.paint(
           {
             t,
             dt: Math.max(0, t - last),
-            facing,
+            facing: shown.facing,
             state,
             view: seen,
             light:

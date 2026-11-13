@@ -451,7 +451,7 @@
 - `Button` (const): The framework's button: an `.af-control` of one kind.
 - `Camera2d` (interface): A presentation-only 2D camera over one container: it follows a target, shakes, and writes only that container's transform, never a sim value.
 - `Camera2dOptions` (interface): How `createCamera2d` frames the world: the view's size, and optionally a follow, bounds and zoom.
-- `CameraDragSurface` (const): The camera drag surface: the player turns the camera by dragging the scene, a finger anywhere outside the controls or the mouse with its secondary button.
+- `CameraDragSurface` (const): The camera drag surface: the player turns the camera by dragging the scene, a finger anywhere outside the controls or the mouse with its secondary button (or its primary, when the tracker allows).
 - `CameraRect` (interface): A world-space rectangle, in logical px: `Camera2dOptions.bounds`.
 - `CAPABILITIES` (const): What a game may ask its host for.
 - `Capability` (type): One capability a game may ask for.
@@ -674,6 +674,7 @@
 - `TouchControls` (const): The on-screen touch buttons.
 - `Translate` (type): The typed `t` verb: `t('hello', { name })`, checked against the game's compiled messages.
 - `turnUnitsFromPixels(dxPx, degPerPixel, invert)`: `dxPx` dragged at `degPerPixel` as whole turn units: positive for a drag to the right (which way that turns the heading is the game's convention), negated when `invert`, clamped to ±`MAX_TURN_UNITS_PER_STEP`.
+- `turnUnitsFromStick(x, unitsPerTick, camera)`: A right stick's turn for one tick, as whole turn units: `x` (−127..127, through the pad's dead zone already) over a full push of `unitsPerTick`, scaled by the player's turn speed against its default (so the one "Camera turn speed" row tunes the stick and the drag alike), negated when `invert`, clamped to ±`MAX_TURN_UNITS_PER_STEP`.
 - `typedBus(bus)`: Cast a PresentationBus instance to a typed view with game-specific fact types.
 - `UI_SOUND_NAMES` (const): The names the framework itself asks for; a game may add any other.
 - `UiSoundEntry` (type): A sound: the asset it plays, or the asset with a gain (0..1).

@@ -1,18 +1,22 @@
+import { CameraYaw } from '@automata/3d/sim'
 import type { AnalogReading } from '@automata/framework'
 import { describe, expect, it } from 'vitest'
-import { cameraTurnUnits, moveFromStick } from '#src/app/touch-controls.ts'
+import { CAMERA_INPUT, cameraYawUnits, moveFromStick, STICK_YAW } from '#src/app/touch-controls.ts'
 
 // On a phone the old game gave a thumb a floating stick (it appears where the thumb lands) and a swipe on the scene to turn the
-// camera, and a tap to walk to a thing: no row of keys. These are what the stick and the swipe add to the keys' payload.
+// camera. The Owner, 2026-11-12: "Also cut the Q and E, let it be rotate horizontally with right stick, screen swipe, and mouse
+// like normal 3D, but lock vertical rotation". So the camera turns freely (`camera-yaw`) by the right stick, a swipe and a
+// mouse drag; no key turns it, and nothing tilts it.
 
 const reading = (
   left: { x: number; y: number } = { x: 0, y: 0 },
   drag = 0,
   right = { x: 0, y: 0 },
+  camera = { degPerPixel: 0.25, invert: false },
 ): AnalogReading => ({
   stick: (side) => (side === 'left' ? left : right),
   cameraDrag: () => drag,
-  camera: { degPerPixel: 0.3, invert: false },
+  camera,
 })
 
 describe('the touch stick', () => {
@@ -25,19 +29,43 @@ describe('the touch stick', () => {
   })
 })
 
-describe('the swipe that turns the camera', () => {
-  it('adds its turn to the keys’, by the player’s camera speed', () => {
-    expect(cameraTurnUnits(reading({ x: 0, y: 0 }, 40), { units: 0 }).units).toBeGreaterThan(0)
-    expect(cameraTurnUnits(reading({ x: 0, y: 0 }, -40), { units: 0 }).units).toBeLessThan(0)
+describe('turning the camera', () => {
+  it('has no key: Q and E are gone, and no key at all turns the camera', () => {
+    expect(CAMERA_INPUT.command).toBe(CameraYaw)
+    const keys = Object.values(CAMERA_INPUT.profile.bindings).flatMap((binding) => binding.keys)
+    expect(keys).toEqual([])
+    expect(JSON.stringify(CAMERA_INPUT.profile)).not.toMatch(/KeyQ|KeyE/)
   })
 
-  it('keeps the keys’ turn when there is no swipe', () => {
-    expect(cameraTurnUnits(reading(), { units: 364 })).toEqual({ units: 364 })
+  it('binds the drag, a swipe or either mouse button, the ordinary 3D drag', () => {
+    const gestures = Object.values(CAMERA_INPUT.profile.bindings).flatMap((binding) => binding.gesture ?? [])
+    expect(gestures).toEqual(['camera-drag'])
+    expect(CAMERA_INPUT.dragMouse).toBe('either')
+  })
+
+  it('a drag to the right grabs the room and turns it with the finger; to the left the other way', () => {
+    expect(cameraYawUnits(reading({ x: 0, y: 0 }, 40)).units).toBeGreaterThan(0)
+    expect(cameraYawUnits(reading({ x: 0, y: 0 }, -40)).units).toBeLessThan(0)
+  })
+
+  it('the right stick looks the way it is pushed, at STICK_YAW a tick at full push, smoothly below it', () => {
+    expect(cameraYawUnits(reading(undefined, 0, { x: 127, y: 0 })).units).toBe(-STICK_YAW)
+    expect(cameraYawUnits(reading(undefined, 0, { x: -127, y: 0 })).units).toBe(STICK_YAW)
+    expect(Math.abs(cameraYawUnits(reading(undefined, 0, { x: 40, y: 0 })).units)).toBeLessThan(STICK_YAW / 2)
+  })
+
+  it('locks the vertical: the stick’s up and down turn nothing', () => {
+    expect(cameraYawUnits(reading(undefined, 0, { x: 0, y: 127 })).units).toBe(0)
+    expect(cameraYawUnits(reading(undefined, 0, { x: 0, y: -127 })).units).toBe(0)
+  })
+
+  it('invert flips the stick and the drag alike', () => {
+    const inverted = { degPerPixel: 0.25, invert: true }
+    expect(cameraYawUnits(reading(undefined, 40, undefined, inverted)).units).toBeLessThan(0)
+    expect(cameraYawUnits(reading(undefined, 0, { x: 127, y: 0 }, inverted)).units).toBe(STICK_YAW)
   })
 
   it('never sends more than one step’s turn, however far the finger went', () => {
-    expect(
-      Math.abs(cameraTurnUnits(reading({ x: 0, y: 0 }, 100_000), { units: 0 }).units),
-    ).toBeLessThanOrEqual(8192)
+    expect(Math.abs(cameraYawUnits(reading({ x: 0, y: 0 }, 100_000)).units)).toBeLessThanOrEqual(8192)
   })
 })

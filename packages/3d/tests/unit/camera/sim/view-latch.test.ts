@@ -11,6 +11,7 @@ import {
   moveDirection,
   START,
   turnCamera,
+  yawCamera,
 } from '#src/features/camera/sim/view-latch.ts'
 
 const QUARTER = TURN_UNITS / 4
@@ -171,5 +172,28 @@ describe('the latch (M3R-D15)', () => {
 
   it('no turn at all leaves a latch, and the state itself, as it is', () => {
     expect(turnCamera(crossed, 0)).toBe(crossed)
+  })
+})
+
+describe('yawCamera (a free turn: camera-yaw)', () => {
+  it('turns the heading by the units themselves, wrapped, at most one 45° step either way', () => {
+    expect(yawCamera(inHall(0), 455).heading).toBe(455)
+    expect(yawCamera(inHall(100), -300).heading).toBe(TURN_UNITS - 200)
+    expect(yawCamera(inHall(0), 20_000).heading).toBe(8_192)
+    expect(yawCamera(inHall(0), -20_000).heading).toBe(TURN_UNITS - 8_192)
+  })
+
+  it('does nothing before a view, in a view with rotate: false, or for no units', () => {
+    expect(yawCamera(START, 100)).toBe(START)
+    const arenaState = enterView(START, arena, CENTRED)
+    expect(yawCamera(arenaState, 100)).toBe(arenaState)
+    const still = inHall(40)
+    expect(yawCamera(still, 0)).toBe(still)
+  })
+
+  it('lets go of a latch, as a stepped turn does, and leaves the stepped turn’s press alone', () => {
+    const crossed = enterView(inHall(0), north, UP)
+    const yawed = yawCamera(crossed, 10)
+    expect(yawed).toMatchObject({ heading: QUARTER + 10, latched: false, turning: crossed.turning })
   })
 })

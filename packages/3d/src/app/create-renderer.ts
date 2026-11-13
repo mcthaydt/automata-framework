@@ -236,6 +236,7 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
   // The rule runs after the camera has moved, on the pose it just wrote.
   const occluding = occluderHooks(camera, occluders, {
     height: options.camera.height ?? PLAYER_HEIGHT,
+    width: options.camera.width,
     drawing: options.camera.drawing,
   })
   return {

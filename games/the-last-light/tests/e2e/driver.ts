@@ -46,9 +46,16 @@ async function answered(page: Page): Promise<{ used: number; refused: number }> 
   return { used: events['interact.used'] ?? 0, refused: events['interact.refused'] ?? 0 }
 }
 
+/**
+ * The longest a step waits for a cutscene before it to end. Measured in Chromium on software GL (camera session 3): the sim runs about 8
+ * ticks a second there, so the 16-second lights-out scene takes about 2 minutes of the clock, the old budget, and the playthroughs
+ * stopped on it. A scene's own length in ticks is what this waits for; the clock only bounds a page that has stopped.
+ */
+const CUTSCENE_BUDGET_MS = 600_000
+
 /** Does one step of the route through the page's own controls, and returns what stopped it, if anything. */
 async function perform(page: Page, step: BotStep): Promise<string | undefined> {
-  await waitFor(page, { cutscene: null })
+  await waitFor(page, { cutscene: null }, CUTSCENE_BUDGET_MS)
   if ('tap' in step) {
     const before = await answered(page)
     await page.evaluate(([at, held]) => globalThis.__lastLight?.tap(at, held), [step.tap, step.held] as const)

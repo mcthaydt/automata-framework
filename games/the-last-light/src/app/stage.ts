@@ -12,7 +12,7 @@ import {
 import { fovOf } from '@automata/3d/camera-view'
 import { noPieceStates, type PieceStates } from '@automata/3d/level'
 import { CutsceneState, placeScript } from '@automata/cutscenes/sim'
-import { cutsceneStage3d } from '@automata/cutscenes/stage-3d'
+import { type ActorView, cutsceneStage3d } from '@automata/cutscenes/stage-3d'
 import { feelSchema } from '@automata/feel'
 import { feelStage } from '@automata/feel/stage'
 import type { PixiStage, PixiStageHooks } from '@automata/framework'
@@ -34,6 +34,7 @@ import { lookProfilesSchema } from './look-profiles.content.ts'
 import { adaAt } from './presentation.ts'
 import { installProbe } from './probe.ts'
 import { noteEvents, resetScreen } from './screen-state.ts'
+import { shotSubject } from './shot-subject.ts'
 
 // The picture of the night: the ward drawn from the level, the camera that follows Ada through its rooms, the cutscenes on the
 // same camera and figures, and the screen's own notes of what the sim said. Presentation only: it reads the sim through
@@ -64,8 +65,37 @@ function peekSpot(): { x: number; z: number } | undefined {
  * The shot a cutscene is drawing, or none: the renderer's occluder rule follows it in place of the play camera's pose, so a wall a
  * shot looks at from inside the room is not cut away for a play camera standing outside it.
  */
-let drawingShot: DrawingCamera | undefined
-export const cutsceneShot = (): DrawingCamera | undefined => drawingShot
+let drawingShot: (Omit<DrawingCamera, 'subject'> & { readonly lens: number }) | undefined
+/** Where the cutscene last placed each figure, by who the script calls it, and how far it is faded in. */
+const placedFigures = new Map<string, { x: number; y: number; z: number; alpha: number }>()
+/** The shot, with the figure it frames as the rule's subject, or nobody (an insert): `shotSubject`. */
+export const cutsceneShot = (): DrawingCamera | undefined =>
+  drawingShot === undefined
+    ? undefined
+    : { ...drawingShot, subject: shotSubject(drawingShot, [...placedFigures.values()]) }
+
+const notedViews = new WeakMap<ActorView, ActorView>()
+/** `view`, which also notes where the cutscene puts the figure and how far it fades it, for `cutsceneShot`; one per view. */
+function noted(who: string, view: ActorView | undefined): ActorView | undefined {
+  if (view === undefined) return undefined
+  const known = notedViews.get(view)
+  if (known !== undefined) return known
+  const wrapped: ActorView = {
+    ...view,
+    place: (at, facing) => {
+      const was = placedFigures.get(who)
+      placedFigures.set(who, { x: at.x, y: at.y ?? 0, z: at.z, alpha: was?.alpha ?? 1 })
+      view.place(at, facing)
+    },
+    alpha: (value) => {
+      const was = placedFigures.get(who)
+      if (was !== undefined) placedFigures.set(who, { ...was, alpha: value })
+      view.alpha(value)
+    },
+  }
+  notedViews.set(view, wrapped)
+  return wrapped
+}
 
 export interface StageOptions {
   readonly play: PlayContent
@@ -127,11 +157,13 @@ export function sceneOf(options: StageOptions) {
           drawingShot = {
             eye: { x: pos[0], y: pos[1], z: pos[2] },
             look: { x: look[0], y: look[1], z: look[2] },
+            lens,
           }
         },
         // The play camera writes itself again on the next frame, and the occluder rule follows it again.
         release: () => {
           drawingShot = undefined
+          placedFigures.clear()
         },
       },
       pieces: (states) =>
@@ -140,7 +172,7 @@ export function sceneOf(options: StageOptions) {
             ? { ...states, lamps: { ...pieceStatesOf(true).lamps, ...states.lamps } }
             : states,
         ),
-      actor: (who) => options.actors.get(who),
+      actor: (who) => noted(who, options.actors.get(who)),
       fade: (value) => {
         fade.alpha = value
       },

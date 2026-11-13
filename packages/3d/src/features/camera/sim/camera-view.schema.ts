@@ -82,6 +82,11 @@ export interface CameraViewFields {
    * and out when she stops, so a camera that shows a narrow slice of the room shows what is ahead of her and not what she has passed.
    */
   readonly lead?: number | undefined
+  /**
+   * The most a peek round a doorway leans the camera in this view, metres (none: 1.2, `PEEK_REACH`). A near camera holds the figure
+   * in its frame only a little way from the look, so it leans less (`fitFocus` derives it).
+   */
+  readonly peekReach?: number | undefined
   /** The follow's time constant in seconds: the camera closes 63% of the gap in this long. 0 snaps. */
   readonly lag: number
   /** Whether the player may turn the camera here (false: an arena framed one way). */
@@ -128,6 +133,8 @@ export const cameraViewSchema: z.ZodType<CameraViewFields, CameraViewInput> = z
     focusBounds: floorBox.optional(),
     /** How far the look leads a walking player, in metres. */
     lead: z.number().min(0).max(8).optional(),
+    /** The most a peek leans the camera in this view, metres. */
+    peekReach: z.number().min(0).max(8).optional(),
     /** Seconds of easing on the follow. */
     lag: z.number().min(0).default(CAMERA_DEFAULTS.lag),
     /** Whether the player may turn the camera here (false: an arena framed one way). */

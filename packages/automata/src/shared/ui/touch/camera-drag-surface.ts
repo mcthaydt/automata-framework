@@ -1,7 +1,7 @@
 /**
  * What a CameraDragSurface drives: runtime's `CameraDragTracker` satisfies it, so ui need not
  * import runtime. `down` answers whether the pointer now drives the drag (a finger's primary contact, the mouse's
- * secondary button, none already dragging).
+ * secondary button, or its primary when the game asked for it; none already dragging).
  */
 export interface DragTracker {
   down(id: number, x: number, start: { readonly pointerType: string; readonly button: number }): boolean

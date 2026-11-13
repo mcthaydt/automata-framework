@@ -8,13 +8,13 @@ t = 0
 pos = [ 0.4, 2.6, -0.6 ]
 look = [ -2.9, 1, 0.7 ]
 cut = true
-lens = 24
+lens = 39.0
 
 [[camera]]
 t = 4.5
 pos = [ 0.1, 2.4, -0.4 ]
 look = [ -2.9, 1, 0.7 ]
-lens = 24
+lens = 39.0
 ease = [ 0.3333333333333333, 0.6666666666666666, 0.6666666666666666, 1 ]
 
 [[camera]]
@@ -22,26 +22,26 @@ t = 4.5
 pos = [ -2.75, 2.5, 3.3 ]
 look = [ -3.2, 0.9, 0.7 ]
 cut = true
-lens = 20
+lens = 32.8
 
 [[camera]]
 t = 9
 pos = [ -2.75, 2.5, 3.3 ]
 look = [ -3.2, 0.9, 0.7 ]
-lens = 20
+lens = 32.8
 
 [[camera]]
 t = 9
 pos = [ -1.1, 3, -1.9000000000000001 ]
 look = [ -3.2, 0.6, 0.7 ]
 cut = true
-lens = 22
+lens = 40.4
 
 [[camera]]
 t = 13
 pos = [ -1.2000000000000002, 2.9, -1.8 ]
 look = [ -3.2, 0.6, 0.7 ]
-lens = 22
+lens = 40.4
 ease = "linear"
 
 [[camera]]
@@ -49,13 +49,13 @@ t = 13
 pos = [ -0.3, 1.1, 0 ]
 look = [ -3.2, 0.75, 0.7 ]
 cut = true
-lens = 20
+lens = 35.4
 
 [[camera]]
 t = 16
 pos = [ -0.35, 1.1, 0.1 ]
 look = [ -3.2, 0.75, 0.7 ]
-lens = 21
+lens = 35.9
 ease = "linear"
 
 [[actor]]

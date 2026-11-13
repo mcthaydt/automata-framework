@@ -39,6 +39,7 @@ export {
 export {
   MAX_TURN_UNITS_PER_STEP,
   turnUnitsFromPixels,
+  turnUnitsFromStick,
 } from '../features/input/analog/camera-turn.js'
 export type { Input } from '../features/input/input.manager.js'
 export {

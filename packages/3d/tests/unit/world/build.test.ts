@@ -277,6 +277,57 @@ describe('walls', () => {
   })
 })
 
+describe('the occluder rule’s lines', () => {
+  // Every face the camera can stand behind needs its wall's line, or the rule never takes it away: a bulkhead over a portal stood
+  // in front of the figure (The Last Light's corridor mouth) because it had none.
+  it('gives every face built off a wall its line, the room on its left, and the wall’s rule', () => {
+    const wall: AfWall2 = {
+      skirting: 0.1,
+      rail: 0.9,
+      dado: { surface: 'brick', height: 1 },
+      cornice: { surface: 'cornice', height: 0.2 },
+      occlude: 'fade',
+      window: { at: 2, width: 1, y0: 1, y1: 2, bars: 2 },
+    }
+    const { pieces } = buildWorld(
+      level(
+        room('a', [0, 0, 4, 4], {}, [wall]),
+        room('b', [4, 0, 8, 4], { ceiling: { z: 2.2 }, floor: { z: 0.5 } }),
+      ),
+      LIB,
+    )
+    const walls = of(pieces, 'wall', 'a')
+    expect(walls.filter((p) => p.line === undefined).map((p) => p.id)).toEqual([])
+    const south = walls.find((p) => p.id.startsWith('a:wall:0.0'))!
+    for (const band of walls.filter((p) => ['skirting', 'rail', 'dado', 'cornice'].includes(role(p)))) {
+      expect(band.line, band.id).toEqual(south.line)
+      expect(band.occlude, band.id).toBe('fade')
+    }
+    for (const step of walls.filter((p) => ['upper', 'lower'].includes(role(p))))
+      expect(step.line, step.id).toEqual({ a: [4, 0], b: [4, 4] })
+  })
+  it('hangs a window’s panes and bars and a wall’s decor on that wall', () => {
+    const { pieces } = buildWorld(
+      level(room('a', [0, 0, 4, 4], {}, [{ window: { at: 2, width: 1, y0: 1, y1: 2, bars: 2 } }])),
+      LIB,
+    )
+    const decor = of(pieces, 'decor')
+    expect(decor.length).toBeGreaterThan(0)
+    for (const piece of decor) expect(piece.onWall, piece.id).toBe('a:wall:0.0.0')
+  })
+  it('gives an indoor doorway’s frame the portal’s line', () => {
+    const pieces = buildWorld(
+      level(
+        room('a', [0, 0, 4, 4], {}, [undefined, {}]),
+        room('b', [4, 1.5, 6, 2.5], { ceiling: { z: 2.1 } }),
+      ),
+      LIB,
+    ).pieces
+    const frame = pieces.find((p) => role(p) === 'doorway')
+    expect(frame?.line).toBeDefined()
+  })
+})
+
 describe('portals', () => {
   const two = (b: Partial<AfSectorEntry2>, a: Partial<AfSectorEntry2> = {}) =>
     buildWorld(level(room('a', [0, 0, 4, 4], a), room('b', [4, 0, 8, 4], b)), LIB).pieces

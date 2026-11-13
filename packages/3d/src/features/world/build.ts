@@ -346,17 +346,28 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
         cursor = Math.max(cursor, o.u1)
       }
       if (cursor < 1 - 1e-6) cover(cursor, 1, null, null)
-      add(seg.sector, role('wall'), 'wall', merge(...face), surface, tex(surface), {
+      // What lies on this wall follows its rule: a band on it takes its line and its `occlude`, and a pane, a bar or a piece of
+      // decor hangs on it, so the occluder rule takes them away with the wall (none is left standing over a figure behind it).
+      const ruled = {
         line: roomOnLeft(seg, n),
-        faces,
         ...(wall.occlude === undefined ? {} : { occlude: wall.occlude }),
-      })
+      }
+      const hung = { onWall: `${(level.sectors[seg.sector] as AfSectorEntry2).id}:${role('wall')}` }
+      add(seg.sector, role('wall'), 'wall', merge(...face), surface, tex(surface), { ...ruled, faces })
 
       // Panes and bars in a window's opening.
       for (const [i, o] of openings.entries()) {
         if (o.kind !== 'window') continue
         const pane = night ? 'glassNight' : 'glassDay'
-        add(seg.sector, role(`pane${i}`), 'decor', strip(o.u0, o.u1, o.y0, o.y1, -0.06), pane)
+        add(
+          seg.sector,
+          role(`pane${i}`),
+          'decor',
+          strip(o.u0, o.u1, o.y0, o.y1, -0.06),
+          pane,
+          undefined,
+          hung,
+        )
         const bars = o.bars ?? 0
         for (let k = 1; k <= bars; k++) {
           const u = lerp(o.u0, o.u1, k / (bars + 1))
@@ -367,6 +378,8 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
             'decor',
             onWall(box([0, o.y0, 0], [0.03, o.y1 - o.y0, 0.03]), p, lerp(fa, fb, u), n),
             trim.surface,
+            undefined,
+            hung,
           )
         }
       }
@@ -413,10 +426,10 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
             ),
           )
         if (meshes.length > 0)
-          add(seg.sector, role('skirting'), 'wall', merge(...meshes), trim.surface, tex(trim.surface))
+          add(seg.sector, role('skirting'), 'wall', merge(...meshes), trim.surface, tex(trim.surface), ruled)
       }
       const band = (name: string, mesh: MeshData, surface: Surface): void =>
-        add(seg.sector, role(name), 'wall', mesh, surface, tex(surface))
+        add(seg.sector, role(name), 'wall', mesh, surface, tex(surface), ruled)
       if (wall.dado !== undefined) band('dado', strip(0, 1, 0, wall.dado.height, 0.006), wall.dado.surface)
       if (trim.rail > 0) band('rail', strip(0, 1, trim.rail, trim.rail + 0.06, 0.025), trim.surface)
       if (wall.cornice !== undefined)
@@ -433,6 +446,8 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
             'decor',
             onWall(piece.mesh, o, base, n),
             piece.material,
+            undefined,
+            hung,
           )
       }
       continue
@@ -449,6 +464,11 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
       heightAt(next.ceiling, nextOrigin, ...seg.a),
       heightAt(next.ceiling, nextOrigin, ...seg.b),
     ]
+    // The steps and a doorway's frame stand on the portal's line, the room on their left, so the occluder rule takes them too.
+    const portal = {
+      line: roomOnLeft(seg, n),
+      ...(wall.occlude === undefined ? {} : { occlude: wall.occlude }),
+    }
     if (nfa > fa + 1e-3 || nfb > fb + 1e-3) {
       const lower: Surface = wall.lower ?? surface
       add(
@@ -458,6 +478,7 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
         wallQuad(seg.a, seg.b, [fa, Math.max(fa, nfa)], [fb, Math.max(fb, nfb)], n),
         lower,
         tex(lower),
+        portal,
       )
     }
     const skyBoth = sector.ceiling.sky === true && next.ceiling.sky === true
@@ -477,6 +498,7 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
         onWall(mesh, from, floorAt(from), n),
         trim.surface,
         tex(trim.surface),
+        portal,
       )
     }
     if (!skyBoth && (nca < ca - 1e-3 || ncb < cb - 1e-3)) {
@@ -488,6 +510,7 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
         wallQuad(seg.a, seg.b, [Math.min(ca, nca), ca], [Math.min(cb, ncb), cb], n),
         upper,
         tex(upper),
+        portal,
       )
     }
   }

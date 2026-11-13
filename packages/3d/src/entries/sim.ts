@@ -14,6 +14,9 @@ export {
   cameraView,
   cameraViewSchema,
 } from '../features/camera/sim/camera-view.schema.ts'
+export { CameraYaw } from '../features/camera/sim/camera-yaw.command.ts'
+export { cameraYawPlugin } from '../features/camera/sim/camera-yaw.plugin.ts'
+export { cameraYawSystem } from '../features/camera/sim/camera-yaw.system.ts'
 export {
   degToHeading,
   headingDegrees,
@@ -31,5 +34,6 @@ export {
   moveDirection,
   START,
   turnCamera,
+  yawCamera,
 } from '../features/camera/sim/view-latch.ts'
 export { type FloorPoint, viewAt } from '../features/camera/sim/view-zone.ts'

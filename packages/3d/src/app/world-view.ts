@@ -4,7 +4,7 @@
 import { ModelInvalid } from '@automata/framework'
 import { Box, Container3D, FlatMaterial, Geometry3D, Mesh3D, PhongMaterial, Vector3 } from '@pixi/3d'
 import { BufferImageSource, Texture } from 'pixi.js'
-import type { WallSpan } from '../features/camera/occluders/occluder-rule.ts'
+import { type Box3, propOcclude, type WallSpan } from '../features/camera/occluders/occluder-rule.ts'
 import type { Occluders } from '../features/camera/occluders/occluders.ts'
 import type { Look } from '../features/look/look.schema.ts'
 import { RampMaterial } from '../features/look/ramp-light-material.ts'
@@ -16,6 +16,7 @@ import type { WorldPiece, WorldProp } from '../features/world/build.ts'
 import { fitModel, fitPoint } from '../features/world/model-fit.ts'
 import type { WorldLamp } from '../features/world/place-props.ts'
 import { tileName } from '../features/world/surface.ts'
+import type { Occlude } from '../shared/level/occlude.ts'
 import type { LampState } from '../shared/level/piece-states.ts'
 import type { SceneLight } from '../shared/render/light/scene-light.ts'
 import type { Lamp } from '../shared/render/light/scene-lighting.schema.ts'
@@ -178,17 +179,38 @@ function meshOf(
 const stays = (piece: WorldPiece): boolean => piece.door === undefined && piece.sway === undefined
 
 /**
- * A wall face's line on the plan and its height, for the occluder rule: the highest point of its mesh, from the floor at 0.
- * A face that never rises above it (the side of a pit) can hide nobody and follows no rule.
+ * A wall face's line on the plan and the heights it spans, for the occluder rule: from the lowest point of its mesh (a bulkhead
+ * over a portal starts at the lower ceiling, so a line through the opening under it keeps it) to the highest. A face that never
+ * rises above the floor at 0 (the side of a pit) can hide nobody and follows no rule.
  */
 function wallSpan(piece: WorldPiece): WallSpan | undefined {
   if (piece.line === undefined) return undefined
+  let base = Infinity
   let height = 0
-  for (let i = 1; i < piece.mesh.positions.length; i += 3)
+  for (let i = 1; i < piece.mesh.positions.length; i += 3) {
+    base = Math.min(base, piece.mesh.positions[i] as number)
     height = Math.max(height, piece.mesh.positions[i] as number)
+  }
   if (height <= 0) return undefined
   const { a, b } = piece.line
-  return { a: { x: a[0], z: a[1] }, b: { x: b[0], z: b[1] }, height }
+  return { a: { x: a[0], z: a[1] }, b: { x: b[0], z: b[1] }, ...(base > 0 ? { base } : {}), height }
+}
+
+/** Registers `mesh` as a prop with the occluder rule, unless the rule would never take it away (it keeps its material then). */
+function registerProp(occluders: Occluders, mesh: Mesh3D, bounds: Box3, occlude?: Occlude): void {
+  if (propOcclude(bounds, occlude) !== 'never') occluders.prop(mesh, { bounds, occlude })
+}
+
+/** A mesh's bounds in world metres (the pieces are built in world space), for the occluder rule's props. */
+function boundsOfMesh(positions: ArrayLike<number>): Box3 {
+  const min: [number, number, number] = [Infinity, Infinity, Infinity]
+  const max: [number, number, number] = [-Infinity, -Infinity, -Infinity]
+  for (let i = 0; i < positions.length; i++) {
+    const axis = i % 3
+    min[axis] = Math.min(min[axis] as number, positions[i] as number)
+    max[axis] = Math.max(max[axis] as number, positions[i] as number)
+  }
+  return { min, max }
 }
 
 /**
@@ -309,8 +331,11 @@ export function drawWorld(
       // back would otherwise draw behind a culled wall as a flat slab).
       const wall = walls.get(piece.onWall)
       const span = wall === undefined ? undefined : wallSpan(wall)
-      if (span !== undefined) scene.occluders.face(mesh, span, piece.occlude)
-    }
+      if (span !== undefined) scene.occluders.face(mesh, span, piece.occlude ?? wall?.occlude)
+    } else if (piece.part === 'prop' && piece.door === undefined)
+      // A prop standing free or hanging from the ceiling: it fades when it stands on the line to the figure, if it is tall or
+      // hangs (`propOcclude`); a door turns about its hinge, so the bounds it was built with are not where it stands.
+      registerProp(scene.occluders, mesh, boundsOfMesh(piece.mesh.positions), piece.occlude)
   }
   for (const { id, prop, model } of drawn) {
     const mesh = modelMesh(prop, model)
@@ -338,6 +363,13 @@ export function drawWorld(
     const wall = hung?.onWall === undefined ? undefined : walls.get(hung.onWall)
     const span = wall === undefined ? undefined : wallSpan(wall)
     if (span !== undefined) scene.occluders?.face(mesh, span, hung?.occlude)
+    // A model standing free stands where its blockout stood (`fitModel`), so the blockout's bounds are the rule's.
+    else if (scene.occluders !== undefined && blockout.length > 0)
+      registerProp(
+        scene.occluders,
+        mesh,
+        boundsOfMesh(blockout.flatMap((piece) => [...piece.mesh.positions])),
+      )
   }
   return {
     node,

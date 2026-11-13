@@ -15,12 +15,13 @@ afterEach(() => {
 })
 
 /** A tracker that accepts what the real one would: a finger's primary contact or the mouse's secondary button. */
-function stubTracker() {
+function stubTracker(mouse: 'secondary' | 'either' = 'secondary') {
   let dragging: number | undefined
   return {
     down: vi.fn((id: number, _x: number, start: { pointerType: string; button: number }) => {
       if (dragging !== undefined) return false
-      if (start.button !== (start.pointerType === 'mouse' ? 2 : 0)) return false
+      const primaryMouse = mouse === 'either' && start.pointerType === 'mouse' && start.button === 0
+      if (!primaryMouse && start.button !== (start.pointerType === 'mouse' ? 2 : 0)) return false
       dragging = id
       return true
     }),
@@ -138,6 +139,30 @@ describe('CameraDragSurface', () => {
     expect(tracker.up).toHaveBeenCalledWith(1)
     flushSync()
     expect(surface.dataset['dragState']).toBe('idle')
+  })
+
+  // A game that drags with either mouse button (an ordinary 3D drag): a left drag ends when the left button is up, and
+  // it has no context menu to cancel, so the page's menu is left alone after it.
+  it('ends a primary-button mouse drag when the primary button is up, and leaves the context menu alone', () => {
+    const tracker = stubTracker('either')
+    const surface = open(tracker)
+    surface.dispatchEvent(
+      pointer('pointerdown', { pointerId: 1, clientX: 10, pointerType: 'mouse', button: 0, buttons: 1 }),
+    )
+    surface.dispatchEvent(
+      pointer('pointermove', { pointerId: 1, clientX: 20, pointerType: 'mouse', buttons: 1 }),
+    )
+    expect(tracker.move).toHaveBeenCalledTimes(1)
+    flushSync()
+    expect(surface.dataset['dragState']).toBe('mouse')
+    const menu = new MouseEvent('contextmenu', { bubbles: true, cancelable: true })
+    document.body.dispatchEvent(menu)
+    expect(menu.defaultPrevented).toBe(false)
+    surface.dispatchEvent(
+      pointer('pointermove', { pointerId: 1, clientX: 30, pointerType: 'mouse', buttons: 0 }),
+    )
+    expect(tracker.move).toHaveBeenCalledTimes(1)
+    expect(tracker.up).toHaveBeenCalledWith(1)
   })
 
   it('keeps a finger’s drag on moves, whatever its buttons read', () => {
