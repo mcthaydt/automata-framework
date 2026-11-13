@@ -18,13 +18,13 @@ import { openContentSuite } from './open-content-suite.ts'
 
 // The suite page with the content editors: the core editors (the Tuner, Levels 2D), then Feel, Audio, Writer, Sequence and
 // Schematic. The only file that reaches for the page's globals. It opens the checkout it is served on (the game's own
-// content and its Play and Publish) or, when none answers, a sample game held in memory, and says so in the top bar.
+// content and its Play and Publish) or, when none answers, a sample game kept in this browser, and says so in the top bar.
 
 const target = document.getElementById('app')
 if (target === null) throw new Error('suite.html has no #app element')
 
 openContentSuite({ origin: location.origin, search: location.search, sessionStorage })
-  .then(({ ports, sample, gameUrl, game, publish }) => {
+  .then(({ ports, sample, kept, gameUrl, game, publish }) => {
     // The Tuner shows the game's dev page beside its settings, so it is made once the server has named it.
     const editors = [
       createTuner({ gameUrl }),
@@ -47,6 +47,7 @@ openContentSuite({ origin: location.origin, search: location.search, sessionStor
       ports,
       suite: createSuite({ editors: editors as SuiteEditor<unknown>[] }),
       sample,
+      kept,
       game,
       playUrl: gameUrl,
       publish: publish === undefined ? undefined : browserPublish(publish, document),

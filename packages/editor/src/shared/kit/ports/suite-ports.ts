@@ -10,6 +10,11 @@ export interface SuitePorts {
   readonly workspace: SuiteWorkspace
   readonly checks: ChecksRunner
   readonly gates?: Gates | undefined
+  /**
+   * Added by the suite: the key of the person's open visit to a field, or none. Edits made during one visit are one
+   * Undo step, however long the pauses between them.
+   */
+  readonly visit?: (() => string | undefined) | undefined
 }
 
 /** `edit`: direct value and structure edits (an editor-list row's `modes`). */

@@ -42,6 +42,7 @@ export function createAudio(options: {
       session.heard = options.started?.() ?? false
       return session
     },
+    draftView: (session) => `${session.toml.path}|${JSON.stringify(session.chosen)}`,
     regions: { panel, canvas, status },
     undo: (session) => undoOf(session.toml),
   })

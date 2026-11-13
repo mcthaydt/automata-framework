@@ -31,7 +31,7 @@ async function gameFolder() {
   return (await createMemoryPorts({ files, classify })).ports
 }
 
-async function start(options: { sample?: boolean; game?: string } = {}) {
+async function start(options: { sample?: boolean; kept?: boolean; game?: string } = {}) {
   const target = document.body.appendChild(document.createElement('div'))
   const files = { ...tunerFixtureFiles(), [EDITOR_LIST_PATH]: LIST }
   started = await startSuite(target, {
@@ -119,5 +119,18 @@ describe("the suite's top bar", () => {
     expect(screen.queryByText('Saved in your game folder')).toBeNull()
     // The title says it too, in place of the small chip beside it.
     expect(screen.getAllByText('Sample game')).toHaveLength(1)
+  })
+
+  // A page that opens the sample and does not say whether the browser keeps it (the 3D page and the content editors'
+  // page did not) must not call it saved: the sample may be in memory only, and a reload would lose the work.
+  it('on a sample nobody said is kept, the line says it is not saved', async () => {
+    await start({ sample: true })
+    expect(await screen.findByText(/^Not saved: this browser can/)).toBeInTheDocument()
+    expect(screen.queryByText('Saved on this device')).toBeNull()
+  })
+
+  it('on a sample the browser keeps, the line says so', async () => {
+    await start({ sample: true, kept: true })
+    expect(await screen.findByText('Saved on this device')).toBeInTheDocument()
   })
 })

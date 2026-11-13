@@ -1,7 +1,7 @@
 <!--
   One inspector row: the kit control a field's
   type maps to (`inspector-model.ts`). A stepper, toggle, segmented control or picker commits on change; text commits
-  on blur or Enter, and Escape puts it back. `oncommit` is `commitField` bound to the field: when it refuses, the
+  half a second after the last key, on leaving and on Enter, and Escape puts it back. `oncommit` is `commitField` bound to the field: when it refuses, the
   message shows under the field and the control is rebuilt from the stored value (`revision`), so what the field shows
   is always what the project holds. A `ref` shows its target's name and, where the row knows the project, picks a new
   one in `RefPicker`.
@@ -14,6 +14,8 @@ import type { EditEvent } from '../widgets/edit-event'
 import Picker from '../widgets/Picker.svelte'
 import Segmented from '../widgets/Segmented.svelte'
 import Stepper from '../widgets/Stepper.svelte'
+import { typedSave } from '../widgets/typed-save'
+import { typingDrafts } from '../widgets/typing-context'
 import type { FieldCommit, FieldRow } from './field-row'
 import RefPicker from './RefPicker.svelte'
 
@@ -27,6 +29,7 @@ interface Props {
 const { row, palette, oncommit }: Props = $props()
 
 const uid = $props.id()
+const drafts = typingDrafts()
 let message = $state<string | undefined>()
 let picking = $state(false)
 /** Bumped on a refusal so the control remounts on the stored value. */
@@ -61,20 +64,35 @@ function setPoint(index: number, axis: 'x' | 'y', value: number): void {
   commit(points.map((each, i) => (i === index ? { ...each, [axis]: value } : each)))
 }
 
+/**
+ * Writes typed text. A refusal shows, and the control is rebuilt from the stored value, only once the person has left
+ * the field; while they type, a refused text waits (returning false) so the field is never rebuilt under their hands.
+ */
+function commitText(raw: string, leaving: boolean): boolean {
+  if (raw === text) return true
+  const result = oncommit(raw)
+  if (result.ok) {
+    message = undefined
+    return true
+  }
+  if (leaving) {
+    message = result.message
+    revision++
+  }
+  return false
+}
+
 function onTextKey(event: KeyboardEvent): void {
   const box = event.currentTarget as HTMLInputElement
   if (event.key === 'Enter' && row.widget === 'text') {
     event.preventDefault()
-    if (box.value !== text) commit(box.value)
+    commitText(box.value, true)
   } else if (event.key === 'Escape') {
     box.value = text
+    // Tell the typing registry, so the text it was holding is the stored one and nothing is written.
+    box.dispatchEvent(new Event('input'))
     message = undefined
   }
-}
-
-function onTextBlur(event: FocusEvent): void {
-  const box = event.currentTarget as HTMLInputElement | HTMLTextAreaElement
-  if (box.value !== text) commit(box.value)
 }
 </script>
 
@@ -127,20 +145,18 @@ function onTextBlur(event: FocusEvent): void {
           id={`${uid}-text`}
           class="text"
           type="text"
-          value={text}
+          use:typedSave={{ drafts, value: text, commit: commitText, draftKey: row.id }}
           aria-describedby={message ? `${uid}-message` : undefined}
           onkeydown={onTextKey}
-          onblur={onTextBlur}
         />
       {:else}
         <textarea
           id={`${uid}-text`}
           class="text"
           rows="3"
-          value={text}
+          use:typedSave={{ drafts, value: text, commit: commitText, draftKey: row.id }}
           aria-describedby={message ? `${uid}-message` : undefined}
           onkeydown={onTextKey}
-          onblur={onTextBlur}
         ></textarea>
       {/if}
     {:else if row.widget === 'point'}

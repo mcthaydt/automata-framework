@@ -61,6 +61,11 @@ const ALLOWED_LINES: readonly { readonly file: string; readonly line: string; re
     reason: 'a fixture, not chrome',
   },
   {
+    file: 'packages/editor/src/testing/kit/TypingHost.svelte',
+    line: "palette={['#ff0000', '#00ff00']}",
+    reason: 'a fixture, not chrome: the colour field needs a palette to type a hex over',
+  },
+  {
     file: 'packages/editor/src/testing/level-2d/png.ts',
     line: "?? '#000000'",
     reason: 'a fixture picture, not chrome',

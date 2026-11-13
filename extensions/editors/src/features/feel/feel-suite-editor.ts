@@ -51,6 +51,7 @@ export function createFeel(options: FeelOptions = {}): SuiteEditor<FeelSession> 
             }),
       })
     },
+    draftView: (session) => `${session.toml.path}|${JSON.stringify(session.chosen)}`,
     regions: { panel, canvas, status },
     undo: (session) => undoOf(session.toml),
   })

@@ -47,10 +47,11 @@ export interface History<S> {
   readonly redoLabel: string | undefined
   /**
    * Records one step. An update that returns the same object records nothing. With `coalesce`, an apply that
-   * follows another with the same key inside the window joins its step (typing or scrubbing one field).
-   * Throws `HistoryError` while a transaction is open.
+   * follows another with the same key inside the window joins its step (typing or scrubbing one field). With `join`,
+   * an apply that follows another with the same join key joins its step however long the pause between them: a
+   * person's visit to one field is one step. Throws `HistoryError` while a transaction is open.
    */
-  apply(label: string, update: (state: S) => S, options?: { coalesce?: string }): void
+  apply(label: string, update: (state: S) => S, options?: { coalesce?: string; join?: string }): void
   /** Opens a transaction: its updates show live and commit as one step. Throws while one is already open. */
   begin(label: string): Transaction<S>
   /** Undoes one step; while a transaction is open, cancels it and does nothing else. */
@@ -67,6 +68,8 @@ interface Step<S> {
   after: S
   /** The coalesce key of the apply that made it, and when that apply (or the last one joined) happened. */
   key: string | undefined
+  /** The join key of the apply that made it: the visit to a field the step is one edit of. */
+  join: string | undefined
   at: number
 }
 
@@ -133,7 +136,7 @@ export function createHistory<S>(initial: S, options: HistoryOptions = {}): Hist
           if (transaction !== open) return
           transaction = undefined
           if (state !== open.before)
-            record({ label, before: open.before, after: state, key: undefined, at: now() })
+            record({ label, before: open.before, after: state, key: undefined, join: undefined, at: now() })
           changed()
         },
         cancel() {
@@ -178,17 +181,21 @@ export function createHistory<S>(initial: S, options: HistoryOptions = {}): Hist
       const next = update(state)
       if (next === state) return
       const key = applyOptions?.coalesce
+      const join = applyOptions?.join
       const at = now()
-      if (key !== undefined && joinable?.key === key && at - joinable.at <= window) {
+      const joins =
+        (join !== undefined && joinable?.join === join) ||
+        (key !== undefined && joinable?.key === key && joinable !== undefined && at - joinable.at <= window)
+      if (joinable !== undefined && joins) {
         joinable.label = label
         joinable.after = next
         joinable.at = at
         state = next
         revision += 1
       } else {
-        const step: Step<S> = { label, before: state, after: next, key, at }
+        const step: Step<S> = { label, before: state, after: next, key, join, at }
         record(step)
-        joinable = key === undefined ? undefined : step
+        joinable = key === undefined && join === undefined ? undefined : step
       }
       changed()
     },

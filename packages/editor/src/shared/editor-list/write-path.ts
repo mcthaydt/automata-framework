@@ -51,11 +51,30 @@ export interface FileWrite {
   readonly force?: boolean | undefined
 }
 
+export interface WriteOptions {
+  /**
+   * The person's visit to a field: writes of one visit to the same files are one undo step, however long the pauses
+   * between them (typing, stopping to think, typing again).
+   */
+  readonly join?: string | undefined
+}
+
 export interface WritePath {
   /** `owner` names the history the step joins: the editor's id, or `''` (the default) for the suite's own. */
-  write(path: string, text: string, label: string, owner?: string): Promise<WriteOutcome>
+  write(
+    path: string,
+    text: string,
+    label: string,
+    owner?: string,
+    options?: WriteOptions,
+  ): Promise<WriteOutcome>
   /** Several files as one undo step: every file is written, or none is (an import, EDS-D19). */
-  writeAll(files: readonly FileWrite[], label: string, owner?: string): Promise<WriteOutcome>
+  writeAll(
+    files: readonly FileWrite[],
+    label: string,
+    owner?: string,
+    options?: WriteOptions,
+  ): Promise<WriteOutcome>
   /** Undoes `owner`'s last step; `undefined` with nothing to undo. */
   undo(owner?: string): Promise<WriteOutcome | undefined>
   redo(owner?: string): Promise<WriteOutcome | undefined>
@@ -214,13 +233,19 @@ export function createWritePath({ ports }: WritePathOptions): WritePath {
     return outcome
   }
 
-  async function writeAll(files: readonly FileWrite[], label: string, owner = ''): Promise<WriteOutcome> {
+  async function writeAll(
+    files: readonly FileWrite[],
+    label: string,
+    owner = '',
+    options: WriteOptions = {},
+  ): Promise<WriteOutcome> {
     const befores = await Promise.all(files.map(async (file) => (await workspace.read(file.path))?.text))
     const outcome = await applyAll(files)
     if ('written' in outcome) {
       histories.push(owner, {
         label,
         files: files.map((file, index) => ({ path: file.path, before: befores[index], after: file.text })),
+        join: options.join,
       })
       changed()
     }
@@ -228,7 +253,7 @@ export function createWritePath({ ports }: WritePathOptions): WritePath {
   }
 
   return {
-    write: (path, text, label, owner) => writeAll([{ path, text }], label, owner),
+    write: (path, text, label, owner, options) => writeAll([{ path, text }], label, owner, options),
     writeAll,
     async undo(owner = '') {
       const step = histories.nextUndo(owner)

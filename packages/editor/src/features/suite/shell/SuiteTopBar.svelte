@@ -9,6 +9,7 @@
 import type { Snippet } from 'svelte'
 import Icon from '../../../shared/kit/icons/Icon.svelte'
 import type { CheckFinding } from '../../../shared/kit/ports/suite-ports'
+import type { SaveLine } from '../../../shared/kit/storage/save-line'
 import Button from '../../../shared/kit/widgets/Button.svelte'
 import IconButton from '../../../shared/kit/widgets/IconButton.svelte'
 import type { Pill } from '../core/pills-model'
@@ -17,8 +18,10 @@ import SuitePills from './SuitePills.svelte'
 interface Props {
   /** The game's name, on a phone too: it is how a person knows which game this is. `undefined` hides it. */
   title: string | undefined
-  /** Edits write the game's own files: say so once, as status. */
-  saved: boolean
+  /** Where the work stands, in words, at every size: Saving…, Saved on this device, Not saved: … (`saveLine`). */
+  line: SaveLine | undefined
+  /** The line has a row of its own, under the rest of the bar, and shows whole (a phone held upright, or not saved). */
+  lineBelow?: boolean
   pills: readonly Pill[]
   /** The pills as icons with counts, on a phone or a short screen. */
   compact: boolean
@@ -46,7 +49,8 @@ interface Props {
 
 const {
   title,
-  saved,
+  line,
+  lineBelow = false,
   pills,
   compact,
   onlocate,
@@ -61,7 +65,11 @@ const {
 </script>
 
 {#if title !== undefined}<span class="brand">{title}</span>{/if}
-{#if saved}<span class="where"><Icon name="check" size={16} />Saved in your game folder</span>{/if}
+{#if line !== undefined}
+  <span class="where" class:below={lineBelow} data-state={line.state} role="status" title={line.words}>
+    <Icon name={line.state === 'failed' ? 'alert' : 'check'} size={16} /><span class="words">{line.words}</span>
+  </span>
+{/if}
 <div class="tools" data-scroll-region="both">
   <SuitePills {pills} {compact} {onlocate} />
   <span class="spacer"></span>
@@ -100,6 +108,38 @@ const {
     color: var(--muted);
     font: var(--text-body-13);
     white-space: nowrap;
+    /* The words say the work is safe, so they keep the room they need until the bar runs short: then they shorten with
+       an ellipsis rather than push Play, Publish or an editor's own tools off the screen. Only a short "saved" line is
+       ever here: one that says the work is not saved takes the row below (`lineBelow`), whole. */
+    flex: 0 1 auto;
+    min-width: 5.5rem;
+  }
+  /* Under the bar's first row, as wide as the bar: the words wrap rather than shorten, so none of them is cut. */
+  .where.below {
+    order: 10;
+    flex: 1 0 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 0 var(--space-2);
+    white-space: normal;
+  }
+  .where.below .words {
+    overflow: visible;
+    text-overflow: clip;
+  }
+  :global([data-rows='2']) .tools {
+    flex-basis: 0;
+  }
+  .where > :global(svg) {
+    flex: none;
+  }
+  .words {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .where[data-state='failed'] {
+    color: var(--color-state-bad);
   }
   /* Play is a link (it opens the game in a new tab), drawn as a plain button: a 44 px target with a hairline. */
   .play {
