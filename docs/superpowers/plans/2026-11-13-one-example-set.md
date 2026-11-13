@@ -26,7 +26,7 @@ Biome. Markdown is not formatted by a tool.
 
 | Task | Part | Branch | Sessions | Model | Start | State | % |
 |---|---|---|---|---|---|---|---|
-| F1 The set's shape: the catalog, the package, the entry | 0 | `claude/example-set-shape` | 1 | Sonnet | **now** | in progress (`claude/example-set-f1`): steps 1 to 4 done, gates pending | 80% |
+| F1 The set's shape: the catalog, the package, the entry | 0 | `claude/example-set-shape` | 1 | Sonnet | **now** | done on `claude/example-set-f1` (no pull request yet; gates in `audits/2026-11-13-example-set-f1/README.md`) | 100% |
 | F2 A whole-pixel field and a look file, in the framework | 0 | `claude/example-set-field` | 1 | Sonnet | after the joined prologue branch | not started | 0% |
 | F3 The site can show a 3D example (the mechanism, on fixtures) | 0 | `claude/example-set-site` | 1 | Sonnet | **now**, after F1 | not started | 0% |
 | F4 The site shows the set | 0 | `claude/example-set-site` | 1 | Sonnet | after ship-3d B10, `pixi-3d-public`, E1 | not started | 0% |
@@ -68,7 +68,7 @@ Biome. Markdown is not formatted by a tool.
 | O1 The sheets for the Owner | Owner | `claude/example-set-sheets` | 1 | Opus | last: after E15, S5, K4, F4 | not started | 0% |
 | O2 The pictures, recorded after the Owner's yes | Owner | `claude/example-set-sheets` | 0.5 | Sonnet | after the Owner's yes on O1 | not started | 0% |
 
-Progress: 0 of 41 tasks (0%). Per part: 0 of 5 (Part 0), 0 of 7 (Part 1), 0 of 4 (Part K), 0 of 4 (Part 2), 0 of 15
+Progress: 1 of 41 tasks (2%). Per part: 1 of 5 (Part 0), 0 of 7 (Part 1), 0 of 4 (Part K), 0 of 4 (Part 2), 0 of 15
 (Part 3), 0 of 4 (Part 4), 0 of 2 (the Owner's sheets and the pictures). Part 5 (2D) has no tasks until the Owner says yes. Sessions:
 39.5 (30.5 Sonnet at high effort, 9 Opus at medium), before audits and fixes. (There is no task C1 or S4: they became
 Part K, which is planned once for this set and for the game. F5 was added at the plan audit: nothing else made
@@ -379,7 +379,7 @@ export const SCENE_CAST: readonly SceneCast[]
 - [x] **Step 4:** write `scene.ts` (content through the content compiler, as a game does; no fetch by hand) and the
   probe's shape (zone and time; `fact` and `carried` return nothing until F5 and the examples' kits fill them). It draws
   the level and nothing else: the walker, the cast and the zone's view are F5's. Run. Expected: PASS.
-- [ ] **Step 5:** gates; commit `feat(examples): the example set's package, its one entry and the catalog's rule for it`.
+- [x] **Step 5:** gates; commit `feat(examples): the example set's package, its one entry and the catalog's rule for it`.
 
 **Done means:** both tests pass; `pnpm check` exit 0 and its unit step lists `@af-examples/set-3d`; no file under
 `examples/3d` or `examples/3d-story` changed but `examples/3d/package.json` and `examples/3d/vite.config.ts`.

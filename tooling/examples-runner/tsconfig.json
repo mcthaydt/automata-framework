@@ -15,6 +15,7 @@
   ],
   "exclude": [
     "tests/fixtures/catalog/**",
+    "tests/fixtures/scene-catalog/**",
     "tests/fixtures/examples/core/core-later.ts",
     "tests/fixtures/examples/dist"
   ]
