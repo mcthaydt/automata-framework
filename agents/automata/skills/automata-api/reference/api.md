@@ -238,6 +238,11 @@ interface Cue {
   readonly voices: readonly Voice[];
   /** A core sound alias played through `Audio.sound` in place of the voices once it is loaded. */
   readonly sound?: string | undefined;
+  /**
+   * How loud the cue plays against the others, a multiplier, 1 when unset: the same meaning as a fallback's `volume`. A recorded
+   * file is as it was made, so this is where its level is set.
+   */
+  readonly gain?: number | undefined;
   /** A world sound: panned and attenuated from the listener when the caller passes a position. */
   readonly world?: boolean | undefined;
   /** Played on its bus without the ducking that bus normally causes. */
@@ -387,6 +392,11 @@ interface MixerPort {
   input(bus: BusId): AudioNode;
   /** `Audio.duck(bus, amount, seconds)`: takes `bus` down by `amount` (0..1) for `seconds`. */
   duck(bus: BusId, amount: number, seconds: number): void;
+  /**
+   * `Audio.sound(alias, { bus, gain })`: plays a recorded file once. A cue with a `sound` plays through it in place of
+   * its voices; a port without it (an offline render) plays the voices.
+   */
+  sound?(alias: string, bus: BusId, gain?: number): void;
 }
 ```
 
@@ -4292,6 +4302,11 @@ interface AnalogOptions<Z extends z.ZodType> {
     read(reading: AnalogReading, held: z.output<Z>): Partial<z.input<Z>>;
     /** Bind the `camera-drag` gesture: the play screen mounts the drag surface. */
     readonly drag?: boolean;
+    /**
+     * Which mouse buttons drag the camera: `secondary` (the default, so a primary click on the scene is never a turn) or
+     * `either`, an ordinary 3D drag, for a game whose scene takes no click. Read only with `drag`.
+     */
+    readonly mouseDrag?: 'secondary' | 'either' | undefined;
     /** Show the touch stick; its vector is `stick('left')`. */
     readonly touchStick?: boolean;
 }
@@ -4567,7 +4582,7 @@ interface Camera2dOptions {
 #### `CameraDragSurface` (const)
 
 The camera drag surface: the player turns the camera by dragging the scene,
-a finger anywhere outside the controls or the mouse with its secondary button.
+a finger anywhere outside the controls or the mouse with its secondary button (or its primary, when the tracker allows).
 
 All the rules of who drags are the tracker's (runtime `CameraDragTracker`); this forwards pointer events with their
 `clientX`. It is a fixed layer drawn under the play screen's controls, so a contact on a touch button, the stick,
@@ -6037,6 +6052,8 @@ interface InputMap {
     readonly labels: Readonly<Record<string, string>>;
     /** Whether the play screen shows the touch stick (the `analog.touchStick` option). */
     readonly touchStick: boolean;
+    /** Which mouse buttons drag the camera (the `analog.mouseDrag` option); none reads as `secondary`. */
+    readonly dragMouse?: 'secondary' | 'either' | undefined;
     /**
      * Pure: the one command for the held actions, merged in iteration order (a later action wins per field). With an
      * `analog` option, `reading` adds the sticks and the drag; without one it is ignored.
@@ -6044,6 +6061,19 @@ interface InputMap {
     toCommand(held: Iterable<string>, tick: number, reading?: AnalogReading): readonly Command[];
     attach(target: Window): InputSource;
 }
+```
+
+#### `InputMethod` (type)
+
+The input method the player last used, app-wide.
+
+Menus and tutorials teach the controls in the player's hand, and neither
+lives inside the sim, so this is not the game's input. A mouse moves
+nothing: it says nothing about which controls to teach. Which buttons a
+controller carries (its glyph family) belongs to the input feature.
+
+```ts
+type InputMethod = 'keyboard' | 'gamepad' | 'touch';
 ```
 
 #### `InputMode` (type)
@@ -6727,6 +6757,7 @@ interface PixiRendererOptions {
     /**
      * Screen-space filters declared with `postFilter`. Each is built when the renderer starts and set in the
      * stage's post-filter slot before `setup` runs, so `setup` sees them and may add more. Names must be unique.
+     * One declared `at: 'screen'` goes in `screenFilters` instead, on the upscaled picture.
      */
     readonly postFilters?: readonly PostFilterDef[] | undefined;
     /**
@@ -6761,6 +6792,11 @@ interface PixiStage {
     filters: Filter[] | null;
     /** The post-filter slot over `filters`: each owner keeps its own filters by id and order. */
     readonly postFilters: PostFilterSlot;
+    /**
+     * The slot on the composite's upscaled sprite, at device pixels: filters declared `at: 'screen'`, told each frame
+     * where the field lies (`uScreenScale`, `uScreenOrigin`). Without a composite it holds nothing and draws nothing.
+     */
+    readonly screenFilters: PostFilterSlot;
     /** The graphics quality tier now. */
     readonly quality: QualityTier;
     /** Changes the tier: re-caps the canvas resolution and leaves out post-filter owners registered for a higher one. */
@@ -6798,6 +6834,12 @@ interface PlayHandle {
     readonly sim: DrawSim | undefined;
     /** Queues `command` for the next tick, after the input map's own, in the order sent. */
     send(command: SentCommand): void;
+    /**
+     * How the player is playing now: `touch`, `keyboard` or `gamepad`, whichever they used last (a coarse pointer starts as
+     * touch). Reading it in a template or `$derived` follows each change. A component draws on-screen buttons for `touch` only.
+     * This is the input mode; it is separate from layout, which follows the container's size and usable height whatever the input.
+     */
+    readonly inputMethod: InputMethod;
 }
 ```
 
@@ -6861,7 +6903,16 @@ interface PostFilterDef {
     readonly wgsl: string;
     readonly order: number;
     readonly minTier: QualityTier | undefined;
+    readonly at: PostFilterPlacement;
 }
+```
+
+#### `PostFilterPlacement` (type)
+
+Where a declared filter runs: on the field at its logical size, or on the upscaled picture at device pixels.
+
+```ts
+type PostFilterPlacement = 'field' | 'screen';
 ```
 
 #### `PostFilterSpec` (interface)
@@ -6880,6 +6931,16 @@ interface PostFilterSpec {
     readonly order?: number | undefined;
     /** The lowest quality tier it runs at; left out, it runs at every tier. */
     readonly minTier?: QualityTier | undefined;
+    /**
+     * Where it runs. `'field'` (the default): on the picture at the game's logical size, before it is upscaled.
+     * `'screen'`: on the upscaled picture, at device pixels, so a pattern can be finer than a field pixel and sit on its
+     * edges (an LCD mesh between pixel-art texels). A screen filter is given `uScreenScale`, device pixels a field pixel,
+     * and `uScreenOrigin`, where the field's top-left lies in device pixels of the filter's input; a device pixel's
+     * position in the field is `vTextureCoord * uInputPixel.xy - uScreenOrigin` (WGSL: `screen.uScreenScale`,
+     * `screen.uScreenOrigin`, `gfu.uInputPixel`). The slot declares them; the shader must not. It needs the
+     * renderer's composite (`pixelArt` on): without one it is left out with a warning.
+     */
+    readonly at?: PostFilterPlacement | undefined;
 }
 ```
 
@@ -8115,6 +8176,17 @@ not positive gives 0, and the result is never −0.
 function turnUnitsFromPixels(dxPx: number, degPerPixel: number, invert: boolean): number;
 ```
 
+#### `turnUnitsFromStick` (function)
+
+A right stick's turn for one tick, as whole turn units: `x` (−127..127, through the pad's dead zone already) over a full
+push of `unitsPerTick`, scaled by the player's turn speed against its default (so the one "Camera turn speed" row
+tunes the stick and the drag alike), negated when `invert`, clamped to ±`MAX_TURN_UNITS_PER_STEP`. Positive for a push
+to the right; which way that turns the heading is the game's convention. A non-finite input gives 0, never −0.
+
+```ts
+function turnUnitsFromStick(x: number, unitsPerTick: number, camera: CameraSettings): number;
+```
+
 #### `typedBus` (function)
 
 Cast a PresentationBus instance to a typed view with game-specific fact types.
@@ -8955,10 +9027,11 @@ function mountFixture<Props extends Record<string, unknown>>(component: Componen
 
 #### `mountInPlay` (function)
 
-Mounts `slot` (a `hud.overlay` component) over `sim` with the play context, into `target` or a new element of the page.
+Mounts `slot` (a `hud.overlay` component) over `sim` with the play context, into `target` or a new element of the page. The
+player starts as the page's pointer says (a coarse one is touch); `inputMethod` says otherwise.
 
 ```ts
-function mountInPlay(slot: UiComponent, sim: Sim | undefined, target?: HTMLElement): PlayMount;
+function mountInPlay(slot: UiComponent, sim: Sim | undefined, target?: HTMLElement, inputMethod?: InputMethod): PlayMount;
 ```
 
 #### `nullRenderer` (function)
@@ -9017,6 +9090,8 @@ interface PlayMount {
     readonly host: HTMLElement;
     /** `refresh()` says a frame passed; `commands(tick, [])` takes what the component sent. */
     readonly session: PlaySession;
+    /** Says how the player is playing now (`touch`, `keyboard` or `gamepad`), as their next press would; the component sees it as `usePlay().inputMethod`. */
+    noteInputMethod(method: InputMethod): void;
     unmount(): void;
 }
 ```
@@ -9031,6 +9106,8 @@ class PlaySession {
     #private;
     readonly handle: PlayHandle;
     constructor(sim: Sim | undefined);
+    /** Says how the player is playing; the play screen gives it from its tracker, and a test sets it by hand. */
+    setInputMethod(method: InputMethod): void;
     /** Says a frame passed, so what reads the sim reads it again. */
     refresh(): void;
     /**
@@ -16753,6 +16830,36 @@ that here by copying the slot list from `@automata/framework`'s title when you n
 ```ts
 const TitleScreen: import("svelte").Component<Props, {}, "">;
 type TitleScreen = ReturnType<typeof TitleScreen>;
+```
+
+### `import { … } from '@automata/ui-screens/content'`
+
+#### `creditsContent` (const)
+
+The `credits` content kind: `content/credits/credits.toml` is the game's credits. A section's `title` and a name's
+`role` are translatable; a `name` and a `url` are not. A `name` is `verbatim()`: drawn as written in every language, so
+the font build keeps its characters in every face and refuses a build in which a language's faces lack one.
+
+```ts
+const creditsContent: ContentSchemaDef<'credits', z.ZodType<Credits>>;
+```
+
+#### `creditsSchema` (const)
+
+The Zod schema of a credits file. At least one section, and one name in each.
+
+```ts
+const creditsSchema: z.ZodType<Credits>;
+```
+
+#### `creditsSchemaWith` (const)
+
+The Zod schema of a credits file, with section titles and roles checked by `text`: plain text here, translatable
+text in the content kind. A name is checked by `name` (plain text by default; the content kind marks it `verbatim()`
+so the font build holds it to every language's faces). Strict: a field it does not know is an error, so a misspelt `url` is found at compile time.
+
+```ts
+const creditsSchemaWith: (text: z.ZodType<string, string>, name?: z.ZodType<string, string>) => z.ZodType<Credits>;
 ```
 
 ### `import { … } from '@automata/ui-screens/credits'`

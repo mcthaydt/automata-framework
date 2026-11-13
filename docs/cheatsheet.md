@@ -451,7 +451,7 @@
 - `Button` (const): The framework's button: an `.af-control` of one kind.
 - `Camera2d` (interface): A presentation-only 2D camera over one container: it follows a target, shakes, and writes only that container's transform, never a sim value.
 - `Camera2dOptions` (interface): How `createCamera2d` frames the world: the view's size, and optionally a follow, bounds and zoom.
-- `CameraDragSurface` (const): The camera drag surface: the player turns the camera by dragging the scene, a finger anywhere outside the controls or the mouse with its secondary button.
+- `CameraDragSurface` (const): The camera drag surface: the player turns the camera by dragging the scene, a finger anywhere outside the controls or the mouse with its secondary button (or its primary, when the tracker allows).
 - `CameraRect` (interface): A world-space rectangle, in logical px: `Camera2dOptions.bounds`.
 - `CAPABILITIES` (const): What a game may ask its host for.
 - `Capability` (type): One capability a game may ask for.
@@ -537,6 +537,7 @@
 - `IconButton` (const): A button whose face is an icon.
 - `Input` (interface): The input service: held actions from keys, pads, touch buttons and gestures under the game's profile and the player's overrides, menu edges, the active device and pads, and rebinding.
 - `InputMap` (interface): Held keys, touch buttons and gamepad buttons, turned into one command per tick.
+- `InputMethod` (type): The input method the player last used, app-wide.
 - `InputMode` (type): How the player is playing right now.
 - `InputModePayload` (interface): The current input mode, and the gamepad when one is in use.
 - `InputModePayloadSchema` (const): Checks an input mode change.
@@ -599,6 +600,7 @@
 - `Pose` (interface): Where an entity view draws: position in world pixels and rotation in radians (Pixi `rotation`).
 - `postFilter(name, spec)`: Declares a screen-space filter over the whole picture: `renderer: { postFilters: [postFilter('vignette', { glsl, wgsl })] }`.
 - `PostFilterDef` (interface): A declared filter, as `postFilter` returns it and `PixiRendererOptions.postFilters` takes it.
+- `PostFilterPlacement` (type): Where a declared filter runs: on the field at its logical size, or on the upscaled picture at device pixels.
 - `PostFilterSpec` (interface): What a screen-space filter is made of: the same effect written twice, for WebGL2 (`glsl`) and WebGPU (`wgsl`), so the two renderers stay at parity.
 - `PresentationBus` (interface): The presentation bus: typed facts the runtime publishes for screens, audio and tests to hear.
 - `PROMPT_COPY` (const): The English words a control prompt shows where the device's own label is not known: "Not set" for an action with no binding, "Tap" for an on-screen button, and a name for each pad button a generic pad does not label ("Bottom button", "Start").
@@ -673,6 +675,7 @@
 - `TouchControls` (const): The on-screen touch buttons.
 - `Translate` (type): The typed `t` verb: `t('hello', { name })`, checked against the game's compiled messages.
 - `turnUnitsFromPixels(dxPx, degPerPixel, invert)`: `dxPx` dragged at `degPerPixel` as whole turn units: positive for a drag to the right (which way that turns the heading is the game's convention), negated when `invert`, clamped to ±`MAX_TURN_UNITS_PER_STEP`.
+- `turnUnitsFromStick(x, unitsPerTick, camera)`: A right stick's turn for one tick, as whole turn units: `x` (−127..127, through the pad's dead zone already) over a full push of `unitsPerTick`, scaled by the player's turn speed against its default (so the one "Camera turn speed" row tunes the stick and the drag alike), negated when `invert`, clamped to ±`MAX_TURN_UNITS_PER_STEP`.
 - `typedBus(bus)`: Cast a PresentationBus instance to a typed view with game-specific fact types.
 - `UI_SOUND_NAMES` (const): The names the framework itself asks for; a game may add any other.
 - `UiSoundEntry` (type): A sound: the asset it plays, or the asset with a gain (0..1).
@@ -742,7 +745,7 @@
 - `manualFrames(startMs?)`: A frame source that runs a frame only when a test advances it, starting at `startMs`.
 - `MountedFixture` (interface): A mounted Svelte fixture: the element it was mounted into and a way to unmount it.
 - `mountFixture(component, props, target?)`: Mounts a Svelte component with the given props and no renderer or host, and flushes effects so the first render is finished.
-- `mountInPlay(slot, sim, target?)`: Mounts `slot` (a `hud.overlay` component) over `sim` with the play context, into `target` or a new element of the page.
+- `mountInPlay(slot, sim, target?, inputMethod?)`: Mounts `slot` (a `hud.overlay` component) over `sim` with the play context, into `target` or a new element of the page.
 - `nullRenderer(log?, options?)`: A renderer that draws nothing and records each call in `log`, for runtime tests without a GPU.
 - `NullRendererEntry` (type): One call `nullRenderer` recorded.
 - `NullRendererOptions` (interface): Options for `nullRenderer`: `fail` makes it fail `RendererUnavailable`.
@@ -1429,6 +1432,12 @@
 - `splashStep(options)`: An opening step that shows the studio's logo, holds it for `holdMs` on the runtime's clock and ends early on any key, click or tap.
 - `TitleAction` (interface): An extra button on the title screen beside Play, such as Settings or Credits.
 - `TitleScreen` (const): The title screen: the game's name, one primary Play and any further actions the game adds (Settings, Credits), on core's ScreenFrame and ActionBar.
+
+### `import { … } from '@automata/ui-screens/content'`
+
+- `creditsContent` (const): The `credits` content kind: `content/credits/credits.toml` is the game's credits.
+- `creditsSchema` (const): The Zod schema of a credits file.
+- `creditsSchemaWith` (const): The Zod schema of a credits file, with section titles and roles checked by `text`: plain text here, translatable text in the content kind.
 
 ### `import { … } from '@automata/ui-screens/credits'`
 

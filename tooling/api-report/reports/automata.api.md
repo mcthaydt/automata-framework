@@ -34,6 +34,7 @@ function actionsForPadButton(profile: InputProfile, index: number): string[];
 interface AnalogOptions<Z extends z.ZodType> {
     read(reading: AnalogReading, held: z.output<Z>): Partial<z.input<Z>>;
     readonly drag?: boolean;
+    readonly mouseDrag?: 'secondary' | 'either' | undefined;
     readonly touchStick?: boolean;
 }
 ```
@@ -1073,9 +1074,16 @@ interface InputMap {
     readonly profile: InputProfile;
     readonly labels: Readonly<Record<string, string>>;
     readonly touchStick: boolean;
+    readonly dragMouse?: 'secondary' | 'either' | undefined;
     toCommand(held: Iterable<string>, tick: number, reading?: AnalogReading): readonly Command[];
     attach(target: Window): InputSource;
 }
+```
+
+### `InputMethod` (type)
+
+```ts
+type InputMethod = 'keyboard' | 'gamepad' | 'touch';
 ```
 
 ### `InputMode` (type)
@@ -1530,6 +1538,7 @@ interface PixiStage {
     readonly composite?: CompositeTarget | undefined;
     filters: Filter[] | null;
     readonly postFilters: PostFilterSlot;
+    readonly screenFilters: PostFilterSlot;
     readonly quality: QualityTier;
     setQuality(tier: QualityTier): void;
     tryFilter<F extends Filter>(id: string, make: () => F): F | undefined;
@@ -1552,6 +1561,7 @@ interface PixiStageHooks {
 interface PlayHandle {
     readonly sim: DrawSim | undefined;
     send(command: SentCommand): void;
+    readonly inputMethod: InputMethod;
 }
 ```
 
@@ -1597,7 +1607,14 @@ interface PostFilterDef {
     readonly wgsl: string;
     readonly order: number;
     readonly minTier: QualityTier | undefined;
+    readonly at: PostFilterPlacement;
 }
+```
+
+### `PostFilterPlacement` (type)
+
+```ts
+type PostFilterPlacement = 'field' | 'screen';
 ```
 
 ### `PostFilterSpec` (interface)
@@ -1608,6 +1625,7 @@ interface PostFilterSpec {
     readonly wgsl: string;
     readonly order?: number | undefined;
     readonly minTier?: QualityTier | undefined;
+    readonly at?: PostFilterPlacement | undefined;
 }
 ```
 
@@ -2390,6 +2408,12 @@ type Translate<Messages> = <K extends keyof Messages & string>(key: K, ...inputs
 function turnUnitsFromPixels(dxPx: number, degPerPixel: number, invert: boolean): number;
 ```
 
+### `turnUnitsFromStick` (function)
+
+```ts
+function turnUnitsFromStick(x: number, unitsPerTick: number, camera: CameraSettings): number;
+```
+
 ### `typedBus` (function)
 
 ```ts
@@ -2995,7 +3019,7 @@ function mountFixture<Props extends Record<string, unknown>>(component: Componen
 ### `mountInPlay` (function)
 
 ```ts
-function mountInPlay(slot: UiComponent, sim: Sim | undefined, target?: HTMLElement): PlayMount;
+function mountInPlay(slot: UiComponent, sim: Sim | undefined, target?: HTMLElement, inputMethod?: InputMethod): PlayMount;
 ```
 
 ### `nullRenderer` (function)
@@ -3040,6 +3064,7 @@ function openRuntimeTest(options?: RuntimeTestOptions): Promise<RuntimeTestSessi
 interface PlayMount {
     readonly host: HTMLElement;
     readonly session: PlaySession;
+    noteInputMethod(method: InputMethod): void;
     unmount(): void;
 }
 ```
@@ -3051,6 +3076,7 @@ class PlaySession {
     #private;
     readonly handle: PlayHandle;
     constructor(sim: Sim | undefined);
+    setInputMethod(method: InputMethod): void;
     refresh(): void;
     commands(tick: number, input: readonly Command[]): readonly Command[];
 }
