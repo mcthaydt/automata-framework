@@ -903,3 +903,15 @@ The Owner: "yes to the hook change, software run counts as a skip". Chromium on 
 | `ci.yml` frame-budget job comment | Done on the Owner's words "change the comment": comment lines only, the parsed workflow is identical before and after | `f8c5e5c6`; `workflow-invariants.test.ts` 10 of 10 |
 | Gates | `TURBO_FORCE=true pnpm check` at `7c2d6137` (the commits after it change a workflow comment and this file only): lint, typecheck (56 of 56 tasks, none cached), boundaries, style, source-names, knip and `test:unit` (66 of 66, none cached) passed, 16 m 50 s; the last step, `check:changesets`, failed only because this clone had no `origin/main` ref, and passes once fetched (79 changesets, 0 problems; none needed, only private tooling changed). `pnpm secrets` exit 0, 3,769 commits, no leaks. The frame-budget package's unit tests: 63 of 63 | the `pnpm check` stage log |
 | Not run | WebKit, Firefox, a real GPU, a GPU runner: nothing was measured against the budget; a budget row still needs the Owner's GPU run | |
+
+## Artifact storage only on failure (2026-11-12, branch `claude/artifacts-on-failure`)
+
+The Owner's ruling: "stop using the artifact storage unless something fails". The repository's Actions artifact
+quota was full, so traces no longer uploaded when a run failed.
+
+| Change | Evidence | Check |
+|---|---|---|
+| Evidence uploads are failure-only and kept 7 days at most. Of seven `upload-artifact` steps (ci.yml 5, 3d.yml 1, release-checks.yml 1, game-ci.yml 1; no `download-artifact` anywhere) five already were. `frame-budget-results` went from `always()` and 30 days to `failure()` and 7; game-ci's build upload from every run to `failure()` | `tooling/repo-hygiene/tests/unit/workflow-invariants.test.ts`: new rule 7; it failed first on exactly those two steps, then passed | `pnpm test:unit` in `tooling/repo-hygiene` (164 of 164) |
+| Still uploads on a green run | `evidence` (ci.yml, push to main, 90 days): the golden-hash file; its comment says the website reads it, nothing in the repository downloads it. It is the one name on the rule's allow-list | — |
+| `pnpm evidence` step of the parity job: emberwick's `test:evidence` named `tests/browser/golden.test.ts`, which "lay the game out by feature" (95dc5c33) moved to `tests/browser/testing/`. The path is fixed, and `tooling/repo-hygiene/tests/unit/script-paths.test.ts` fails when any package or root script names a test file that is not on disk (it failed first on that one script; no other script was wrong) | Before: vitest "No test files found". After: `pnpm --filter @af-games/emberwick test:evidence` runs the golden test in Node and Chromium (2 of 2) | `pnpm test:unit` in `tooling/repo-hygiene` (173 of 173) |
+| Not run | The workflows themselves (they run on GitHub); the evidence step in Firefox and WebKit (not installed here), and the evidence collector over all four engines; `actionlint` (`pnpm lint:actions` needs Docker, none here), the YAML parses | — |

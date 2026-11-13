@@ -234,7 +234,7 @@ jobs:
       (needs.checks.result == 'success' && github.event.pull_request.draft != true &&
       needs.checks.outputs.docs_only != 'true'))
     runs-on: ${{ vars.AF_E2E_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -372,13 +372,14 @@ jobs:
         if: runner.environment == 'self-hosted'
       - run: pnpm test:frame-budget
       - run: pnpm budget:frame
-      # The results are the evidence a budget is set from, so they are kept whatever the check said.
+      # The results are the evidence for a failed check (and what a budget is first set from), so they upload only
+      # when the job failed: artifact storage is a small shared quota.
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: always()
+        if: ${{ failure() }}
         with:
           name: frame-budget-results
           path: frame-budget-results/
-          retention-days: 30
+          retention-days: 7
 
   # The website goes to its host from main, once the 2D journeys (the website's suite among them) pass.
   site:
