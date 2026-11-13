@@ -137,6 +137,10 @@ jobs:
       - run: pnpm style
       # Unused files, exports and dependencies (knip.jsonc).
       - run: pnpm knip
+      # Some unit suites start headless Chromium (the audio render in extensions/pipelines). The Owner's runners keep
+      # it in their cache; a GitHub-hosted runner starts empty (Owner, 2026-11-13: "Yes, add the install step").
+      - run: pnpm exec playwright install --with-deps chromium-headless-shell
+        if: runner.environment == 'github-hosted'
       # Every unit test on a push to main, the nightly run, a manual run, and a pull request that changes something
       # outside the workspace folders (see `scope`). Any other pull request runs the packages it affects, dependents
       # included (turbo --affected; the checkout is GitHub's merge commit, whose first parent is the base tip), and the
