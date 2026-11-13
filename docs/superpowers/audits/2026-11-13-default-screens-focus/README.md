@@ -20,7 +20,7 @@ All from `examples-ipad`, one worker, `CI=1`, `--retries=0`, `core-input-keys` o
 
 | Run | Before the fix | After the fix |
 |---|---|---|
-| Quiet | 25 of 50 passed (19 of 40, then 6 of 10) | 30 of 30 |
+| Quiet | 25 of 50 passed (19 of 40, then 6 of 10) | 30 of 30 after the first commit, 30 of 30 again on the final code |
 | Loaded, 6 busy loops on 4 cores | 2 of 24 | 24 of 24 (run twice, after each of the two commits) |
 
 Trace of a failing run (an init script in the page logging `activeElement`, `document.hasFocus()`, focus events and
@@ -65,6 +65,14 @@ focus. Unit tests cover: the screen mounts while the engine takes no focus, the 
 gains focus and Play is focused; focus the player moved meanwhile is kept; nothing is asked for a screen that was
 left. Not tested in a real embedded iframe without window focus (the journeys' host frame gets focus from
 Playwright's emulation).
+
+## Gates run (final code)
+
+`pnpm format`; `TURBO_FORCE=true pnpm check` exit 0 (56 tasks); `pnpm build`; `pnpm api-report` (0 breaks) and
+`pnpm api-index` (nothing to write: no exports or doc comments of the public API moved); whole `examples/2d` e2e,
+Chromium, WebKit and Firefox: 182 passed, 137 skipped (the input matrix's other cells, by design), 0 failed; the
+framework's browser suite (`vitest run --project browser`): 6749 passed, 7 skipped. No golden, hash or picture moved.
+Not run: the parity suites and the 3D journeys (not touched), a physical iPad.
 
 ## The fix
 
