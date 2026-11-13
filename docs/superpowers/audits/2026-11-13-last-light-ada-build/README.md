@@ -162,8 +162,90 @@ A second lever, if that is not enough, is the jeans' seat: `legsOf` grows the to
 down; a smaller ease behind the hip rings would take a texel off every figure in jeans or trousers, and would move the kit's recorded
 runway cells. Larger, and the Owner's.
 
+## Round 3: the generator's seat range (the coordinator, on the Owner's words)
+
+Authorised in the brief: widen the `seat` slider's low end in the painter, then bring Ada's seat down with it.
+
+### The generator, done (`830308e3`)
+
+`extensions/figures/src/shared/body/genes.ts`, `measure`:
+
+```ts
+// was
+seat: { rz: about(s.seat, 0.93, 1.12), dz: 0.012 * (0.5 - s.seat) * 2, rx: about(s.seat, 0.94, 1.06) },
+// now
+seat: { rz: about(s.seat, 0.8, 1.12), dz: 0.012 * (0.5 - s.seat) * 2, rx: about(s.seat, 0.85, 1.06) },
+```
+
+Test first: `bust-seat.test.ts`'s pinned low ends set to 0.8 and 0.85 failed for the right reason ("expected 0.93 to be close
+to 0.8"), then passed with the change. The default 0.5 is still exactly 1 and the high ends are unchanged.
+
+**No existing figure moved.** Run on the change, before Ada's data was considered:
+
+- figures, `AF_UNIT_FULL=1 pnpm test:unit` (unit and goldens, the slider-ends tests included): 54 files, 730 tests, all pass;
+- figures, Chromium `browser`, `webgpu` and `goldens`, `AF_WEBGPU=software`: 11 files, 303 tests, all pass;
+- character kit, `test:unit` (the recorded runway cells included): 379 tests pass. One, `skin-hue.test.ts`, timed out at 5 s while
+  the commit hook's figures run shared the four cores, then passed run alone (15 of 15). Nothing in it reads the seat;
+- character kit, Chromium `browser` and `webgpu`, `AF_WEBGPU=software`: 10 files passed and 3 skipped; 66 tests passed and 3 skipped (as
+  at the join). The config's WebKit and Firefox instances were not run (not installed here);
+- `git grep`: no figure, fixture or library sets `seat` under 0.5 but Ada (0.2). The kit's runway `curvy` figure has 1 and its runway cast 0.95.
+- Not changed: `packages/3d/src/features/figures/body/genes.ts`, the 3D package's own copy of the same range. It was out of the brief's scope.
+
+### Ada at the new range: the strip
+
+`seat-range-0.8-strip-0.2-0.15-0.1-0.0-and-base-man-d2-x3.png`: density 2, x3 nearest neighbour, painted in Node (the kit's
+`paintedCell`), views N, NE, NW, E, W (directions 4, 3, 5, 2, 6), at seat 0.2 (her value), 0.15, 0.1 and 0.0, and the painter's base
+man in her clothes. Opened. In texels: shirt (`cream`) widest at 16 to 30 % of her height / waistcoat (`oxblood`) narrowest at 30
+to 42 % / jeans (`fadedDenim`) widest at 42 to 62 %, then seat over shoulders:
+
+| | N | NE | NW | E | W |
+|---|---|---|---|---|---|
+| seat 0.5 (the default; the same at either range) | 30/17/30 (1.00) | 23/12/23 (1.00) | 21/12/25 (1.19) | 16/14/18 (1.13) | 17/15/17 (1.00) |
+| seat 0.2, old range (round 2's table) | 30/17/30 | 23/12/23 | 21/12/25 | 16/15/17 | 17/14/17 |
+| seat 0.2, new range | 30/17/30 (1.00) | 23/12/23 (1.00) | 21/12/24 (1.14) | 16/14/16 (1.00) | 17/14/16 (0.94) |
+| seat 0.15 | 30/17/30 (1.00) | 23/12/23 (1.00) | 21/12/24 (1.14) | 16/14/16 (1.00) | 17/14/16 (0.94) |
+| seat 0.1 | 30/17/30 (1.00) | 23/12/23 (1.00) | 21/12/24 (1.14) | 16/14/16 (1.00) | 17/14/16 (0.94) |
+| seat 0.0 | 30/17/30 (1.00) | 23/12/23 (1.00) | 21/12/24 (1.14) | 16/14/16 (1.00) | 17/14/16 (0.94) |
+| base man in her clothes | 42/24/33 (0.79) | 32/14/24 (0.75) | 33/14/33 (1.00) | 20/17/20 (1.00) | 20/18/20 (1.00) |
+
+(Round 2 measured the waist in a different band, so its waistcoat column differs by a texel in profile.)
+
+What I see: in profile her seat is a texel shallower at 0.2 than before the change (E 17 to 16, W 17 to 16). Under 0.2 nothing moves
+in any view. From behind the four rows are the same picture: the jeans are 30 texels at every value, as wide as her shoulders.
+
+**Step 4 applies, so I stopped here. Ada's data is unchanged (`seat` 0.2), and so are her guard test, the eight-directions sheet and the
+frame.** The seat cannot narrow her from behind, and neither can the jeans:
+
+- Row by row from behind (direction 4, 42 to 62 % band), the denim is 30 texels wide for twelve rows at seat 0.5 and at 0.0, then
+  29, 28, 28, 27, 26, 26 down the thighs. Without the jeans and the waistcoat (her shirt and the body), the whole silhouette's rows are also
+  identical at 0.5 and 0.0. The widest rows are her **two thighs side by side**, not the seat: the seat's rings (`fit.ts`,
+  `g.hips · 1.02 · seat.rx` and the two above it) sit inside the legs' outer edge (`hx + 0.078 · l`, `hx = g.hips`), so narrowing them
+  is hidden from behind.
+- The jeans' ease, tried locally and reverted (`garments.ts`, `legsOf(c, i.jeans, 1, …)`): ease 0.5 leaves N at 30; ease 0 gives
+  28 (0.93 of the shoulders) and the base man 31. Even no cloth at all does not reach 0.8 to 0.9.
+- Pulling the thighs' top two rings in with the seat (`rx · seat.rx` and `dx: hx · seat.rx`, tried locally and reverted): N 30 to 29
+  at 0.2 and 0.0. The thighs below them keep the width.
+
+### What would do it (the Owner's to see first; NOT done)
+
+From behind her width is the leg spacing (`g.hips`, `genes.ts`: `H · lerp(0.045, 0.065, s.hips) · lerp(0.95, 1.08, frame)`) plus each
+thigh's girth (`fit.ts`'s leg rings, `0.078 · l` at the top to `0.066 · l` at 0.4 of the thigh). Her data cannot reach either: `hips`
+under 0.5 closes the floor between her legs (the game's 16-texel test); `fat`, `chunk` and `frame` also set her head's width.
+The two generator changes, smallest first:
+
+1. **A thigh slider** in the painter (`Sliders.thighs`, default 0.5 = exactly 1 through `about`, as `seat` is): a factor on the leg rings'
+   `rx` from the hip to the knee (the first four rings of `leg` in `profiles`), with the leg spacing `hx` reduced by the same
+   amount, so the inner edges, and so the gap between her legs, stay where they are. At the default every figure paints the same.
+   Ada at, say, 0.2 would then lose width from behind with her legs' gap kept.
+2. Or untie the head's width from `fat`, `chunk` and `frame` (the head's own `face.width` already exists), so her build can be slimmed
+   with her face kept. This moves every figure whose head is set by those sliders, so every golden would be re-recorded.
+
+The jeans' ease (`ease` 1 for `jeans` in `garments.ts`) is not the lever: at 0 it buys two texels from behind and would move every
+figure in jeans and the kit's recorded runway cells.
+
 ## For the tracker
 
 | Session | Model | Branch | Row |
 |---|---|---|---|
 | Ada build (look) | Opus 5.5, no subagents | `claude/last-light-ada-build` | 2026-11-13, from `3954f492`. The Owner: "her hips are too wide and her arms being bent like that is odd", "maybe not hips but ass". **Done, tests first, pushed:** her standing arms take the painter's `loose` stand (`standElbow 0.34`, `hang 0.02`; was `elbow + idleElbow` 0.70 rad, hung 0.12) (`da1f5b98`); her seat `hips 0.55 -> 0.5`, `seat 0.5 -> 0.2`, at density 2 from behind no wider than her shoulders (31 -> 30), the build guard now holds an unnamed slider to the default (`65820dfa`). The rest of the seat's fullness is the generator's (base woman shown); not changed. Round 2: seat 0.1 and 0.0 measured (one texel in one view), so 0.2 stays and the guard is unchanged; the generator's seat range (`genes.ts`, `about(s.seat, 0.93…/0.94…)`) is the next step, written down, not done. Frames: `docs/superpowers/audits/2026-11-13-last-light-ada-build/`. |
+| Ada seat, generator (look) | Opus 5.5, no subagents | `claude/last-light-ada-build` | 2026-11-13, from `bdf1bd1a`. **Done, test first, pushed:** the painter's `seat` slider's low end, `genes.ts` `about(s.seat, 0.93→0.8, 1.12)` deep and `about(s.seat, 0.94→0.85, 1.06)` wide (`830308e3`). No golden or recorded kit cell moved (figures 730 + 303, kit 379 + 66). **Stopped at step 4:** from behind Ada's jeans stay 30 texels (her shoulders 30) at seat 0.2 down to 0.0. The width is her two thighs (leg spacing and girth), which neither the seat nor the jeans' ease (0 gives 28) reaches. Her data is unchanged; in profile her seat is a texel shallower at 0.2 with the new range. Next, written down, not done: a `thighs` slider that keeps her legs' gap, or untying the head's width from `fat`/`chunk`/`frame`. Strip: `seat-range-0.8-strip-…-d2-x3.png`. |
