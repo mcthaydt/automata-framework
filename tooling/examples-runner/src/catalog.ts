@@ -41,6 +41,16 @@ export const EXTENSION_MODULES: readonly string[] = [
 /** Code lines an example may have, not counting its header, blank lines or comment-only lines. */
 export const CODE_LINE_BUDGET = 100
 
+/**
+ * The 3D example set's module: `scene/scene-<name>.ts`, each the set's one entry, `scene()`, plus one thing from a kit.
+ * It is neither core nor extension, so its tier follows what the file imports (`sceneTier`).
+ */
+export const SET_MODULE = 'scene'
+/** The set's content package, the one workspace name besides the published entries a scene example may import. */
+export const SET_PACKAGE = '@af-examples/set-3d'
+/** A scene example is one thing on top of the set, so it is held to less than another module's budget. */
+export const SET_CODE_LINE_BUDGET = 40
+
 export interface CatalogEntry {
   /** Absolute path of the file. */
   readonly file: string
@@ -100,7 +110,23 @@ const EXTENSION_PACKAGES: ReadonlySet<string> = new Set([
   '@automata/world-kit',
   '@automata/lcd-panel',
   '@automata/retro-crisp',
+  // The 3D family: refused while private and absent from `UNPUBLISHED_EXTENSIONS` (so nothing on `main` imports one
+  // yet), but named here so that, once published, they are not called core packages the umbrella re-exports.
+  '@automata/3d',
+  '@automata/figures',
+  '@automata/sectors',
+  '@automata/places',
+  '@automata/nav',
+  '@automata/systems',
+  '@automata/narrative',
+  '@automata/interact',
+  '@automata/hud',
 ])
+/**
+ * The 3D runtime and its painter: core examples in this catalog (the `render3d` and `figures` modules), though they are
+ * extension packages, so importing them alone does not make a scene example `Tier: extension`.
+ */
+const RUNTIME_PACKAGES: ReadonlySet<string> = new Set(['@automata/3d', '@automata/figures'])
 /**
  * Extensions that stay private for now, whose entries examples may still import: `@automata/3d` is built on the
  * closed `@pixi/3d` beta and is published when Pixi 3D is, and `@automata/cutscenes`, `@automata/character-kit`,
@@ -222,9 +248,12 @@ function importProblem(
   specifier: string,
   publicImports: PublicEntries,
   pending: boolean,
+  module: string,
 ): string | undefined {
   if (specifier.startsWith('.') || specifier.startsWith('/')) return `import "${specifier}" is relative`
   if (publicImports.entries.has(specifier)) return undefined
+  // The set's package is private content, so only the scene module may reach it, and only by its one entry.
+  if (module === SET_MODULE && specifier === SET_PACKAGE) return undefined
   const packageName = AUTOMATA_PACKAGE.exec(specifier)?.[1]
   if (
     packageName !== undefined &&
@@ -234,6 +263,18 @@ function importProblem(
     return `import "${specifier}" is a core package; core is imported through "${UMBRELLA}"`
   if (pending && packageName !== undefined && !publicImports.packages.has(packageName)) return undefined
   return `import "${specifier}" is not a public entry`
+}
+
+/**
+ * The tier a scene example must declare: `extension` when it imports a kit (an extension package, the 3D runtime and its
+ * painter aside), `core` when it imports the umbrella, the runtime and the set only.
+ */
+function sceneTier(imports: readonly string[]): 'core' | 'extension' {
+  const usesKit = imports.some((specifier) => {
+    const name = AUTOMATA_PACKAGE.exec(specifier)?.[1]
+    return name !== undefined && EXTENSION_PACKAGES.has(name) && !RUNTIME_PACKAGES.has(name)
+  })
+  return usesKit ? 'extension' : 'core'
 }
 
 export function readCatalog(root: string, options: CatalogOptions = {}): CatalogEntry[] {
@@ -256,8 +297,10 @@ export function readCatalog(root: string, options: CatalogOptions = {}): Catalog
     const module = match?.[1] ?? path.split('/')[0] ?? ''
     const name = match?.[2] ?? path.split('/').pop()?.replace(/\.ts$/, '') ?? ''
     if (match === null) problems.push('must be <module>/<module>-<name>.ts')
-    const known = CORE_MODULES.includes(module) || EXTENSION_MODULES.includes(module)
+    const isSet = module === SET_MODULE
+    const known = isSet || CORE_MODULES.includes(module) || EXTENSION_MODULES.includes(module)
     if (!known) problems.push(`"${module}" is not a module`)
+    const imports = importsOf(file, source)
     const id = `${module}-${name}`
 
     const parsed = parseHeader(source)
@@ -268,7 +311,11 @@ export function readCatalog(root: string, options: CatalogOptions = {}): Catalog
       const fileId = path.split('/').pop()?.replace(/\.ts$/, '') ?? ''
       if (match !== null && header.name !== fileId)
         problems.push(`the title line names "${header.name}", not "${fileId}"`)
-      if (known && header.tier !== (CORE_MODULES.includes(module) ? 'core' : 'extension'))
+      if (isSet) {
+        const tier = sceneTier(imports)
+        if (header.tier !== tier)
+          problems.push(`Tier: ${header.tier} does not match its imports, which are ${tier}`)
+      } else if (known && header.tier !== (CORE_MODULES.includes(module) ? 'core' : 'extension'))
         problems.push(`Tier: ${header.tier} does not match the ${module} module`)
       // `Pending:` names every open task whose verbs the example needs (`Pending: <task ids>`).
       const waitingFor = pendingTasks(header)
@@ -281,11 +328,10 @@ export function readCatalog(root: string, options: CatalogOptions = {}): Catalog
     }
 
     const codeLines = countCodeLines(source, header?.lines ?? 0)
-    if (codeLines > CODE_LINE_BUDGET)
-      problems.push(`${codeLines} code lines, over the budget of ${CODE_LINE_BUDGET}`)
-    const imports = importsOf(file, source)
+    const budget = isSet ? SET_CODE_LINE_BUDGET : CODE_LINE_BUDGET
+    if (codeLines > budget) problems.push(`${codeLines} code lines, over the budget of ${budget}`)
     for (const specifier of imports) {
-      const problem = importProblem(specifier, publicImports, header?.pending !== undefined)
+      const problem = importProblem(specifier, publicImports, header?.pending !== undefined, module)
       if (problem !== undefined) problems.push(problem)
     }
     const screenshot = path.replace(/\.ts$/, '.png')

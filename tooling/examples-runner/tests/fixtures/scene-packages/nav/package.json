@@ -1,0 +1,6 @@
+{
+  "name": "@automata/nav",
+  "exports": {
+    "./sim": "./src/sim.ts"
+  }
+}

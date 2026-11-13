@@ -1,0 +1,6 @@
+{
+  "name": "@automata/lcd-panel",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "@automata/3d",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

@@ -142,6 +142,54 @@ describe('readCatalog', () => {
   })
 })
 
+// The 3D example set: one folder of `scene/scene-<name>.ts` files, each the set's `scene()` plus one thing from a kit.
+// The packages here are stubs, public as they are once the 3D packages publish, so the rule that lets a scene example
+// import them is tested before they do.
+describe('the scene module', () => {
+  const scenes = readCatalog(fileURLToPath(new URL('../fixtures/scene-catalog/', import.meta.url)), {
+    deliveryPlan: `${fixtures}delivery-plan.md`,
+    packagesDirs: [fileURLToPath(new URL('../fixtures/scene-packages/', import.meta.url))],
+  })
+  const scene = (path: string): CatalogEntry => {
+    const found = scenes.find((candidate) => candidate.path === path)
+    if (found === undefined) throw new Error(`${path} is not in the catalog`)
+    return found
+  }
+
+  it('accepts an example that imports the set package and the umbrella', () => {
+    expect(scene('scene/scene-camera.ts')).toMatchObject({
+      module: 'scene',
+      id: 'scene-camera',
+      url: '/scene/camera/',
+      problems: [],
+      imports: ['@af-examples/set-3d', '@automata/framework'],
+    })
+  })
+
+  it('holds an example to 40 code lines, fewer than any other module', () => {
+    expect(scene('scene/scene-long.ts').problems).toEqual(['41 code lines, over the budget of 40'])
+  })
+
+  it("takes the tier from the imports: an extension's entry is Tier: extension, the umbrella alone is core", () => {
+    expect(scene('scene/scene-panel.ts').problems).toEqual([])
+    expect(scene('scene/scene-camera.ts').header?.tier).toBe('core')
+    expect(scene('scene/scene-tiered.ts').problems).toEqual([
+      'Tier: extension does not match its imports, which are core',
+    ])
+  })
+
+  it('accepts the 3D packages once they are public, the runtime as core and the nav kit as an extension', () => {
+    expect(scene('scene/scene-walk.ts')).toMatchObject({
+      problems: [],
+      imports: ['@af-examples/set-3d', '@automata/3d', '@automata/nav/sim'],
+    })
+  })
+
+  it('refuses the set package in every other module', () => {
+    expect(scene('core/core-set.ts').problems).toEqual(['import "@af-examples/set-3d" is not a public entry'])
+  })
+})
+
 // The examples are two packages (task 9.1): examples/2d is public and ships with the 2D framework, so nothing in
 // it may reach the closed 3D beta; examples/3d holds the 3D runtime's and figures' examples.
 const realExamples = (dimension: '2d' | '3d') =>
