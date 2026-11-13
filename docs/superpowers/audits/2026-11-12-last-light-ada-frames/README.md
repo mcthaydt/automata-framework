@@ -341,3 +341,40 @@ her hair moved from 'auburn' to 'ashBrown' (the point of the change). Honest ver
 reads as one head of hair now, and the face reads more clearly against it; the colour is an ash brown, cooler and greyer than auburn and
 than the reference woman's mauve-brown, and one light grey texel sits by her left ear. Whether ash brown is Ada is the Owner's call; it is one
 line to undo (`cast.ts`, the street outfit's hair).
+
+## Session 4: stopped (the Owner, relayed 00:53Z: "okay stop tweaking ada, move on")
+
+No look work after that word. `102567b` (her ash-brown hair) was committed and tested a minute before the word was read; it stays, as the
+coordinator's message keeps what is committed. It is one line to undo (`cast.ts`, the street outfit's `hair`). Notes for whoever resumes, nothing
+started:
+
+- **The waistcoat, red from behind and brown in front (1), and the red flap at the nape in profile (3):** data. Her `oxblood` swatch
+  (`games/the-last-light/src/features/figures/old-swatches.ts`) is `#904647, #6e2434, #49251c, #2e1026`: a red ramp (row 16) whose third tone
+  is a brown (#49251c, row 19). The open front shows mostly the shaded tones, so it reads brown; the back faces the key and shows #904647, so it
+  reads red; the brown third tone makes the wedge. The nape flap is the waistcoat's back neckline in the same #904647. Smallest first try: a
+  ramp of one family (a brown oxblood, or the red with its own row's darker steps in place of #49251c), shot from behind and the front.
+- **`bobOpen` from behind, a dome with no nape (2):** the generator's (the kit's `bobOpen` back pieces, `extensions/character-kit/src/
+  features/fashion/hair.ts`): the back falls whole to the collar. Smallest first try: end the back piece a row or two above the collar so the
+  neck's skin shows under it, with a darker under-row; test first on the painted back cell (rows of skin under the hair at the nape).
+
+## Session 4: gates (`git fetch origin main` first; uncached, `TURBO_FORCE=true`)
+
+- `pnpm check`, whole, uncached: lint, typecheck, boundaries passed; `style` failed on two broken links in this README (sessions 2 and 3's
+  tracker rows linked `audits/...README.md`, a path from the tracker, not from here): made them code paths. The rest of the chain was then run
+  step by step: `source-names` pass, `knip` pass (the density-2 study scripts are wired since `1d7dd241`; nothing to delete), `test:unit`
+  with `--continue`, uncached: 67 of 67 tasks pass, `check:changesets` 0 problems.
+- `pnpm build`: 16 of 16 tasks pass. `pnpm api-report` and `pnpm api-index`, check mode: both pass, nothing to update (the painter's new
+  `paintedTones` is on a private package's entry, which the reports do not cover).
+- The kit: unit 373 (then 112 in `painted/` after `f69303f`, all pass); browser, Chromium only (`--browser=chromium`, software GL and WebGPU):
+  66 passed, 3 skipped. The plain `pnpm test:browser` also launches WebKit and Firefox, which are not installed here: not run.
+- lcd-panel: unit 25 pass; browser (Chromium) 10 pass, 1 skipped. The framework's render tests: 153 pass. The painter's own (figures) unit and
+  goldens: 730 pass (its recorded cells did not move). The game's unit tests: 446 pass (and the cast tests again after `102567b`: 38).
+- The content build (the game's `vite build`): passes; `content.hash` holds at `6be0b66c40ea3e01` (no content changed this session; shots with
+  a temporary grade change were reverted, with the generated files).
+- Changesets: no published package changed this session (the kit, the painter, lcd-panel and the game are private). The branch's framework
+  change (`postFilter(..., { at: 'screen' })`, session 2) has its patch changeset, `.changeset/screen-post-filters.md`.
+- Not run: the journeys (the camera session's), WebKit, Firefox, a real GPU.
+
+## For the tracker (the ada session 4)
+
+| 4. Look, game branch, the ada session 4 | Opus 5.5 (look session, no subagents) | `claude/last-light-ada` | 2026-11-12/13, from `d3a0209`. Frames and verdicts: the ada folder (`docs/superpowers/audits/2026-11-12-last-light-ada-frames/README.md`), sections "Session 4". **Done, tests first, pushed:** (1) the grey nostrils and mouth corners: the painter's colour budget merged her deepest skin tone into the boots' #945d4f; the painter's kit entry adds `paintedTones` (additive, contract changelog, api pin), the kit holds the skin's line and fold, budget stand-ins and colours shared with another material by patch borders, along the swatch's own paint ramp (`1ba72ba`, `f69303f`); in play nostrils #6e6059 to #875a4d, corners #685f59 to #815546. (2) the hair: cause found (DUEL row 2's red step #662b29 in auburn and in the room's darkening; the grade greys it; not the gloss); a held-hair try built and dropped; her own `ashBrown` on DUEL row 15 (`102567b`): one mass, cooler than auburn, the Owner's to judge. (3) eight directions in play and two walk frames (Node): front, 3/4 and profiles read; from behind the bob's dome and the waistcoat's red back not fixed (notes above). (4) the gameplay frame and head at 10 px a texel, verdict feature by feature. **Stopped** on the Owner's word. Gates: the whole uncached `pnpm check` (after a README link fix), `pnpm build`, api-report and api-index (check) pass; content.hash unmoved; see "Session 4: gates". Chromium (software GL, software WebGPU) only; WebKit, Firefox and a real GPU unrun; journeys not run. |
