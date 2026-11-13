@@ -30,8 +30,9 @@ describe('the camera view', () => {
     const game = await boot()
     expect(game.play.views.map((view) => view.id).sort()).toEqual(['closet', 'corridor', 'hall'])
     expect(game.play.views.find((view) => view.id === 'corridor')).toMatchObject({
-      distance: 8.25,
-      lensMm: 79,
+      distance: 9.26,
+      lensMm: 50,
+      tiltDeg: 30,
       follow: 1,
     })
   })

@@ -22,6 +22,7 @@ import { Ada } from '../shared/ada.component.ts'
 import { audio, SOUND_FILES } from './audio.ts'
 import { playOf } from './content.ts'
 import { BAR_FRACTION, fieldOfWindow } from './field.ts'
+import { figureDensity, playDensity } from './figure-density.ts'
 import { BAR_COLOR, lookOf } from './look.ts'
 import { lookPassesOf, RENDERER_SCALE } from './look-passes.ts'
 import { lookProfilesSchema } from './look-profiles.content.ts'
@@ -66,6 +67,8 @@ const MOVE = keys(
 
 /** The picture: the old game's, the window's shape capped at 640 by 480 (640 by 360 in a 16:9 window). */
 const SIZE = fieldOfWindow()
+/** The density the figures are painted at: the field's in play, the cast's while a cutscene draws its own shot. */
+const DENSITY = figureDensity(() => cutsceneShot() !== undefined, playDensity(PLAY.views, SIZE.height))
 /** The look with its field's short side the picture's, so the passes that read it draw at this size, and the old game's haze. */
 const LOOK = lookOf(SIZE, PLAY.views[0]?.distance ?? 16)
 
@@ -116,7 +119,11 @@ export const game = defineGame({
       models: MODEL_FILES,
       // The painted figures, as the old game draws them: the sim says where each stands and which way it faces.
       views: {
-        [Ada.id]: figureView({ def: ADA, who: () => 'player', yawOf: adaYaw, movingOf: adaMoving }, actors),
+        [Ada.id]: figureView(
+          { def: ADA, who: () => 'player', yawOf: adaYaw, movingOf: adaMoving },
+          actors,
+          DENSITY,
+        ),
         [SystemsAgent.id]: figureView(
           {
             def: NIGHT_NURSE,
@@ -125,6 +132,7 @@ export const game = defineGame({
             movingOf: stepped,
           },
           actors,
+          DENSITY,
         ),
       },
       // The level names the views; the camera follows Ada through them, and `ada.view` says which she is in.

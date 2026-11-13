@@ -13,20 +13,24 @@ import { playOf } from '#src/app/content.ts'
 import { ADA_RADIUS } from '#src/features/ada/walk.system.ts'
 import { LEVEL } from '#src/features/room/room.ts'
 
-// The rooms under a camera the player turns freely, at the near scale (a density-2 texel two field pixels: Ada is her cell's 124 rows,
-// 248 field pixels, of a 384-line field). Her whole sprite must be in the frame from every side, in every room, at every corner and
-// doorway. The views' look height, focus box, lead and lag are derived (`fitFocus`, `bestLookHeight`) from each room's walkable floor
+// The rooms under a camera the player turns freely, stood back as the old game's (a density-2 texel one field pixel: Ada is her cell's
+// 124 rows, 124 field pixels, of a 384-line field; on a phone's 195-line field she is painted at density 1, 62 rows). Her whole sprite
+// must be in the frame from every side, in every room, at every corner and doorway. The views' look height, focus box, lead and lag are derived (`fitFocus`, `bestLookHeight`) from each room's walkable floor
 // and her projected sprite, never set by hand; these tests pin the level's numbers to the derivation and then sweep the real follow
 // rule (`zoneShot`) through headings, places, walking directions and the follow's dead zone and lag.
 
 const PLAY = playOf(content)
-/** Her sprite: the cell's 124 rows and 4 of head room at 2 field pixels a texel; 24 texels either side of her middle. */
-const SPRITE = { heightPx: (124 + 4) * 2, halfWidthPx: 24 * 2 }
-/** The fields the game draws (`app/field.ts`): a 4:3 window's 512 by 384 and a 16:9 window's 640 by 360. */
+/** Her sprite: the cell's 124 rows and 4 of head room at 1 field pixel a texel; 24 texels either side of her middle. */
+const SPRITE = { heightPx: 124 + 4, halfWidthPx: 24 }
+/** The fields the derivation fits (`app/field.ts`): a 4:3 window's 512 by 384 and a 16:9 window's 640 by 360. */
 const FIELDS = [
   { lines: 384, aspect: 4 / 3 },
   { lines: 360, aspect: 16 / 9 },
 ]
+/** A phone held sideways (844 by 390): a 422 by 195 field, her density-1 cell's 62 rows and 2 of head room, 12 texels either side. */
+const PHONE = { field: { lines: 195, aspect: 422 / 195 }, sprite: { heightPx: 62 + 2, halfWidthPx: 12 } }
+/** Every field the sweeps check, each with her sprite as it is drawn there. */
+const DRAWN = [...FIELDS.map((field) => ({ field, sprite: SPRITE })), PHONE]
 /** Field pixels kept clear between her and the frame's edge. */
 const MARGIN = 8
 const SPEED = PLAY.tuning.WALK_SPEED
@@ -60,7 +64,7 @@ const DOORWAYS: Readonly<Record<string, readonly (readonly [number, number])[]>>
 
 const ROOMS = ['hall', 'corridor', 'closet'] as const
 
-describe('the rooms at the near scale under a turning camera', () => {
+describe('the rooms under a turning camera, stood back', () => {
   for (const id of ROOMS) {
     it(`${id}: the look height, focus box, lead and lag are the derivation's`, () => {
       const view = viewOf(id)
@@ -102,8 +106,8 @@ describe('the rooms at the near scale under a turning camera', () => {
               const from = { x: x + lead * w.x + 0.3 * h.x, y: 0, z: z + lead * w.z + 0.3 * h.z }
               const target = followLook(view, feet, { x: lead * w.x, z: lead * w.z }, from)
               const look = { x: target.x - lag * w.x, y: target.y, z: target.z - lag * w.z }
-              for (const field of FIELDS) {
-                const box = spriteBoxAt(view, look, heading, feet, SPRITE, field)
+              for (const { field, sprite } of DRAWN) {
+                const box = spriteBoxAt(view, look, heading, feet, sprite, field)
                 if (!insideFrame(box, field, MARGIN))
                   out.push(`${x.toFixed(2)},${z.toFixed(2)} heading ${heading} ${field.lines} lines`)
               }
@@ -133,8 +137,8 @@ describe('the rooms at the near scale under a turning camera', () => {
                 { x: x + 0.3 * held.x, y: 0, z: z + 0.3 * held.z },
               )
               const look = { x: settled.x + reach * lean.x, y: settled.y, z: settled.z + reach * lean.z }
-              for (const field of FIELDS)
-                if (!insideFrame(spriteBoxAt(view, look, heading, feet, SPRITE, field), field, MARGIN))
+              for (const { field, sprite } of DRAWN)
+                if (!insideFrame(spriteBoxAt(view, look, heading, feet, sprite, field), field, MARGIN))
                   out.push(`${x.toFixed(2)},${z.toFixed(2)} heading ${heading} ${field.lines} lines`)
             }
       expect(out.slice(0, 5)).toEqual([])

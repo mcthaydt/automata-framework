@@ -6,9 +6,10 @@ import { parse } from 'smol-toml'
 import { describe, expect, it } from 'vitest'
 import { PLAY_FIGURE } from '#src/features/figures/cast.ts'
 
-// In play a figure's texel is a whole number of field pixels (`camera-rules.test.ts`: two, a zoom of 4). A cutscene's shot sets its
-// own lens and stands where it likes, and the figure is the same: the painter's density-2 cell (`PLAY_FIGURE`, pinned, so no shot
-// picks a density of its own and an actor key's `density` is not read by the 3D stage), placed crisp, `round(zoom / 2)` whole field
+// In play a figure's texel is a whole number of field pixels (`camera-rules.test.ts`: one, a zoom of about 2.3, stood back as the old
+// game's camera). A cutscene's shot sets its own lens and stands where it likes, and its lenses were set for the near camera's density:
+// while a shot draws, the figure is the painter's density-2 cell on every field (`PLAY_FIGURE`, by `figureDensity`, so no shot picks a
+// density of its own and an actor key's `density` is not read by the 3D stage), placed crisp, `round(zoom / 2)` whole field
 // pixels a texel. Crisp, a texel is always whole; what a shot decides is how far that rounding stretches or shrinks her: at a zoom of
 // 5.2 her texel is drawn 3 pixels where it should be 2.6, and she stands 15% too tall, and a push-in that crosses a half (2.5, 3.5)
 // pops her a whole texel bigger in the middle of the shot. So every shot holds the zoom her texel is drawn at within 3% of a whole
@@ -136,7 +137,7 @@ function scalesOf(): ShotScale[] {
   return out
 }
 
-describe('the prologue’s cutscenes at the near scale', () => {
+describe('the prologue’s cutscenes', () => {
   it('paints every figure at density 2, as in play, so a texel is `round(zoom / 2)` field pixels', () => {
     expect(PLAY_FIGURE.density).toBe(2)
     expect(PLAY_FIGURE.crisp).toBe(true)

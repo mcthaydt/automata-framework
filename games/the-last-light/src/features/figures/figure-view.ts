@@ -1,5 +1,5 @@
 import type { View3dFactory } from '@automata/3d'
-import { type CharacterDef, paintedFigure } from '@automata/character-kit'
+import { type CharacterDef, type Density, paintedFigure } from '@automata/character-kit'
 import type { ActorView } from '@automata/cutscenes/stage-3d'
 import type { FieldRecord } from '@automata/sim'
 import type { Container3D } from '@pixi/3d'
@@ -74,12 +74,18 @@ export interface FigureLook {
 type Placed = { x: number; y: number; z: number; yaw: number; moving: boolean }
 
 /**
- * A painted view of the character, registered as `who` in `actors` so a cutscene can place it. The sim's pose drives it every
+ * A painted view of the character, registered as `who` in `actors` so a cutscene can place it. `density` is the one the field needs,
+ * or a function asked each frame (the app's `figureDensity`), the cast's own by default. The sim's pose drives it every
  * frame; while a cutscene places it the stage's own pose is shown through the same view, so the painter turns and walks it.
  */
-export function figureView(look: FigureLook, actors: Actors): View3dFactory {
+export function figureView(
+  look: FigureLook,
+  actors: Actors,
+  density: Density | (() => Density) = PLAY_FIGURE.density,
+): View3dFactory {
   const factory = paintedFigure(look.def, {
     ...PLAY_FIGURE,
+    density,
     state: (components) => ({ moving: components[POSE]?.moving === true }),
   })
   return (row, _componentId, models, light, camera) => {
