@@ -76,12 +76,11 @@ export default defineGame({
       lighting,
       views: {},
       scene: (view, stage, occluders, light) => {
-        const colourOf = (name: string) => swatchColour(baseLibrary, name)
         const drawn = drawWorld(
           {
             parent: view.root,
             occluders,
-            colourOf,
+            colourOf: (name) => swatchColour(baseLibrary, name),
             glow: (swatch) => swatchGlow(baseLibrary, swatch),
             look: DEFAULT_LOOK,
             light,
@@ -104,19 +103,18 @@ export default defineGame({
             updatePieces(drawn, shown, scene)
             shown = scene
           },
-          lamps: (levels) => {
-            const lamp = sceneLamps(world.lamps, true, levels).find((l) => l.id === LAMP)
-            light?.setLevels({ [LAMP]: lamp?.level ?? 1 })
-          },
+          lamps: (levels) =>
+            light?.setLevels({
+              [LAMP]: sceneLamps(world.lamps, true, levels).find((l) => l.id === LAMP)?.level ?? 1,
+            }),
         })
         return {
           apply: (result) => {
             const scene = director.stateAt(Math.min(result.tick / 60, script.duration))
             show(scene)
-            const { dataset } = stage.app.canvas
-            dataset.cutscene = scene.done ? 'done' : 'playing'
-            dataset.door = String(scene.doors.doorway ?? 0)
-            dataset.lamp = String(light?.level(LAMP) ?? 1)
+            stage.app.canvas.dataset.cutscene = scene.done ? 'done' : 'playing'
+            stage.app.canvas.dataset.door = String(scene.doors.doorway ?? 0)
+            stage.app.canvas.dataset.lamp = String(light?.level(LAMP) ?? 1)
           },
         }
       },
