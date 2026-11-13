@@ -1,7 +1,8 @@
 # The 2D launch cut list, in order
 
 **Date:** 2026-11-13. **Asked by the Owner:** "audit the codebase for overengineering; what should be kept and what
-should be cut. We're launching fully with 2D before doing 3D", then "write up the ordered cut list".
+should be cut. We're launching fully with 2D before doing 3D", then "write up the ordered cut list". Revised the same
+day for the Owner's three decisions (below).
 
 **Measured at:** `main` `a234a3a2`. Sizes are `.ts` lines without tests. Every "who uses it" below is a `git grep` at that
 commit. Nothing was built, run or deleted to write this page: each step still has to pass `pnpm check` when it is done.
@@ -20,23 +21,27 @@ commit. Nothing was built, run or deleted to write this page: each step still ha
 | | Source lines | After |
 |---|---|---|
 | Today | about 230,000 | |
-| Steps 1 to 3 (nothing uses them, online play, review gates) | about 18,000 out | about 212,000 |
-| Step 5 (3D) | about 86,000 out | about 126,000 |
-| Step 4, if the story tools wait too | about 24,000 out | about 102,000 |
+| Steps 1 and 2 (things nothing uses, the review gates) | about 7,000 out | about 223,000 |
+| Step 3 (the story tools let go of 3D) | a few hundred moved, none out | about 223,000 |
+| Step 4 (3D) | about 86,000 out | about 137,000 |
 
-## Three calls for the Owner before the work starts
+## The Owner's decisions (2026-11-13)
 
-| # | The call | What I'd pick | It decides |
-|---|---|---|---|
-| A | Do Writer, Sequence and Schematic launch with 2D? | No: hold them. They are private today, and they reach 3D through `@automata/sectors` | Step 4 |
-| B | Where does 3D live while 2D launches? | A tag on `main` before step 5, and a private repository when 3D starts again | Step 5 |
-| C | Online play: delete it, or keep the code somewhere? | Out of `main` and out of the published set; the tag from B keeps it | Step 3 |
+"Keep story tools, keep online play with colyssus, move 3D out as our failed attempt."
+
+| The call | Decided | What it changes here |
+|---|---|---|
+| Do Writer, Sequence and Schematic launch with 2D? | They stay | They are untangled from 3D first (step 3), then 3D leaves (step 4). `@automata/puzzle` keeps its editor |
+| Online play: `net`, `net-server`, `net-ui` | It stays, on Colyseus | The step that removed it is gone from this list. Nothing in the repository plays online yet (step 5, item 5) |
+| Where does 3D live while 2D launches? | Out of `main`, recorded as the first attempt, which failed | Step 4 removes all of it. Nothing in `main` points at it afterwards, and what a second attempt reuses is decided when it starts |
 
 Tags, branch deletions and a new repository are the Owner's to make.
 
 ## Step 0: mark the place
 
-Push a tag on `main` (for example `before-2d-cut`) so everything below can be read or brought back by name.
+Push a tag on `main` (for example `3d-first-attempt`) before step 4. It is the record of the 3D attempt and the only
+way to read it by name once it has left. If the attempt should also sit in a repository of its own, that is made from
+the same commit.
 
 ## Step 1: things nothing uses
 
@@ -47,7 +52,7 @@ No package, script or workflow depends on any of these.
 | `tooling/codemods/` | 1,352 lines, 923 of tests | `knip.jsonc` (the `tooling/codemods` entry and its comment) |
 | `docs/refactor/move-map*.json` (seven files) | 90 KB | nothing; the codemods were their only reader |
 | `tooling/dev-tools/` (`worktree-gc`, `promote-evidence`, their git and file seams) | 943 lines, 1,038 of tests | nothing outside the folder names it |
-| `.github/workflows/windows-trial.yml` | 72 lines | check `tooling/repo-hygiene/tests/unit/workflow-invariants.test.ts` for a pinned count |
+| `.github/workflows/windows-trial.yml` | 72 lines; it runs `pnpm test:unit:core` and `pnpm test:browser:core`, which the root `package.json` no longer has | check `tooling/repo-hygiene/tests/unit/workflow-invariants.test.ts` for a pinned count |
 
 **Taken back from the audit:** I said to drop 81 of the 82 pending changesets. Leave them. The first `changeset version`
 consumes all of them and writes the changelog from their text, so deleting them saves nothing and loses the notes.
@@ -85,69 +90,58 @@ before the first public release.
 - Tests: 46 test files under `packages/editor/tests`, `packages/tools/tests` and `extensions/editors/tests` name gates.
 - In the same change, a row's `modes` can go: it is a list that only ever holds `"edit"`.
 
-## Step 3: online play
+## Step 3: the story tools let go of 3D
 
-`@automata/net`, `@automata/net-server` and `@automata/net-ui` are in the published set. No game, example or site page
-imports them; `net-server` and `net-ui` import `net`, and that is all.
+`narrative`, `nav`, `systems` and `cutscenes`, and the Writer, Sequence and Schematic editors that edit them, stay. Today
+they reach 3D in three ways: `sectorsPlaces` and `Point` from `@automata/sectors/sim`, the timeline and `PieceStates`
+from `@automata/3d`, and tests that run on a 3D level. `@automata/places` was written to break that link, but
+`sectorsPlaces` is still the default. This step is new work, not a cut, and step 4 cannot start until it is done:
+after it, nothing that stays imports `@automata/sectors` or `@automata/3d`.
 
-**Remove** `extensions/net/` (4,622 lines), `extensions/net-server/` (5,701) and `extensions/net-ui/` (427), with about
-10,700 lines of tests.
+| Package | Source files that import sectors or 3D | Test files | In its `package.json` |
+|---|---|---|---|
+| `extensions/narrative` | 5 | 3 | `@automata/sectors` (peer and dev) |
+| `extensions/nav` | 9 | 4 | `@automata/sectors` (peer and dev) |
+| `extensions/systems` | 19 | 14 | `@automata/sectors` (peer and dev) |
+| `extensions/cutscenes` | 4 | 5 | `@automata/3d` (peer and dev), `@automata/sectors` (dev) |
+| `extensions/editors` | 1 | 1 | `@automata/3d` (peer and dev) |
 
-**Also edit:**
+`places`, `level-2d` and `hud` import neither.
 
-- `.changeset/config.json`: three names leave the `fixed` group. Four pending changesets name these packages: drop their
-  lines, or the file where nothing else is left.
-- Root scripts: `boundaries` and `style`.
-- `packages/content/src/shared/locale/game-words.ts` (line 16) and `packages/tools/src/shared/words/package-words.ts`
-  (line 12): `@automata/net-ui` leaves the list of packages that carry words.
-- `tooling/examples-runner/src/catalog.ts` (lines 32 and 94 to 96) and its tests.
-- `tooling/repo-hygiene/src/hard-coded-ports.ts` (line 53, the allowance for `net-server`'s default port).
-- `site/tests/unit/playground/compile.test.ts`, `site/tests/unit/playground/runtime/playground-imports.test.ts`,
-  `site/tests/unit/api/api-pages.test.ts`.
-- `docs/guides/extensions.md` (three rows), `README.md`, `docs/versions.md` (the three `@colyseus/*` rows),
-  `docs/provenance/sources.md`.
-- Regenerate the API report, `docs/cheatsheet.md` and the agent package's `api.md`.
+In order:
 
-## Step 4: the story tools (call A)
+1. **`Point` moves to `@automata/places`.** It is a type from the 3D level that `@automata/sectors/sim` passes on.
+   `nav` (`route.ts`, `nav-graph.schema.ts`, `nav.system.ts`) and `systems` (`effect.ts`, `systems.schema.ts`,
+   `agent-step.ts`, `probe.ts` and the four files under `features/bots/`) import it from there instead.
+2. **`places` has no default.** Each extension takes the level's places as an option, and a game passes
+   `level2dPlaces(...)`: `narrative.plugin.ts`, `narrative.system.ts`, `narrative.extension.ts`; `nav.plugin.ts`,
+   `nav.system.ts`, `nav.extension.ts`; in `systems`, `world.ts`, `load-systems.ts`, `systems.plugin.ts`,
+   `systems.extension.ts`, `peek.plugin.ts`, `peek.system.ts`, `carried-light.plugin.ts` and `carried-light.system.ts`.
+   Each extension's `requires` then names the provider it was given. A game that passes none is told so at boot.
+3. **`blockedBy`.** `extensions/nav/src/entries/sim.ts` passes it on from `@automata/sectors/sim`. It goes, or `places`
+   answers it: read who calls it first.
+4. **The timeline gets a home that is not 3D.** `packages/3d/src/shared/timeline/` is 172 lines of plain maths
+   (`track`, `sample`, `bracket`, `mixNumber`, the eases). `extensions/cutscenes/src/shared/sim/cutscene.schema.ts` and
+   `shared/director/sequence.ts` use it. It moves into `cutscenes`, its only user that stays.
+5. **`PieceStates`.** `extensions/cutscenes/src/shared/director/scene-state.ts` takes the type from the 3D level: it
+   needs its own. `src/features/stage-3d/` leaves; `stage-2d` and `caption` stay.
+6. **Sequence's plan view.** `extensions/editors/src/features/sequence/plan-view.ts` reads a 3D level (`readLevel`,
+   `AfSector2`). The 3D half and `tests/unit/sequence/plan-view-3d.test.ts` leave; the 2D half stays.
+7. **The tests get a 2D level.** 27 test files in the five packages name sectors, 3D or a 3D level; most reach
+   `@automata/sectors/testing` (`stepWith`, the walkers, the clinic level `clinic.af-sector.json`). The helper moves to `@automata/level-2d`'s testing entry, on a 2D level that asks the
+   same questions (two rooms, a door, a wall that blocks sight). A golden hash recorded on the clinic level is
+   recorded again on the 2D one, and the commit says why it moved.
+8. **The manifests and the READMEs.** Each README's "Turn it on" says the extension needs `@automata/sectors`; it
+   names `level-2d` instead. `@automata/sectors` and `@automata/3d` leave the five `package.json` files above, and the root
+   `boundaries` script's `--forbid` list gains the story tools, so a 3D import cannot come back unnoticed.
 
-`narrative`, `nav`, `systems` and `cutscenes`, and the Writer, Sequence and Schematic editors that edit them, still
-import 3D: `sectorsPlaces` and `Point` from `@automata/sectors/sim`, and the timeline and `PieceStates` from
-`@automata/3d`. `@automata/places` was written to break that link, but `sectorsPlaces` is still the default.
+`extensions/pipelines` also imports these packages; step 2 has removed it by now.
 
-**If they wait (what I'd pick):** they leave with 3D in step 5, and these go with them.
+## Step 4: 3D leaves `main`
 
-| Remove | Size |
-|---|---|
-| `extensions/narrative/`, `nav/`, `systems/`, `cutscenes/`, `places/`, `level-2d/` | 11,657 lines |
-| `extensions/editors/src/features/writer/`, `sequence/`, `schematic/` | 11,685 lines (with their Svelte files) |
-| `examples/2d-story/` | 978 lines |
+Five pull requests, leaves first. The tag from step 0 is the record of the attempt.
 
-`extensions/editors` then holds Feel and Audio only, and its `package.json` keeps `@automata/audio-synth`,
-`@automata/editor` and `@automata/feel`. Edit `src/app/suite/content-editors.ts`, `main.ts` and the sample game beside
-them.
-
-One cost to know: `@automata/puzzle` is published, and Schematic is the only editor for it. Holding Schematic means
-puzzles are written by hand in a file at launch.
-
-**If they launch:** untangle them first, then do step 5.
-
-- Move `Point` into `@automata/places` and make `places` a required option, so nothing defaults to `sectorsPlaces`:
-  `extensions/narrative/src/shared/sim/narrative.plugin.ts`, `narrative.system.ts`, `src/app/narrative.extension.ts`;
-  `extensions/nav/src/shared/sim/nav.system.ts`, `route.ts`, `nav.plugin.ts`, `nav-graph.schema.ts`,
-  `src/app/nav.extension.ts`, `src/entries/sim.ts`; and 16 files under `extensions/systems/src`.
-- Give the timeline a home that is not 3D (`packages/3d/src/shared/timeline/`, 172 lines), for
-  `extensions/cutscenes/src/shared/sim/cutscene.schema.ts` and `shared/director/sequence.ts`.
-- `extensions/cutscenes/src/shared/director/scene-state.ts` and `features/stage-3d/` use `PieceStates` from the 3D
-  level: the 3D stage leaves, and the scene state needs its own type.
-- `extensions/editors/src/features/sequence/plan-view.ts` reads a 3D level (`readLevel`, `AfSector2`): the 3D plan view
-  and `tests/unit/sequence/plan-view-3d.test.ts` leave.
-- Their tests use `@automata/sectors/testing` and its `clinic.af-sector.json` fixture: they need a 2D level instead.
-
-## Step 5: 3D (call B)
-
-Five pull requests, leaves first. The tag from step 0 is what brings any of it back.
-
-**5a. Games, examples and probes.**
+**4a. Games, examples and probes.**
 
 - `examples/3d/` (with `examples/3d/wardrobe/`), `examples/3d-story/`, `games/base-3d/`.
 - `tooling/frame-budget/stress/3d/` and the `@automata/3d` dependency in `tooling/frame-budget/package.json`.
@@ -155,7 +149,7 @@ Five pull requests, leaves first. The tag from step 0 is what brings any of it b
 - `pnpm-workspace.yaml`: the `examples/3d`, `examples/3d/wardrobe` and `examples/3d-story` lines.
 - `knip.jsonc`: the `examples/3d` and `examples/3d-story` entries, and the `games/base-3d/src/paraglide/**` ignore.
 
-**5b. The 3D editors.**
+**4b. The 3D editors.**
 
 - `packages/editor-3d/` (19,331 lines, 36,957 of tests) and `docs/design/editor-3d/`.
 - In `packages/editor`: `tests/e2e/journeys/dark-levels-3d.test.ts`, `levels-3d-edit-reaches-the-game.test.ts`,
@@ -165,25 +159,28 @@ Five pull requests, leaves first. The tag from step 0 is what brings any of it b
   `src/shared/level-2d/session/view-props.ts`.
 - `knip.jsonc` (the `packages/editor-3d` entry) and `biome.json` (line 13).
 
-**5c. The 3D extensions.**
+**4c. The 3D extensions.**
 
-- `extensions/world-kit/`, `character-kit/`, `figures/`, `lcd-panel/`, `retro-crisp/`, `interact/`, `hud/`, `sectors/`.
-  `hud` and `interact` have no user at all.
+- `extensions/world-kit/`, `character-kit/`, `figures/`, `lcd-panel/`, `retro-crisp/`, `interact/`, `sectors/`.
+  `interact` needs `sectors` and the 3D level, and has no user.
+- `extensions/hud/` stays: it reads `narrative` and `puzzle` and imports nothing from 3D. It has no user yet (step 5,
+  item 5).
+- `extensions/cutscenes/src/features/stage-3d/` and the 3D half of Sequence's plan view, if step 3 left them.
 - `turbo.json`: the three `@automata/figures` entries. Today every package's `typecheck` waits on
   `@automata/figures#typecheck`.
 - `tooling/repo-hygiene/src/extension-manifests.ts` and `tooling/examples-runner/src/catalog.ts`, with the runner's 3D
   fixtures (`tests/fixtures/catalog/figures/`, `render3d/`, `tests/fixtures/packages/3d/`).
 
-**5d. The 3D package and the closed beta.**
+**4d. The 3D package and the closed beta.**
 
 - `packages/3d/` (24,924 lines, 19,257 of tests), `vendor/pixi-3d/` (11 MB), `spikes/` (all five are 3D look spikes).
-- `docs/guides/3d.md`. `docs/adr/0007-3d-look.md` stays as a record, marked as waiting.
+- `docs/guides/3d.md`.
 - `.gitignore` (the four `spikes/` lines), `.gitleaks.toml` (the `packages/3d` entry), `knip.jsonc` (the `packages/3d`
   entry and the `spikes/**` and `docs/design/**` ignores).
 - `docs/versions.md`: the `@pixi/3d` row and the rows only 3D needs. `docs/provenance/`: the builders' manifest and
   their rows in `sources.md`.
 
-**5e. What 2D carried for 3D's sake.**
+**4e. What 2D carried for 3D's sake.**
 
 - `packages/tools`: `src/shared/create-game/template-3d.ts`, `template-3d-game.ts`, `template-3d-room.ts`,
   `template-3d-wick.ts`, `template-3d-content.ts`, `template-3d-content/`, `three-d-gate.ts`; the `--template` flag in
@@ -200,16 +197,22 @@ Five pull requests, leaves first. The tag from step 0 is what brings any of it b
 - Root `package.json`: delete `test:unit:2d`, `test:unit:3d`, `test:browser:2d`, `test:browser:3d` and
   `test:journeys:3d` (the plain `test:unit` and `test:browser` are then the 2D ones); drop the 16-package filter from
   `test:browser:affected`; shorten `boundaries`, `style`, `source-names` and `ci:local`.
-- `.github/workflows/3d.yml` goes. `ci.yml`, `game-ci.yml` and `release-checks.yml` lose the comments that point to it.
+- `.github/workflows/3d.yml` goes. `ci.yml` calls `pnpm test:browser` where it called `pnpm test:browser:2d` (line 194),
+  so the story tools' browser suites, which ran in `3d.yml`, run in the gate. `ci.yml`, `game-ci.yml` and
+  `release-checks.yml` lose the comments that point to `3d.yml`.
 - Tests that pin the lists above: `tooling/repo-hygiene/tests/unit/gate-scripts.test.ts`,
   `source-names-wired.test.ts`, `workflow-invariants.test.ts`, `tooling/release/tests/unit/release-list.test.ts`.
-- `AGENTS.md`, `docs/README.md`, `docs/status.md` and `README.md`: say that 3D waits, and where it is.
+- `AGENTS.md`, `docs/README.md`, `docs/status.md`, `README.md` and `docs/guides/extensions.md`: AF is 2D. One line
+  says a first 3D attempt was made and set aside, and names the tag. `docs/archive/direction-log.md` gains the Owner's
+  words of 2026-11-13, which replace "AF 1.0 covers 2D and 3D" and "we launch when pixi 3D goes public".
+  `docs/adr/0002-pixi-for-2d-and-3d.md` and `0007-3d-look.md` are marked as not in force.
+- The open 3D pull requests close unmerged: #574, #575, #596, #597, #606 and #664.
 
 Comments in `packages/automata/src/features/input/gamepad/read-pad.ts`,
 `features/render/delta/render-delta-consumer.ts` and `packages/content/src/shared/game/game-facts.ts` mention 3D; read
 each one and keep what still explains the 2D code.
 
-## Step 6: trims that delete no product code
+## Step 5: trims that delete no product code
 
 In order of what they give back.
 
@@ -222,32 +225,41 @@ In order of what they give back.
    own committed document: one plan audit raised 41 findings before any code was written. For the launch: spec, build,
    review. `AGENTS.md` ("How to work") and the stage lists in the progress pages. The Owner's call. The commit hook
    needs no change: since 2026-11-12 it runs only the unit tests of the packages a commit touches.
-3. **The root scripts.** After step 5, measure `boundaries` (3,383 characters today) and `style` (1,906) again. If
+3. **The root scripts.** After step 4, measure `boundaries` (3,383 characters today) and `style` (1,906) again. If
    either is still a list of every package, it reads the workspace instead of a typed list.
 4. **`automata words`.** It puts `@anthropic-ai/sdk` in the dependencies of the command every game installs, and its
    live call has not been run. Make the SDK an optional peer loaded only by `words`:
    `packages/tools/package.json`, `src/shared/node/words-model-live.ts`, `src/app/words-live.ts`.
-5. **`@automata/physics`.** It is published and in the extensions guide, and after step 5 nothing in the repository
-   uses it. Add one 2D example that does, or take it out of the first release.
+5. **Three published or kept packages that nothing in the repository uses.** `@automata/physics` (after step 4),
+   online play (`net`, `net-server`, `net-ui`) and `hud`. Each gets one 2D example with a journey, so a release proves
+   it works: a falling-boxes example, a two-player room on a local `net-server`, and the HUD in `examples/2d-story`.
 6. **Branches.** 73 on the remote, against a rule of `main` and open pull requests. `pnpm branches:prune` lists them;
    deleting is the Owner's.
 
-## What stays, untouched by any step
+## What stays
 
 `packages/sim`, `packages/content`, `packages/automata`, `packages/tools` (less the 3D template and the scan),
-`packages/editor` (Levels, the Tuner, Characters), the Feel and Audio editors, `extensions/feel`, `audio-synth`, `debug`,
-`puzzle`, `ui-screens`, `games/emberwick`, `examples/2d`, `site`, all four targets, and the tooling that guards a release
-(`api-report`, `api-index`, `agent-skills`, `consumer-smoke`, `evidence`, `release`, `repo-hygiene`, `check-style`,
-`versions`, the two presets, `examples-runner`, `frame-budget`'s 2D stress).
+`packages/editor` (Levels, the Tuner, Characters), `extensions/editors` (Feel, Audio, Writer, Sequence, Schematic),
+`extensions/feel`, `audio-synth`, `debug`, `puzzle`, `ui-screens`, `physics`, `net`, `net-server`, `net-ui`, `narrative`,
+`nav`, `systems`, `cutscenes`, `places`, `level-2d`, `hud`, `games/emberwick`, `examples/2d`, `examples/2d-story`, `site`,
+all four targets, and the tooling that guards a release (`api-report`, `api-index`, `agent-skills`, `consumer-smoke`,
+`evidence`, `release`, `repo-hygiene`, `check-style`, `versions`, the two presets, `examples-runner`, `frame-budget`'s 2D
+stress).
 
-One piece of new work the cuts expose: the published `automata editor` page is built from `packages/editor` alone
-(Levels and the Tuner). Feel and Audio live in `extensions/editors`, so they do not reach a launch customer until that
-page includes them. `create-game` already plays a feel and a sound, so this is worth doing before the release.
+## New work the decisions create
+
+1. **The story tools are private.** `narrative`, `nav`, `systems`, `cutscenes`, `places`, `level-2d` and `hud` have
+   `"private": true`, so a launch customer cannot install them. To launch with 2D they join the published set: the
+   manifests, the `fixed` group in `.changeset/config.json`, the release tooling's lists of published packages, a
+   changeset each, and rows in `docs/guides/extensions.md`. Whether all seven publish at the first release is the Owner's call.
+2. **The published editor page has two editors.** `automata editor` serves the page built from `packages/editor` alone
+   (Levels and the Tuner). Feel, Audio, Writer, Sequence and Schematic live in `extensions/editors`, whose page is not
+   copied into `@automata/tools`. Until it is, a launch customer cannot open the editors this list keeps.
+   `packages/tools/scripts/copy-editor.ts` and `packages/tools/src/features/editor/page-for.ts`.
 
 ## Not checked
 
 - No step was tried. A file may turn up in a step that `git grep` did not show (a path built from strings, a workflow
   input).
 - The line numbers are from `a234a3a2` and move with every merge.
-- The open pull requests were not read against this list. #574, #575, #596, #597, #606 and #664 are 3D work and would close
-  unmerged under call B; #671 is editor work and stays.
+- The open pull requests were not read against this list beyond their titles. #671 is editor work and stays.

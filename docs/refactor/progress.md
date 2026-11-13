@@ -923,5 +923,6 @@ with 2D before doing 3D", then "write up the ordered cut list".
 
 | Step | Status | Record |
 |---|---|---|
-| The list: six steps in order, with the files each one removes and edits, and three calls for the Owner | Written at `main` `a234a3a2`; no product code changed | [2026-11-13-2d-launch-cut-list.md](2026-11-13-2d-launch-cut-list.md) |
+| The list: the steps in order, with the files each one removes and edits | Written at `main` `a234a3a2`; no product code changed | [2026-11-13-2d-launch-cut-list.md](2026-11-13-2d-launch-cut-list.md) |
+| The Owner's three decisions, the same day: "Keep story tools, keep online play with colyssus, move 3D out as our failed attempt" | The list revised: online play is no longer cut; the story tools are untangled from 3D (step 3) before 3D leaves `main` (step 4); two pieces of new work named (publishing the story tools, and the published editor page) | the same page |
 | Not run | Nothing was built, tested or deleted: every "who uses it" is a `git grep`, and each step still has to pass `pnpm check` | |
