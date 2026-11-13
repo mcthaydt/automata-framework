@@ -374,7 +374,19 @@ and the commit. The floor-between-the-legs test (density 2 and 4) passes unchang
 
 ### Round 4's gates
 
-GATES_PLACEHOLDER
+Node 22.23.4, pnpm 10.34.6. The painter's and the kit's suites ran on `63be52ae` (the slider; no file under `extensions/` changed after
+it): figures `AF_UNIT_FULL=1 pnpm test:unit` 55 files / 747 tests pass; figures Chromium `browser`, `webgpu`, `goldens`
+(`AF_WEBGPU=software`) 11 / 303 pass; kit `test:unit` 49 / 379 pass; kit `browser (chromium)` and `webgpu` 10 passed, 3 skipped / 66
+passed, 3 skipped. The game's figure tests (`tests/unit/features/figures/`, 3 files, 41 tests) passed on `6e2bdfc4`, and the commit
+hooks ran each package's affected unit tests. `pnpm format` on `9821517f`: exit 0, no file changed.
+
+Not run: `TURBO_FORCE=true pnpm check` and `pnpm build` were started on `9821517f` and stopped when the Owner scrapped the game ("scrap
+the last light; we'll do a brand new microgame with same features; a systemic horror game"), so the game's full unit suite, its content
+build (`content.hash`) and `changeset status` were not run. Also not run: WebKit and Firefox, `pnpm test:browser:2d`, the 3D workflow.
+Not needed: a changeset (`@automata/figures` and `@automata/character-kit` are private), `api-report` and `api-index` (no published
+package changed).
+
+The Owner, during this round: "ada is fine", then "NO, Ada is fine now after your changes": Ada keeps `thighs` 0.15.
 
 ## For the tracker
 
