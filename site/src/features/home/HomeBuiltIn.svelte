@@ -2,8 +2,9 @@
 // "Built in": what every Automata game has from its first run, in a grid of six. The GTM research's first pain is
 // that a demo is not a game yet ("six weeks vanish into save/load, menus, and settings"), so this comes right after the
 // claim. Each item is a part of the framework today (`home-content.ts` says which).
+import facts from 'virtual:framework/facts'
 import Icon from '../../shared/components/Icon.svelte'
-import { BUILT_IN } from './home-content'
+import { BUILT_IN, numberWord } from './home-content'
 </script>
 
 <section class="home-section">
@@ -15,7 +16,7 @@ import { BUILT_IN } from './home-content'
       {#each BUILT_IN.items as [name, words] (name)}
         <li>
           <h3>{name}</h3>
-          <p>{words}</p>
+          <p>{words.replace('{languages}', numberWord(facts.languages))}</p>
         </li>
       {/each}
     </ul>

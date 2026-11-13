@@ -1,7 +1,7 @@
 // What the Home page says, in one place so a test can hold each claim to the framework as it is. The words follow the
 // GTM research (2026-11-08): the buyer already makes browser games with Claude Code, Cursor or Codex and has not finished
 // one, so the page names that wall, shows what is built in, then the price. The command is the
-// one `create-game` answers to, the code is the shapes example's own lines, and each target's command is one
+// one `create-game` answers to, the code is the shapes example's own file, and each target's command is one
 // `automata ship` accepts (the four targets of ADR 0006). The numbers are not here: they are read from the workspace
 // (`virtual:framework/facts`). The page itself only lays these out.
 import { AGENT_PROMPT, CREATE_COMMAND } from '../../shared/content/agent-prompt.ts'
@@ -83,10 +83,18 @@ export const BUILT_IN = {
     ['Every screen', 'Phones, tablets and computers, upright or sideways.'],
     [
       'Languages',
-      'Menus in six languages from the first run. The command automata words translates your own words.',
+      'Menus in {languages} languages from the first run. The command automata words translates your own words.',
     ],
   ],
 } as const
+
+/** A count in words for a sentence ("six"); past ten, the digits. */
+export function numberWord(count: number): string {
+  return (
+    ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'][count] ??
+    String(count)
+  )
+}
 
 /** The studios that ship on Automata, as the carousel shows them: a name, the logo's files and where it goes. */
 export const MADE_WITH = [
@@ -106,6 +114,8 @@ export const MADE_WITH = [
 export const AGENT_SECTION = {
   kicker: 'Built for agents',
   title: 'Made for Claude Code, Cursor and Codex.',
+  /** Said under the code, which is longer than its box: it scrolls down, and sideways where a line is long. */
+  scrollHint: 'Scroll to read the whole file',
   sub: 'A game is small files with plain names. Your agent finds the right one to change, changes it, and checks that it still works.',
   points: [
     ['Agent skills', 'tell your agent where gameplay lives and the rules it must keep.'],
@@ -122,9 +132,8 @@ export const DETERMINISM = {
   kicker: 'Checks',
   title: "Your agent can't quietly break your game.",
   sub: 'Record a play once. It plays back exactly the same way every time, in every browser. So when a change breaks something that worked, the test fails, and your agent sees it before a player does.',
-  file: 'shapes-rects.replay',
-  note: 'checked on every change',
-  result: 'Same result',
+  /** The table's column heads. What the golden is called, its ticks and the hash it ends at are read from the file. */
+  columns: { engine: 'Engine', hash: 'Has to end at', where: 'Checked by' },
 } as const
 
 /** The editor section. */
@@ -148,26 +157,6 @@ export const HOME_EXAMPLES = [
   'render-filter',
   'core-camera-2d',
 ] as const
-
-/** The example Home shows, and the lines of it shown: each one is in the file as written. */
-export const EXAMPLE_FILE = 'shapes-rects.ts'
-export const EXAMPLE_PATH = 'examples/2d/shapes/shapes-rects.ts'
-export const EXAMPLE_EXCERPT = `const Block = defineComponent('block', { x: 'f32', y: 'f32' })
-
-const move = defineSystem('move', (ctx) => {
-  for (const block of ctx.query(Block)) {
-    const { y } = block.get(Block)
-    block.set(Block, { y: y > 196 ? -16 : y + 1 })
-  }
-})
-
-export default defineGame({
-  id: 'shapes-rects',
-  size: { width: 320, height: 180 },
-  views: {
-    [Block.id]: rect({ w: 16, h: 16, color: 0x52d2ff }),
-  },
-})`
 
 /** Where a game goes: the four peer targets, each with the command that publishes it (shown on two lines). */
 export const TARGETS = [

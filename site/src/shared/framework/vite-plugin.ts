@@ -5,6 +5,7 @@ import { demoList } from './demos.ts'
 import { playgroundExamples } from './examples.ts'
 import { siteFacts } from './facts.ts'
 import { readGuides } from './guides.ts'
+import { homeExample } from './home-example.ts'
 import { repositoryRoot } from './root.ts'
 
 // The framework's files as the pages import them: `import guides from 'virtual:framework/guides'`. Each module is
@@ -16,7 +17,10 @@ const MODULES = {
   guides: () => readGuides(),
   examples: () => playgroundExamples(),
   demos: () => demoList(),
+  // Only where each demo is served: the runner checks an address against it and needs none of the headers' prose.
+  'demo-urls': () => demoList().map((demo) => demo.bundleUrl),
   facts: () => siteFacts(),
+  'home-example': () => homeExample(),
   changelog: () => readChangelog(),
   api: () => readApiIndex().reference,
   'api-search': () => readApiIndex().search,

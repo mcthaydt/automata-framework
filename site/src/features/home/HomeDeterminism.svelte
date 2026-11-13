@@ -1,6 +1,7 @@
 <script lang="ts">
-// "Checks" (the docs call it determinism; Home does not, per the GTM research): the same recorded run in every engine the parity tests use. The rows are the workspace's own list
-// of engines (`virtual:framework/facts`), not typed here.
+// "Checks" (the docs call it determinism; Home does not, per the GTM research): the recorded run every engine the parity
+// tests use has to end at the same hash of. The engines, the golden's name, its ticks and its hash are read from the workspace
+// (`virtual:framework/facts`), not typed here; the table states the rule and claims no result, because a result is a CI run's.
 import facts from 'virtual:framework/facts'
 import Icon from '../../shared/components/Icon.svelte'
 import { DETERMINISM } from './home-content'
@@ -14,14 +15,14 @@ import { DETERMINISM } from './home-content'
       <p class="home-sub">{DETERMINISM.sub}</p>
     </div>
     <div class="show home-panel">
-      <div class="head"><span class="tab">{DETERMINISM.file}</span><span class="sp">{DETERMINISM.note}</span></div>
+      <div class="head"><span class="tab">{facts.golden.file}</span><span class="sp">{facts.golden.ticks} ticks</span></div>
       <table>
-        <thead><tr><th scope="col">Engine</th><th scope="col">Result</th><th scope="col" class="where">Where</th></tr></thead>
+        <thead><tr><th scope="col">{DETERMINISM.columns.engine}</th><th scope="col">{DETERMINISM.columns.hash}</th><th scope="col" class="where">{DETERMINISM.columns.where}</th></tr></thead>
         <tbody>
           {#each facts.engines as engine (engine.id)}
             <tr>
               <th scope="row">{engine.name}</th>
-              <td><span class="pass"><Icon name="check" size={14} />{DETERMINISM.result}</span></td>
+              <td><code class="hash">{facts.golden.hash}</code></td>
               <td class="where">{engine.where}</td>
             </tr>
           {/each}
@@ -64,12 +65,9 @@ import { DETERMINISM } from './home-content'
     font: 500 12px/1 var(--font-mono);
     color: var(--faint);
   }
-  .pass {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+  .hash {
     color: var(--lime);
-    font-weight: 500;
+    font: 400 13px var(--font-mono);
   }
   @media (max-width: 760px) {
     .where {

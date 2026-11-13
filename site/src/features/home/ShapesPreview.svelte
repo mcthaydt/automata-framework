@@ -5,26 +5,7 @@
   screen, and holds one still frame when the visitor asks for less motion.
 -->
 <script lang="ts">
-// The example's 320 × 180 world and its views (examples/2d/shapes/shapes-rects.ts).
-const WORLD = { width: 320, height: 180 }
-const BLOCK = { size: 16, color: '#52d2ff' }
-const BAR = { w: 64, h: 6, y: 150, color: '#7fbd39' }
-const SPINNER = { x: 240, y: 70, w: 48, h: 12, color: '#e45c5f' }
-const TICK_MS = 1000 / 60
-
-/** The example's state after `tick` ticks, from its setup and its `move` system. */
-function stateAt(tick: number) {
-  const blocks = [0, 1, 2, 3].map((column) => {
-    // A block falls 1 a tick from `column * 40`, and from past 196 goes back to -16: it is at each of -16 to 197 in
-    // turn, a cycle of 214 ticks.
-    const y = ((column * 40 + 16 + tick) % 214) - 16
-    return { x: 40 + column * 32, y }
-  })
-  // The bar slides 2 a tick from 0, and from past 320 goes back to -64: it is at each even place from -64 to 322 in
-  // turn, a cycle of 194 ticks.
-  const bar = ((64 + tick * 2) % 388) - 64
-  return { blocks, bar, angle: tick * 0.05 }
-}
+import { BAR, BLOCK, SPINNER, stateAt, TICK_MS, WORLD } from './shapes-model'
 
 let canvas: HTMLCanvasElement | undefined = $state()
 

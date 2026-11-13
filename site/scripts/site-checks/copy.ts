@@ -110,3 +110,16 @@ export function checkTargets(root: string): string[] {
   }
   return failures
 }
+
+/** Home shows the example's file whole beside its picture: the built page's code is the file's, byte for byte. */
+export function checkHomeExample(root: string, code: string): string[] {
+  const path = join(root, 'index.html')
+  if (!existsSync(path)) return ['index.html: missing, so it cannot show the example']
+  const region = new JSDOM(readFileSync(path, 'utf8')).window.document.querySelector(
+    '.show .sample .code-scroll',
+  )
+  if (region === null) return ['index.html: has no code beside the picture']
+  return region.textContent === code
+    ? []
+    : ['index.html: the code beside the picture is not the example file as written']
+}
