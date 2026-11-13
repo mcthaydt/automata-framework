@@ -8,9 +8,9 @@ Everything here ran on Chromium with SwiftShader (no GPU), Node 24 / 22.
 
 ## Reproduction
 
-`probe/base-3d-day-night.mjs` copies base-3d's content, sets the level's `time` (none for day, `night`), runs the game's
+`spikes/3d-night-probe/base-3d-day-night.mjs` copies base-3d's content, sets the level's `time` (none for day, `night`), runs the game's
 dev server over the copy as the journey does, plays to the room, waits 4 s, saves the canvas and prints its mean
-luminance (the journey's measure). `probe/template-day-night.mjs` does the same for a game made by
+luminance (the journey's measure). `spikes/3d-night-probe/template-day-night.mjs` does the same for a game made by
 `automata create-game hall-game --template 3d` with its `node_modules` linked from base-3d's. `?renderer=webgpu` with the
 `AF_WEBGPU=software` flags gives WebGPU; the WebGPU numbers below matched WebGL to three places, on frames that differ
 pixel by pixel.
