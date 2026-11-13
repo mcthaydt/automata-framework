@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { checkLevels, EMBERWICK, expect, openRoom, paintWall, test } from '../harness/fixtures.ts'
 import { newGame } from '../harness/new-game.ts'
 import { readZip } from '../harness/read-zip.ts'
-import { runEditor } from '../harness/run-editor.ts'
+import { runEditorWithPlay } from '../harness/run-editor.ts'
 
 // The whole loop a person makes a game in, with nothing copied by hand and one command running: `automata
 // create-game`, then `automata editor` on the new game, which opens the editors and starts the game beside them. A
@@ -24,7 +24,7 @@ test('a new game is made, edited, saved, played and published from the editors a
 }) => {
   test.setTimeout(180_000)
   const game = await newGame(EMBERWICK)
-  const editor = await runEditor(game.dir)
+  const editor = await runEditorWithPlay(game.dir)
   try {
     // Edit and save: each step is saved into the game's own level file as it is drawn.
     const levelFile = join(game.dir, 'content/levels/start.toml')

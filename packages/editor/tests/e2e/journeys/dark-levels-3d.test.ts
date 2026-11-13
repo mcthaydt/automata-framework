@@ -109,7 +109,9 @@ test('a wall moved in the dark Levels 3D is what the game plays', async ({ page,
     await studio.goto(editor.url)
     await studio.getByRole('region', { name: 'Characters' }).getByRole('button').first().click()
     const stage = studio.getByTestId('studio-stage')
-    await expect(stage).toBeVisible()
+    // The Studio mounts its stage once the editor has loaded its figures, which a software renderer under two parallel
+    // journeys takes longer than the default 5 s to do; the same 30 s as the readiness wait on the next line.
+    await expect(stage).toBeVisible({ timeout: 30_000 })
     await expect(stage).toHaveAttribute('data-status', 'ready', { timeout: 30_000 })
     return stage
   }

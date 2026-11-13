@@ -1,5 +1,6 @@
 // The real `automata editor`, as a game maker runs it: the built tools' bin on a game folder, on a free port. It
-// resolves once the command prints its address, so a journey opens exactly what a person would open.
+// resolves once the command has printed its whole opening (the address, and whether the game runs beside it), so a
+// journey opens exactly what a person would open.
 import { type ChildProcess, spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
@@ -9,6 +10,8 @@ export const BIN: string = fileURLToPath(new URL('../../../../tools/dist/bin.js'
 export interface RunningEditor {
   /** The address the command printed under "This computer". */
   readonly url: string
+  /** Why Play is off, in the command's words, when the game beside the editor did not start; undefined when it runs. */
+  readonly playOff: string | undefined
   /** Stops the command (Ctrl+C) and waits for it to exit. */
   readonly stop: () => Promise<void>
 }
@@ -17,6 +20,14 @@ export interface RunningEditor {
 export function printedAddress(output: string): string | undefined {
   return /This computer: (http:\/\/\S+)/.exec(output)?.[1]
 }
+
+/** Why Play is off, from the command's "Play is off:" line, or undefined while the game runs (or before it is printed). */
+export function printedPlayOff(output: string): string | undefined {
+  return /Play is off: (.+)/.exec(output)?.[1]
+}
+
+/** The last line of the command's opening. */
+const OPENED = 'Press Ctrl+C to stop.'
 
 export function runEditor(gameDir: string, args: readonly string[] = []): Promise<RunningEditor> {
   // No `--app`: the command opens the editors page by itself, as it does for a person. It also starts the game when
@@ -34,11 +45,12 @@ export function runEditor(gameDir: string, args: readonly string[] = []): Promis
     }, 30_000)
     const read = (chunk: Buffer) => {
       output += chunk.toString()
+      // The opening ends with this line, after the address and the game's state: Play-off arrives in the same breath.
       const url = printedAddress(output)
-      if (url === undefined) return
+      if (url === undefined || !output.includes(OPENED)) return
       clearTimeout(timer)
       child.stdout?.off('data', read)
-      resolve({ url, stop: () => stopProcess(child) })
+      resolve({ url, playOff: printedPlayOff(output), stop: () => stopProcess(child) })
     }
     child.stdout?.on('data', read)
     child.stderr?.on('data', (chunk: Buffer) => {
@@ -58,4 +70,15 @@ export function stopProcess(child: ChildProcess): Promise<void> {
     child.once('exit', () => resolve())
     child.kill('SIGINT')
   })
+}
+
+/**
+ * `runEditor` for a journey that clicks Play: if the game beside the editor did not start, the journey fails here, at
+ * once, with the game's own error, not 3 minutes later on a Play link that was never shown.
+ */
+export async function runEditorWithPlay(gameDir: string): Promise<RunningEditor> {
+  const editor = await runEditor(gameDir)
+  if (editor.playOff === undefined) return editor
+  await editor.stop()
+  throw new Error(`Play is off, so this journey cannot run: ${editor.playOff}`)
 }

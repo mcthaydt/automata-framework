@@ -1,0 +1,175 @@
+name: desktop
+
+# PROPOSED, NOT ACTIVE. A file under docs/, not .github/workflows/: a new workflow needs the Owner's yes (AGENTS.md).
+# To switch it on, copy it to .github/workflows/desktop.yml. The README beside it says what each job proves.
+# It runs by hand only (`workflow_dispatch`): no schedule, no pull requests (the Owner, 2026-11-13: "no nightly").
+#
+# Each job is the stranger's desktop journey (tooling/consumer-smoke/tests/install/stranger-desktop.test.ts) on one
+# OS: the published packages packed, a new game made with `create-game --targets tauri` in a folder outside the
+# workspace, installed, built, and `automata ship prepare --target tauri` run, which builds the bundles of that OS
+# (Tauri does not cross-build). On Linux the journey also opens the .deb's app on a virtual screen and plays the first
+# run; on macOS and Windows it proves the build only. A passing run deletes its folder, bundles included: this job
+# proves the path, it does not publish (`ship publish --target itch --from tauri` does, from a game's own CI).
+#
+# Unsigned first. The signing steps are present and skipped unless their secrets exist, so the job is the same before
+# and after the Owner buys the certificates. A secret reaches only the step that needs it (the journey, which runs
+# `tauri build`), never `pnpm install`, whose packages' install scripts would see it; nothing prints one.
+#
+# No artifacts: a failed run keeps the stranger's folder on the runner and prints its path and the driver's log, and a
+# passing run leaves nothing (the Owner, 2026-11-12: "stop using the artifact storage unless something fails").
+#
+# Before copying this file to .github/workflows/: run the scope codemod over it
+# (`node tooling/codemods/src/rename-scope-cli.ts`, once the npm scope is `@automataframework`). It lives under
+# docs/superpowers/, which the codemod keeps as written, so `--filter @automata/consumer-smoke` below would be stale.
+
+on:
+  # By hand only: a cold Rust build is minutes per OS, so no schedule and not on pull requests.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux:
+    name: desktop app, Linux (build and open)
+    runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
+    # Measured on a 4-core container: the packages 34 s, `pnpm build` 34 s, the journey 3 m 52 s to 4 m 19 s (README and
+    # the implementation audit); the rest is headroom for a shared runner and a cold cargo registry.
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
+          dest: ${{ runner.temp }}/setup-pnpm
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+      # Tauri 2's Linux prerequisites (https://v2.tauri.app/start/prerequisites/#linux), the journey's screen, window
+      # manager and WebDriver. On a self-hosted runner without sudo, install these once by hand instead.
+      - name: Linux packages
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev \
+            libayatana-appindicator3-dev librsvg2-dev patchelf xdg-utils \
+            xvfb openbox wmctrl webkit2gtk-driver
+      - name: Rust and tauri-driver
+        run: |
+          command -v cargo || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          "$HOME/.cargo/bin/cargo" install tauri-driver@2.1.0 --locked
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm --filter @automata/consumer-smoke test:desktop
+
+  macos:
+    name: desktop app, macOS (build; signing when the secrets exist)
+    # A Mac that is not the release runner: AF_RELEASE_RUNNER is the Mac that publishes, and a test build has
+    # no business there. AF_DESKTOP_MAC_RUNNER moves it, as the other jobs' variables do.
+    runs-on: ${{ vars.AF_DESKTOP_MAC_RUNNER || 'af-mac' }}
+    timeout-minutes: 45
+    env:
+      # Only whether signing is set up, never a secret's value: a step's `if` cannot read `secrets`.
+      SIGNED: ${{ secrets.APPLE_CERTIFICATE != '' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          dest: ${{ runner.temp }}/setup-pnpm
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+      # Xcode's command line tools are the Mac's prerequisite; the runner is expected to have them (xcode-select -p).
+      - name: Rust
+        run: |
+          xcode-select -p
+          command -v cargo || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+      - name: Say whether this build is signed
+        run: |
+          if [ "$SIGNED" = true ]; then echo "the .dmg is signed and notarised (the APPLE_* secrets are set)"
+          else echo "no APPLE_* secrets: the .dmg is unsigned (Gatekeeper will warn the player)"; fi
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: The stranger's desktop journey
+        run: pnpm --filter @automata/consumer-smoke test:desktop
+        env:
+          # Tauri signs and notarises the .app and .dmg itself when these six are set
+          # (https://v2.tauri.app/distribute/sign/macos/). Empty, it builds unsigned.
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+  windows:
+    name: desktop app, Windows (build; signing when the secrets exist)
+    runs-on: af-windows
+    timeout-minutes: 60
+    defaults:
+      run:
+        # As windows-trial.yml: the root scripts are POSIX shell, so Git's bash runs them.
+        shell: bash
+    env:
+      # Only whether signing is set up, never a secret's value: a step's `if` cannot read `secrets`.
+      SIGNED: ${{ secrets.WINDOWS_CERTIFICATE != '' }}
+    steps:
+      - name: Put Git's bash on PATH (the service's PATH has Git's cmd folder only)
+        shell: cmd
+        run: echo C:\Program Files\Git\bin>>"%GITHUB_PATH%"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # As windows-trial.yml: `git clean` of node_modules took 25 minutes on NTFS.
+          clean: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          dest: ${{ runner.temp }}/setup-pnpm
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+      # Rust with the MSVC toolchain and WebView2 are the PC's prerequisites (https://v2.tauri.app/start/prerequisites/#windows),
+      # installed once by hand: `winget install --id Rustlang.Rustup -e` and the Visual Studio Build Tools' C++ workload.
+      - name: Rust
+        run: cargo --version
+      # A code-signing certificate as a base64 .pfx and its password. Tauri signs the .exe and .msi when
+      # tauri.conf.json's bundle.windows names a certificate thumbprint or a signCommand; this step imports the
+      # certificate so a thumbprint resolves. The .pfx file is removed even when the import fails.
+      - name: Import the code-signing certificate
+        if: env.SIGNED == 'true'
+        shell: pwsh
+        env:
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          $pfx = Join-Path $env:RUNNER_TEMP 'certificate.pfx'
+          try {
+            [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE))
+            $password = ConvertTo-SecureString $env:WINDOWS_CERTIFICATE_PASSWORD -Force -AsPlainText
+            $imported = Import-PfxCertificate -FilePath $pfx -CertStoreLocation Cert:\CurrentUser\My -Password $password
+            "THUMBPRINT=$($imported.Thumbprint)" >> $env:GITHUB_ENV
+          } finally {
+            Remove-Item $pfx -ErrorAction SilentlyContinue
+          }
+      - name: Say whether this build is signed
+        run: |
+          if [ "$SIGNED" = true ]; then echo "certificate imported; signing needs ship to write its thumbprint (README)"
+          else echo "no WINDOWS_CERTIFICATE: the installers are unsigned (SmartScreen will warn the player)"; fi
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm --filter @automata/consumer-smoke test:desktop
+      # The runner is the Owner's own PC and keeps its certificate store between runs: take the certificate back out.
+      - name: Remove the code-signing certificate
+        if: always() && env.SIGNED == 'true' && env.THUMBPRINT != ''
+        shell: pwsh
+        run: Remove-Item -Path "Cert:\CurrentUser\My\$env:THUMBPRINT" -ErrorAction SilentlyContinue

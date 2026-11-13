@@ -1,0 +1,13 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Fixture</title><style>body{margin:0;font:16px sans-serif}main{padding:16px}button{display:inline-block;min-height:44px;padding:8px}:focus-visible{outline:2px solid #1d278a}</style></head><body><main><h1>Fixture</h1><button id="dead" type="button">Does nothing</button></main><script>
+// The first press never reaches the button: something else takes it and changes the page, as Home's frame does when a
+// late scroll puts it under the pointer after Playwright's hit check (Playwright's own check refuses a cover put over the
+// button, so the miss is staged here, in the capture phase, before the button could hear it). The second press reaches
+// the button, which does nothing.
+let taken = false
+window.addEventListener('click', (event) => {
+  if (taken || event.target.id !== 'dead') return
+  taken = true
+  event.stopImmediatePropagation()
+  document.querySelector('h1').textContent = 'Something else was pressed'
+}, true)
+</script></body></html>

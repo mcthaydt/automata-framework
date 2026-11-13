@@ -18,8 +18,11 @@
 import { tick } from 'svelte'
 import { attachGestures } from '../gestures/attach-gestures'
 import type { DragEndGesture, DragGesture, DragStartGesture } from '../gestures/gesture-events'
+import type { TypingField } from '../storage/typing-drafts'
 import type { BlockedProps, EditEvent } from './edit-event'
+import { fieldPosition } from './field-position'
 import { parseNumberText, scrubbedValue, steppedValue } from './stepper-model'
+import { typingDrafts } from './typing-context'
 
 interface Props extends BlockedProps {
   label: string
@@ -110,18 +113,53 @@ function beginTyping(): void {
   typing = true
 }
 
+/** What a typed text means, or why not. A number the editor refuses is as unfinished as one that is not a number. */
+function reading(text: string): { value: number } | { message: string } {
+  const parsed = parseNumberText(text, { min, max, integer, unit })
+  if (!parsed.ok) return { message: parsed.message }
+  const refusal = validate?.(parsed.value)
+  return refusal === undefined ? { value: parsed.value } : { message: refusal }
+}
+
+// The typed number is written while it is typed (after a pause, on leaving, and when the page hides), and a number
+// typed and not yet left is kept as a draft for a page that closes. The field is made with the stepper, not with the
+// text box, so a draft finds its stepper again after a reload; it is kept under the stepper's place on the screen, not
+// its label, since steppers share labels (each clip in a list has its own "Speed").
+const drafts = typingDrafts()
+let field: TypingField | undefined
+function typingPlace(node: HTMLElement) {
+  field = drafts.field(
+    (text, leaving) => {
+      const read = reading(text)
+      if ('message' in read) {
+        if (leaving) message = read.message
+        return false
+      }
+      if (read.value !== value) {
+        value = read.value
+        emit({ value: read.value, phase: 'set' })
+      }
+      return true
+    },
+    {
+      key: () => fieldPosition(node),
+      current: () => String(value),
+      valid: (text) => 'value' in reading(text),
+    },
+  )
+  return {
+    destroy() {
+      field?.dispose()
+      field = undefined
+    },
+  }
+}
+
 async function finishTyping(commit: boolean, refocus: boolean): Promise<void> {
   if (!typing) return
   typing = false
-  if (commit) {
-    const parsed = parseNumberText(draft, { min, max, integer, unit })
-    const refusal = parsed.ok ? validate?.(parsed.value) : parsed.message
-    if (refusal !== undefined) message = refusal
-    else if (parsed.ok && parsed.value !== value) {
-      value = parsed.value
-      emit({ value: parsed.value, phase: 'set' })
-    }
-  }
+  // Leaving puts the text to the same rule as a pause does; Escape leaves with the number as it is.
+  field?.left(commit ? draft : String(value))
   if (refocus) {
     await tick()
     spinEl?.focus()
@@ -201,6 +239,7 @@ $effect(() => {
 
 <div
   class="stepper"
+  use:typingPlace
   role="group"
   aria-labelledby={labelId}
   data-widget="stepper"
@@ -226,6 +265,8 @@ $effect(() => {
       aria-label={label}
       bind:this={fieldEl}
       bind:value={draft}
+      oninput={() => field?.typed(draft)}
+      onfocus={() => field?.entered()}
       onkeydown={onFieldKey}
       onblur={() => void finishTyping(true, false)}
     />

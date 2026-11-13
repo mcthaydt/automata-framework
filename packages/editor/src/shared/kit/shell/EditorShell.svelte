@@ -68,6 +68,8 @@ interface Props {
   inspectorOpen?: boolean
   dockOpen?: boolean | undefined
   testId?: string | undefined
+  /** 2: the top bar wraps to a second row (a phone held upright puts the saved line there, whole). */
+  topbarRows?: 1 | 2 | undefined
 }
 
 type Presentation = 'inline' | 'float' | 'sheet'
@@ -86,6 +88,7 @@ let {
   inspectorOpen = $bindable(false),
   dockOpen = $bindable(undefined),
   testId,
+  topbarRows = 1,
 }: Props = $props()
 
 const mode = $derived(shellModeAt(geometry.current))
@@ -190,7 +193,7 @@ function sheetStyle(name: ShellRegion): string | undefined {
   data-testid={testId}
   style:--dock-lift={dockLift}
 >
-  <header class="region" data-region="topbar">{@render guarded('topbar', 'bar', topbar)}</header>
+  <header class="region" data-region="topbar" data-rows={topbarRows}>{@render guarded('topbar', 'bar', topbar)}</header>
 
   {#if rail}
     <nav

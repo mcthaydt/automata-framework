@@ -23,6 +23,11 @@
   text-align: center;
 }
 
+/* The desktop title's Quit is a whole decision, not a small one beside it: as easy to reach as Play (48 px). */
+[data-game-screen="title"] [data-testid="quit-app"] {
+  min-height: var(--af-target-primary);
+}
+
 .af-game-menu__title {
   margin: 0;
   overflow-wrap: anywhere;

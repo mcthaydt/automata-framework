@@ -10,7 +10,9 @@ the task-by-task record; this page is the short version.
 - **Emberwick** (`games/emberwick`): the 2D reference game. Splash, menu, room, pause, end screen; keyboard, touch
   and gamepad; boots standalone and inside Ruken's fake host. Its 28 journeys pass in Chromium (phone, compact and iPad sizes).
 - **Targets.** `web`, `itch`, `ruken` and `tauri` adapters share AF's own host contract. The host contract, the
-  adapters and the browser runtime are plain TypeScript (no Effect).
+  adapters and the browser runtime are plain TypeScript (no Effect). A `tauri` game made from the packed packages
+  builds and opens on Linux (`pnpm --filter @automata/consumer-smoke test:desktop`); macOS and Windows builds have not
+  run yet ([record](superpowers/audits/2026-11-12-desktop-games/README.md)).
 - **Packages.** `@automata/framework` (everything a game imports in the browser), `-sim`, `-content` and `-tools`.
   `-content` has browser-safe entries for `game-config`, `locale`, `schema` and `palette`, so a dev server page never
   loads Node modules.

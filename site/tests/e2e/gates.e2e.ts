@@ -80,6 +80,16 @@ test.describe('browser gates catch their fixtures', () => {
     expect(await deadButtons(page)).toEqual(['button "Does nothing" changed nothing'])
   })
 
+  // A press can miss the button and land on something that changes the page (Home's frame scrolls the page between
+  // Playwright's hit check and the press). The gate presses again; only the press the button heard may count for it.
+  test('a button that does nothing is still dead when a first press that missed it changed the page', async ({
+    page,
+  }) => {
+    await page.goto(ORIGIN + '/dead-button-missed-press.html')
+    expect(await deadButtons(page)).toEqual(['button "Does nothing" changed nothing'])
+    await expect(page.getByRole('heading')).toHaveText('Something else was pressed')
+  })
+
   // WebKit 26 lays out a closed <details>'s content and Playwright then counts its buttons visible, though a reader
   // cannot see or reach them; a click on one waits for a scroll that never brings it into view (the /examples source
   // tree's collapsed folders). The gate presses the buttons a reader can reach.

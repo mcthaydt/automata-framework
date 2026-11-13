@@ -1,7 +1,9 @@
 import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, type Frame, type Locator, test } from '@playwright/test'
 import { readCatalog } from '#src/catalog.ts'
+import { examplesIndexEvidenceDir } from '../../host/evidence-dir.ts'
 import { demoHostOrigin, runnerFixturesPort } from '../../host/ports.ts'
 import { collectErrors } from '../../host/testing.ts'
 
@@ -13,7 +15,7 @@ const root = fixture('../fixtures/examples/')
 const entries = readCatalog(root, { deliveryPlan: fixture('../fixtures/catalog/delivery-plan.md') })
 const origin = `http://localhost:${runnerFixturesPort}`
 // The repository's (ignored) evidence/ folder, whichever folder the run started in.
-const evidencePath = (name: string) => fixture(`../../../evidence/examples-index/${name}`)
+const evidencePath = (name: string) => join(examplesIndexEvidenceDir, name)
 
 const box = async (locator: Locator) => {
   const found = await locator.boundingBox()

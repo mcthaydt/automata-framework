@@ -3,8 +3,9 @@ import { join } from 'node:path'
 import { cellOnCanvas } from '../harness/canvas-pointer.ts'
 import { EMBERWICK, expect, openRoom, test } from '../harness/fixtures.ts'
 import { newGame } from '../harness/new-game.ts'
+import { pressPlay } from '../harness/press-play.ts'
 import { boxOf, readPng } from '../harness/read-png.ts'
-import { runEditor } from '../harness/run-editor.ts'
+import { runEditorWithPlay } from '../harness/run-editor.ts'
 import { tilesPng } from '../harness/tiles-picture.ts'
 
 // What a person makes in the editors is what the game shows. A new game is made, a picture of tiles is added, Decor is
@@ -36,7 +37,7 @@ test('a tile painted with an added picture and a character given one are what th
 }) => {
   test.setTimeout(180_000)
   const game = await newGame(EMBERWICK)
-  const editor = await runEditor(game.dir)
+  const editor = await runEditorWithPlay(game.dir)
   try {
     await openRoom(page, editor, 'Start')
 
@@ -105,7 +106,7 @@ test('a tile painted with an added picture and a character given one are what th
     ])
     const canvasInGame = play.locator('#game canvas')
     await expect(canvasInGame).toBeVisible({ timeout: 30_000 })
-    await play.getByRole('button', { name: /play/i }).first().click()
+    await pressPlay(play)
     await play.waitForTimeout(1500)
     const picture = readPng(await canvasInGame.screenshot())
 

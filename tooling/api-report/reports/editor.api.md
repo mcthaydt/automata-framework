@@ -782,6 +782,7 @@ interface History<S> {
     readonly redoLabel: string | undefined;
     apply(label: string, update: (state: S) => S, options?: {
         coalesce?: string;
+        join?: string;
     }): void;
     begin(label: string): Transaction<S>;
     undo(): void;
@@ -2149,6 +2150,7 @@ interface History<S> {
     readonly redoLabel: string | undefined;
     apply(label: string, update: (state: S) => S, options?: {
         coalesce?: string;
+        join?: string;
     }): void;
     begin(label: string): Transaction<S>;
     undo(): void;
@@ -3556,6 +3558,155 @@ interface RetypeBreakage {
 function valuesWithDefaults(fields: readonly FieldDef[], values: FieldValues): FieldValues;
 ```
 
+## `./kit/typing`
+
+### `browserDraftStorage` (function)
+
+```ts
+function browserDraftStorage(): DraftStorage | undefined;
+```
+
+### `createTypingDrafts` (function)
+
+```ts
+function createTypingDrafts({ timers, drafts, scope }: TypingDraftsDeps): TypingDrafts;
+```
+
+### `DraftStorage` (interface)
+
+```ts
+interface DraftStorage {
+    getItem(key: string): string | null;
+    setItem(key: string, value: string): void;
+    removeItem(key: string): void;
+}
+```
+
+### `fieldPosition` (function)
+
+```ts
+function fieldPosition(node: Element): string;
+```
+
+### `guardLeaving` (function)
+
+```ts
+function guardLeaving(window: LeaveWindow, busy: () => boolean): () => void;
+```
+
+### `LeaveWindow` (interface)
+
+```ts
+interface LeaveWindow {
+    addEventListener(type: 'beforeunload', run: (event: BeforeUnloadEvent) => void): void;
+    removeEventListener(type: 'beforeunload', run: (event: BeforeUnloadEvent) => void): void;
+}
+```
+
+### `pageTimers` (const)
+
+```ts
+const pageTimers: TypingTimers;
+```
+
+### `setTypingDrafts` (function)
+
+```ts
+function setTypingDrafts(drafts: TypingDrafts): void;
+```
+
+### `typedSave` (function)
+
+```ts
+function typedSave(node: Node, initial: TypedSaveParams): ActionReturn<TypedSaveParams>;
+```
+
+### `TypedSaveParams` (interface)
+
+```ts
+interface TypedSaveParams {
+    readonly drafts: TypingDrafts;
+    readonly value: string;
+    commit(value: string, leaving: boolean, input: Node): void | boolean;
+    readonly draftKey?: string | ((node: Node) => string | undefined) | undefined;
+    valid?(value: string): boolean;
+    readonly leaveOnly?: boolean | undefined;
+}
+```
+
+### `TYPING_DELAY_MS` (const)
+
+```ts
+const TYPING_DELAY_MS = 500;
+```
+
+### `TypingCommit` (type)
+
+```ts
+type TypingCommit = (value: string, leaving: boolean) => void | boolean;
+```
+
+### `TypingDrafts` (interface)
+
+```ts
+interface TypingDrafts {
+    field(commit: TypingCommit, options?: TypingFieldOptions): TypingField;
+    flush(): void;
+    readonly waiting: number;
+    readonly typing: boolean;
+    place: string | (() => string);
+    visit(): string | undefined;
+    wrote(idle?: boolean): void;
+    subscribe(listener: () => void): () => void;
+}
+```
+
+### `typingDrafts` (function)
+
+```ts
+function typingDrafts(): TypingDrafts;
+```
+
+### `TypingDraftsDeps` (interface)
+
+```ts
+interface TypingDraftsDeps {
+    readonly timers: TypingTimers;
+    readonly drafts?: DraftStorage | undefined;
+    readonly scope: string;
+}
+```
+
+### `TypingField` (interface)
+
+```ts
+interface TypingField {
+    typed(value: string): void;
+    entered(): void;
+    left(value: string): void;
+    dispose(): void;
+}
+```
+
+### `TypingFieldOptions` (interface)
+
+```ts
+interface TypingFieldOptions {
+    readonly key?: string | (() => string | undefined) | undefined;
+    readonly current?: (() => string) | undefined;
+    readonly valid?: ((value: string) => boolean) | undefined;
+    readonly leaveOnly?: boolean | undefined;
+}
+```
+
+### `TypingTimers` (interface)
+
+```ts
+interface TypingTimers {
+    after(ms: number, run: () => void): () => void;
+}
+```
+
 ## `./kit/ports`
 
 ### `CheckDef` (interface)
@@ -3693,6 +3844,7 @@ interface SuiteEditor<S> {
     readonly homeFiles?: ((files: readonly WorkspaceFile[]) => readonly WorkspaceFile[]) | undefined;
     readonly regions: SuiteRegions<S>;
     readonly contributions?: readonly ContributionPoint[] | undefined;
+    readonly draftView?: ((session: S) => string) | undefined;
     readonly undo?: ((session: S) => SuiteUndo) | undefined;
 }
 ```
@@ -3704,6 +3856,7 @@ interface SuitePorts {
     readonly workspace: SuiteWorkspace;
     readonly checks: ChecksRunner;
     readonly gates?: Gates | undefined;
+    readonly visit?: (() => string | undefined) | undefined;
 }
 ```
 
@@ -4319,6 +4472,7 @@ type Levels2dState = {
 interface OpenedSuitePorts {
     readonly ports: SuitePorts;
     readonly sample: boolean;
+    readonly kept: boolean;
     readonly gameUrl: string | undefined;
     readonly game: string | undefined;
     readonly publish: PublishClient | undefined;
@@ -4375,6 +4529,7 @@ interface SuiteEnv {
     readonly ports: SuitePorts;
     readonly suite: Suite;
     readonly sample?: boolean;
+    readonly kept?: boolean;
     readonly game?: string | undefined;
     readonly playUrl?: string | undefined;
     readonly publish?: GamePublish | undefined;
@@ -4477,7 +4632,7 @@ interface OpenedSuite {
 ### `openSuite` (function)
 
 ```ts
-function openSuite(size: EditorSize, editors: SuiteEditor<unknown>[], files: Record<string, string>, ready: string, entry: string): Promise<OpenedSuite>;
+function openSuite(size: EditorSize, editors: SuiteEditor<unknown>[], files: Record<string, string>, ready: string, entry: string, game?: Pick<SuiteEnv, 'game' | 'sample' | 'kept'>): Promise<OpenedSuite>;
 ```
 
 ### `tab` (function)
