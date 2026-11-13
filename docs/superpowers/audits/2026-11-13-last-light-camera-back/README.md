@@ -9,9 +9,9 @@ original game somewhat closely". Branch `claude/last-light-camera-back`, from `c
 | 1. Measure the original | done (this section) |
 | 2. Match it | done (section 2) |
 | 3. Ada frozen, checked | done (section 3) |
-| 4. Everything the camera touches | done but the journeys (section 4; journeys in section 6) |
+| 4. Everything the camera touches | done (sections 4 and 6) |
 | 5. Shoot and look | done (section 5) |
-| 6. Gates | not yet |
+| 6. Gates | done (section 6) |
 
 ## 1. The original, measured
 
@@ -172,3 +172,31 @@ the same size in every after frame; nothing of the HUD changed. Their sizes are 
 **The LCD screen mesh.** `look.toml`'s screen mesh is a line every 4 screen pixels; a texel of hers was one 4-pixel cell (two field pixels)
 and is now half a cell, so a mesh line crosses every other texel of hers. Looked at 1:1 in the after frames: the faint grid is there over her
 as over the room, as in the original (whose figures were under a pixel a texel). Not changed: the look is the Owner's.
+
+## 6. Gates (Node 24.22.1, pnpm 10.34.6, Chromium with software GL, on `7d583a3a4`+)
+
+| Gate | Result |
+|---|---|
+| `pnpm format` | exit 0 (warnings and infos as on main, no errors) |
+| `TURBO_FORCE=true pnpm check` | **exit 0**, 67 turbo tasks, 0 cached (13 min 17 s): lint, typecheck, boundaries, style, source-names, knip, `test:unit`, `changeset status`, `check-changesets` (87, 0 problems). A first run failed at knip on this folder's shooter script, a `.mjs` file under `docs/`; it is kept as `tools/shoot-original.mjs.txt` |
+| The game's unit suite (inside `check`) | 62 files, **478 tests, all pass** |
+| `@automata/3d` unit (inside `check`) | 150 files, **1634 tests, all pass** |
+| `@automata/character-kit` unit (inside `check`) | 49 files, **380 tests, all pass** |
+| `TURBO_FORCE=true pnpm build` | exit 0 |
+| `pnpm api-report` | exit 0 (22 API breaks against the base, 0 undeclared, as at the join); `pnpm api-index` exit 0; neither wrote a file. `@automata/character-kit` is private, so no changeset; `@automata/3d` is private too |
+| `@automata/3d` browser, Chromium (`browser (chromium)`, `webgpu`, `AF_WEBGPU=software`) | 16 files, **55 passed, 2 skipped** (the tests' own no-adapter guards, as at the join) |
+| The game's camera journey (`tests/e2e/camera.test.ts`) | **4 of 4 pass** (Q and E turn nothing; mouse drag both buttons; swipe; right stick, vertical locked) |
+| The first-night playthrough (`playthrough.test.ts`, "plays to its end") | **passes** (9.2 min) |
+
+**Not run:** WebKit and Firefox (not installed here; pending on the GPU runner); the second-night playthrough; the game's other journeys
+(`frames`, `shots`, `walk-shots`, `look`, `hud`, `title`, `opening`); `@automata/character-kit`'s and figures' browser suites; base-3d's browser suites.
+
+**Recorded pictures:** none re-recorded, and none that a gate run here compares moved. The game's own camera frames (`frames.test.ts`, `shots.test.ts`) were not
+run here and may move with the camera (expected: they are the game's own camera frames). No hash moved: the views are not in the game's
+generated content (`content.hash` and `sim-content.hash` unchanged after `pnpm build`).
+
+## For the tracker
+
+| Session | Kind | Branch | Row |
+|---|---|---|---|
+| Camera back | LOOK session (camera, no subagents) | `claude/last-light-camera-back` | 2026-11-13, from `3954f4924`. Frames and numbers: `audits/2026-11-13-last-light-camera-back/README.md`. **Done, pushed:** the original (`PixiJS3D_Experiment_001` at `92e6704`) run headless and measured (50 mm, 30 degrees, 15 to 16.6 m back; Ada 20 to 25% of the height); the play camera stood back to the farthest whole step at density 2 (50 mm, 30 degrees, 9.26 m, one field pixel a texel; Ada about 32% at both 1024 by 768 and 844 by 390, was 62%; 4.6 m of room tall at her feet, was 2.6 m); on a phone's 195-line field play paints at density 1 by the painter's own rule (`figure-density.ts`), cutscenes keep density 2 everywhere; `fitFocus`'s peek reach fixed (it ignored the box's inset) and its `-0`; the kit's `density` may be a function; Ada's cells identical. Gates: `check`, build, api-report, api-index, 3D unit and Chromium browser, the camera journey and the first night pass. **Open:** (a) a black band shows below the hall's cut south wall when she stands at it (the locked-on follow holds the look 1.1 m inside; the original's hall camera was fixed and never showed it): the hall could take the original's fixed-and-slide camera, or the occluder could keep a cut wall's floor edge; (b) the field's lines depend on the device's pixel ratio (a DPR-2 phone at 844 by 390 draws a 260-line field, DPR 3 a 292-line one), where the step and the density land elsewhere: zoom 1.5 to 1.7, density 1, two pixels a texel, so she is drawn about 40 to 48% of the height, larger than in the frames here, which are DPR 1. A camera that holds field pixels per metre instead of the vertical field would keep one framing on every device; not done. (c) The LCD screen mesh now crosses every other texel of hers (look.toml's 4-pixel cell); the Owner's look, left. (d) The game's `frames`/`shots` journeys, the second night, WebKit and Firefox not run. |
