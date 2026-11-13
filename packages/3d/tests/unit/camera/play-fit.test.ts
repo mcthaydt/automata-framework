@@ -92,6 +92,39 @@ describe('fitFocus', () => {
     expect(fit.focusBounds.min[0]).toBeGreaterThanOrEqual(-4)
     expect(fit.focusBounds.max[1]).toBeLessThanOrEqual(6)
   })
+  describe('a view stood back, whose box stands inside the floor', () => {
+    // A view stood back (a 50 mm lens 9.26 m back at 30 degrees, a sprite 128 field pixels tall): the reach is about 2.4 m and
+    // a short lead and lag leave most of it, so the focus box stands well inside the walls.
+    const far = cameraView('far', {
+      look: [0, 0.6, 0],
+      tiltDeg: 30,
+      distance: 9.26,
+      lensMm: 50,
+      lead: 0.27,
+      lag: 0.09,
+    })
+    const sprite = { heightPx: 128, halfWidthPx: 24 }
+    const room = { min: [-1.275, -6.675] as [number, number], max: [1.525, -1.075] as [number, number] }
+    const fitted = fitFocus(far, room, 3, sprite, FIELDS, 8)
+    it('lets a peek lean only what the box’s inset leaves: standing in a corner the box already holds the look off her', () => {
+      // The rig adds the peek to the look the box clamped, so in a corner of the floor she is the dead zone, the inset on both axes
+      // and the peek from the look: together no more than the reach.
+      const corner = Math.hypot(
+        fitted.focusBounds.min[0] - room.min[0],
+        fitted.focusBounds.min[1] - room.min[1],
+      )
+      expect(FOLLOW_DEAD_ZONE.landscape + corner + fitted.peekReach).toBeLessThanOrEqual(fitted.reach + 0.01)
+      expect(fitted.peekReach).toBeGreaterThan(0)
+    })
+    it('writes no negative zero into the box (a level stores it as 0, and must derive the same numbers again)', () => {
+      // A floor whose west edge stands a millimetre further out than the inset: the box's edge rounds from -0.001 m.
+      const inset = (fitted.reach - FOLLOW_DEAD_ZONE.landscape - 0.27) / Math.SQRT2
+      const edge = { min: [-inset - 0.001, -6] as [number, number], max: [inset + 1, 0] as [number, number] }
+      const box = fitFocus(far, edge, 3, sprite, FIELDS, 8).focusBounds
+      const all = [...box.min, ...box.max]
+      expect(all.filter((value) => Object.is(value, -0))).toEqual([])
+    })
+  })
   it('follows the rule the rig runs: with no lead the look settles on the feet at the view’s look height', () => {
     const look = followLook(VIEW, FEET, { x: 0, z: 0 })
     expect([look.x, look.y, look.z]).toEqual([0, 1.05, 0])

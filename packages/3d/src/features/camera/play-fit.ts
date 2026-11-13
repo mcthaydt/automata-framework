@@ -142,7 +142,8 @@ export interface FocusFit {
   readonly lag: number
   /**
    * The most a peek may lean the camera (metres): the reach less the dead zone, since a peek starts only once the figure has stood
-   * a while, with no lead or lag, and the dead zone may still hold the look that far off.
+   * a while, with no lead or lag, and the dead zone may still hold the look that far off; less again what the box's inset takes, since
+   * the peek is added to the look the box clamped.
    */
   readonly peekReach: number
   /** The reach the box and the lead were taken from. */
@@ -178,12 +179,15 @@ export function fitFocus(
     high - low >= 2 * inset ? [low + inset, high - inset] : [(low + high) / 2, (low + high) / 2]
   const [x0, x1] = axis(walkable.min[0], walkable.max[0])
   const [z0, z1] = axis(walkable.min[1], walkable.max[1])
-  const round = (value: number): number => Math.round(value * 100) / 100
+  // `+ 0` turns a -0 (an edge that rounds from just under nought) into 0, as a level's JSON stores it.
+  const round = (value: number): number => Math.round(value * 100) / 100 + 0
   return {
     focusBounds: { min: [round(x0), round(z0)], max: [round(x1), round(z1)] },
     lead,
     lag,
-    peekReach: floor2(budget),
+    // The rig adds a peek to the look the box clamped: in a corner of the floor the box already holds the look the inset off her on
+    // both axes (`spare` in all), so the peek has what the box leaves.
+    peekReach: floor2(budget - spare),
     reach,
   }
 }
