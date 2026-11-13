@@ -16,6 +16,7 @@ import {
   lerp,
   limb,
   type Part,
+  qmul,
   type Ring,
   type Side,
   smooth,
@@ -146,13 +147,15 @@ function heights(c: Wearing) {
 }
 
 interface Top {
-  sleeves?: 'none' | 'short' | 'long'
+  /** `rolled`: the sleeve turned back to the elbow, the forearm bare; with `cuff` a fold of that cloth round the sleeve's end. */
+  sleeves?: 'none' | 'short' | 'long' | 'rolled'
+  cuff?: string
   ease?: number
   hem?: number
   sleeveEase?: number
 }
 /** The torso's rings at and above the shoulder line (the builder's fit profiles: the trapezius, the shoulder, the deltoid's top). */
-const SHOULDER_RINGS = 4
+export const SHOULDER_RINGS = 4
 
 /**
  * A top's shell: the torso from the shoulders to `hem` (m above the floor), grown `ease` clearances below the shoulders and only
@@ -181,13 +184,32 @@ function top(c: Wearing, material: string, o: Top): Fit {
   if (sleeves !== 'none') {
     for (const [side] of SIDES) {
       const ay = restOf(c, J[`upperArm.${side}`])[1]
-      const end = sleeves === 'long' ? ay - s.genes.arms + 0.045 * k : ay - 0.55 * s.upperArm
+      const elbow = ay - s.upperArm
+      const end =
+        sleeves === 'long'
+          ? ay - s.genes.arms + 0.045 * k
+          : sleeves === 'rolled'
+            ? elbow - 0.015 * k
+            : ay - 0.55 * s.upperArm
       parts.push(
         shell(grown(P.arm[side], sleeveEase), Infinity, end, material, armGroup(side), sk.arm(side), [
           P.arm[side].caps?.[0] ?? 0,
           0,
         ]),
       )
+      // The fold: the sleeve's last 4 cm turned over on itself, a clearance thicker all round, so its edge draws and its colour is its own.
+      if (sleeves === 'rolled')
+        parts.push(
+          shell(
+            grown(P.arm[side], sleeveEase + 1.2 * cl),
+            end + 0.045 * k,
+            end - 0.005 * k,
+            o.cuff ?? material,
+            armGroup(side),
+            sk.arm(side),
+            [0, 0],
+          ),
+        )
     }
   }
   const paint = {
@@ -268,12 +290,6 @@ function tail(
   }
 }
 
-/** Is a long tail (a skirt, dress or coat to below mid-thigh) in the outfit? Then the legs' shells start under it. */
-const longTail = (c: Wearing) =>
-  c.garments.some(
-    (g) => ('skirt' in g || 'dress' in g || 'coat' in g) && ((g as { length?: number }).length ?? 0) > 0.3,
-  )
-
 /** A box rigid on a bone, placed in rest figure space (its bone's rest subtracted). */
 function piece(
   c: Wearing,
@@ -323,8 +339,9 @@ function patch(
   topY: number,
   bottom: number,
   keep: (x: number, y: number, z: number) => boolean,
+  on?: { readonly profile: Limb; readonly group: number; readonly skin: Skin },
 ): Part {
-  const P = c.body.profiles.torso
+  const P = on?.profile ?? c.body.profiles.torso
   const mesh = limb({ ...grown(P, off), span: [topY, bottom], caps: [0, 0], seg: 96, step: 0.003 })
   const q = mesh.positions
   const n = (i: number) => q[i] ?? 0
@@ -356,7 +373,12 @@ function patch(
     }
     out.indices.push(at)
   }
-  return { mesh: out, material, group: GROUP.torso, skin: weights(out, skins(c).trunk) }
+  return {
+    mesh: out,
+    material,
+    group: on?.group ?? GROUP.torso,
+    skin: weights(out, on?.skin ?? skins(c).trunk),
+  }
 }
 
 /** The V's half-width at a height: the neck's root's width at the top, nothing at the bottom. */
@@ -365,16 +387,45 @@ const vee = (c: Wearing, y: number) => {
   return ringOf(c.body.profiles.torso, 0).rx * 0.55 * Math.max(0, (y - bottom) / (topY - bottom))
 }
 
-/** An open front: a V of the inner cloth (the shirt) on the jacket's front, from the neck's root to under the chest. */
-function opening(c: Wearing, material: string, off: number): Part {
+/** How far a vest or jacket stands open on the cloth under it (`opening`): the options of the waistcoat that set it. */
+export interface Panel {
+  /** 0 the V of shirt the front always had, 1 a panel the whole way down to `hemY`; between, the one grows into the other. */
+  readonly open: number
+  /** The panel's half-width at the neck and at the hem, each as a share of the torso's own half-width at that height. */
+  readonly chest: number
+  readonly hem: number
+  /** The height (m above the floor) the garment's front ends at, where the panel stops. */
+  readonly hemY: number
+}
+
+/**
+ * An open front: a V of the inner cloth (the shirt) on the jacket's front, from the neck's root to under the chest. With a `panel`
+ * the V grows into a strip of the shirt of the character's own widths that runs on down to the garment's hem, and `open` 0 is the V.
+ */
+function opening(c: Wearing, material: string, off: number, panel?: Panel): Part {
   const [topY, bottom] = frontSpan(c)
+  const open = panel?.open ?? 0
+  if (panel === undefined || open <= 0)
+    return patch(
+      c,
+      material,
+      off + 0.35 * c.body.clear,
+      topY,
+      bottom,
+      (x, y, z) => z > 0 && Math.abs(x) < vee(c, y),
+    )
+  const lo = lerp(bottom, Math.min(bottom, panel.hemY), open)
+  const half = (y: number) => {
+    const down = Math.min(1, Math.max(0, (y - panel.hemY) / (topY - panel.hemY)))
+    return c.body.at('torso', 'L', y).rx * lerp(panel.hem, panel.chest, down)
+  }
   return patch(
     c,
     material,
     off + 0.35 * c.body.clear,
     topY,
-    bottom,
-    (x, y, z) => z > 0 && Math.abs(x) < vee(c, y),
+    lo,
+    (x, y, z) => z > 0 && Math.abs(x) < lerp(vee(c, y), half(y), open),
   )
 }
 
@@ -418,43 +469,55 @@ function collarBand(c: Wearing, material: string, off: number): Part[] {
 }
 
 /**
- * Trouser legs: each leg grown `ease` clearances, straight from the knee down (`wide` widens them there), from the hip (or from
- * under a long tail) to the ankle; the seat and fly a shell of the torso from the belt down.
+ * A shirt collar: a neckband round the neck's root and two leaves, each a flat piece lying from the band out over the shoulder and
+ * down the chest, spread, with a point. Worn under a waistcoat whose neckline is lowered, the leaves lie over the vest's edge.
  */
-function legsOf(c: Wearing, material: string, ease: number, wide: number): Fit {
-  const h = heights(c)
-  const P = c.body.profiles
-  const cl = c.body.clear
-  const sk = skins(c)
-  const off = ease * cl
-  const parts: Part[] = []
-  parts.push(
-    shell(grown(P.torso, off), h.belt, -Infinity, material, GROUP.torso, sk.trunk, [
-      0,
-      P.torso.caps?.[1] ?? 0,
-    ]),
+function collarLeaves(c: Wearing, material: string, off: number): Part[] {
+  const { k } = heights(c)
+  const r0 = ringOf(c.body.profiles.torso, 0)
+  const front = (r0.dz ?? 0) + r0.rz
+  const band = piece(
+    c,
+    J.chest,
+    material,
+    GROUP.torso,
+    [0, r0.y + 0.014 * k, r0.dz ?? 0],
+    [r0.rx * 0.5 + off, 0.016 * k, r0.rz * 0.8 + off],
+    { e: [0.5, 0.5] },
   )
-  const under = longTail(c)
-  for (const [side] of SIDES) {
-    const L = P.leg[side]
-    const kneeR = c.body.at('leg', side, h.knee + 0.1 * h.k)
-    const straight = (r: Ring): Partial<Ring> =>
-      r.y < h.knee + 0.1 * h.k
-        ? { rx: Math.max(r.rx, kneeR.rx * wide) + off, rz: Math.max(r.rz, kneeR.rz * wide) + off }
-        : {}
-    parts.push(
-      shell(
-        grown(L, off, straight),
-        under ? h.knee + 0.03 * h.k : Infinity,
-        h.ankle + 0.025 * h.k,
-        material,
-        legGroup(side),
-        sk.leg(side),
-        [under ? 0 : (L.caps?.[0] ?? 0), 0],
-      ),
-    )
-  }
-  return { parts, paint: { pelvis: material, thigh: material, knee: material, shin: material } }
+  const leaves = SIDES.map(([, x]) =>
+    piece(
+      c,
+      J.chest,
+      material,
+      GROUP.item,
+      [x * (r0.rx * 0.42 + 0.014 * k + off), r0.y - 0.012 * k, front * 0.8 + off],
+      [0.026 * k, 0.006 * k, 0.042 * k],
+      {
+        turn: qmul(
+          axisAngle([0, 1, 0], x * 0.45),
+          qmul(axisAngle([1, 0, 0], 0.55), axisAngle([0, 0, 1], x * 0.5)),
+        ),
+        e: [0.3, 0.45],
+      },
+    ),
+  )
+  return [band, ...leaves]
 }
 
-export { collarBand, frontAt, heights, lapels, legsOf, longTail, opening, piece, tail, top }
+export {
+  collarBand,
+  collarLeaves,
+  frontAt,
+  grown,
+  heights,
+  lapels,
+  legGroup,
+  opening,
+  patch,
+  piece,
+  shell,
+  skins,
+  tail,
+  top,
+}
