@@ -20,7 +20,7 @@ interface Props {
   title: string | undefined
   /** Where the work stands, in words, at every size: Saving…, Saved on this device, Not saved: … (`saveLine`). */
   line: SaveLine | undefined
-  /** The line has a row of its own, under the rest of the bar, and shows whole (a phone held upright). */
+  /** The line has a row of its own, under the rest of the bar, and shows whole (a phone held upright, or not saved). */
   lineBelow?: boolean
   pills: readonly Pill[]
   /** The pills as icons with counts, on a phone or a short screen. */
@@ -109,8 +109,8 @@ const {
     font: var(--text-body-13);
     white-space: nowrap;
     /* The words say the work is safe, so they keep the room they need until the bar runs short: then they shorten with
-       an ellipsis (the whole line is still the status and the title) rather than push Play, Publish or an editor's own
-       tools off the screen. */
+       an ellipsis rather than push Play, Publish or an editor's own tools off the screen. Only a short "saved" line is
+       ever here: one that says the work is not saved takes the row below (`lineBelow`), whole. */
     flex: 0 1 auto;
     min-width: 5.5rem;
   }

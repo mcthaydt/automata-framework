@@ -10,9 +10,10 @@ import { type EditorSize, SIZES } from '#src/testing/kit/layout-sizes.ts'
 import { fixtureEditor } from '#src/testing/suite/fixture-editor.ts'
 import { editorList, noPageScroll, type OpenedSuite, openSuite } from '#src/testing/suite/suite-layout.ts'
 
-// The saved line says whether the work is safe, so on a phone it must be whole: it used to be cut to "Saved on this
-// de…", and the longest words, the browser that keeps nothing, pushed Redo off the screen. Every line the page can say
-// is whole on every phone, with the game's name and Undo and Redo still in view.
+// The saved line says whether the work is safe, so it must be whole: it used to be cut to "Saved on this de…", and the
+// longest words, the browser that keeps nothing, pushed Redo off the screen, then were cut to "Not saved: this bro…" on
+// any bar wider than a phone held upright, with the rest in a title a finger cannot read. Every line the page can say is
+// whole at every size here, phones and iPads, with the game's name and Undo and Redo still in view.
 
 const FILES = {
   'content/editors.toml': editorList('content/tuning.toml', 'tuner'),
@@ -27,7 +28,12 @@ const PHONES: readonly EditorSize[] = [
     width: 360,
     height: 740,
   },
-  { ...(SIZES.find((size) => size.name === 'ipad-pro-11-portrait') as EditorSize) },
+  ...SIZES.filter(
+    (size) =>
+      size.name === 'ipad-pro-11-portrait' ||
+      size.name === 'ipad-pro-11-landscape' ||
+      size.name === 'ipad-mini-portrait',
+  ),
 ]
 
 /** The three places a game's files can be, each with its own words. */
@@ -65,28 +71,17 @@ describe.each(PHONES)('the saved line at $name ($width x $height)', (size) => {
     await settleLayout()
     const words = document.querySelector<HTMLElement>('[role="status"] .words')
     if (words === null) throw new Error('no saved line')
-    // On a phone held upright every line has a row of its own and shows whole. On a wider bar the longest line (a browser
-    // that keeps nothing) may shorten with an ellipsis rather than push Redo or the Dock off the screen; it then still
-    // opens with "Not saved" and the whole words are the status's title.
-    const shortens = where === 'in a browser that keeps nothing' && size.width >= 600
-    if (shortens) {
-      expect(words.textContent, 'the shortened line still says it is not saved').toMatch(/^Not saved/)
-      expect(words.parentElement?.getAttribute('title'), 'the whole words are kept as the title').toBe(
-        words.textContent,
+    expect(words.scrollWidth, `"${words.textContent}" is not cut`).toBeLessThanOrEqual(words.clientWidth + 1)
+    expect(words.scrollHeight, `"${words.textContent}" is not clipped below`).toBeLessThanOrEqual(
+      words.clientHeight + 1,
+    )
+    if (where === 'in a browser that keeps nothing')
+      expect(words.textContent, 'the whole warning is on screen').toBe(
+        'Not saved: this browser can’t keep files. Save a copy to keep your work.',
       )
-    } else {
-      expect(words.scrollWidth, `"${words.textContent}" is not cut`).toBeLessThanOrEqual(
-        words.clientWidth + 1,
-      )
-    }
     whole(words, 'the saved line')
     const brand = document.querySelector<HTMLElement>('.brand')
-    // The name and the line share what the tools leave; when the line shortens, so may the name (it ends in an ellipsis).
-    if (!shortens)
-      expect(brand?.scrollWidth, 'the game name is not cut').toBeLessThanOrEqual(
-        (brand?.clientWidth ?? 0) + 1,
-      )
-    else whole(brand, 'the game name')
+    expect(brand?.scrollWidth, 'the game name is not cut').toBeLessThanOrEqual((brand?.clientWidth ?? 0) + 1)
     for (const label of ['Undo', 'Redo']) {
       const control = [...document.querySelectorAll<HTMLElement>('button')].find((b) =>
         (b.getAttribute('aria-label') ?? '').startsWith(label),

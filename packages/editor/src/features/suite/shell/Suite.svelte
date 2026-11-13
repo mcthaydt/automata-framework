@@ -102,9 +102,6 @@ const entries = $derived(
   suiteEntries(suite.editors, home.kind === 'cards' ? home.cards.map((card) => card.editor) : undefined),
 )
 const entry = $derived(entries.find((candidate) => candidate.id === current))
-// A phone held upright has no width for the saved line beside the game's name and the tools: it takes a row under them,
-// whole, so "Not saved: …" is never cut away.
-const lineBelow = $derived(mode === 'compact' && geometry.current.layout.width < 600)
 // A phone held sideways has no height to spare for a tab bar: the editors fold into a menu in the top bar, so the stage
 // keeps the height (V4).
 const folded = $derived(mode === 'compact' && geometry.current.heightTier === 'short')
@@ -175,6 +172,12 @@ $effect(() => {
   }
 })
 const line = $derived(saveLine({ pending, failed, where: sample ? (kept ? 'device' : 'nowhere') : 'folder' }))
+// The saved line takes a row of its own under the game's name and the tools, whole, where it would otherwise be cut: on
+// a phone held upright, and at every size when it says the work is not saved (a warning a person must read all of; a
+// title does nothing under a finger). The short "saved" lines stay beside the name.
+const lineBelow = $derived(
+  line.state === 'failed' || (mode === 'compact' && geometry.current.layout.width < 600),
+)
 // The toasts are made once, with the clock the suite started with.
 // svelte-ignore state_referenced_locally
 const toasts = createToasts({ clock })
