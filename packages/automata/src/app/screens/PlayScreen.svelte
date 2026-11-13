@@ -66,6 +66,9 @@ $effect(() => {
   return () => cancelAnimationFrame(frame)
 })
 
+// The slot components read how the player is playing through the session, so it follows the tracker.
+$effect(() => play?.setInputMethod(tracker.method))
+
 const touching = $derived(tracker.method === 'touch')
 const showButtons = $derived(
   touching && swipe === undefined && (touchButtons.length > 0 || stick !== undefined),

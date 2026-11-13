@@ -65,7 +65,7 @@ async function open() {
     },
   })
   flushSync()
-  return { sim, session, host }
+  return { sim, session, host, tracker }
 }
 
 describe('usePlay on the play screen', () => {
@@ -100,6 +100,33 @@ describe('usePlay on the play screen', () => {
 
   it('says where usePlay works when it is called outside a play screen', () => {
     expect(() => usePlay()).toThrow('usePlay() only works in a component the play screen draws')
+  })
+})
+
+describe('the input method a slot component sees', () => {
+  const shown = (host: HTMLElement) => host.querySelector('[data-testid=method]')?.textContent
+
+  it('follows the tracker as the player changes how they play, so a component can show controls for touch only', async () => {
+    const { host, tracker } = await open()
+    tracker.note('keyboard')
+    flushSync()
+    expect(shown(host)).toBe('keyboard')
+    tracker.note('touch')
+    flushSync()
+    expect(shown(host)).toBe('touch')
+    tracker.note('gamepad')
+    flushSync()
+    expect(shown(host)).toBe('gamepad')
+  })
+
+  it('is keyboard before anything says otherwise', () => {
+    expect(new PlaySession(undefined).handle.inputMethod).toBe('keyboard')
+  })
+
+  it('can be set by hand, for a test that mounts one component alone', () => {
+    const session = new PlaySession(undefined)
+    session.setInputMethod('touch')
+    expect(session.handle.inputMethod).toBe('touch')
   })
 })
 

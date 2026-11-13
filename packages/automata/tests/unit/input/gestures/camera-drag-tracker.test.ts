@@ -47,6 +47,26 @@ describe('CameraDragTracker', () => {
     expect(sent).toEqual([[-10, 'mouse']])
   })
 
+  it('drags with either mouse button when the game asks for an ordinary 3D drag (mouse: either)', () => {
+    const sent: [number, DragPointer][] = []
+    const tracker = new CameraDragTracker(
+      { drag: (dx, pointer) => sent.push([dx, pointer]) },
+      { mouse: 'either' },
+    )
+    expect(tracker.down(1, 50, MOUSE_PRIMARY)).toBe(true)
+    tracker.move(1, 80)
+    tracker.up(1)
+    expect(tracker.down(1, 80, MOUSE_SECONDARY)).toBe(true)
+    tracker.move(1, 70)
+    expect(sent).toEqual([
+      [30, 'mouse'],
+      [-10, 'mouse'],
+    ])
+    // A middle button is never a turn.
+    tracker.up(1)
+    expect(tracker.down(1, 0, { pointerType: 'mouse', button: 1 })).toBe(false)
+  })
+
   it('never starts a finger on anything but its primary contact', () => {
     const { tracker } = recording()
     expect(tracker.down(1, 0, { pointerType: 'touch', button: 2 })).toBe(false)

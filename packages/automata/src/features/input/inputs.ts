@@ -66,7 +66,12 @@ export function inputs(...maps: readonly InputMap[]): InputMap {
   })
   const modes = touchModesFor(profile)
   const touchMode: TouchMode = maps.every((map) => map.touchMode === 'swipe') ? 'swipe' : 'buttons'
-  if (!modes.includes(touchMode)) throw new Error(`inputs(): touchMode "${touchMode}" has nothing to touch`)
+  // A touch stick or a camera drag is something to touch, though it is neither a button nor a swipe: a game may have only those.
+  const dragsOrSticks =
+    maps.some((map) => map.touchStick) ||
+    Object.values(profile.bindings).some((binding) => binding.gesture?.includes('camera-drag') === true)
+  if (!modes.includes(touchMode) && !dragsOrSticks)
+    throw new Error(`inputs(): touchMode "${touchMode}" has nothing to touch`)
 
   const toCommand = (held: Iterable<string>, tick: number, reading?: AnalogReading): readonly Command[] => {
     const actions = [...held]
@@ -83,6 +88,7 @@ export function inputs(...maps: readonly InputMap[]): InputMap {
     touchButtons: maps.flatMap((map) => (map.touch ? map.touchButtons : [])),
     touchMode,
     touchStick: maps.some((map) => map.touchStick),
+    dragMouse: maps.some((map) => map.dragMouse === 'either') ? 'either' : 'secondary',
     profile,
     labels: Object.assign({}, ...maps.map((map) => map.labels)),
     toCommand,

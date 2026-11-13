@@ -68,11 +68,43 @@ describe('keys({ analog })', () => {
     expect(turn().touchStick).toBe(false)
   })
 
+  it('mouseDrag: either is carried as the map’s dragMouse, and by inputs() when any map has it; secondary otherwise', () => {
+    const either = keys(
+      Turn,
+      {},
+      { touch: false, analog: { drag: true, mouseDrag: 'either', read: (r) => ({ units: r.cameraDrag() }) } },
+    )
+    expect(either.dragMouse).toBe('either')
+    expect(turn().dragMouse).toBe('secondary')
+    expect(inputs(turn(), keys(Move, { KeyW: { x: 1 } })).dragMouse).toBe('secondary')
+    expect(inputs(keys(Move, { KeyW: { x: 1 } }), either).dragMouse).toBe('either')
+  })
+
   it('touchStick: true is carried by inputs() when any map has it', () => {
     const left = keys(Move, {}, { analog: { touchStick: true, read: (r) => ({ x: r.stick('left').x }) } })
     expect(left.touchStick).toBe(true)
     expect(inputs(left, turn()).touchStick).toBe(true)
     expect(inputs(turn()).touchStick).toBe(false)
+  })
+
+  it('inputs() accepts maps whose only touch input is a stick and a drag, with no button', () => {
+    const move = keys(
+      Move,
+      { KeyW: { x: 1 } },
+      { touch: false, analog: { touchStick: true, read: (r) => ({ x: r.stick('left').x }) } },
+    )
+    const camera = keys(
+      Turn,
+      { KeyQ: { units: -1 } },
+      { touch: false, analog: { drag: true, read: (r) => ({ units: r.cameraDrag() }) } },
+    )
+    expect(() => inputs(move, camera)).not.toThrow()
+    expect(inputs(move, camera).touchStick).toBe(true)
+  })
+
+  it('inputs() still refuses maps with nothing at all to touch', () => {
+    const plain = keys(Move, { KeyW: { x: 1 } }, { touch: false })
+    expect(() => inputs(plain)).toThrow('has nothing to touch')
   })
 
   it('inputs() passes the reading to every map', () => {

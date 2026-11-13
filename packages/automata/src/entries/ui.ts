@@ -4,6 +4,7 @@ export { default as SettingsScreen } from '../app/screens/settings/SettingsScree
 export { PROMPT_COPY } from '../app/screens/settings/settings-copy'
 export type { SettingsTab } from '../app/screens/settings/settings-screen'
 export { installGlobalErrorHandlers } from '../shared/ui/browser/global-errors'
+export type { InputMethod } from '../shared/ui/browser/input-method.svelte.ts'
 export { reducedMotion } from '../shared/ui/browser/reduced-motion'
 export { suppressPageGestures } from '../shared/ui/browser/suppress-page-gestures'
 export { default as Button } from '../shared/ui/controls/Button.svelte'
