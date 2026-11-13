@@ -1022,7 +1022,7 @@ function trackAlias(path: string): string;
 
 #### `tracksFrom` (function)
 
-The player's `tracks` from the music files a bundler found (Vite's `import.meta.glob('/assets/music/*', { eager: true,
+The player's `tracks` from the music files a bundler found (Vite's `import.meta.glob('../../assets/music/*', { eager: true,
 query: '?url', import: 'default' })`): each file's name to the address it is served from.
 
 ```ts
@@ -2350,6 +2350,25 @@ and the field's own rules; whether a reference resolves is the editor's check.
 function checkFieldValue(def: FieldDef, value: unknown): FieldValueProblem | undefined;
 ```
 
+#### `ClipPicture` (interface)
+
+A character with an animation: frame `index` of its first clip, cut from the picture `image` in `cell`-sized cells
+(the frame's place depends on the picture's width, so whoever has the picture works it out). `still` is the look
+to show while the picture is not there.
+
+```ts
+interface ClipPicture {
+  readonly kind: "clip";
+  readonly image: string;
+  readonly cell: {
+    readonly w: number;
+    readonly h: number;
+  };
+  readonly index: number;
+  readonly still: StillPicture;
+}
+```
+
 #### `ContentAnimation` (interface)
 
 A character's animation: a picture cut into `frame`-sized cells, and clips over those cells.
@@ -2932,27 +2951,20 @@ function parseTileToken(base: string): TileCell | undefined;
 
 #### `Picture` (type)
 
-How one character definition is drawn: a `tile` (a tile of a named tileset, by index) or a `flat` shape (a rectangle,
-an ellipse or a point) in one colour as `#rrggbb`. `pictureOf` makes it from a definition.
+How one character definition is drawn: a `clip` (its animation's first frame) when it has one, else a `tile` (a tile of
+a named tileset, by index) or a `flat` shape (a rectangle, an ellipse or a point) in one colour as `#rrggbb`.
+`pictureOf` makes it from a definition.
 
 ```ts
-type Picture = {
-  readonly kind: "tile";
-  readonly tileset: string;
-  readonly index: number;
-} | {
-  readonly kind: "flat";
-  readonly shape: "rect" | "ellipse" | "point";
-  readonly color: string;
-};
+type Picture = StillPicture | ClipPicture;
 ```
 
 #### `pictureOf` (function)
 
-The picture of a definition: its tile, else its colour as its flat shape.
+The picture of a definition: its animation's first frame, else its tile, else its colour as its flat shape.
 
 ```ts
-function pictureOf(def: Pick<ContentEntityDef, "shape" | "tile" | "color">): Picture;
+function pictureOf(def: Pick<ContentEntityDef, "shape" | "tile" | "color" | "animation">): Picture;
 ```
 
 #### `PLACEHOLDER_COLORS` (const)
@@ -3001,6 +3013,22 @@ interface RefValue {
   /** The level or sector that holds the target. */
   readonly container?: string | undefined;
 }
+```
+
+#### `StillPicture` (type)
+
+A look with no animation: a tile of a tileset, or a flat shape.
+
+```ts
+type StillPicture = {
+  readonly kind: "tile";
+  readonly tileset: string;
+  readonly index: number;
+} | {
+  readonly kind: "flat";
+  readonly shape: "rect" | "ellipse" | "point";
+  readonly color: string;
+};
 ```
 
 #### `TileCell` (interface)
@@ -6364,12 +6392,18 @@ function levelScene(options: LevelSceneOptions): LevelScene;
 
 #### `LevelSceneHooks` (interface)
 
-What a hook draws in the scene: the sim now, the scene's container and a way to hide one placed item's drawing.
+What a hook draws in the scene: the sim now, the scene's container (under the game's own views), an overlay over
+everything the world shows, and a way to hide one placed item's drawing.
 
 ```ts
 interface LevelSceneHooks {
     draw(sim: DrawSim, scene: {
         readonly container: Container;
+        /**
+         * A layer over the world and every view in it, in view coordinates (the camera does not move it): the place for a
+         * fade or a flash, which must cover the game's own characters too.
+         */
+        readonly overlay: Container;
         hide(itemId: string, hidden: boolean): void;
     }): void;
 }
@@ -6755,6 +6789,13 @@ interface PixiStage {
     readonly backdrop: Container;
     /** The delta consumer tracking entity views. */
     readonly consumer: RenderDeltaConsumer;
+    /**
+     * How characters are squashed, held and found for a word above them. Read it each frame: a renderer that draws
+     * characters its own way replaces it (`useCharacters`) when it mounts.
+     */
+    readonly characters: StageCharacters;
+    /** Replaces `characters` with this renderer's own answer. */
+    useCharacters(characters: StageCharacters): void;
     /** The fixed-resolution composite the world and UI draw into, when it is on. */
     readonly composite?: CompositeTarget | undefined;
     /** Post-processing filters applied to the root rendered scene. Owned by `postFilters` once it is used. */
@@ -7889,6 +7930,26 @@ interface SpriteViewOptions {
      * `automata-content assets` writes, and `frame` names one of its frames. Not with `frames`.
      */
     readonly frame?: string | undefined;
+}
+```
+
+#### `StageCharacters` (interface)
+
+The stage's port for characters, keyed by the sim's stable id of the character.
+
+```ts
+interface StageCharacters {
+    /** Where a word above a character sits, in `stage.ui`'s coordinates, or `undefined` when it has no view. */
+    point(ref: number): {
+        readonly x: number;
+        readonly y: number;
+    } | undefined;
+    /** Scales a character's view by `x` and `y` from the scale it rests at. */
+    squash(ref: number, x: number, y: number): void;
+    /** Puts a squashed character's scale back. */
+    rest(ref: number): void;
+    /** Holds these characters' poses until the next call. */
+    hold(refs: ReadonlySet<number>): void;
 }
 ```
 

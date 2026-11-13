@@ -104,7 +104,7 @@
 - `MusicPlayer` (interface): Plays the slot the game's state calls for.
 - `MusicPlayerOptions` (interface): What the player needs: the context and bus input of core's audio graph, and where the tracks' files are.
 - `trackAlias(path)`: The name the game knows a track's sound by: the file's own name, lower case, words joined with dashes.
-- `tracksFrom(found)`: The player's `tracks` from the music files a bundler found (Vite's `import.meta.glob('/assets/music/*', { eager: true, query: '?url', import: 'default' })`): each file's name to the address it is served from.
+- `tracksFrom(found)`: The player's `tracks` from the music files a bundler found (Vite's `import.meta.glob('../../assets/music/*', { eager: true, query: '?url', import: 'default' })`): each file's name to the address it is served from.
 
 ## `@automata/content`
 
@@ -237,6 +237,7 @@
 - `checkEntityDef(def)`: Problems with an entity definition: its id and color, then each field's problems tagged with the field's id and index, with a repeated field id reported at its later occurrence.
 - `checkFieldDef(def)`: Problems with one field definition, in a stable order: id, misplaced properties, bounds, step, options, default.
 - `checkFieldValue(def, value)`: Whether `value` fits the field: `undefined` when it does, else the first problem.
+- `ClipPicture` (interface): A character with an animation: frame `index` of its first clip, cut from the picture `image` in `cell`-sized cells (the frame's place depends on the picture's width, so whoever has the picture works it out).
 - `ContentAnimation` (interface): A character's animation: a picture cut into `frame`-sized cells, and clips over those cells.
 - `ContentClip` (interface): One named run of frames of a character's picture: `frames` are indexes into the picture cut into equal cells.
 - `ContentEntityDef` (type): An entity definition in `project.toml`: a typed-field definition plus how the editor draws and places it.
@@ -283,13 +284,14 @@
 - `levelContentSchema` (const): The strict schema of `levels/<id>.toml`.
 - `objectsOf(level, layer)`: The items of an objects layer, in file order.
 - `parseTileToken(base)`: A tile token without its repeat (`7`, `7h`, `7hv`) as a tile, or undefined when it is not one.
-- `Picture` (type): How one character definition is drawn: a `tile` (a tile of a named tileset, by index) or a `flat` shape (a rectangle, an ellipse or a point) in one colour as `#rrggbb`.
-- `pictureOf(def)`: The picture of a definition: its tile, else its colour as its flat shape.
+- `Picture` (type): How one character definition is drawn: a `clip` (its animation's first frame) when it has one, else a `tile` (a tile of a named tileset, by index) or a `flat` shape (a rectangle, an ellipse or a point) in one colour as `#rrggbb`.
+- `pictureOf(def)`: The picture of a definition: its animation's first frame, else its tile, else its colour as its flat shape.
 - `PLACEHOLDER_COLORS` (const): Twelve flat colours far enough apart to tell neighbouring indices apart; tile `n` takes colour `n % 12`, so a placeholder looks the same wherever it is drawn and whatever happened to the image.
 - `placeholderColor` (const): The placeholder colour of tile `tile`.
 - `Point` (interface): A position with `x` and `y`.
 - `projectContentSchema` (const): The strict schema of `project.toml`.
 - `RefValue` (interface): `target` and `container` are opaque to the kit: whether they resolve is the editor's check.
+- `StillPicture` (type): A look with no animation: a tile of a tileset, or a flat shape.
 - `TileCell` (interface): One drawn tile: its index in the tileset and whether it is mirrored.
 - `tileFrame(tileset, tile)`: The rectangle of tile `tile` in the tileset's picture, or undefined when the index is past the set.
 - `tileRows(level, layer)`: The cells of a tiles layer, one array per row (undefined is empty).
@@ -565,7 +567,7 @@
 - `levelDrawList(project, level, images, live)`: Builds one level's list.
 - `LevelScene` (interface): A level the game shows, from `levelScene`; pass it as `defineGame({ level })`.
 - `levelScene(options)`: Validates the options now and returns the scene; the Pixi objects are made on the first frame.
-- `LevelSceneHooks` (interface): What a hook draws in the scene: the sim now, the scene's container and a way to hide one placed item's drawing.
+- `LevelSceneHooks` (interface): What a hook draws in the scene: the sim now, the scene's container (under the game's own views), an overlay over everything the world shows, and a way to hide one placed item's drawing.
 - `LevelSceneOptions` (interface): What `levelScene` needs: the exported content, the pictures the build gave the game, and where to start.
 - `LifecyclePayload` (interface): Whether the game is in front, and if not, why.
 - `LifecyclePayloadSchema` (const): Checks a lifecycle change.
@@ -656,6 +658,7 @@
 - `sprite(source, options?)`: A sprite that follows its component's `x`, `y` and `angle`, interpolated between ticks.
 - `SpriteFrames` (interface): The texture is a sheet of equal frames, read left to right, top to bottom.
 - `SpriteViewOptions` (interface): A `sprite` view's anchor and either its sprite-sheet frames or one frame of a packed atlas.
+- `StageCharacters` (interface): The stage's port for characters, keyed by the sim's stable id of the character.
 - `startGame(game, start?)`: Boots a game: `defineGame`'s defaults over the runtime, the Pixi renderer, Ruken hosting and the default screens, then the runtime's boot on the game's root.
 - `StartOptions` (interface): How a game starts.
 - `StepResult` (interface): What one `step` produced: the new tick, the events emitted, the renderer's delta and the commands that were rejected.

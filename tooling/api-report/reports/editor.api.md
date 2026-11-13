@@ -3970,7 +3970,7 @@ interface MemoryPortsOptions {
     readonly store?: ProjectStore | undefined;
     readonly checks?: readonly MemoryCheck[] | undefined;
     readonly gates?: GateRecords | 'unreadable' | undefined;
-    readonly listChanged?: ((text: string) => void) | undefined;
+    readonly list?: ListPolicy | undefined;
 }
 ```
 
@@ -3982,7 +3982,7 @@ interface MemoryWorkspaceOptions {
     readonly classify: (path: string) => WorkspaceFile | UnlistedFile;
     readonly generated?: ((path: string) => boolean) | undefined;
     readonly store?: ProjectStore | undefined;
-    readonly listChanged?: ((text: string) => void) | undefined;
+    readonly list?: ListPolicy | undefined;
 }
 ```
 
