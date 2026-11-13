@@ -40,10 +40,18 @@ describe.runIf(hasWebGL2)('the look’s wet reflections on WebGL2', () => {
     reflect.enabled = true
     const mirrored = shot(renderer)
     const changed = drawn(dry, mirrored)
-    expect(changed.length).toBeGreaterThan(20)
-    expect(changed.every((i) => DUEL.has(colourAt(mirrored, i)))).toBe(true)
+    expect(changed.length, 'pixels mirrored').toBeGreaterThan(20)
+    expect(
+      changed.filter((i) => !DUEL.has(colourAt(mirrored, i))).map((i) => colourAt(mirrored, i).toString(16)),
+      'mirrored pixels off the palette',
+    ).toEqual([])
     // The lit box stands on the left and the plain one on the right: only the left of the frame mirrors anything.
-    expect(changed.every((i) => i % SIZE.width < SIZE.width / 2)).toBe(true)
+    expect(
+      changed
+        .filter((i) => i % SIZE.width >= SIZE.width / 2)
+        .map((i) => `${i % SIZE.width},${Math.floor(i / SIZE.width)}`),
+      'mirrored pixels in the right half',
+    ).toEqual([])
   })
 
   it('draws the reflection on the ground, below the box that makes it', async () => {
