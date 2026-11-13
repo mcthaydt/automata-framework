@@ -174,7 +174,26 @@ the back of the lid, visible, M3; the lever frame reads best). These sheets were
 
 ## Gates on the joined branch
 
-See the table at the end, filled from the run's logs.
+Run in this session on Node 24.22, after the fixes (the check on `9b1ff904a`'s tree):
+
+| Gate | Result |
+|---|---|
+| `pnpm format` | before every commit (Biome; the pre-commit hook ran it and the affected unit tests) |
+| `TURBO_FORCE=true pnpm check` | **first run failed** at `style --docs` (the world README's broken link; fixed in `9b1ff904a`). **Second run exit 0**: lint, typecheck, boundaries, style, source-names, knip, unit tests (67 turbo tasks: site 534, examples-runner 77 and 1 skipped, set-3d 14, world kit 452), `changeset status`, `check-changesets` 0 problems. (An earlier run before any fix was spoiled by a red test I was writing while it typechecked; not counted) |
+| `pnpm build` | exit 0 |
+| the site's build | exit 0; `0 3D examples in static/scenes` (no page added) |
+| `pnpm --filter @automata/site check:site` | exit 0, "Verified 51 built pages" (the same 51 F3 measured) |
+| the site's unit suite | 534 passed (inside the check) |
+| 3D page e2e, `test:e2e:scenes`, Chromium | 17 passed (three sizes; was 8 at two sizes) |
+| 3D page e2e, WebKit (`playwright install --with-deps webkit`, then the config's `webkit` project) | 17 passed |
+| 3D examples' e2e, Chromium (`examples-3d`) | 22 passed, 2.4 min (every page now imports `start-at-play`) |
+| world kit unit | 452 passed (inside the check; 333 on the world branch, plus main's suites and the new cases) |
+| world kit browser, Chromium (`--project "browser (chromium)"`) | 5 files, 30 passed; the plain `--project browser` stops at once: no Firefox here |
+
+Not run: Firefox (not installed); the 3D examples' WebKit project; `pnpm test:browser:3d`, `pnpm test:journeys:3d`, the 2D
+browser suites and cross-engine parity (GPU runner). `pnpm api-report` and `api-index`: no published package's exports
+changed (the runner and the site are private; `@automata/world-kit` is private). No changeset: nothing published
+changed. No golden, hash or recorded picture moved.
 
 ## For the tracker
 
