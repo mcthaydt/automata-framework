@@ -15,6 +15,7 @@ export {
   type CharacterDef,
   cellOf,
   compose,
+  densityFor,
   type Fabric,
   Figure,
   type Fit,
@@ -51,6 +52,7 @@ export {
   type View,
   viewOf,
   type Wearing,
+  walking,
   zoomOf,
 } from '@automata/figures'
 // The painter's toolkit: what a garment kind of the kit's own is built from (H1).
@@ -61,6 +63,8 @@ export {
   type Limb,
   lerp,
   limb,
+  paintedTones,
+  qmul,
   type Ring,
   smooth,
   superquadric,

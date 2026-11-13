@@ -6,6 +6,7 @@
 // refresh it: a walk that crosses more than `LIT_CELLS` keys in a cycle misses either way (a cyclic walk thrashes a least-recently-used cache as it does this one).
 import { type Cell, cellOf, type Figure, lightSprite } from '../../shared/figures/door.ts'
 import type { RoomLight } from './room-light.ts'
+import { holdHue } from './skin-hue.ts'
 
 /** How many lit cells one figure keeps (about 3 MB at D2): a walk cycle through a few light steps. */
 export const LIT_CELLS = 32
@@ -42,8 +43,31 @@ export interface LitCells {
   readonly size: number
 }
 
+export interface LitCellsOptions {
+  /**
+   * The materials whose hue the room holds (a skin: `skinColours`), each with its colours another material paints too (`sharedColours`)
+   * and its own ramp (`skinRamp`): where the room darkens one, it takes the shade of the same hue and the room's colour never tints it, so
+   * a face is never lavender in a cool dim room. None (the default): every texel is the lit sprite's.
+   */
+  readonly held?:
+    | readonly {
+        readonly colours: readonly number[]
+        readonly shared?: readonly number[] | undefined
+        /** The material's own ramp (`skinRamp`): `colours` by default. */
+        readonly ramp?: readonly number[] | undefined
+      }[]
+    | undefined
+}
+
 /** A cache of at most `limit` lit cells, the oldest dropped first. */
-export function litCells(limit = LIT_CELLS): LitCells {
+export function litCells(limit = LIT_CELLS, options: LitCellsOptions = {}): LitCells {
+  const held = (options.held ?? [])
+    .filter((m) => m.colours.length > 0)
+    .map((m) => ({
+      colours: new Set(m.colours),
+      shared: new Set(m.shared ?? []),
+      ramp: new Set(m.ramp ?? m.colours),
+    }))
   const kept = new Map<string, { readonly rgba: Uint8ClampedArray; readonly key: string }>()
   return {
     lit(figure, light) {
@@ -54,7 +78,16 @@ export function litCells(limit = LIT_CELLS): LitCells {
       if (hit === undefined) {
         // The lit cell's key is the painted cell's and the light's, not a hash of its 98 KB of colours: a lit cell is a pure function
         // of the two, so they name it as surely, and the hash was the second cost of a miss.
-        hit = { rgba: lightSprite(figure, light.lighting), key: `${unlit.key}|${light.key}` }
+        const rgba = lightSprite(figure, light.lighting)
+        if (held.length > 0) {
+          const [r, g, b] = light.lighting.flat
+          const peak = Math.max(r, g, b)
+          const grey = r === g && g === b
+          // The same light with no colour of its own: what the skin is stepped by.
+          const neutral = grey ? rgba : lightSprite(figure, { ...light.lighting, flat: [peak, peak, peak] })
+          holdHue(unlit.painted, neutral, rgba, held, unlit.size[0])
+        }
+        hit = { rgba, key: `${unlit.key}|${light.key}` }
         kept.set(id, hit)
         const oldest = kept.keys().next()
         if (kept.size > limit && oldest.done !== true) kept.delete(oldest.value)

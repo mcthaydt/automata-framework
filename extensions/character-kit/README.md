@@ -70,7 +70,13 @@ a figure hides behind a wall texel by texel too).
 A figure that stands can hold one of the builder's stands: `state: () => ({ moving: false, pose: 'handOnHip' })`. A name that
 is not there is an error that says so.
 
-**The runway wardrobe.** Nine more things to wear, written in a painted character's outfit. Not the same as the eight above:
+**Density, the lattice and the room's light.** A painted figure is painted at density 2 unless it says otherwise. `density: 'auto'`
+paints at the density its camera needs each frame (a far camera at 1, a close shot at 4; `maxDensity` lifts the cap to 8), a
+number pins it, and a function is asked each frame (`densityNeeded` is the rule). `grid: true` stands the figure on its texel
+lattice. `dimmest` limits how many steps the room's light may take the figure under its painted colours, and `holdSkinHue` keeps a
+face in its own skin hue in a dim cool room. Each is off until named, and `tests/unit/painted/` draws the figure with and without it.
+
+**The runway wardrobe.** Thirteen more things to wear, written in a painted character's outfit. Not the same as the eight above:
 these are for painted figures, and each is sized from the body under it, so it fits any body the sliders make.
 
 | Garment    | What it is                                                               |
@@ -79,11 +85,15 @@ these are for painted figures, and each is sized from the body under it, so it f
 | `hoodie`   | Roomy, with the hood down behind the neck and a pouch pocket.            |
 | `jacket`   | Wool or leather, to the hip, with lapels or a `collar`, a `zip`, and an `inner` shirt in a V. |
 | `coat`     | Long sleeves, lapels and skirts to `length`.                             |
-| `skirt`    | From the waist to `length` (0 the hip, 0.5 the knee, 1 the ankle).       |
+| `skirt`    | From the waist to `length` (0 the hip, 0.5 the knee, 1 the ankle); `stain` and `stainHeight` darken the hem. |
 | `dress`    | A fitted top and a skirt in one cloth.                                   |
-| `jeans`    | Straight legs to the ankle.                                              |
-| `trousers` | The same, roomier; `wide` widens the leg.                                |
-| `shoes`    | Shoes and their `sole`.                                                  |
+| `jeans`    | Close legs to the ankle; `taper` (0 a pipe, 1 the leg's own narrowing) draws the hem in. |
+| `trousers` | The same, roomier; `wide` widens the leg, `taper` as for jeans.          |
+| `shoes`    | Shoes and their `sole`; `boots: true` adds a shaft up the shin.          |
+| `waistcoat` | A vest cut from the torso, open on the shirt under it: `fit` (0 loose, 1 closed in at the waist), `length` (0 ends at the waist, 1 at the hip) and `armhole` (0 … 1, narrower across the shoulder so the shirt shows). |
+| `legs`     | Stockings: the legs from the thigh down in one colour.                   |
+| `belt`     | A band round the waist; `buckle` is the plate's colour.                  |
+| `cap`      | Headwear of a named `style` (`nurse`, `peakedCap`, `flat`); the hair goes under it, and `mark` paints the style's mark. |
 
 They come with seven fabrics (twill, rib, gingham, Breton stripe, pinstripe, plaid, windowpane), their swatches (cloth,
 leather, skin, hair, lips, eyes), twelve hair styles and a glossy `silk` finish. `registerFashion()` adds them to the

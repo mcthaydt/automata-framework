@@ -119,9 +119,10 @@ describe.runIf(hasWebGL2)('painted figures in a lit 3D room', () => {
     scene = await buildScene({
       size: SIZE,
       camera: 'follow',
+      // Recorded at density 2, a texel a pixel for both: the default would paint the near one at 1 and show it two pixels a texel.
       figures: [
-        { def: MAN, at: [0, 0] },
-        { def: WOMAN, at: [7, -12] },
+        { def: MAN, at: [0, 0], options: { density: 2 } },
+        { def: WOMAN, at: [7, -12], options: { density: 2 } },
       ],
       lighting: WARM,
       passes: look,

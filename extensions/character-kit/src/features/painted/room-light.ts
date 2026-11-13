@@ -113,6 +113,9 @@ function lamp(
  * - With an `exposure` and a floor round the feet that the room has baked, the ring's light is the floor as it is shown (its
  *   albedo times the light, the sun and its shadows included) and the figure, lit at each candidate step and measured by
  *   `exposure.shownAt`, is held under `hotLuma` times it by whole steps down; without, the ring above holds it within `hot` steps.
+ * - `dimmest`, when given, is the most whole steps the room may take a figure under its painted cell, from the ring's hold and the
+ *   exposure trial alike: a game whose rooms are dark keeps the figure's own skin and face readable by it (the room's flat light is
+ *   then not the figure's light; its lamps still give a side and a rim). Unset, the room dims it as far as it goes.
  * - The flat steps are then held at or under `lift` (0): a figure is never lit above its painted colours, which are the daylight
  *   look. By day that is 0 steps; a darker room takes the figure down; a lamp adds form and a rim, never flat light.
  */
@@ -122,6 +125,7 @@ export function roomLight(
   at: V3,
   azimuth: number,
   exposure?: Exposure | undefined,
+  dimmest?: number | undefined,
 ): RoomLight {
   const [x, y, z] = at
   const chest = y + ROOM_LIGHT.chest
@@ -199,7 +203,11 @@ export function roomLight(
     return { lighting, key }
   }
   // The tint's ring: the figure is held within `hot` steps over it, and never lifted over its painted cell (`lift`).
-  let held = Math.min(ROOM_LIGHT.lift, steps - Math.max(0, steps - flatSteps(ring) - ROOM_LIGHT.hot))
+  const lowest = dimmest === undefined ? Number.NEGATIVE_INFINITY : -Math.abs(dimmest)
+  let held = Math.max(
+    lowest,
+    Math.min(ROOM_LIGHT.lift, steps - Math.max(0, steps - flatSteps(ring) - ROOM_LIGHT.hot)),
+  )
   if (exposure !== undefined && floors.length > 0) {
     // The builder's trial on the lit cell, from the ring's hold down: light the figure at the candidate, and take a step more off
     // while what it shows is over the window of the floor it stands on. The stricter of the two holds stands, and the shown luma is
@@ -207,7 +215,7 @@ export function roomLight(
     const window = (ROOM_LIGHT.hotLuma * floors.reduce((a, b) => a + b, 0)) / floors.length
     for (let tries = 0; tries < ROOM_LIGHT.dimmest; tries += 1) {
       const shown = exposure.shownAt(lightAt(held))
-      if (shown === undefined || shown <= window + 1e-9) break
+      if (shown === undefined || shown <= window + 1e-9 || held <= lowest) break
       held -= 1
     }
   }

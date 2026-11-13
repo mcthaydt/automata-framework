@@ -65,6 +65,66 @@ describe("the stage contract's placement for one figure", () => {
     }
   })
 
+  describe('on the texel grid (grid: true)', () => {
+    // A pose where a texel is 2 pixels (zoom 4 at density 2), as a game plays: 4 · 96 / 2.6 pixels a metre.
+    const ppm = (4 * 96) / 2.6
+    const pose = poseOf(orthographicCamera([0, 5, 8], 0, 18, 320 / ppm), [640, 360])
+    const def = DEFS[1] as CharacterDef
+    /** Her feet swept across 1.5 m in 1 mm steps: every sub-pixel phase, many times over. */
+    const sweep = Array.from({ length: 1500 }, (_, i): V3 => [-0.75 + i / 1000, 0, 0])
+    // One cell for all: an orthographic view sees every place from the same bearing, so the painter paints the same cell.
+    const cell = painted(def, pose, [0, 0, 0])
+    const placeAt = (at: V3, grid?: boolean) => place(pose, at, cell, 'a', grid === undefined ? {} : { grid })
+
+    it("puts the cell's top-left on a multiple of the texel's pixels, where today's rounding often lands odd", () => {
+      const odd = sweep.filter((at) => (placeAt(at)?.sprite.screen[0] ?? 0) % 2 !== 0)
+      expect(odd.length).toBeGreaterThan(0)
+      for (const at of sweep) {
+        const placed = placeAt(at, true)
+        expect(placed?.sprite.scale).toBe(2)
+        expect(Math.abs((placed?.sprite.screen[0] ?? 1) % 2), `x at ${at[0]}`).toBe(0)
+        expect(Math.abs((placed?.sprite.screen[1] ?? 1) % 2), `y at ${at[0]}`).toBe(0)
+      }
+    })
+
+    it('does not jitter when she walks: the cell moves one texel at a time, never back, never more than half a texel off', () => {
+      let last: number | undefined
+      for (const at of sweep) {
+        const placed = placeAt(at, true)
+        if (!placed) throw new Error('not placed')
+        const { screen, scale, cell } = placed.sprite
+        const [ax] = project(pose, at)
+        expect(Math.abs(screen[0] + scale * cell.anchor[0] - ax)).toBeLessThanOrEqual(scale / 2 + 1e-9)
+        if (last !== undefined) expect([0, scale]).toContain(screen[0] - last)
+        last = screen[0]
+      }
+    })
+
+    it('holds still on the screen when the camera follows her by any fraction of a pixel', () => {
+      const screens = new Set<string>()
+      for (let i = 0; i < 400; i++) {
+        const x = -0.2 + i / 1000
+        const follow = poseOf(orthographicCamera([x, 5, 8], 0, 18, 320 / ppm), [640, 360])
+        const at: V3 = [x, 0, 0]
+        screens.add(String(place(follow, at, cell, 'a', { grid: true })?.sprite.screen))
+      }
+      expect([...screens]).toHaveLength(1)
+    })
+
+    it("leaves today's placement as it is without it", () => {
+      for (const at of sweep.slice(0, 50)) expect(placeAt(at, false)?.sprite).toEqual(placeAt(at)?.sprite)
+    })
+
+    it('still lands the anchor texel where the quad stands', () => {
+      const at: V3 = [0.0137, 0, 0]
+      const placed = placeAt(at, true)
+      if (!placed) throw new Error('not placed')
+      const [px, py] = project(pose, [...placed.position])
+      expect(px).toBeCloseTo(placed.sprite.screen[0] + placed.sprite.scale * placed.sprite.cell.anchor[0], 6)
+      expect(py).toBeCloseTo(placed.sprite.screen[1] + placed.sprite.scale * placed.sprite.cell.anchor[1], 6)
+    })
+  })
+
   it('lands the anchor texel on screen + scale · anchor: the quad projected back is where the builder puts the cell', () => {
     for (const [, camera] of POSES) {
       const pose = poseOf(camera, [640, 360])
