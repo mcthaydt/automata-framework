@@ -72,3 +72,23 @@ const bareSky = (c: number): boolean => c === 0 || c === SKY
 /** The pixel numbers where `a` and `b` differ in more than how the empty sky is presented. */
 export const drawn = (a: ArrayLike<number>, b: ArrayLike<number>): number[] =>
   changed(a, b).filter((i) => !(bareSky(colourAt(a, i)) && bareSky(colourAt(b, i))))
+
+const PALETTE = DEFAULT_PALETTE.colors.map((hex) => Number.parseInt(hex.slice(1), 16))
+const luma = (c: number): number =>
+  (0.2126 * ((c >> 16) & 255) + 0.7152 * ((c >> 8) & 255) + 0.0722 * (c & 255)) / 255
+
+/**
+ * The colour the ball draws as in `dry`, `steps` down its own ramp (8 steps a ramp). The ball is the only bright thing in
+ * the frame. Which white it snaps to depends on the night's veil over it (the lit haze draws it ramp 10's lightest, the
+ * day-coloured veil it once took drew it ramp 0's), so the mirror is read from the ball as drawn, not from a fixed ramp.
+ */
+export function ballStepsDown(dry: Uint8Array, steps: number): number | undefined {
+  const counts = new Map<number, number>()
+  for (let i = 0; i < dry.length / 4; i++) {
+    const c = colourAt(dry, i)
+    if (luma(c) > 0.8) counts.set(c, (counts.get(c) ?? 0) + 1)
+  }
+  const ball = [...counts].sort((a, b) => b[1] - a[1])[0]?.[0]
+  const index = ball === undefined ? -1 : PALETTE.indexOf(ball)
+  return index < 0 ? undefined : PALETTE[index - steps]
+}

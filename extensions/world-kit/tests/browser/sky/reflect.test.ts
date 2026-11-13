@@ -3,33 +3,13 @@
 // ground, where only what glows reflects). WebGPU and WebGL2 parity is the GPU runner's.
 import '@automata/3d/no-eval'
 import { createPixi3dRenderer, DEFAULT_LOOK, type Pixi3dRenderer, timeOfDay } from '@automata/3d'
-import { DEFAULT_PALETTE } from '@automata/content/palette'
 import { CubeGeometry, FlatMaterial, Mesh3D, SphereGeometry } from '@pixi/3d'
 import { afterEach, describe, expect, it } from 'vitest'
 import { ReflectEffect } from '#src/features/sky/reflect-effect.ts'
-import { changed, colourAt, DUEL, drawn, pixels, SIZE, SKY, target } from './support.ts'
+import { ballStepsDown, changed, colourAt, DUEL, drawn, pixels, SIZE, SKY, target } from './support.ts'
 
 const hasWebGL2 = document.createElement('canvas').getContext('webgl2') !== null
 const frame = { alpha: 1, frameMs: 16, paused: false }
-const PALETTE = DEFAULT_PALETTE.colors.map((hex) => Number.parseInt(hex.slice(1), 16))
-const luma = (c: number): number =>
-  (0.2126 * ((c >> 16) & 255) + 0.7152 * ((c >> 8) & 255) + 0.0722 * (c & 255)) / 255
-
-/**
- * The colour the ball draws as in `dry`, `steps` down its own ramp (8 steps a ramp). The ball is the only bright thing in
- * the frame. Which white it snaps to depends on the night's veil over it (the lit haze draws it ramp 10's lightest, the
- * day-coloured veil it once took drew it ramp 0's), so the mirror is read from the ball as drawn, not from a fixed ramp.
- */
-function ballStepsDown(dry: Uint8Array, steps: number): number | undefined {
-  const counts = new Map<number, number>()
-  for (let i = 0; i < dry.length / 4; i++) {
-    const c = colourAt(dry, i)
-    if (luma(c) > 0.8) counts.set(c, (counts.get(c) ?? 0) + 1)
-  }
-  const ball = [...counts].sort((a, b) => b[1] - a[1])[0]?.[0]
-  const index = ball === undefined ? -1 : PALETTE.indexOf(ball)
-  return index < 0 ? undefined : PALETTE[index - steps]
-}
 
 let open: { dispose(): void } | undefined
 afterEach(() => {

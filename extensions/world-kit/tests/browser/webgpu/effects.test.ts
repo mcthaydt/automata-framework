@@ -10,7 +10,6 @@
 // A machine with no WebGPU adapter (Pixi falls back to WebGL) cannot judge this: the cases return early, as `@automata/3d`'s skip.
 import '@automata/3d/no-eval'
 import { createPixi3dRenderer, DEFAULT_LOOK, type Pixi3dRenderer, timeOfDay } from '@automata/3d'
-import { DEFAULT_PALETTE } from '@automata/content/palette'
 import { CubeGeometry, FlatMaterial, Mesh3D, SphereGeometry } from '@pixi/3d'
 import { afterEach, describe, expect, it } from 'vitest'
 import { ParticlesEffect } from '#src/features/sky/particles-effect.ts'
@@ -19,10 +18,9 @@ import { ReflectEffect } from '#src/features/sky/reflect-effect.ts'
 import { duelTriple } from '#src/features/sky/shader-parts.ts'
 import { ShaftsEffect } from '#src/features/sky/shafts-effect.ts'
 import { StarsEffect } from '#src/features/sky/stars-effect.ts'
-import { colourAt, DUEL, drawn, SIZE, SKY, target } from '../sky/support.ts'
+import { ballStepsDown, colourAt, DUEL, drawn, SIZE, SKY, target } from '../sky/support.ts'
 
 const frame = { alpha: 1, frameMs: 16, paused: false }
-const WHITE = DEFAULT_PALETTE.colors.map((hex) => Number.parseInt(hex.slice(1), 16))
 
 let open: { dispose(): void } | undefined
 afterEach(() => {
@@ -226,7 +224,11 @@ describe('the kit’s sky effects on WebGPU', () => {
     expect(await run.problems(), 'WGSL compiles').toEqual([])
     const moved = drawn(dry, wet)
     expect(moved.every((i) => DUEL.has(colourAt(wet, i)))).toBe(true)
-    const mirror = moved.filter((i) => colourAt(wet, i) === WHITE[6])
+    // The ball is white and a puddle takes one step down its own ramp; which white it snaps to depends on the night's veil over it
+    // (`ballStepsDown`), so the mirror is read from the ball as the dry frame draws it.
+    const mirrored = ballStepsDown(dry, 1)
+    expect(mirrored).toBeDefined()
+    const mirror = moved.filter((i) => colourAt(wet, i) === mirrored)
     expect(mirror.length).toBeGreaterThan(5)
     expect(mirror.every((i) => row(i) > SIZE.height / 2)).toBe(true)
     expect(mirror.every((i) => Math.abs(column(i) - SIZE.width / 2) < SIZE.width * 0.2)).toBe(true)
