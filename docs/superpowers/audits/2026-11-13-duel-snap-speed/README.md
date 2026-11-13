@@ -112,7 +112,8 @@ look is 0.04 and the schema allows up to 1. The result is still exact, only the 
 | `world-kit` browser, Chromium | 5 files, 30 tests passed |
 | `character-kit` browser + webgpu, Chromium | 7 files passed, 3 skipped; 58 tests passed, 3 skipped |
 | `base-3d` e2e (`base-3d` and `base-3d-dev` projects, Chromium) | 14 passed (1.8 min) |
-| `3d-story` and `examples-3d` e2e, Chromium | see the last section |
+| `3d-story` e2e (`story-3d-phone`, `story-3d-ipad`, Chromium) | 14 passed (2.1 min) |
+| `examples-3d` e2e (`examples-3d`, Chromium; its WebKit project not run) | 22 passed (1.8 min) |
 | Changeset | none: `@automata/3d` is `private: true` (and nothing published changed) |
 
 ## Not run, and why
