@@ -27,18 +27,18 @@ Biome. Markdown is not formatted by a tool.
 | Task | Part | Branch | Sessions | Model | Start | State | % |
 |---|---|---|---|---|---|---|---|
 | F1 The set's shape: the catalog, the package, the entry | 0 | `claude/example-set-shape` | 1 | Sonnet | **now** | done on `claude/example-set-f1` (no pull request yet; gates in `audits/2026-11-13-example-set-f1/README.md`) | 100% |
-| F2 A whole-pixel field and a look file, in the framework | 0 | `claude/example-set-field` | 1 | Sonnet | after the joined prologue branch | not started | 0% |
+| F2 A whole-pixel field and a look file, in the framework | 0 | `claude/example-set-field` | 1 | Sonnet | after the joined prologue branch (scrapped 2026-11-13: base to be ruled) | not started | 0% |
 | F3 The site can show a 3D example (the mechanism, on fixtures) | 0 | `claude/example-set-site` | 1 | Sonnet | **now**, after F1 | done on `claude/example-set-f3` (no pull request yet; gates in `audits/2026-11-13-example-set-f3/README.md`) | 100% |
 | F4 The site shows the set | 0 | `claude/example-set-site` | 1 | Sonnet | after ship-3d B10, `pixi-3d-public`, E1 | not started | 0% |
 | F5 `scene()` plays the place: the walker, the cast, the view, the look | 0 | `claude/example-set-play` | 2 | Sonnet | after F2, K1, L1 | not started | 0% |
-| W1 Two photos and their swatches | 1 | `claude/example-set-props` | 0.5 | Sonnet | **now** | not started | 0% |
-| W2 Track and platform props | 1 | `claude/example-set-props` | 1 | Sonnet | **now** | not started | 0% |
-| W3 Indoor props and the platform lamp | 1 | `claude/example-set-props` | 0.5 | Sonnet | **now** | not started | 0% |
-| L1 The level: rooms, walls, doors, the fit | 1 | `claude/example-set-place` | 1 | Opus | after the joined prologue branch, F1, W3 | not started | 0% |
+| W1 Two photos and their swatches | 1 | `claude/example-set-props` | 0.5 | Sonnet | **now** | done on `claude/example-set-world`, joined into `claude/example-set-start` | 100% |
+| W2 Track and platform props | 1 | `claude/example-set-props` | 1 | Sonnet | **now** | done on `claude/example-set-world`, joined into `claude/example-set-start` | 100% |
+| W3 Indoor props and the platform lamp | 1 | `claude/example-set-props` | 0.5 | Sonnet | **now** | done on `claude/example-set-world`, joined into `claude/example-set-start` | 100% |
+| L1 The level: rooms, walls, doors, the fit | 1 | `claude/example-set-place` | 1 | Opus | after the joined prologue branch (scrapped 2026-11-13: base to be ruled), F1, W3 | not started | 0% |
 | L2 Dressed by day | 1 | `claude/example-set-place` | 2 | Opus | after L1 | not started | 0% |
 | L3 Night, lamps and sky | 1 | `claude/example-set-place` | 1 | Opus | after L2 and the night fix | not started | 0% |
 | L4 The views, at the scale rule | 1 | `claude/example-set-place` | 1 | Opus | after L3, F2 | not started | 0% |
-| K1 A character is a content file | K | `claude/character-data` | 1 | Sonnet | after the joined prologue branch | not started | 0% |
+| K1 A character is a content file | K | `claude/character-data` | 1 | Sonnet | after the joined prologue branch (scrapped 2026-11-13: base to be ruled) | not started | 0% |
 | K2 The wardrobe says what each thing takes | K | `claude/character-data` | 1 | Sonnet | after K1 | not started | 0% |
 | K3 Characters opens and draws a character file | K | `claude/character-data-studio` | 2 | Sonnet | after K2, editors v2 tasks 2 to 4 | not started | 0% |
 | K4 Characters edits one, on a phone | K | `claude/character-data-studio` | 2 | Sonnet | after K3 | not started | 0% |
@@ -102,6 +102,8 @@ rebuilt when they land, and every look frame taken before that would be taken ag
 `main` **after the joined prologue branch has merged**. A session checks the features it needs are on `main` before
 it starts, with these commands (each must print a line; none printing is a stop, not a reason to merge a branch in):
 
+> **2026-11-13, implementation audit (`claude/example-set-start`): The Last Light is scrapped** (the Owner: "scrap the last light; we'll do a brand new microgame with same features; a systemic horror game"). "The joined prologue branch" (camera and ada into `claude/last-light-prologue`, on `main`) will not come. What the table of checks names (`peekReach`, `fitFocus`, `dimmest`, `bobOpen`, `cellPixels`, the night fix) is needed still and must reach `main` some other way; which way, and so the base for F2, Part K, L1 to L4 and F5, is the coordinator's ruling. Not rewritten here.
+
 | Feature | Needed by | Check, on `main` |
 |---|---|---|
 | A view's `lensMm`, `focusBounds`, `lead`, `peekReach`, `yawDeg`, `rotate` | L4, E1 | `git grep -n "peekReach" packages/3d/src/features/camera/sim/camera-view.schema.ts` |
@@ -146,6 +148,8 @@ the above.
 | 3D ship plan, B5 | `@automata/character-kit`'s published surface includes Part K's `characterFileSchema`, `charactersOf`, `paintedFromFile` if K1 lands first; if B5 lands first, K1 adds them with a `patch` changeset | One kind, one package |
 | The game's plan (The Last Light) | Convert Ada and the nurse to character files **with Part K's kind**, after K1; give its `PLAY_FIGURE`, `fieldFor`, `wholeScaleFor` and look wiring up for F2's and K1's framework versions | The Owner: "Ada should be data, characters should be an editor too right?" The kind is planned once, here |
 | Editors v2 landing | Tasks 2 to 4 before K3, K4, S2, S3; task 6 before S5 | The editors' pages change under v2 |
+
+> **2026-11-13, implementation audit (`claude/example-set-start`): The Last Light is scrapped** (the Owner: "scrap the last light; we'll do a brand new microgame with same features; a systemic horror game"). The row for the game's plan (convert Ada and the nurse, after K1) has no plan to carry it. Part K stands as this set's; whether the new microgame takes the kind is for its own plan.
 
 **In parallel, by folder** (no two own one file):
 
@@ -660,6 +664,8 @@ The Owner: "Ada should be data, characters should be an editor too right?" Today
 `CharacterDef` in TypeScript and Characters opens only core's mesh figures (stress row 3). This part makes a painted
 character a content file and makes Characters open, draw and edit it. The set's three people are its first files; the
 game converts Ada and the nurse with the same kind, in its own plan.
+
+> **2026-11-13, implementation audit (`claude/example-set-start`): The Last Light is scrapped** (the Owner: "scrap the last light; we'll do a brand new microgame with same features; a systemic horror game"). Part K was shaped against Ada and the night nurse on `origin/claude/last-light-ada`. Its "hardest case" and its "the game's lane can convert its cast" Done-means line name a cast that is scrapped; the kind still has this set's three people. Not rewritten here.
 
 **What the kind must express.** The hardest case is the game's cast file on `origin/claude/last-light-ada`
 (`games/the-last-light/src/features/figures/cast.ts`, with `old-swatches.ts` and `old-gaits.ts`), read for its field
@@ -1184,3 +1190,4 @@ Text for `docs/superpowers/progress.md`, not applied by this session:
 |---|---|---|---|---|
 | 2026-11-13 | plan audit (`claude/example-set-plan-audit`) | all | Audited at `73833f3ef` against `main` `7b6ce6ace`, the game's branches, the 3D ship plan, the editors v2 plan and the stress audit. Fixed in the plan: F5 added (`scene()` plays the place); F1 wires the content compiler, names its script `test:unit` and widens `EXTENSION_PACKAGES`; C2's `pullLever` is a painter stand; Part K's table is the painter's types (40 sliders, every `Material` and `Gait` field), not `figure-*` kinds; E5 and E6 change what reads the retired files; E7 owns every hotspot and E1 every dependency; E14 keeps `origins.ts`; E15's list measured; W1's photos are PNG with real Poly Haven candidates; S2's writer located. Rulings asked: the Owner's sheets at the end or before the examples; the joined branch's name; the 3D workflow's paths; `spikes/` in the sweep. See `audits/2026-11-13-example-set-plan/README.md` | this commit |
 | 2026-11-13 | plan audit (`claude/example-set-plan-audit`) | O1, O2, base | The coordinator's rulings written in: O1 is the last task and nothing waits on the Owner, O1 also carries Characters and the site's 3D page, O2 added (record the pictures after his yes); the joined branch is `claude/last-light-prologue` with camera and ada merged; no workflow change (a proposal for the Owner); `spikes/` stays out of the sweep. 41 tasks, 39.5 sessions | this commit |
+| 2026-11-13 | implementation audit (`claude/example-set-start`) | F1, F3, W1 to W3 | Joined F3 (on F1), `main` and the world branch. Fixed: an example page starts at play on `?play` and the site's frame asks for it; a sideways phone gets the stage and Play first; Escape keeps the keys off the game's blur-pause; no 3D page while the set depends on a private package; the source's tiles golden names the two new photos (a join conflict); the trunk's straps. Left: canopy and ticket window shapes; the framework's blur-pause focus; the scrapped game's lines marked. See `audits/2026-11-13-example-set-start/README.md` | this branch |
