@@ -6,7 +6,8 @@ import { defineConfig } from 'vite'
 // Every 3D example in this folder (the 3D runtime and figures), served and built by the same runner as the 2D ones:
 // `pnpm examples:3d [name]`. Each page starts its example with the umbrella's `startGame`; Svelte
 // compiles the default screens and the ui primitives under them. The set's content (`examples/set-3d`) compiles into
-// `virtual:automata/content`, as a game's does, for the examples that call its `scene()`.
+// `virtual:automata/content`, as a game's does, for the examples that call its `scene()`. The site builds this folder
+// for the web adapter (`AF_EXAMPLES_TARGET=web`, site/scripts/build-demos.ts), because its frames have no Ruken host.
 export default defineConfig({
   plugins: [
     svelte(),
@@ -14,6 +15,7 @@ export default defineConfig({
       root: import.meta.dirname,
       start: '@automata/framework',
       noEval: '@automata/framework/no-eval',
+      target: process.env.AF_EXAMPLES_TARGET === 'web' ? 'web' : 'ruken',
     }),
     setContentPlugin(process.env),
   ],

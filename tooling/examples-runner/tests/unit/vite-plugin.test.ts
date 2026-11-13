@@ -157,6 +157,17 @@ describe('examplesRunner', () => {
     expect(config.resolve.conditions[0]).toBe('automata-ruken')
   })
 
+  // The site frames an example on its own page, where no Ruken host answers: a Ruken build inside a frame waits ten seconds
+  // for a handshake before it runs standalone, so that build asks for the web adapter (the default condition) instead.
+  it('builds for the web target when asked, with no Ruken condition', async () => {
+    const config = await resolveConfig(
+      { configFile: false, plugins: [examplesRunner({ ...options, target: 'web' })] },
+      'build',
+    )
+    expect(config.resolve.conditions).not.toContain('automata-ruken')
+    expect(config.resolve.conditions).toContain('browser')
+  })
+
   // Vite inlines an asset under `assetsInlineLimit` as a `data:` URL, and Pixi's loader fetches it, which
   // Ruken's CSP (`connect-src 'self'`) refuses: a 278-byte sprite sheet drew nothing (textures-sprite).
   it('emits every asset as a file, so none becomes a data: URL the CSP refuses to fetch', async () => {

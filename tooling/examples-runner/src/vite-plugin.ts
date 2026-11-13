@@ -18,6 +18,12 @@ export interface ExamplesRunnerOptions {
   readonly start?: string
   /** The side-effect import every page runs first (default `@automata/framework/no-eval`). */
   readonly noEval?: string
+  /**
+   * The host adapter the build takes: `ruken` (the default) for the examples' own pages, which run in the fake Ruken
+   * host's frame, or `web` for a page that frames an example where no Ruken host answers (the site's 3D examples): a
+   * Ruken build inside such a frame waits ten seconds for a handshake before it runs standalone.
+   */
+  readonly target?: 'ruken' | 'web'
   readonly catalog?: CatalogOptions
 }
 
@@ -62,8 +68,9 @@ export function examplesRunner(options: ExamplesRunnerOptions): Plugin {
         root: options.root,
         base: './',
         appType: 'mpa',
-        // The examples run in the fake Ruken host's frame: the Ruken adapter, then Svelte's client build.
-        resolve: { conditions: ['automata-ruken', 'browser'] },
+        // The examples run in the fake Ruken host's frame: the Ruken adapter (unless `target` says `web`), then Svelte's
+        // client build.
+        resolve: { conditions: options.target === 'web' ? ['browser'] : ['automata-ruken', 'browser'] },
         // `assetsInlineLimit: 0`: Vite would inline an asset under 4 kB as a `data:` URL, which Pixi's loader fetches
         // and Ruken's CSP (`connect-src 'self'`) refuses; a same-origin file is what the CSP allows.
         build: { outDir: 'dist', emptyOutDir: true, assetsInlineLimit: 0, rollupOptions: { input } },
