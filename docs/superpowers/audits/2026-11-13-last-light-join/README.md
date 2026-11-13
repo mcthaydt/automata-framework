@@ -6,12 +6,12 @@ Execution session, no subagents. Joins, proves and measures; changes nothing of 
 | Item | State |
 |---|---|
 | 1. Merges | done (this section) |
-| 2. Gates on the joined tree | not yet |
+| 2. Gates on the joined tree | done (this section) |
 | 3. The joined game shot, Ada compared | not yet |
 | 4. Playthroughs (first night, second night) | not yet |
 | 5. Tick rate, measured | not yet |
 
-Overall: 1 of 5 items done (20%).
+Overall: 2 of 5 items done (40%).
 
 ## 1. The merges
 
@@ -69,3 +69,36 @@ file entirely; that was not done for `docs/superpowers/progress.md`, because the
 own sessions: that file on the branch carries the rows of sessions 3 to 16, the Owner's words and editor-gap rows 12 to 18, which exist
 nowhere else (main's file has none of them), so taking main's would delete the branch's own record. It is left as the merge made it
 (main's file plus the prologue's own rows) with one row added for this session. `docs/refactor/progress.md` is identical to main's.
+
+## 2. The gates on the joined tree (`54830b64`, nothing cached)
+
+Node 24.22.1 (fetched into `/opt/node24x`; the container has 22), pnpm 10.34.6, `pnpm install --frozen-lockfile` (lockfile unchanged).
+No hash, golden or recorded picture differed from what the branches recorded: nothing to stop on, nothing re-recorded.
+
+| Gate | Result |
+|---|---|
+| `pnpm install --frozen-lockfile` | passes |
+| `pnpm format` | exit 0, no file changed (741 warnings and 190 infos, no errors, as on main) |
+| `TURBO_FORCE=true pnpm check` | **exit 0**: lint, typecheck, boundaries, style, source-names, knip, `test:unit` over 67 turbo tasks (0 cached; 15 min 22 s), `changeset status` (patch bumps for published packages only) and `check-changesets` (87 changesets, 0 problems) |
+| `TURBO_FORCE=true pnpm build` | **exit 0**, 16 of 16 tasks, 0 cached |
+| `pnpm api-report` | exit 0 (22 API breaks against the base, 0 undeclared, all in the private `@automata/3d`); `--update` rewrote nothing |
+| `pnpm api-index` | 1306 exports from 50 entry points, 0 undocumented; `--write` rewrote nothing |
+| The game's unit suite (inside `check`) | 61 files, 472 tests, all pass |
+| `@automata/3d` unit | 150 files, 1632 tests, all pass |
+| `@automata/character-kit` unit | 49 files, 379 tests, all pass |
+| `@af-games/base-3d` unit (its goldens and hashes) | 20 files, 110 tests, all pass |
+| `@automata/figures` unit (the `goldens` project is in it) | 54 files, 730 tests, all pass |
+| `@automata/3d` browser, Chromium (`browser (chromium)` and `webgpu`, `AF_WEBGPU=software`) | 16 files, 55 passed, 2 skipped |
+| `@automata/character-kit` browser, Chromium, the same | 13 files, 66 passed, 3 skipped files / 3 tests |
+| `@automata/figures` browser and goldens, Chromium (`browser (chromium)`, `webgpu`, `goldens`, `AF_WEBGPU=software`) | 11 files, 303 tests, all pass |
+
+Notes, so nothing is read as more than it is:
+
+- The 5 skips are the tests' own guards (a browser with no WebGPU adapter, `skipIfAdapterGone`, `context.skip` on a fallback), not skips
+  added or kept by the join. No test was skipped or loosened.
+- The packages' `browser` project lists Chromium, WebKit and Firefox. Only Chromium is installed in this container, so WebKit and Firefox
+  **did not run** (the parity of the browser suites in the other two engines is pending for the GPU runner / CI). A first `turbo run
+  test:browser` died at once on `firefox-1543` not being installed; the runs above name the Chromium projects.
+- Without `AF_WEBGPU=software` figures' 105 webgpu cases skip and one WebGPU "instance dropped" rejection is reported; with it all pass.
+- Not run here: `pnpm test:browser:2d`, base-3d's and the game's browser, e2e and journey suites other than item 4's playthroughs, editor-3d's
+  browser suites, the 3D workflow's journeys.
