@@ -20,6 +20,12 @@ describe('framingMisses (D3-g)', () => {
     expect(framingMisses({ view: EXAMPLE_VIEW, outline: EXAMPLE_OUTLINE })).toEqual([])
   })
 
+  it('judges a view through its own lens: a room that 50 mm frames whole is cut off by 100 mm from the same place', () => {
+    expect(framingMisses({ view: cameraView('default'), outline: ONE_ROOM.outline })).toEqual([])
+    const long = framingMisses({ view: cameraView('long', { lensMm: 100 }), outline: ONE_ROOM.outline })
+    expect(long.length).toBeGreaterThan(0)
+  })
+
   it('reports each heading and aspect at which a corner leaves the frame, naming the corner', () => {
     // 10 m back is too close for a 6 m room through 50 mm; the default 16 m frames it whole.
     const misses = framingMisses({ view: cameraView('close', { distance: 10 }), outline: ONE_ROOM.outline })

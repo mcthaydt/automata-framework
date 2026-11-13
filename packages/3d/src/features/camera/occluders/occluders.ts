@@ -8,6 +8,7 @@ import { type BaseMaterial3D, Container3D, CubeGeometry, Mesh3D, PhongMaterial }
 import type { Occlude } from '../../../shared/level/occlude.ts'
 import { ownCopyOf } from '../../../shared/render/views/shared-material.ts'
 import type { CameraRig } from '../angled-camera.ts'
+import type { Vec3 } from '../camera-pose.ts'
 import {
   type OccluderFrame,
   type OccluderPass,
@@ -37,7 +38,7 @@ export interface WallOptions {
 export interface PropOptions {
   /** The prop's world bounds in metres. */
   readonly bounds: Box3
-  /** Default: `fade` when taller than 1.5 m, else `never`. */
+  /** Default: `fade` when its top is above 1 m (`TALL_PROP_METRES`), else `never`. */
   readonly occlude?: Occlude | undefined
 }
 
@@ -199,11 +200,35 @@ export function createOccluders(parent: Container3D): OccluderStage {
   }
 }
 
+/** The camera that is drawing when something other than the rig writes it (a cutscene): where it stands and what it looks at. */
+export interface DrawingCamera {
+  readonly eye: Vec3
+  readonly look: Vec3
+  /**
+   * What the shot keeps in sight. Unset (the default): a figure standing under the look point. A figure's feet and head: that
+   * figure, wherever the shot looks. `null`: nobody, so nothing is taken away and the room is drawn whole (an insert of a thing on a
+   * wall, whose look point would otherwise stand for a figure inside the wall and cut the wall and the thing on it).
+   */
+  readonly subject?: { readonly feet: Vec3; readonly head: Vec3 } | null | undefined
+}
+
 export interface OccluderHookOptions {
   /** Metres from the player's feet to its head: a positive, finite number. */
   readonly height: number
+  /**
+   * Half the player's width as the frame draws it, in metres (default 0: the rule's lines run down the figure's middle). With it,
+   * whatever stands on the line to either side of the figure is taken away too, so all of a wide sprite stays in sight.
+   */
+  readonly width?: number | undefined
   /** Default: the player's `prefers-reduced-motion`, read every frame. */
   readonly reducedMotion?: (() => boolean) | undefined
+  /**
+   * The camera that is really drawing, while something other than the rig writes the `Camera3D` (a cutscene's own shot):
+   * the rule then reads its eye, and its look point stands for the player (the subject of the shot), so a wall the shot
+   * looks at from inside the room stays whole. None (or `undefined`) means the rig's pose is what is drawn. Switching
+   * between the two makes the next frame jump instead of fading.
+   */
+  readonly drawing?: (() => DrawingCamera | undefined) | undefined
 }
 
 /**
@@ -221,21 +246,45 @@ export function occluderHooks(
     throw new Error(`occluders: the player's height must be a positive number of metres, not ${height}`)
   const isReduced = options.reducedMotion ?? (() => prefersReducedMotion())
   const head = { x: 0, y: 0, z: 0 }
-  const frame = { eye: head, look: head, feet: head, head, seconds: 0, reduced: false }
+  const width = options.width ?? 0
+  if (!(Number.isFinite(width) && width >= 0))
+    throw new Error(`occluders: the player's width must be 0 or a positive number of metres, not ${width}`)
+  const frame = { eye: head, look: head, feet: head, head, width, seconds: 0, reduced: false }
+  const subject = { x: 0, y: 0, z: 0 }
+  let wasDrawing = false
   return {
     apply(result) {
       if (result.render.resync) occluders.reset()
     },
     draw(drawn) {
+      const shot = options.drawing?.()
       const pose = rig.pose()
-      if (pose === undefined) return
-      if (pose.cut) occluders.reset()
-      head.x = pose.player.x
-      head.y = pose.player.y + height
-      head.z = pose.player.z
-      frame.eye = pose.eye
-      frame.look = pose.look
-      frame.feet = pose.player
+      if (shot === undefined && pose === undefined) return
+      // Another camera taking over, or giving back, is a cut: the rule jumps to what it says now.
+      if ((shot !== undefined) !== wasDrawing || (shot === undefined && pose?.cut === true)) occluders.reset()
+      wasDrawing = shot !== undefined
+      if (shot !== undefined) {
+        // Nobody to keep in sight: the rule's lines run from the eye to the eye, so nothing stands on them and all is drawn whole.
+        const nobody = shot.subject === null
+        const feet = nobody ? shot.eye : (shot.subject?.feet ?? { x: shot.look.x, y: 0, z: shot.look.z })
+        const top = nobody ? shot.eye : (shot.subject?.head ?? shot.look)
+        subject.x = feet.x
+        subject.y = feet.y
+        subject.z = feet.z
+        head.x = top.x
+        head.y = top.y
+        head.z = top.z
+        frame.eye = shot.eye
+        frame.look = shot.look
+        frame.feet = subject
+      } else if (pose !== undefined) {
+        head.x = pose.player.x
+        head.y = pose.player.y + height
+        head.z = pose.player.z
+        frame.eye = pose.eye
+        frame.look = pose.look
+        frame.feet = pose.player
+      }
       frame.seconds = drawn.frameMs / 1000
       frame.reduced = isReduced()
       occluders.update(frame)

@@ -9,7 +9,7 @@
 import type { FieldValues } from '@automata/sim'
 import type { CameraHeading } from './camera-heading.component.ts'
 import type { CameraView } from './camera-view.schema.ts'
-import { degToHeading, stepHeading, turnDirection } from './heading.ts'
+import { degToHeading, MAX_CAMERA_TURN, stepHeading, turnDirection, turnHeading } from './heading.ts'
 import { type Direction, mapStick, type Stick } from './stick-mapper.ts'
 
 /** The fields of `camera-heading`. */
@@ -57,6 +57,18 @@ export function turnCamera(state: HeadingState, units: number): HeadingState {
   if (direction === state.turning) return state
   if (direction === 0) return { ...state, turning: 0 }
   return { ...state, heading: stepHeading(state.heading, direction), latched: false, turning: direction }
+}
+
+/**
+ * A `camera-yaw` of `units` this tick: the free, analogue turn a game opts into (a right stick, a drag) in place of the
+ * stepped `camera-turn`. The heading turns by the units themselves, at most `MAX_CAMERA_TURN` (45°) either way in one tick,
+ * wrapped; a view with `rotate: false` ignores it, and no units change nothing. Like a stepped turn it lets go of the
+ * view-change latch, since the player asked for the new heading; it leaves the stepped turn's `turning` alone.
+ */
+export function yawCamera(state: HeadingState, units: number): HeadingState {
+  if (!state.rotate || units === 0) return state
+  const by = Math.max(-MAX_CAMERA_TURN, Math.min(MAX_CAMERA_TURN, units))
+  return { ...state, heading: turnHeading(state.heading, by), latched: false }
 }
 
 /**

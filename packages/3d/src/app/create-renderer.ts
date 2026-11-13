@@ -234,7 +234,11 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
     aspect: () => (view.width > 0 && view.height > 0 ? view.width / view.height : 16 / 9),
   })
   // The rule runs after the camera has moved, on the pose it just wrote.
-  const occluding = occluderHooks(camera, occluders, { height: options.camera.height ?? PLAYER_HEIGHT })
+  const occluding = occluderHooks(camera, occluders, {
+    height: options.camera.height ?? PLAYER_HEIGHT,
+    width: options.camera.width,
+    drawing: options.camera.drawing,
+  })
   return {
     view,
     occluders,

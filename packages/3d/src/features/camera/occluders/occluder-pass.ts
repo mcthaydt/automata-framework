@@ -2,11 +2,12 @@
 // camera's eye and look point and the player's feet and head, and says for each registered wall and prop whether the
 // rule takes it out of the way and how far its fade has got.
 //
-// Walls: a wall is occluding when the eye faces its outside or the eye's line to the head or the feet crosses it
-// (`occluder-rule.ts`). Hysteresis errs toward cutting: a standing wall goes the moment it occludes, and a cut wall
+// Walls: a wall is occluding when the eye faces its outside or the eye's line to any point of the figure crosses it
+// (`occluder-rule.ts`): five heights up it (feet, knee, waist, chest, head), and, given the sprite's half width, those moved that
+// far to either side across the view, so what the frame shows of the figure is what is kept clear, not only a line down its middle. Hysteresis errs toward cutting: a standing wall goes the moment it occludes, and a cut wall
 // comes back only when it would stay clear with the eye turned 5° either way about the look point. So no wall stands
 // while the eye is outside it (D3-h holds in every frame), and turning back and forth across the edge does not
-// flicker it. Props: one whose bounds the line to the head or the feet crosses is occluding; it is clear the frame
+// flicker it. Props: one whose bounds the line to any of those points crosses is occluding; it is clear the frame
 // it is not.
 //
 // Every change is one 150 ms fade, linear in a 0-to-1 progress, both ways: opacity is `1 − progress × (1 − floor)`,
@@ -42,6 +43,11 @@ export interface OccluderFrame {
   readonly look: Vec3
   readonly feet: Vec3
   readonly head: Vec3
+  /**
+   * Half the figure's width as drawn, in metres across the view (0 when omitted: the lines run to its middle only). A whole-pixel
+   * sprite is wider than the figure's body, and the frame shows all of it.
+   */
+  readonly width?: number | undefined
   readonly seconds: number
   readonly reduced: boolean
 }
@@ -89,8 +95,70 @@ function turned(eye: Vec3, look: Vec3, deg: number): Vec3 {
   return turnedEye
 }
 
-const wallOccludes = (span: WallSpan, eye: Vec3, frame: OccluderFrame): boolean =>
-  wallFacesAway(span, eye) || lineCrossesWall(span, eye, frame.head) || lineCrossesWall(span, eye, frame.feet)
+/** The points of the figure the rule keeps in sight, rewritten each frame (no allocation per frame). */
+const body: { x: number; y: number; z: number }[] = Array.from({ length: 15 }, () => ({ x: 0, y: 0, z: 0 }))
+/** The heights up the figure the lines run to, as shares of feet to head: close enough that a strip light cannot slip between. */
+const ROWS = [0, 0.25, 0.5, 0.7, 1]
+
+function put(i: number, x: number, y: number, z: number): void {
+  const point = body[i] as { x: number; y: number; z: number }
+  point.x = x
+  point.y = y
+  point.z = z
+}
+
+/**
+ * Fills `body` with the figure's points for `frame` and says how many there are: the `ROWS` up it, then, with a width, each of
+ * them moved that far to the eye's right and to its left (across the line from the eye to the look point, level).
+ */
+function bodyOf(frame: OccluderFrame): number {
+  const { feet, head } = frame
+  for (let row = 0; row < ROWS.length; row++) {
+    const t = ROWS[row] as number
+    put(row, feet.x + (head.x - feet.x) * t, feet.y + (head.y - feet.y) * t, feet.z + (head.z - feet.z) * t)
+  }
+  const width = frame.width ?? 0
+  const fx = frame.look.x - frame.eye.x
+  const fz = frame.look.z - frame.eye.z
+  const level = Math.hypot(fx, fz)
+  if (!(width > 0 && level > 0)) return ROWS.length
+  // Looking along (fx, fz) with +y up, the right is (−fz, fx), as `forward × up` has it.
+  const rx = (-fz / level) * width
+  const rz = (fx / level) * width
+  for (let row = 0; row < ROWS.length; row++) {
+    const { x, y, z } = body[row] as Vec3
+    put(ROWS.length + row, x + rx, y, z + rz)
+    put(2 * ROWS.length + row, x - rx, y, z - rz)
+  }
+  return 3 * ROWS.length
+}
+
+function wallOccludes(span: WallSpan, eye: Vec3, points: number): boolean {
+  if (wallFacesAway(span, eye)) return true
+  for (let i = 0; i < points; i++) if (lineCrossesWall(span, eye, body[i] as Vec3)) return true
+  return false
+}
+
+/** Whether `point` is inside `bounds` (on a face counts). */
+const within = (point: Vec3, { min, max }: Box3): boolean =>
+  point.x >= min[0] &&
+  point.x <= max[0] &&
+  point.y >= min[1] &&
+  point.y <= max[1] &&
+  point.z >= min[2] &&
+  point.z <= max[2]
+
+/**
+ * Whether the line to any of the figure's points passes through `bounds`. A point inside the box is beside the prop, not behind it
+ * (the figure standing against a cabinet, its sprite's side reaching into it), so its line does not count.
+ */
+function propOnLine(bounds: Box3, eye: Vec3, points: number): boolean {
+  for (let i = 0; i < points; i++) {
+    const point = body[i] as Vec3
+    if (!within(point, bounds) && segmentHitsBox(eye, point, bounds)) return true
+  }
+  return false
+}
 
 /**
  * Moves `progress` toward `target` (0 or 1) at one whole fade per 150 ms, or at once under reduced motion or when
@@ -114,16 +182,17 @@ export function occluderPass(entries: {
   let snap = true
   return {
     step(frame) {
+      const points = bodyOf(frame)
       walls.forEach((wall, i) => {
         const out = shownWalls[i] as WallShown
         const { span, occlude } = wall.entry
         if (occlude === 'never') return
         const was = out.occluded && !snap
         out.occluded =
-          wallOccludes(span, frame.eye, frame) ||
+          wallOccludes(span, frame.eye, points) ||
           (was &&
-            (wallOccludes(span, turned(frame.eye, frame.look, HYSTERESIS_DEG), frame) ||
-              wallOccludes(span, turned(frame.eye, frame.look, -HYSTERESIS_DEG), frame)))
+            (wallOccludes(span, turned(frame.eye, frame.look, HYSTERESIS_DEG), points) ||
+              wallOccludes(span, turned(frame.eye, frame.look, -HYSTERESIS_DEG), points)))
         wall.progress = stepProgress(wall.progress, out.occluded ? 1 : 0, frame, snap)
         out.opacity = 1 - wall.progress * (1 - floorOf(occlude))
         out.trim = occlude === 'cut' && out.opacity < 1
@@ -131,8 +200,7 @@ export function occluderPass(entries: {
       props.forEach((prop, i) => {
         const { bounds, occlude } = prop.entry
         if (occlude === 'never') return
-        const on =
-          segmentHitsBox(frame.eye, frame.head, bounds) || segmentHitsBox(frame.eye, frame.feet, bounds)
+        const on = propOnLine(bounds, frame.eye, points)
         prop.progress = stepProgress(prop.progress, on ? 1 : 0, frame, snap)
         shownProps[i] = 1 - prop.progress * (1 - floorOf(occlude))
       })

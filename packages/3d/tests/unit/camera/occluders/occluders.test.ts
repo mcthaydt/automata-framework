@@ -7,7 +7,11 @@ import { Camera3D, Container3D, CubeGeometry, Mesh3D, PhongMaterial } from '@pix
 import { describe, expect, it, vi } from 'vitest'
 import { angledCamera } from '#src/features/camera/angled-camera.ts'
 import { eyeOf, type Vec3 } from '#src/features/camera/camera-pose.ts'
-import { createOccluders, occluderHooks } from '#src/features/camera/occluders/occluders.ts'
+import {
+  createOccluders,
+  type DrawingCamera,
+  occluderHooks,
+} from '#src/features/camera/occluders/occluders.ts'
 import { cameraView } from '#src/features/camera/sim/camera-view.schema.ts'
 import { emptyModels } from '#src/shared/render/model/load-models.ts'
 import { box } from '#src/shared/render/views/box-view.ts'
@@ -291,5 +295,84 @@ describe('occluderHooks', () => {
     hooks.draw?.({ alpha: 1, frameMs: 16, paused: false })
     expect(ceiling.visible).toBe(false)
     expect(wall?.visible).toBe(false)
+  })
+
+  // A cutscene writes the Camera3D itself, so the rig's pose is not what is drawn: a wall cut for the play camera outside the room
+  // stayed cut while a cutscene looked at it from inside (a cutscene's close shot showed a void behind the speaker).
+  it('follows the camera that is drawing while something else drives it, and the rig again after', () => {
+    const rig = angledCamera({
+      camera: new Camera3D(),
+      views: [cameraView('hall')],
+      initial: 'hall',
+      reducedMotion: () => true,
+    })
+    const occluders = createOccluders(new Container3D())
+    const [wall] = meshesOf(occluders.wall({ a: { x: 0, z: 0 }, b: { x: 4, z: 0 }, height: 2.5, color: 1 }))
+    let drawing:
+      | { eye: { x: number; y: number; z: number }; look: { x: number; y: number; z: number } }
+      | undefined
+    const hooks = occluderHooks(rig, occluders, {
+      height: 1.62,
+      reducedMotion: () => true,
+      drawing: () => drawing,
+    })
+    const frame = { alpha: 1, frameMs: 16, paused: false }
+    // The play camera looks +z from outside the wall at the player 2 m inside: the wall is cut.
+    rig.follow(2, 0, 2)
+    rig.update(1 / 60)
+    hooks.draw?.(frame)
+    expect(wall?.visible).toBe(false)
+    // A cutscene camera stands inside the room and looks at that wall: it faces the eye, so it stands whole.
+    drawing = { eye: { x: 2, y: 1.6, z: 3.5 }, look: { x: 2, y: 1, z: 0.5 } }
+    hooks.draw?.(frame)
+    expect(wall?.visible).toBe(true)
+    expect(wall?.material.alpha).toBe(1)
+    // A cutscene camera outside the wall, looking in at the same subject, cuts it as the play camera does.
+    drawing = { eye: { x: 2, y: 1.6, z: -3.5 }, look: { x: 2, y: 1, z: 1.5 } }
+    hooks.draw?.(frame)
+    expect(wall?.visible).toBe(false)
+    // When the cutscene lets go the rig's pose is the camera again.
+    drawing = undefined
+    hooks.draw?.(frame)
+    expect(wall?.visible).toBe(false)
+  })
+
+  // The prologue's noticeboard insert looks at a board hung on a wall with nobody in the shot: the look point stood for a figure inside
+  // the wall, so the rule cut the wall and the board and the shot showed the dark behind them. A shot may say what it keeps in sight.
+  it('keeps the figure a drawing camera names in sight, and cuts nothing for a shot that names none', () => {
+    const rig = angledCamera({
+      camera: new Camera3D(),
+      views: [cameraView('hall')],
+      initial: 'hall',
+      reducedMotion: () => true,
+    })
+    const occluders = createOccluders(new Container3D())
+    const pillar = new Mesh3D({ geometry: new CubeGeometry(), material: new PhongMaterial() })
+    occluders.prop(pillar, { bounds: { min: [1.8, 0, 0.8], max: [2.2, 2.4, 1.2] } })
+    let drawing: DrawingCamera | undefined
+    const hooks = occluderHooks(rig, occluders, {
+      height: 1.62,
+      reducedMotion: () => true,
+      drawing: () => drawing,
+    })
+    const frame = { alpha: 1, frameMs: 16, paused: false }
+    // An insert of a board beyond the pillar, nobody in the shot: its look point stands for a figure, and the pillar is taken away.
+    drawing = { eye: { x: 2, y: 1.6, z: 3.5 }, look: { x: 2, y: 1.5, z: -0.5 } }
+    hooks.draw?.(frame)
+    expect(pillar.visible && pillar.material.alpha === 1).toBe(false)
+    // Naming no subject, the shot draws the room whole.
+    drawing = { ...drawing, subject: null }
+    hooks.draw?.(frame)
+    expect(pillar.visible).toBe(true)
+    expect(pillar.material.alpha).toBe(1)
+    // Naming a figure off to the side, the pillar is not in her way and stays.
+    drawing = { ...drawing, subject: { feet: { x: 3.6, y: 0, z: 0 }, head: { x: 3.6, y: 1.62, z: 0 } } }
+    hooks.draw?.(frame)
+    expect(pillar.visible).toBe(true)
+    expect(pillar.material.alpha).toBe(1)
+    // Naming a figure behind it, it is taken away for her.
+    drawing = { ...drawing, subject: { feet: { x: 2, y: 0, z: -0.5 }, head: { x: 2, y: 1.62, z: -0.5 } } }
+    hooks.draw?.(frame)
+    expect(pillar.visible && pillar.material.alpha === 1).toBe(false)
   })
 })

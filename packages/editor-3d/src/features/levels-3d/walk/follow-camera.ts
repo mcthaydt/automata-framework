@@ -11,18 +11,18 @@ import type { SectorMesh, Vec3 } from '../../../shared/geometry/sector-mesh'
 import { headingToYaw, type WallsSeen, wallsSeenFrom } from './heading'
 
 const DEGREES = Math.PI / 180
-/** The game's vertical field of view: the film convention's 2·atan(12 / mm) on a 24 mm tall gate (`fovOf`, in radians). */
-const GAME_FOV = 2 * Math.atan(12 / LENS_MM)
+/** A lens's vertical field of view: the film convention's 2·atan(12 / mm) on a 24 mm tall gate (`fovOf`, in radians). */
+const fovRadians = (lensMm: number): number => 2 * Math.atan(12 / lensMm)
 
 /**
  * The camera the game puts on a player at `followed` looking along `heading` (turn units): `distance` metres from the focus,
- * which is the followed position raised by `focusHeight`, tipped `tiltDeg` down, through the game's lens (`LENS_MM`).
+ * which is the followed position raised by `focusHeight`, tipped `tiltDeg` down, through the view's own lens, else the game's (`LENS_MM`).
  */
 export function followCamera(spec: CameraView, followed: Vec3, heading: number): Camera3D {
   const focus: Vec3 = [followed[0], followed[1] + spec.focusHeight, followed[2]]
   return orbitCamera(
     { target: focus, distance: spec.distance, yaw: headingToYaw(heading), pitch: spec.tiltDeg * DEGREES },
-    GAME_FOV,
+    fovRadians(spec.lensMm ?? LENS_MM),
   )
 }
 

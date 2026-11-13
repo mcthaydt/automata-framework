@@ -17,6 +17,19 @@ export {
   zoneShot,
 } from '../features/camera/play-camera.ts'
 export {
+  bestLookHeight,
+  type FitField,
+  type FitSprite,
+  type FloorRect,
+  type FocusFit,
+  fitFocus,
+  followLook,
+  insideFrame,
+  reachOf,
+  type SpriteBox,
+  spriteBoxAt,
+} from '../features/camera/play-fit.ts'
+export {
   CAMERA_DEFAULTS,
   CAMERA_RANGES,
   type CameraView,

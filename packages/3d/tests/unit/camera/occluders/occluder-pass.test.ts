@@ -122,3 +122,38 @@ describe('props', () => {
     expect(pass.step(frame(0, 0, true)).props).toEqual([0, 1])
   })
 })
+
+describe('the figure as the frame shows it', () => {
+  // A wall already reaches `FIGURE_REACH` past its ends; what the head's and the feet's lines miss is the middle of her and, for a
+  // prop's box, the sides of her sprite.
+  const at = (eye: Vec3, width?: number): OccluderFrame => ({
+    eye,
+    look: { x: 2, y: 1, z: -2 },
+    feet: { x: 2, y: 0, z: -2 },
+    head: { x: 2, y: 1.62, z: -2 },
+    seconds: 0,
+    reduced: true,
+    ...(width === undefined ? {} : { width }),
+  })
+
+  it('cuts a face that crosses only the line to her waist', () => {
+    // The eye level with her waist (0.81 m): a rail face from 0.78 to 0.84 m crosses that line and not the head's or the feet's.
+    const rail: WallSpan = { a: { x: 0, z: 0 }, b: { x: 4, z: 0 }, base: 0.78, height: 0.84 }
+    const pass = occluderPass({ walls: [{ span: rail, occlude: 'cut' }], props: [] })
+    expect(pass.step(at({ x: 2, y: 0.81, z: 3 })).walls[0]?.occluded).toBe(true)
+  })
+  it('fades a prop on the line to her waist or to a side of her sprite, not only her head and feet', () => {
+    // A box 0.28 to 0.5 m to her right, half way to the eye: only the sprite's right edge (0.32 m out) is behind it.
+    const box = { min: [2.14, 0.7, -0.1], max: [2.25, 1.1, 0.1] } as const
+    const pass = occluderPass({ walls: [], props: [{ bounds: box, occlude: 'fade' }] })
+    expect(pass.step(at({ x: 2, y: 0.9, z: 3 })).props[0]).toBe(1)
+    pass.reset()
+    expect(pass.step(at({ x: 2, y: 0.9, z: 3 }, 0.32)).props[0]).toBe(0.25)
+  })
+  it('leaves a tall prop she stands beside: a side of her sprite inside its box is beside it, not behind it', () => {
+    // A cabinet from 0.2 to 0.6 m to her right, level with her: the sprite's right edge (0.32 m) ends inside it.
+    const cabinet = { min: [2.2, 0, -2.2], max: [2.6, 1.9, -1.8] } as const
+    const pass = occluderPass({ walls: [], props: [{ bounds: cabinet, occlude: 'fade' }] })
+    expect(pass.step(at({ x: 2, y: 3, z: 3 }, 0.32)).props[0]).toBe(1)
+  })
+})

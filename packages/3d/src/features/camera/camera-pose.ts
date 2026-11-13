@@ -106,7 +106,7 @@ export function framedFocus({ player, lock, view, headingDeg, aspect }: FrameInp
   const base: Vec3 = { x: player.x, y: player.y + view.focusHeight, z: player.z }
   if (lock === undefined) return clampToBounds(base, view.bounds)
   const target: Vec3 = { x: lock.x, y: lock.y + view.focusHeight, z: lock.z }
-  const fov = fovOf(LENS_MM)
+  const fov = fovOf(view.lensMm ?? LENS_MM)
   const at = (share: number): Vec3 => clampToBounds(lerp3(base, target, share), view.bounds)
   const framed = (share: number): boolean => {
     const focus = at(share)

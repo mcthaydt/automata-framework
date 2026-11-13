@@ -29,7 +29,8 @@ export const CAMERA_DEFAULTS: {
 export const CAMERA_RANGES: {
   readonly tiltDeg: { readonly min: number; readonly max: number }
   readonly distance: { readonly min: number; readonly max: number }
-} = { tiltDeg: { min: 25, max: 40 }, distance: { min: 3, max: 20 } }
+  readonly lensMm: { readonly min: number; readonly max: number }
+} = { tiltDeg: { min: 25, max: 40 }, distance: { min: 3, max: 20 }, lensMm: { min: 24, max: 200 } }
 
 const point = z.tuple([z.number(), z.number(), z.number()])
 
@@ -40,9 +41,15 @@ const box3Schema = z
     message: 'bounds: min must not pass max on any axis',
   })
 
-const { tiltDeg, distance } = CAMERA_RANGES
+const { tiltDeg, distance, lensMm } = CAMERA_RANGES
 
 type Point = readonly [number, number, number]
+
+const floorBox = z
+  .strictObject({ min: z.tuple([z.number(), z.number()]), max: z.tuple([z.number(), z.number()]) })
+  .refine(({ min, max }) => min[0] <= max[0] && min[1] <= max[1], {
+    message: 'focusBounds: min must not pass max on either axis',
+  })
 
 /** A `camera-view` file's fields once compiled: the defaults filled in. */
 export interface CameraViewFields {
@@ -52,10 +59,34 @@ export interface CameraViewFields {
   readonly tiltDeg: number
   /** Metres from the focus back along the view axis, 3 to 20. */
   readonly distance: number
+  /**
+   * The view's lens in millimetres, 24 to 200 (`fovOf`): none means the game's 50 mm (`LENS_MM`). A longer lens shows less of the
+   * room at the same distance and flattens its perspective, so a game that draws its figures at a whole-pixel scale can set the
+   * scale with the lens and keep the camera as far back as the room's walls need.
+   */
+  readonly lensMm?: number | undefined
   /** Metres above the followed position that the focus sits. */
   readonly focusHeight: number
   /** The focus is kept inside this box, so walls and doorways stay framed. */
   readonly bounds?: { readonly min: Point; readonly max: Point } | undefined
+  /**
+   * A locked-on view's (`follow` 1) focus box on the floor, `[x, z]` corners in metres: the look stays inside it however far the player
+   * walks, so a camera that shows a narrow slice of a room (a long lens) stops at the room's edge and the player walks on across the frame.
+   * Not the zone's `bounds`, which also say where the view is entered; a fixed zone keeps its own.
+   */
+  readonly focusBounds?:
+    | { readonly min: readonly [number, number]; readonly max: readonly [number, number] }
+    | undefined
+  /**
+   * How far the look leads a walking player, in metres, in the direction she walks (none: it trails her). The lead eases in as she walks
+   * and out when she stops, so a camera that shows a narrow slice of the room shows what is ahead of her and not what she has passed.
+   */
+  readonly lead?: number | undefined
+  /**
+   * The most a peek round a doorway leans the camera in this view, metres (none: 1.2, `PEEK_REACH`). A near camera holds the figure
+   * in its frame only a little way from the look, so it leans less (`fitFocus` derives it).
+   */
+  readonly peekReach?: number | undefined
   /** The follow's time constant in seconds: the camera closes 63% of the gap in this long. 0 snaps. */
   readonly lag: number
   /** Whether the player may turn the camera here (false: an arena framed one way). */
@@ -92,10 +123,18 @@ export const cameraViewSchema: z.ZodType<CameraViewFields, CameraViewInput> = z
     tiltDeg: z.number().min(tiltDeg.min).max(tiltDeg.max).default(CAMERA_DEFAULTS.tiltDeg),
     /** Metres from the focus back along the view axis. */
     distance: z.number().min(distance.min).max(distance.max).default(CAMERA_DEFAULTS.distance),
+    /** The view's lens in millimetres; none keeps the game's 50 mm. */
+    lensMm: z.number().min(lensMm.min).max(lensMm.max).optional(),
     /** Metres above the followed position that the focus sits. */
     focusHeight: z.number().min(0).default(CAMERA_DEFAULTS.focusHeight),
     /** The focus is kept inside this box, so walls and doorways stay framed. */
     bounds: box3Schema.optional(),
+    /** A locked-on view's focus box on the floor: the look stays inside it. */
+    focusBounds: floorBox.optional(),
+    /** How far the look leads a walking player, in metres. */
+    lead: z.number().min(0).max(8).optional(),
+    /** The most a peek leans the camera in this view, metres. */
+    peekReach: z.number().min(0).max(8).optional(),
     /** Seconds of easing on the follow. */
     lag: z.number().min(0).default(CAMERA_DEFAULTS.lag),
     /** Whether the player may turn the camera here (false: an arena framed one way). */

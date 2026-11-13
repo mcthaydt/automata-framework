@@ -43,7 +43,7 @@ export function framingMisses(input: FramingInput): FramingMiss[] {
   const at = input.at ?? centreOf(outline)
   const aspects = input.aspects ?? [4 / 3, 21 / 9]
   const step = input.stepDeg ?? 15
-  const fov = fovOf(LENS_MM)
+  const fov = fovOf(view.lensMm ?? LENS_MM)
   const misses: FramingMiss[] = []
   for (let headingDeg = 0; headingDeg < 360; headingDeg += step)
     for (const aspect of aspects) {

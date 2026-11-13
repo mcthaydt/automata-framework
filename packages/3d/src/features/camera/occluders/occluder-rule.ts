@@ -13,12 +13,14 @@ export interface PlanPoint {
 }
 
 /**
- * A wall: its inside face from `a` to `b` on the floor plan, the room on its left, standing `height` metres from y 0,
- * and solid `thickness` metres outward (0 when omitted: a face with no depth).
+ * A wall: its inside face from `a` to `b` on the floor plan, the room on its left, standing from `base` (0 when omitted: the
+ * floor) up to `height` metres, and solid `thickness` metres outward (0 when omitted: a face with no depth). A face that does not
+ * stand on the floor (a bulkhead over a portal, a lintel) gives its `base`, so a line through the opening under it does not cut it.
  */
 export interface WallSpan {
   readonly a: PlanPoint
   readonly b: PlanPoint
+  readonly base?: number | undefined
   readonly height: number
   readonly thickness?: number | undefined
 }
@@ -37,8 +39,12 @@ export const FIGURE_REACH = 0.6
  * the player walking through a corridor mouth does not cut the wall either side of it.
  */
 export const ON_THE_LINE = 0.12
-/** Props taller than this fade by default; shorter ones never go. */
-export const TALL_PROP_METRES = 1.5
+/**
+ * Props reaching higher than this fade by default; lower ones never go. From the camera above, a prop that reaches a standing
+ * figure's chest covers it when the figure stands just behind it (a filing cabinet, a shelf of bottles), and anything hung
+ * higher (a strip light, a sign) crosses the line to its head; a lower one hides no more than its legs.
+ */
+export const TALL_PROP_METRES = 1
 
 interface Span {
   readonly length: number
@@ -101,7 +107,7 @@ export function lineCrossesWall(wall: WallSpan, from: Vec3, to: Vec3): boolean {
     to.y,
     -end,
     -FIGURE_REACH,
-    0,
+    wall.base ?? 0,
     0,
     length + FIGURE_REACH,
     wall.height,
@@ -160,8 +166,8 @@ function clip(origin: number, step: number, low: number, high: number): boolean 
   return enter <= leave
 }
 
-/** What a prop does on the line: what it says, else `fade` when taller than 1.5 m and `never` when not. */
+/** What a prop does on the line: what it says, else `fade` when its top reaches above `TALL_PROP_METRES` and `never` when not. */
 export function propOcclude(bounds: Box3, given: Occlude | undefined): Occlude {
   if (given !== undefined) return given
-  return bounds.max[1] - bounds.min[1] > TALL_PROP_METRES ? 'fade' : 'never'
+  return bounds.max[1] > TALL_PROP_METRES ? 'fade' : 'never'
 }
