@@ -182,8 +182,11 @@ describe('Ada', () => {
     const base = (BASE[1] as { def: CharacterDef }).def.sliders as Record<string, unknown>
     for (const [key, value] of Object.entries(ADA.sliders as Record<string, unknown>)) {
       if (typeof value !== 'number' || key === 'height') continue
-      // A slider the base woman leaves out (her seat) is the painter's default, 0.5 (`DEFAULT_SLIDERS` in the figures' genes).
-      expect(Math.abs(value - Number(base[key] ?? 0.5)), key).toBeLessThanOrEqual(0.3)
+      // A slider the base woman leaves out (her seat, her thighs) is the painter's default, 0.5 (`DEFAULT_SLIDERS` in the figures' genes).
+      // Her thighs alone may go 0.35 under it (the Owner, 2026-11-13: "maybe not hips but ass"): from behind her width is her two
+      // thighs side by side, and 0.2 left her jeans 0.9 of her shoulders, at the edge of what was asked.
+      const reach = key === 'thighs' ? 0.35 : 0.3
+      expect(Math.abs(value - Number(base[key] ?? 0.5)), key).toBeLessThanOrEqual(reach)
     }
     expect(ADA.genes).toBeUndefined()
   })
@@ -227,6 +230,21 @@ describe('Ada', () => {
       const shoulders = band(rowWidths(cell, { def: ADA, swatch: 'cream' }), 0.16, 0.3)
       const seat = band(rowWidths(cell, { def: ADA, swatch: 'fadedDenim' }), 0.42, 0.62)
       expect(seat, `direction ${direction}`).toBeLessThanOrEqual(shoulders)
+    }
+  })
+
+  it('is narrower through the hips and thighs than at the shoulders from behind, as the base man in her clothes is (the Owner, 2026-11-13: “maybe not hips but ass”)', () => {
+    // At the painter's default thighs her jeans were as wide as her shirt at the shoulders from behind (30 and 30 at density 2); the
+    // base man in her clothes is 0.79. Her thighs slider takes her to about 0.87, still a woman's build and not a man's.
+    for (const direction of [4, 3]) {
+      const cell = paintedCell(ADA, direction, 2)
+      const { top, height } = silhouette(cell)
+      const band = (widths: number[], from: number, to: number) =>
+        Math.max(...widths.slice(top + Math.round(height * from), top + Math.round(height * to) + 1))
+      const shoulders = band(rowWidths(cell, { def: ADA, swatch: 'cream' }), 0.16, 0.3)
+      const seat = band(rowWidths(cell, { def: ADA, swatch: 'fadedDenim' }), 0.42, 0.62)
+      expect(seat / shoulders, `direction ${direction}: ${seat} / ${shoulders}`).toBeLessThanOrEqual(0.9)
+      expect(seat / shoulders, `direction ${direction}: ${seat} / ${shoulders}`).toBeGreaterThanOrEqual(0.8)
     }
   })
 
