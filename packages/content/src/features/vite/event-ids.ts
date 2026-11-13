@@ -4,7 +4,7 @@
 // keep a box for an event this cannot see.
 
 import type { Dirent } from 'node:fs'
-import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
 const EVENT_FILE = /\.event\.ts$/
@@ -54,7 +54,11 @@ export async function writeEventIds(root: string, outDir: string): Promise<void>
     // Not there yet: written below.
   }
   await mkdir(join(root, outDir), { recursive: true })
-  await writeFile(path, text)
+  // Written beside it and renamed over it, so the editors reading the file as a save rewrites it get the old list or the
+  // new one, never the empty file a plain write leaves for a moment.
+  const draft = `${path}.${process.pid}.tmp`
+  await writeFile(draft, text)
+  await rename(draft, path)
 }
 
 /** Whether a changed path is a file `writeEventIds` reads. */
