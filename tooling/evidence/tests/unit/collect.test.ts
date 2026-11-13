@@ -144,25 +144,48 @@ describe('goldensFromReports', () => {
 })
 
 describe('packagesFromManifests', () => {
-  const tags = ['@automata/sim@0.0.1', '@automata/sim@0.0.2']
+  const sim = (version: string) => ({ name: '@automata/sim', version })
+  const pixi = (version: string) => ({ name: '@automata/render-pixi', version })
+  // The tags of a scope the packages no longer have. Spelled in another scope's name: the scope check forbids
+  // writing the retired one outside the history, and the tool must not care which scope a tag has.
+  const retiredTags = ['@retired/automata-sim@0.0.1', '@retired/automata-sim@0.0.2', 'parked/some-branch']
 
   it("marks a version released when Changesets' release tag for it exists", () => {
-    expect(
-      packagesFromManifests(
-        [
-          { name: '@automata/sim', version: '0.0.2' },
-          { name: '@automata/render-pixi', version: '0.0.1' },
-        ],
-        tags,
-      ),
-    ).toEqual([
+    const tags = ['@automata/sim@0.0.1', '@automata/sim@0.0.2']
+    expect(packagesFromManifests([sim('0.0.2'), pixi('0.0.1')], tags)).toEqual([
       { name: '@automata/render-pixi', version: '0.0.1', released: false },
       { name: '@automata/sim', version: '0.0.2', released: true },
     ])
   })
 
-  it('refuses to say nothing was released when the checkout has no tags (fetch them)', () => {
-    expect(() => packagesFromManifests([{ name: '@automata/sim', version: '0.0.2' }], [])).toThrow(/tags/)
+  it('says nothing is released, without failing, when the only tags belong to an older scope', () => {
+    expect(packagesFromManifests([sim('0.0.2'), pixi('0.0.1')], retiredTags)).toEqual([
+      { name: '@automata/render-pixi', version: '0.0.1', released: false },
+      { name: '@automata/sim', version: '0.0.2', released: false },
+    ])
+  })
+
+  it("does not count an older scope's tag for the same version as a release of this scope", () => {
+    expect(packagesFromManifests([sim('0.0.2')], retiredTags)[0]?.released).toBe(false)
+  })
+
+  it('follows the packages to whatever scope their names have, with no scope written in the tool', () => {
+    const renamed = { name: '@automataframework/sim', version: '0.1.0' }
+    const before = packagesFromManifests([renamed], retiredTags)
+    expect(before).toEqual([{ ...renamed, released: false }])
+    const after = packagesFromManifests([renamed], [...retiredTags, '@automataframework/sim@0.1.0'])
+    expect(after).toEqual([{ ...renamed, released: true }])
+  })
+
+  it('marks a version unreleased when only an earlier version of the same package is tagged', () => {
+    const tags = ['@automata/sim@0.1.0', ...retiredTags]
+    expect(packagesFromManifests([sim('0.1.1')], tags)).toEqual([
+      { name: '@automata/sim', version: '0.1.1', released: false },
+    ])
+  })
+
+  it('refuses a checkout with no tags at all: a shallow clone must not look like nothing was ever released', () => {
+    expect(() => packagesFromManifests([sim('0.0.2')], [])).toThrow(/no git tags.*fetch/)
   })
 })
 
