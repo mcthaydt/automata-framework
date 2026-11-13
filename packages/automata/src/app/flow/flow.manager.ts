@@ -92,6 +92,35 @@ function findByName(root: HTMLElement, name: FocusName): HTMLElement | null {
   )
 }
 
+/** How many display frames a dropped focus request is repeated for: about half a second at 60 Hz. */
+const FOCUS_RETRY_FRAMES = 30
+
+/**
+ * Focuses `target`, and asks again on each display frame while the engine keeps dropping the request. WebKit ignores
+ * `focus()` on a control that was added a moment ago: no focus event, and `activeElement` stays the body, for the
+ * first two frames or so (about 25 ms), then takes the same call. A player on a keyboard or gamepad would be left
+ * with nothing focused on the title screen. Asking again stops when the control has focus, when focus has gone
+ * anywhere else (the player's, or the screen's own), when the control leaves the page, when the screen is left
+ * (`screen` is its undo list) and after `FOCUS_RETRY_FRAMES` frames.
+ */
+function focusUntilItTakes(target: HTMLElement, screen: Disposables): void {
+  target.focus()
+  const doc = target.ownerDocument
+  const win = doc.defaultView
+  if (doc.activeElement === target || win === null) return
+  let left = FOCUS_RETRY_FRAMES
+  let pending = 0
+  const askAgain = (): void => {
+    if (!target.isConnected) return
+    const holder = doc.activeElement
+    if (holder !== null && holder !== doc.body && holder !== target) return
+    target.focus()
+    if (doc.activeElement !== target && --left > 0) pending = win.requestAnimationFrame(askAgain)
+  }
+  pending = win.requestAnimationFrame(askAgain)
+  screen.add(() => win.cancelAnimationFrame(pending))
+}
+
 /**
  * Creates the Flow service and its transition queue.
  * Follows the 9-step transition order, runs one transition at a time, fades through the veil, shows the loader
@@ -306,7 +335,7 @@ export function createFlow(options: FlowOptions): FlowHandle {
         section.querySelector<HTMLElement>('[data-kind="primary"]') ??
         tabbables(section)[0] ??
         null
-      if (target !== null && typeof target.focus === 'function') target.focus()
+      if (target !== null && typeof target.focus === 'function') focusUntilItTakes(target, screen)
     }
 
     // (8) Reveal
