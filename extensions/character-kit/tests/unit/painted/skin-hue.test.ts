@@ -6,7 +6,7 @@ import { FASHION_SWATCHES } from '#src/features/fashion/swatches.ts'
 import { litCells } from '#src/features/painted/lit-cells.ts'
 import { Painter } from '#src/features/painted/painter.ts'
 import { roomLight, type Tint } from '#src/features/painted/room-light.ts'
-import { holdSkinHue, sharedColours, skinColours } from '#src/features/painted/skin-hue.ts'
+import { holdSkinHue, sharedColours, skinColours, skinRamp } from '#src/features/painted/skin-hue.ts'
 import {
   BASE,
   type CharacterDef,
@@ -77,7 +77,7 @@ const apart = (x: number, y: number) => Math.abs(((x - y + 540) % 360) - 180)
 /** Every skin texel of the figure lit by `tint`: its painted colour and its lit one, where the two differ. */
 function skinUnder(tint: Tint, hold: boolean, density: 1 | 2 | 4 = 2) {
   const figure = standing(density)
-  const lit = litCells(undefined, hold ? { skin: skinColours(fair) } : undefined).lit(
+  const lit = litCells(undefined, hold ? { held: [{ colours: skinColours(fair) }] } : undefined).lit(
     figure,
     roomLight(tint, undefined, FEET, 0),
   )
@@ -303,15 +303,17 @@ describe('the budget’s stand-in for a skin tone', () => {
   const S = 0xce9770
   const N = 0x945d4f
   const L = 0x7c4b47
-  /** A 5 by 4 cell, row by row: skin round a nostril pair, the upper lip below; a boot of the stand-in's colour on its own. */
+  const J = 0x25466b
+  /** A 5 by 5 cell, row by row: skin round a nostril pair, the upper lip below in jeans, a boot of the stand-in's colour under them. */
   const rows = [
     [S, S, S, S, S],
     [S, N, N, S, S],
     [S, S, S, S, S],
-    [N, L, L, N, 0],
+    [J, L, L, J, J],
+    [J, N, N, N, J],
   ]
   const cellOf = (pick: (c: number) => number) =>
-    new Uint8ClampedArray(rows.flat().flatMap((c) => (c === 0 ? [0, 0, 0, 0] : [...rgb(pick(c)), 255])))
+    new Uint8ClampedArray(rows.flat().flatMap((c) => [...rgb(pick(c)), 255]))
   const rgb = (c: number) => [c >> 16, (c >> 8) & 255, c & 255]
   // The room dims each colour two steps down its own DUEL row.
   const down = (c: number) => {
@@ -320,7 +322,7 @@ describe('the budget’s stand-in for a skin tone', () => {
   }
   const at = (px: Uint8ClampedArray, x: number, y: number) => hex(px, (y * 5 + x) * 4)
 
-  it('holds the nostrils the skin closes round, and leaves the lip and the lone boot texel to the room', () => {
+  it('holds the nostrils the skin closes round, and leaves the lip and the boot to the room', () => {
     const painted = cellOf((c) => c)
     const dimmed = cellOf(down)
     const lit = holdSkinHue(painted, dimmed.slice(), dimmed.slice(), new Set(SKIN_TONES), 5)
@@ -330,7 +332,7 @@ describe('the budget’s stand-in for a skin tone', () => {
       expect(hueOf(at(lit, x, 1))).toBeGreaterThanOrEqual(Math.min(...hues) - 15)
     }
     expect(at(lit, 1, 3)).toBe(at(dimmed, 1, 3))
-    expect(at(lit, 3, 3)).toBe(at(dimmed, 3, 3))
+    for (const x of [1, 2, 3]) expect(at(lit, x, 4)).toBe(at(dimmed, x, 4))
   })
 })
 
@@ -390,5 +392,31 @@ describe('a colour the skin shares with another material', () => {
     expect(at(lit, 1, 1)).toBe(at(dimmed, 1, 1))
     expect(at(lit, 3, 1)).toBe(at(dimmed, 3, 1))
     expect(at(lit, 2, 3)).not.toBe(at(dimmed, 2, 3))
+  })
+})
+
+// The line and fold the painter derives are held, but a held texel takes its swatch's own painted ramp: the warm skin's line #753b09 is an
+// orange, and held along a ramp that ended in it, her deepest tone and fold darkened to it and Ada's jaw edge played orange specks.
+describe('a held texel takes its swatch’s own ramp, not the derived tones', () => {
+  const px = (v: number) => new Uint8ClampedArray([v >> 16, (v >> 8) & 255, v & 255, 255])
+  const warm: CharacterDef = { ...base, skin: 'skinWarm' }
+  const lch = (c: string) => {
+    const [L, a, b] = oklab(c)
+    return { L, C: Math.hypot(a, b) }
+  }
+  it('names the ramp as the swatch’s four painted tones', () => {
+    expect(skinRamp(warm)).toEqual([0xedb67c, 0xce9770, 0xbd7d64, 0xa76057])
+  })
+  it('darkens the deepest tone and the fold to red-browns, never to the line’s orange (which a ramp of every held colour gives)', () => {
+    const held = (was: number, dim: number, ramp: readonly number[]) =>
+      hex(holdSkinHue(px(was), px(dim), px(dim), new Set(skinColours(warm)), 0, undefined, new Set(ramp)), 0)
+    for (const [was, dim] of [
+      [0xa76057, 0x6e2434],
+      [0x885041, 0x733d3b],
+    ] as const) {
+      expect(held(was, dim, skinColours(warm))).toBe('753b09')
+      expect(held(was, dim, skinRamp(warm))).not.toBe('753b09')
+      expect(lch(held(was, dim, skinRamp(warm))).C).toBeLessThan(lch('753b09').C)
+    }
   })
 })

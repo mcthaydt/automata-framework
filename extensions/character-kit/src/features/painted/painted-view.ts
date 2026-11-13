@@ -53,7 +53,7 @@ export interface PaintedFigureOptions {
   /**
    * Whether a face keeps its skin's hue in the room's light (false by default, the lit sprite's own): where the room darkens the skin it
    * takes the shade of the same hue and not a mauve or purple DUEL step, and the room's colour never tints it. The skin colours are the
-   * character's skin swatch's paint (`skinColours`). It costs a second lit sprite on each new lit cell, when the room's light has a colour.
+   * character's skin swatch's painted tones, line and fold (`skinColours`). It costs a second lit sprite on each new lit cell, when the room's light has a colour.
    */
   readonly holdSkinHue?: boolean | undefined
   /**

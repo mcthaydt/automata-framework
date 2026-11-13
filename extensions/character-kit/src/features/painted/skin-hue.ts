@@ -40,33 +40,85 @@ export function skinColours(def: CharacterDef): readonly number[] {
   return swatch === undefined ? [] : paintedTones(swatch, true)
 }
 
-/**
- * The skin's colours (`skinColours`) that another material the character names in its outfits paints too: Ada's skin fold #885041 is her
- * auburn hair's base tone, and the skin's deepest #a76057 the hair's shine. Held wherever it is painted, such a colour took the crown to
- * the skin's ramp; it is held only where the skin closes round it (`holdSkinHue`).
- */
-export function sharedColours(def: CharacterDef): readonly number[] {
-  const skin = new Set(skinColours(def))
-  const others = new Set<number>()
+/** Every swatch name the character's outfits give a piece (a garment's cloth, the hair, the face's marks), and its skin's. */
+function namedSwatches(def: CharacterDef): Set<string> {
+  const names = new Set<string>(def.skin === undefined ? [] : [def.skin])
   for (const pieces of Object.values(def.outfits ?? {}))
     for (const piece of pieces as readonly Record<string, unknown>[])
-      for (const name of Object.values(piece)) {
-        if (typeof name !== 'string' || name === def.skin) continue
-        const swatch = swatchOf(def, name)
-        if (swatch !== undefined) for (const c of paintedTones(swatch)) others.add(c)
-      }
-  return [...skin].filter((c) => others.has(c))
+      for (const name of Object.values(piece))
+        if (typeof name === 'string' && swatchOf(def, name) !== undefined) names.add(name)
+  return names
+}
+
+/** The painter's ink (a dark ramp's fold is ink): it is the outline's, never a material's to hold. */
+const INK = 0x000000
+
+/** The colours the painter paints the swatches `names` in (`paintedTones`; the skin's as skin). */
+function coloursOf(def: CharacterDef, names: Iterable<string>): number[] {
+  const out = new Set<number>()
+  for (const name of names) {
+    const swatch = swatchOf(def, name)
+    if (swatch !== undefined)
+      for (const c of paintedTones(swatch, name === def.skin)) if (c !== INK) out.add(c)
+  }
+  return [...out]
+}
+
+/** The DUEL colour nearest `rgb`. */
+function snapped(rgb: number): number {
+  const lab = oklab(rgb)
+  let best = PALETTE[0] as (typeof PALETTE)[number]
+  let near = Number.POSITIVE_INFINITY
+  for (const p of PALETTE) {
+    const d = (p.lab[0] - lab[0]) ** 2 + (p.lab[1] - lab[1]) ** 2 + (p.lab[2] - lab[2]) ** 2
+    if (d < near) {
+      near = d
+      best = p
+    }
+  }
+  return best.rgb
+}
+
+/** The ramp of the swatches `names`: their own painted tones on DUEL (a swatch with no paint gives its `paintedTones`). */
+function paintRamp(def: CharacterDef, names: Iterable<string>): number[] {
+  const out = new Set<number>()
+  for (const name of names) {
+    const swatch = swatchOf(def, name)
+    if (swatch === undefined) continue
+    const paint = swatch.paint?.map((hex) => snapped(Number.parseInt(hex.slice(1), 16)))
+    for (const c of paint ?? paintedTones(swatch, name === def.skin)) if (c !== INK) out.add(c)
+  }
+  return [...out]
+}
+
+/** The skin's own ramp, which a held skin texel takes: its swatch's four painted tones on DUEL. */
+export function skinRamp(def: CharacterDef): readonly number[] {
+  return paintRamp(def, def.skin === undefined ? [] : [def.skin])
+}
+
+/**
+ * The skin's colours (`skinColours`) that another swatch the character names paints too: Ada's skin fold #885041 is her auburn hair's base
+ * tone, and the skin's deepest #a76057 the hair's shine. Held wherever it is painted, such a colour took her crown to the skin's ramp; it is
+ * held only where the skin borders its patch more than the rest of the figure does (`holdHue`).
+ */
+export function sharedColours(def: CharacterDef): readonly number[] {
+  const others = new Set(
+    coloursOf(
+      def,
+      [...namedSwatches(def)].filter((name) => name !== def.skin),
+    ),
+  )
+  return skinColours(def).filter((c) => others.has(c))
 }
 
 /**
  * The painter's colour budget merges a rare tone into a near colour of the figure, the whole tone at once (`budget` in the painter's
  * paint-budget.ts): Ada's deepest skin tone, on a few nostril and mouth-corner texels, came out as her boots' #945d4f, a colour of another
- * material that no list of her skin's colours can name. A stand-in is a colour the budget could have merged a skin tone into (`REACH` in
- * OKLab of one and `alike` it, the budget's own `MINOR[0]` and test) on a texel the held skin closes round (`RINGED` of its eight
- * neighbours): the same colour with no skin round it (the boots) is left to the room.
+ * material that no list of her skin's colours can name. A stand-in is a colour the budget could have merged a held colour into (`REACH`
+ * in OKLab of one and `alike` it, the budget's own `MINOR[0]` and test), held where that material borders its patch the most (`holdHue`):
+ * the same colour on the boots, bordered by the boots and the jeans, is left to the room.
  */
 const REACH = 0.075
-const RINGED = 5
 const deltaE = (p: Lab, q: Lab): number => Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2])
 /** The budget's `alike`: both near-grey, or of hues within 12 degrees and of like chroma. */
 function alike(p: Lab, q: Lab): boolean {
@@ -76,7 +128,7 @@ function alike(p: Lab, q: Lab): boolean {
   return Math.min(dh, 2 * Math.PI - dh) < 0.21 && Math.min(ca, cb) > 0.6 * Math.max(ca, cb)
 }
 const standIns = new WeakMap<ReadonlySet<number>, Map<number, boolean>>()
-/** Whether the budget could have merged one of `skin`'s colours into `rgb`. */
+/** Whether the budget could have merged one of `skin`'s colours (a held material's) into `rgb`. */
 function skinLike(rgb: number, skin: ReadonlySet<number>): boolean {
   let known = standIns.get(skin)
   if (!known) {
@@ -170,12 +222,23 @@ function warmer(lit: number, skin: ReadonlySet<number>): number {
 const at = (px: Uint8ClampedArray, o: number): number =>
   ((px[o] ?? 0) << 16) | ((px[o + 1] ?? 0) << 8) | (px[o + 2] ?? 0)
 
+/** A material whose hue the room's light holds: its painted colours (its ramp), and those of them another material paints too. */
+export interface HeldColours {
+  readonly colours: ReadonlySet<number>
+  readonly shared?: ReadonlySet<number> | undefined
+  /**
+   * The colours whose ramp a held texel takes (`colours` by default): its swatch's own painted tones (`skinRamp`). The line and fold the
+   * painter derives are held but are no ramp of their own: Ada's skin line #753b09 is an orange, and held along a ramp that ended in it,
+   * her deepest tone and fold darkened to it and her jaw's edge played orange specks.
+   */
+  readonly ramp?: ReadonlySet<number> | undefined
+}
+
 /**
- * `lit` (the lit sprite's colours for `painted`) with each texel of a skin colour held to its hue: `neutral` is the same light with no
- * colour of its own, so the room's tint never reaches the skin, and a skin texel `neutral` changes takes the skin's own ramp at that lightness
- * (the painted colours of `skin`, light to dark, are that ramp). `width` is the cell's width in texels: with it, a stand-in the budget
- * put on the skin (`heldTexels`) is held as well; without it (0), only the texels of a `skin` colour. A colour in `shared` (`sharedColours`:
- * the skin's, and another material's too) is held, like a stand-in, only where the skin closes round it, and never without a `width`. Changes `lit` in place and returns it.
+ * `lit` (the lit sprite's colours for `painted`) with each texel of a held skin colour held to its hue: `neutral` is the same light with
+ * no colour of its own, so the room's tint never reaches the skin, and a skin texel `neutral` changes takes the skin's own ramp at that
+ * lightness (`ramp`, the swatch's painted tones; `skin` by default). `width` and `shared` are `holdHue`'s. Changes `lit` in place and
+ * returns it.
  */
 export function holdSkinHue(
   painted: Uint8ClampedArray,
@@ -184,14 +247,34 @@ export function holdSkinHue(
   skin: ReadonlySet<number>,
   width = 0,
   shared: ReadonlySet<number> = NONE,
+  ramp: ReadonlySet<number> = skin,
 ): Uint8ClampedArray {
-  const held = heldTexels(painted, skin, width, shared)
-  for (let k = 0; k < held.length; k++) {
-    if (!held[k]) continue
+  return holdHue(painted, neutral, lit, [{ colours: skin, shared, ramp }], width)
+}
+
+/**
+ * `lit` with each texel of a held material (a skin) held to its hue, as `holdSkinHue` holds the skin: the room's tint never
+ * reaches it, and where `neutral` changes it, it takes its material's own ramp at that lightness. A texel of a colour only one held material
+ * paints is that material's. `width` is the cell's width in texels: with it, a patch of a colour two materials share (Ada's skin fold and
+ * her hair's base tone) or of a budget stand-in goes to the held material that borders it the most, if that is more than the rest of the
+ * figure does (darks under `DARK` count for no one: the outline and the figure's near-blacks border everything); without it (0), such a
+ * texel is left to the room. The first material wins a tie. Changes `lit` in place and returns it.
+ */
+export function holdHue(
+  painted: Uint8ClampedArray,
+  neutral: Uint8ClampedArray,
+  lit: Uint8ClampedArray,
+  held: readonly HeldColours[],
+  width = 0,
+): Uint8ClampedArray {
+  const owner = owners(painted, held, width)
+  for (let k = 0; k < owner.length; k++) {
+    const m = held[(owner[k] as number) - 1]
+    if (m === undefined) continue
     const o = k * 4
     const was = at(painted, o)
     const now = at(neutral, o)
-    const out = now === was ? was : warmer(now, skin)
+    const out = now === was ? was : warmer(now, m.ramp ?? m.colours)
     lit[o] = (out >> 16) & 255
     lit[o + 1] = (out >> 8) & 255
     lit[o + 2] = out & 255
@@ -200,46 +283,65 @@ export function holdSkinHue(
 }
 
 const NONE: ReadonlySet<number> = new Set()
+/** The lightness under which a texel is one of the figure's darks (its ink outline and its near-blacks #1d1d21 and #181f2f), bordering
+ * every material alike. */
+const DARK = 0.25
+const OTHER = 0
+const OPEN = 255
 
 /**
- * The texels of `painted` that are skin: every texel of a `skin` colour no other material shares, then each stand-in or shared colour the
- * held skin closes round, grown until none is added (one beside a held one counts it). With no `w` (0) a texel has no neighbours: only the
- * texels of an unshared `skin` colour are held.
+ * Which held material owns each texel of `painted`: 1 + its index, `OTHER` for the rest of the figure and the empty texels. A colour only
+ * one material paints is its; a shared colour or a stand-in is decided patch by patch (its 8-connected texels of the one colour) by the
+ * borders, as `holdHue` says.
  */
-function heldTexels(
-  painted: Uint8ClampedArray,
-  skin: ReadonlySet<number>,
-  w: number,
-  shared: ReadonlySet<number>,
-): Uint8Array {
+function owners(painted: Uint8ClampedArray, held: readonly HeldColours[], w: number): Uint8Array {
   const n = painted.length / 4
-  const held = new Uint8Array(n)
-  const maybe: number[] = []
+  const owner = new Uint8Array(n)
+  const dark = new Uint8Array(n)
   for (let k = 0; k < n; k++) {
     if (!painted[k * 4 + 3]) continue
     const c = at(painted, k * 4)
-    if (shared.has(c)) maybe.push(k)
-    else if (skin.has(c)) held[k] = 1
-    else if (skinLike(c, skin)) maybe.push(k)
+    const only = held.findIndex((m) => m.colours.has(c) && !m.shared?.has(c))
+    if (only >= 0) owner[k] = only + 1
+    else if (w > 0 && held.some((m) => m.shared?.has(c) || skinLike(c, m.colours))) owner[k] = OPEN
+    else dark[k] = oklab(c)[0] < DARK ? 1 : 0
   }
-  if (w === 0) return held
-  for (let grew = true; grew && maybe.length > 0; ) {
-    grew = false
-    for (let i = maybe.length - 1; i >= 0; i--) {
-      const k = maybe[i] as number
-      const [x, y] = [k % w, Math.floor(k / w)]
-      let round = 0
+  if (w === 0) return owner
+  const seen = new Uint8Array(n)
+  for (let k = 0; k < n; k++) {
+    if (owner[k] !== OPEN || seen[k]) continue
+    const c = at(painted, k * 4)
+    const patch = [k]
+    const border = new Array<number>(held.length + 1).fill(0)
+    const counted = new Set<number>()
+    seen[k] = 1
+    for (let i = 0; i < patch.length; i++) {
+      const q = patch[i] as number
+      const [x, y] = [q % w, Math.floor(q / w)]
       for (let dy = -1; dy <= 1; dy++)
         for (let dx = -1; dx <= 1; dx++) {
           const [xx, yy] = [x + dx, y + dy]
-          if ((dx || dy) && xx >= 0 && xx < w && yy >= 0 && yy * w + xx < n && held[yy * w + xx]) round++
+          const r = yy * w + xx
+          if ((dx === 0 && dy === 0) || xx < 0 || xx >= w || yy < 0 || r >= n || !painted[r * 4 + 3]) continue
+          if (owner[r] === OPEN && at(painted, r * 4) === c) {
+            if (!seen[r]) {
+              seen[r] = 1
+              patch.push(r)
+            }
+          } else if (!counted.has(r) && owner[r] !== OPEN && !dark[r]) {
+            counted.add(r)
+            border[owner[r] as number] = (border[owner[r] as number] as number) + 1
+          }
         }
-      if (round >= RINGED) {
-        held[k] = 1
-        maybe.splice(i, 1)
-        grew = true
-      }
     }
+    // The held material that may own this colour and borders the patch the most, if more than the rest of the figure does.
+    let best = OTHER
+    for (let m = 1; m <= held.length; m++) {
+      const mat = held[m - 1] as HeldColours
+      const may = mat.colours.has(c) || skinLike(c, mat.colours)
+      if (may && (border[m] as number) > (border[best] as number)) best = m
+    }
+    for (const q of patch) owner[q] = best
   }
-  return held
+  return owner
 }
