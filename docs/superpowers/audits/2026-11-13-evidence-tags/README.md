@@ -15,13 +15,13 @@ shallow clone has no tags and would report every package unreleased.
 
 ## How it broke
 
-- `3055edb88` (2026-10-16) wrote the call as `git tag --list '@mcthaydt/*'`, a literal scope, and e6c44fbab
+- `3055edb88` (2026-10-16) wrote the call as `git tag --list` with the Owner's personal scope written as a literal, and e6c44fbab
   (2026-11-07, "publish under the project's npm scope") rewrote it to `@automata/*` with the rest of the scope rename.
 - The packages are now `@automata/*`, but nothing was ever released under that name. The 52 tags in the repository
-  are all `@mcthaydt/automata-*@x` (plus `parked/*`). So the filtered list is empty, and the "no tags at all" refusal
+  are all in that personal scope (`<scope>/automata-<name>@<version>`, plus `parked/*`). So the filtered list is empty, and the "no tags at all" refusal
   fired although the checkout has all its tags.
 - The step passed on main run 42304357280 (2026-11-06, before the rename). Runs after it failed first at
-  `@mcthaydt/automata-testing#test:evidence`, then, once the golden tests passed (#668, c0f321cf5), at this line.
+  the testing package's `test:evidence` task, then, once the golden tests passed (#668, c0f321cf5), at this line.
   So it has not passed on main since the rename.
 - Reproduced here before the fix: `git tag --list '@automata/*'` is empty, `git tag --list` has 52, and
   `packagesFromManifests` throws at `collect.ts:106`.
@@ -36,12 +36,12 @@ but a letter, digit or `-`) has nothing here to miss, and the next rename needs 
 
 | State | Tags | `released` | Result |
 | --- | --- | --- | --- |
-| today: `@automata/*` names, only `@mcthaydt/automata-*` tags | 52, none of these names | all `false` | written; the CLI says "no release tag for any of these names yet" |
+| today: `@automata/*` names, only the personal scope's tags | 52, none of these names | all `false` | written; the CLI says "no release tag for any of these names yet" |
 | after the codemod: `@automataframework/*` names | same 52 | all `false` | same |
 | after the first public release: tags of the current names | `<name>@<version>` present | `true` for those versions | written |
 | a shallow checkout (no tags at all) | none | not written | fails: no git tags, fetch them |
 
-The old `@mcthaydt` tags are never used as a release of a package under another name: the lookup needs the exact
+The personal scope's tags are never used as a release of a package under another name: the lookup needs the exact
 `<name>@<version>`. `released: false` is also true per package (a version bumped since its last tag), so the schema
 (version 1, which the website validates) did not change.
 
