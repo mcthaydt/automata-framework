@@ -141,7 +141,7 @@ before W3 was pushed as done, and W3 was gated on its own.
 Rows for `docs/superpowers/progress.md`, for the coordinator to copy:
 
 > **Workstream: one example set (3D), world kit (W1 to W3).** Done 2026-11-13 on `claude/example-set-world`
-> (`02ffb292c`, from `main` `28d72fb54`; no pull request): [audit folder](audits/2026-11-13-example-set-world/README.md).
+> (`02ffb292c`, from `main` `28d72fb54`; no pull request): audit folder `audits/2026-11-13-example-set-world/README.md`.
 > W1 two CC0 Poly Haven photos (`gravel_stones` as `ballast`, `rough_wood` as `sleeper`), PNG, recorded in
 > `photos.json`, with swatches and tiles; W2 `rails`, `platformEdge`, `canopy`, `signal`; W3 `ticketWindow`,
 > `leverFrame`, `trunk` and the preset `lamp.platform`; all in `@automata/world-kit`, none with a station's name. Each has a
