@@ -77,16 +77,24 @@ journeys step.
 
 ## The Last Light, after the haze rule (M1 ruled)
 
-A game's own haze colour is now used as given (`HazeProfile.lit`, above). Proved on a scratch worktree (not pushed): this branch
+A game's own haze colour is used as given when it says `lit: false` (`HazeProfile.lit`, above; a plain, enumerable field). Proved on a scratch worktree (not pushed): this branch
 merged with `origin/claude/last-light-prologue` (one conflict, in `create-renderer.ts`, resolved by keeping both the
 prologue's `width` and `drawing` and this branch's `hazing` line). The game's `frames.test.ts` (`AF_SHOOT`, 1024 by 768,
 Chromium with SwiftShader) shot twice: before is main's behaviour (`hazeOf` in `createLookPasses`, no haze-focus hook), after
-is this branch. In `last-light-play-before-after.png` and `last-light-cutscene-before-after.png` (before left, after right) the far
+is this branch. In `last-light-cutscene-before-after.png` (before left, after right; the play picture is re-shot below) the far
 floor and the window's shafts keep the game's grey-green on both sides, and the far tile is not pink. Mean colour over the whole
 frame, before then after: play (28.85, 33.21, 32.24) and (28.94, 33.28, 32.28); cutscene (30.91, 34.10, 31.09) and
 (30.80, 33.99, 30.99); over the far band of the frame the same to 0.3 a channel. The film grain differs between any two shots,
 so single pixels do. (With the first version of the fix, which lit every colour, the same frame went blue-lavender.) The
-game's `lookOf` spreads `DEFAULT_LOOK.haze` and writes its own colour, which is why the library's mark is not carried by a copy.
+game's `lookOf` spreads `DEFAULT_LOOK.haze` and writes its own colour. `lit` is an ordinary field now, so the spread inherits
+`lit: true`, and `lookOf` needs `lit: false` (below).
+
+**Re-shot with the plain field** (scratch worktrees, not pushed: main plus the prologue is "before"; this branch plus the prologue,
+the one conflict resolved the same way, is "after"; Chromium with SwiftShader, 1024 by 768, `AF_SHOOT`).
+`last-light-play-before-after.png` is now three panels, before, after with the line, after without it. Mean colour over the frame,
+before then after with the line: (28.95, 33.27, 32.30) and (28.99, 33.31, 32.33); over the top third (22.30, 27.69, 27.93) and
+(22.33, 27.71, 27.95): the same game colour. Without the line the same frame is (30.42, 33.85, 33.59) and (24.12, 28.33, 29.58), and
+the window's shafts are blue-lavender and the far tile pink: the line is needed. The cutscene frame was not re-shot.
 
 ## What moves
 
@@ -118,5 +126,17 @@ game's `lookOf` spreads `DEFAULT_LOOK.haze` and writes its own colour, which is 
 | Step | Status | Record |
 |---|---|---|
 | 3D night brighter than day (editor's night journeys) | Fixed, test first: the haze focused on the gameplay camera, a time with no haze lights the library's own haze colour, base-3d's fog moved out to the 16 m camera. Guard: `gameplay-time.parity.test.ts` in the 3D parity job | `docs/superpowers/audits/2026-11-12-3d-night-regression/` |
-| A game's own haze colour (M1 ruled) | Done: `HazeProfile.lit`; only the library's default colour is lit by the time, a colour a game writes is used as given. The Last Light's play and cutscene frames are the same before and after (`last-light-*-before-after.png`). `SkyEffect` follows the same rule | same, "The Last Light, after the haze rule" |
+| A game's own haze colour (M1 ruled) | Done: `HazeProfile.lit`; the library's default is `lit: true` (a plain field, so a save and a load keep it); a look file with its own colour and no `lit` is unlit, and a game that spreads the default and picks its own colour writes `lit: false`. The Last Light's play and cutscene frames are the same before and after (`last-light-*-before-after.png`). `SkyEffect` follows the same rule | same, "The Last Light, after the haze rule" |
 | `examples/3d` `look-pixel-art` brightness (M2 ruled) | Done: read at sim tick 600 with the page's clock held; 40.35 healthy, 19.61 with the defect, floor 30 (was 40, measured through the day veil). Fails planted, passes removed | same, "What moves" |
+
+### For the tracker / when The Last Light merges
+
+`games/the-last-light/src/app/look.ts`, in `lookOf`'s `haze`, add one line after `colour: hazeColourOf(OLD_HAZE),`:
+
+```ts
+      lit: false,
+```
+
+The game chose its colour, so it is used as given. Without the line the spread inherits the default's `lit: true` and the night's
+veil is lit blue-lavender (`last-light-play-before-after.png`, right panel). Nothing else on that branch spreads the default haze.
+Callers on this branch: none changes the colour (`painted-lit.test.ts` spreads it for `near` and `far` only, and keeps the lit colour).
