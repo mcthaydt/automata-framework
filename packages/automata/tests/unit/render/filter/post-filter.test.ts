@@ -12,9 +12,9 @@ const wgsl = `
 }`
 
 describe('postFilter', () => {
-  it('declares a filter by name from its GLSL and WGSL, run first and at every quality tier', () => {
+  it('declares a filter by name from its GLSL and WGSL, run first, at every quality tier, on the field', () => {
     const def = postFilter('vignette', { glsl, wgsl })
-    expect(def).toEqual({ name: 'vignette', glsl, wgsl, order: 0, minTier: undefined })
+    expect(def).toEqual({ name: 'vignette', glsl, wgsl, order: 0, minTier: undefined, at: 'field' })
     expect(Object.isFrozen(def)).toBe(true)
   })
 
@@ -22,6 +22,11 @@ describe('postFilter', () => {
     const def = postFilter('bloom', { glsl, wgsl, order: 5, minTier: 'medium' })
     expect(def.order).toBe(5)
     expect(def.minTier).toBe('medium')
+  })
+
+  it("runs on the upscaled picture at device pixels when it asks for at: 'screen'", () => {
+    expect(postFilter('mesh', { glsl, wgsl, at: 'screen' }).at).toBe('screen')
+    expect(postFilter('mesh', { glsl, wgsl, at: 'field' }).at).toBe('field')
   })
 
   it.each([

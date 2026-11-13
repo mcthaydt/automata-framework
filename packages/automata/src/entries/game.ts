@@ -45,6 +45,7 @@ export {
   levelScene,
   type PictureViewOptions,
   type PostFilterDef,
+  type PostFilterPlacement,
   type PostFilterSpec,
   pictureView,
   postFilter,

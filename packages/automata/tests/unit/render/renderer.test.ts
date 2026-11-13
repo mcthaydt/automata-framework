@@ -516,6 +516,75 @@ void main() { finalColor = texture(uTexture, vTextureCoord); }`
       warn.mockRestore()
     })
 
+    it("puts an at: 'screen' filter on the composite's upscaled sprite and the others on its field", async () => {
+      const factory = createPixiRenderer({
+        logicalWidth: 320,
+        logicalHeight: 180,
+        postFilters: [
+          postFilter('tint', { glsl, wgsl }),
+          postFilter('mesh', { glsl, wgsl, at: 'screen' }),
+          postFilter('grade', { glsl, wgsl, at: 'field', order: -1 }),
+        ],
+      })
+      const program = scoped(async () => {
+        const { stage } = await built(factory(createFakeTarget()))
+        expect(stage.postFilters.ids).toEqual(['grade', 'tint'])
+        expect(stage.screenFilters.ids).toEqual(['mesh'])
+        expect(stage.composite?.stage.filters).toHaveLength(2)
+        expect(stage.composite?.sprite.filters).toHaveLength(1)
+        // The slot declares the screen uniforms for the shader, ahead of the game's own source.
+        expect(fragments(stage.composite?.sprite.filters as Filter[])[0]).toContain(
+          'uniform float uScreenScale;',
+        )
+      })
+      await program
+    })
+
+    it('tells a screen filter, each frame, the device pixels a field pixel and where the field starts', async () => {
+      const target = createFakeTarget({ width: 800, height: 600 })
+      const factory = createPixiRenderer({
+        logicalWidth: 320,
+        logicalHeight: 180,
+        postFilters: [postFilter('mesh', { glsl, wgsl, at: 'screen' })],
+      })
+      const program = scoped(async () => {
+        const renderer = await built(factory(target))
+        const [mesh] = (renderer.stage.composite?.sprite.filters ?? []) as Filter[]
+        renderer.draw({ alpha: 1, frameMs: 16, paused: false })
+        const resources = mesh?.resources as { screen: { uniforms: Record<string, unknown> } } | undefined
+        const uniforms = resources?.screen.uniforms ?? {}
+        // 800 wide over a 320 field is 2.5 device pixels a field pixel at resolution 1; the field's top edge is on a pixel.
+        expect(uniforms.uScreenScale).toBe(2.5)
+        expect(Array.from(uniforms.uScreenOrigin as Float32Array)).toEqual([0, 0])
+      })
+      await program
+    })
+
+    it('leaves a screen filter out, with the warning, when there is no composite to upscale', async () => {
+      const published: unknown[] = []
+      const bus = {
+        publish: (name: string, fact: unknown) => void published.push([name, fact]),
+        subscribe: () => () => {},
+      }
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const factory = createPixiRenderer({
+        logicalWidth: 320,
+        logicalHeight: 180,
+        composite: false,
+        postFilters: [postFilter('mesh', { glsl, wgsl, at: 'screen' }), postFilter('tint', { glsl, wgsl })],
+      })
+      const program = scoped(async () => {
+        const { stage } = await built(factory({ ...createFakeTarget(), bus }))
+        expect(stage.screenFilters.ids).toEqual([])
+        expect(stage.postFilters.ids).toEqual(['tint'])
+      })
+      await program
+      expect(published).toEqual([
+        ['render.filter.dropped', { id: 'mesh', reason: expect.stringContaining('composite') }],
+      ])
+      warn.mockRestore()
+    })
+
     it('throws when a name is declared twice, because the slot would silently replace the first', () => {
       expect(() =>
         createPixiRenderer({
