@@ -292,3 +292,34 @@ Found on the way, fixed (`f69303f`, kit, tests first): the skin's line #753b09 s
 darkened to an orange and her jaw edge played orange specks; a held texel now takes its swatch's painted ramp (`skinRamp`). The five-of-eight
 ring became a border vote per patch (`holdHue`). `s4-item2-head-before-after-x2.5.png`: item 1's frame left, this one right: no orange speck at
 the jaw, nostrils and mouth corners warm, the hair as it was.
+
+## Session 4, item 3: every side (`s4-item3-eight-directions-in-play-1to1.png`, `s4-item3-walk-two-frames-painted-x4.png`; nothing fixed)
+
+Shot in play in one run (keys from the spawn: `s:KeyS:60;e:KeyD:50;n:KeyW:50;w:KeyA:60;se:KeyS+KeyD:40;sw:KeyS+KeyA:40;ne:KeyW+KeyD:40;
+nw:KeyW+KeyA:40`), 1:1 crops, left to right S, SE, E, NE, N, NW, W, SW. All eight facings came out this time. The play harness shoots only
+with keys up, so the two walk frames are her painted walk cells (contact and passing, density 2, x4, no room light), not play.
+
+- Front and front three-quarter (S, SW): clean; the face reads. No pale patch on the far cheek and no grey cheek: item 1 of session 3
+  (warm steps) cured them, as guessed.
+- Profiles (E, W): the face reads; the bob's side is clean. A dark-red flap at the nape (the waistcoat's or the collar's back) reads as a scarf.
+- SE: cut by the frame's right edge: the camera's (the sister session's), not hers.
+- From behind (NE, N, NW): `bobOpen` is still a round dome from crown to collar, no nape and no hairline. The waistcoat's back still carries a
+  lighter brown wedge across the oxblood (lower right), reading as a patch. Both are the generators' (the bob's back pieces; the waistcoat's
+  back shading split): not fixed, out of time to do them test first and look at them.
+- Walk frames: the face, the bob and the boots read in both; the stride is clean.
+
+## Session 4, item 4: the frame for the Owner (`s4-item4-gameplay-frame-1024x768.png`, `s4-item4-head-from-that-frame-x2.5.png`)
+
+1024 by 768, the hall's south wall, facing us, Chromium on software GL; her head cropped from that frame (whole hair and the collar) and
+enlarged x2.5 nearest: 10 pixels a texel, the reference's size. Against the reference's lower half (base woman, density 2), feature by feature:
+
+- Brows: bold, two texels, dark (match).
+- Lid: a dark row over each eye (match).
+- Whites: near-white each side of the iris (match).
+- Nose: a lit warm column with warm-brown nostrils; the grey smudge of session 3 is gone (match).
+- Lips: a dark upper over a rose lower, warm corners; the lower lip is a little low in contrast against the skin (close).
+- Skin: warm, clean across forehead, cheeks and jaw; the jaw and neck shade to a red-brown, with no orange or grey texel (match).
+- Hair: short of the reference. A maroon band down her right side (DUEL row 2's red step, auburn's own) and a rose-mauve patch on the
+  crown's right (the shine, greyed by the grade). The reference's hair is one cohesive family. The fix is a data choice for the Owner (item 2).
+- Crispness: chunky, one flat colour a texel, lines between texels; the screen mesh at a fifth shows as a faint lattice on the dark ground
+  and only faintly on her face (close).
