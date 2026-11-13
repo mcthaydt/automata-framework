@@ -8,7 +8,9 @@
 import { onMount } from 'svelte'
 import CopyButton from '../../shared/components/CopyButton.svelte'
 import { difficultyStars, type SceneExample } from '../../shared/framework/example-catalog'
-import type { HighlightedLine } from '../playground/highlight'
+
+/** One line of the highlighted code: the pieces `highlightLines` (the playground's, run at prerender) cuts it into. */
+type HighlightedLine = { readonly text: string; readonly className: string }[]
 
 let { example, highlighted }: { example: SceneExample; highlighted: HighlightedLine[] } = $props()
 let playing = $state(false)
