@@ -159,6 +159,9 @@ export async function keyboardProblems(page: Page): Promise<string[]> {
   return problems
 }
 
+/** How many times a press that the button never heard is made again (a page scrolled it away from the pointer). */
+const PRESS_ATTEMPTS = 3
+
 /**
  * Clicks every visible, enabled button and expects something to happen: a DOM change, a navigation, a popup or a
  * fullscreen change. After each click the page is put back (navigate back, close a dialog, leave fullscreen).
@@ -213,7 +216,22 @@ export async function deadButtons(page: Page): Promise<string[]> {
       .context()
       .waitForEvent('page', { timeout: 1500 })
       .catch(() => null)
-    await button.click()
+    // A press can miss: Home's demo focuses its frame once the game is ready, which scrolls the page (221 px to 666 px
+    // on a loaded machine), and a late scroll after Playwright's hit check puts the pointer where the button was (the
+    // bar's Stop, run after run with the cores busy). A button that never got the press has not shown it does nothing, so
+    // the press is made again, a few times, until the button itself has heard it; a button that hears it and changes nothing is
+    // still reported.
+    let pressed = false
+    for (let attempt = 0; attempt < PRESS_ATTEMPTS && !pressed; attempt++) {
+      await button.evaluate((element) => {
+        const state = window as unknown as { __qbPressed: boolean }
+        state.__qbPressed = false
+        element.addEventListener('click', () => (state.__qbPressed = true), { once: true })
+      })
+      await button.click()
+      pressed = await page.evaluate(() => (window as unknown as { __qbPressed: boolean }).__qbPressed)
+    }
+    if (!pressed) dead.push(`button "${label}" never received the press`)
     const changedSince = (url: string) =>
       location.href !== url || (window as unknown as { __qbChanges: number }).__qbChanges > 0
     // The observer counts a change the moment it happens, but the poll that reads the count runs on the page's main
