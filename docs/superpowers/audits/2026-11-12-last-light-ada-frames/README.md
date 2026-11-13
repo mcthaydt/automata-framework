@@ -242,3 +242,28 @@ Where to resume: (a) the grey mouth corners and nostrils: `skinColours()` holdin
 cheek patches after item 1); (c) item 5's gates.
 
 | 4. Look, game branch, the ada session 3 | Opus 5.5 (look session, no subagents) | `claude/last-light-ada` | 2026-11-12, from `8661cd6`. Frames and verdicts: [ada folder](audits/2026-11-12-last-light-ada-frames/README.md), sections "Session 3". **Done, tests first, pushed:** (1) warm steps: `holdSkinHue`'s `warmer()` targets the skin swatch's own ramp at the room's lightness, lost chroma counted against one mean DUEL step (`d4df32b`, kit); 11 grey-beige picks across the six kit skins fixed; the cool-room test's hue bound restated as the swatch's hue span (explained); no recorded cell moved (opt-in, no golden uses it); her nose and forehead are warm in play. (2) lips: `lipsAda`'s lower lip #d28d7a to #c17e7a (`12f6339`, game data, cast test). (3) the gameplay frame and its head at 10 px a texel, verdict in the README. **Found, not fixed:** grey nostrils and mouth corners (#945d4f, a painter shade step outside the held skin set). **Not done:** item 4 (directions); item 5's gates (`pnpm check` uncached, `pnpm build`, api-report/api-index, lcd-panel suites, framework render tests did not run this session; the kit's unit and Chromium browser suites and the game's unit tests ran and pass; the pre-commit affected unit tests passed on each commit). No changeset: only private packages changed this session. `content.hash` not moved (no `look.toml` change; the cast's swatches are TypeScript). Chromium (software GL, software WebGPU) only; WebKit, Firefox and a real GPU unrun; journeys not run. |
+
+## Session 4, item 1: the last grey on her face (`1ba72ba`; `s4-item1-head-before-after-x2.5.png`, `s4-item1-gameplay-frame-1024x768.png`)
+
+The cause was one step further than session 3 found: the face stamp shades her nostrils and mouth corners in her swatch's deepest tone,
+#a76057, which IS in the paint; the painter's colour budget then merges that rare tone, the whole tone at once, into a near colour of the
+figure, her boots' #945d4f (counted in Node: 12 texels of #945d4f before the stamp, 19 after the budget). No list of her skin's colours can
+name a colour the budget borrows from another material, so the held set alone could never cover it.
+
+Test first (kit, `skin-hue.test.ts`): the base woman painted in each of the six kit skins and in a blue probe skin, front, three-quarter and
+profile; every texel the probe paints blue and that changes under a far kit skin is skin. Failing before: exactly each swatch's line and fold
+were missing (skinWarm #753b09 and #885041; skinGolden #733d3b and #945d4f; ...): the painter derives them for the skin and the held set
+never had them. A second test dims every held colour one to three steps down its row: each stays inside its swatch's hue span. A third, a
+cell with a stand-in nostril pair ringed by skin, an upper lip and a lone boot texel of the same colour.
+
+The fix, generic and opt-in: the painter's kit entry adds `paintedTones` (additive; contract changelog and api pin); `skinColours` is the
+skin's painted tones, line and fold included; `holdSkinHue` takes the cell's width and holds a stand-in (a colour within the budget's own
+merge reach of a skin tone, of its hue) where the held skin closes round it (five of eight neighbours). A first try held the fold by colour:
+the fold #885041 is her auburn hair's base tone, and her crown went the skin line's orange in play. So `sharedColours` names the skin
+colours another material the character wears also paints (hers: #a76057, #753b09, #885041), held only where the skin rings them.
+
+Measured in play, the hall's south wall (1024 by 768, the texel's centre): nostrils #655b56 / #6e6059 before, #774a3f / #875a4d after; mouth
+corners #685f59 / #6c6159 before, #805548 / #815546 after: warm browns, as the reference's shadow. Looked at, before left, after right: the
+grey smudge under the nose and the grey corners are gone. A single orange-brown texel sits at her left cheek's edge (the skin's own line,
+#753b09, darkened along the skin's ramp); it reads as the jaw's edge at 1:1. Not touched: the hair (item 2). Recorded cells: none moved (the
+painter's goldens pass, 730 tests; the hold is opt-in). Kit unit 373, game unit 446 pass.
