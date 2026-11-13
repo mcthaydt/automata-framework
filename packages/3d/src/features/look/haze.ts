@@ -24,13 +24,15 @@ export function hazeOf(
 }
 
 /**
- * The haze a frame at `time` draws: the time's own colour and amount where it sets them (`hazeOf`), otherwise the
- * profile's colour lit by the time, as the renderer lights the fog (`lightByTime`). The profile's colour is a day colour:
- * left unlit, a time with no haze of its own (Night, Lamplight) veiled its dark room in it at the profile's full amount,
- * and drew brighter than the day (docs/superpowers/audits/2026-11-12-3d-night-regression).
+ * The haze a frame at `time` draws: the time's own colour and amount where it sets them (`hazeOf`). Otherwise the profile's
+ * colour, lit by the time as the renderer lights the fog (`lightByTime`) if the profile says it is a day colour to light
+ * (`lit`: only the library's own default is), and as given if it is a colour a game chose. Left unlit, the library's colour
+ * veiled a dark room (Night, Lamplight) at the profile's full amount and drew brighter than the day
+ * (docs/superpowers/audits/2026-11-12-3d-night-regression); a game's tuned colour lit would not be the one it tuned.
  */
 export function hazeAt(h: HazeProfile, time: TimeOfDay): HazeProfile {
   if (time.scene.haze !== undefined) return hazeOf(h, time.scene.haze)
+  if (h.lit !== true) return h
   const lit = lightByTime(Number.parseInt(h.colour.slice(1), 16), time)
   return { ...h, colour: `#${lit.toString(16).padStart(6, '0')}` }
 }

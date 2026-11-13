@@ -25,6 +25,13 @@ export interface HazeProfile {
   /** The focus, metres from the eye, when the camera is a lens (first person); an orthographic view is focused by the
    * app on what it frames. */
   readonly focusFp: number
+  /**
+   * Whether `colour` is a day colour the renderer lights by the time of day (`hazeAt`), at a time that sets no haze of its
+   * own (Night, Lamplight, the bar). Only the library's own default colour is lit; a colour a game or a look file writes is
+   * used as given, so a game's tuned haze is the haze it drew. A game that wants its colour lit says `lit: true`. The library's
+   * default carries it where a copy of the profile does not (`libraryHaze`), so `{ ...DEFAULT_LOOK.haze, colour }` is the game's.
+   */
+  readonly lit?: boolean | undefined
 }
 
 export interface Look {
@@ -65,6 +72,7 @@ export const lookSchema: z.ZodType<Look, unknown> = z.strictObject({
       amount: z.number().min(0).max(1),
       glow: z.number().min(0),
       focusFp: z.number().min(0),
+      lit: z.boolean().optional(),
     })
     .refine((h) => h.far > h.near, { message: 'the haze far distance is beyond its near', path: ['far'] })
     .default({ colour: '#47655a', near: 0, far: 10, amount: 0.85, glow: 0.5, focusFp: 3 }),

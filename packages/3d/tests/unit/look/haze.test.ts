@@ -40,19 +40,59 @@ describe('hazeOf', () => {
 })
 
 describe('hazeAt', () => {
-  it('is the time’s own haze where the time sets one', () => {
-    expect(hazeAt(profile, timeOfDay('day'))).toEqual(hazeOf(profile, timeOfDay('day').scene.haze))
-    expect(hazeAt(profile, timeOfDay('dusk'))).toEqual(hazeOf(profile, timeOfDay('dusk').scene.haze))
+  const lampLit = timeOfDay('lampLit')
+  const night = timeOfDay('night')
+  const litColour = (hex: string, time: typeof night): string =>
+    `#${lightByTime(Number.parseInt(hex.slice(1), 16), time)
+      .toString(16)
+      .padStart(6, '0')}`
+  const sum = (hex: string) =>
+    [1, 3, 5].reduce((total, at) => total + Number.parseInt(hex.slice(at, at + 2), 16), 0)
+
+  it('is the time’s own haze where the time sets one, whoever chose the profile’s colour', () => {
+    const own = { ...profile, colour: '#4b5a56' }
+    for (const h of [profile, own]) {
+      expect(hazeAt(h, timeOfDay('day'))).toEqual(hazeOf(h, timeOfDay('day').scene.haze))
+      expect(hazeAt(h, timeOfDay('dusk'))).toEqual(hazeOf(h, timeOfDay('dusk').scene.haze))
+    }
   })
 
-  it('lights the profile’s colour by a time that sets none, as the fog is, so the night’s veil is not a day colour', () => {
-    const night = timeOfDay('night')
-    expect(night.scene.haze).toBeUndefined()
-    const lit = lightByTime(Number.parseInt(profile.colour.slice(1), 16), night)
-    expect(hazeAt(profile, night)).toEqual({ ...profile, colour: `#${lit.toString(16).padStart(6, '0')}` })
-    const sum = (hex: string) =>
-      [1, 3, 5].reduce((total, at) => total + Number.parseInt(hex.slice(at, at + 2), 16), 0)
-    expect(sum(hazeAt(profile, night).colour)).toBeLessThan(sum(profile.colour))
+  it('lights the library’s own colour by a time that sets none, so the night’s veil is not a day colour', () => {
+    for (const time of [night, lampLit]) {
+      expect(time.scene.haze).toBeUndefined()
+      expect(DEFAULT_LOOK.haze.lit).toBe(true)
+      expect(hazeAt(DEFAULT_LOOK.haze, time)).toEqual({
+        ...profile,
+        colour: litColour(profile.colour, time),
+      })
+      expect(sum(hazeAt(DEFAULT_LOOK.haze, time).colour)).toBeLessThan(sum(profile.colour))
+    }
+  })
+
+  it('keeps a colour a game chose as given at a time that sets none', () => {
+    const chosen = '#4b5a56'
+    const spread = { ...DEFAULT_LOOK.haze, colour: chosen }
+    const parsed = parseLook({ haze: { colour: chosen } }).haze
+    for (const h of [spread, parsed])
+      for (const time of [night, lampLit, timeOfDay('bar')]) expect(hazeAt(h, time).colour).toBe(chosen)
+  })
+
+  it('lights a game’s colour only when the game says `lit`', () => {
+    const chosen = '#4b5a56'
+    const h = parseLook({ haze: { colour: chosen, lit: true } }).haze
+    expect(hazeAt(h, night).colour).toBe(litColour(chosen, night))
+  })
+})
+
+describe('the library’s haze colour', () => {
+  it('is the default’s, kept through a partial override that leaves the colour alone', () => {
+    expect(parseLook({}).haze.lit).toBe(true)
+    expect(parseLook({ haze: { far: 6 } }).haze.lit).toBe(true)
+  })
+
+  it('is not carried by copying the profile, nor by writing a colour of one’s own', () => {
+    expect({ ...DEFAULT_LOOK.haze }.lit).toBeUndefined()
+    expect(parseLook({ haze: { colour: '#47655a' } }).haze.lit).toBeUndefined()
   })
 })
 
@@ -73,6 +113,25 @@ describe('hazed', () => {
 })
 
 describe('the haze pass', () => {
+  // The veil's colour as the pass holds it, per channel (the pass keeps its uniforms to itself).
+  const veilOf = (pass: unknown): number[] => {
+    const { uR, uG, uB } = (pass as { uniforms: { uniforms: Record<string, number> } }).uniforms.uniforms
+    return [uR, uG, uB].map((v) => Math.round((v as number) * 255))
+  }
+
+  it('gets a game’s own haze colour exactly, at the times that set no haze, and the library’s colour lit', () => {
+    const own = parseLook({ haze: { colour: '#4b5a56' } })
+    for (const name of ['night', 'lampLit', 'bar'])
+      expect(veilOf(createLookPasses(own, timeOfDay(name)).haze)).toEqual([0x4b, 0x5a, 0x56])
+    const night = timeOfDay('night')
+    const lit = lightByTime(0x47655a, night)
+    expect(veilOf(createLookPasses(DEFAULT_LOOK, night).haze)).toEqual([
+      (lit >> 16) & 255,
+      (lit >> 8) & 255,
+      lit & 255,
+    ])
+  })
+
   it('runs after the snap, and is left out when its switch is off', () => {
     const on = createLookPasses(DEFAULT_LOOK, timeOfDay('day'))
     expect(on.haze).toBeDefined()

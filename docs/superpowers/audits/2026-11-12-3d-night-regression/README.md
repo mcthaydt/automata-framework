@@ -37,7 +37,7 @@ The template game on main: day 0.198, night 0.197 (1.00); the room is there but 
    and the frame became the veil. The spike that drew the haze (`spikes/eb-look/scene.ts`) calls
    `haze.focus(distance)`; `createPixi3dRenderer` did not. Template probe with only this change: 0.170 / 0.144 (0.85):
    the room reads again, but the night's far wall is still green.
-2. **#585: a time with no haze of its own took the profile's day colour, unlit.** Night and Lamplight set no `haze`
+2. **#585: a time with no haze of its own took the profile's day colour, unlit.** `night`, `lampLit` and `bar` set no `haze`
    (`times.json`), so `hazeOf` gave them the profile's #47655a at 0.85, against the day's own #8690b2 at 0.35: a brighter
    veil on a darker room. Template probe with only this change: 0.198 / 0.143 (0.72). The renderer already lights the
    fog's colour by the time (`lightByTime`); the haze's fallback now does the same.
@@ -53,16 +53,17 @@ The 3D package's `time-of-day.parity` test passed throughout because it draws wi
 
 - `packages/3d/src/app/haze-focus.ts`: `hazeFocusHooks` tells the haze, each frame after the camera moved, how far the
   rig's look point is from its eye; `createPixi3dRenderer` adds it when there is a camera and a haze pass.
-- `packages/3d/src/features/look/haze.ts`: `hazeAt(profile, time)` is the time's own haze, or the profile's with its colour
-  lit by the time; `createLookPasses` uses it. (`hazeOf` and the public API are unchanged.)
+- `packages/3d/src/features/look/haze.ts`: `hazeAt(profile, time)` is the time's own haze, or the profile's colour lit by the
+  time when the profile marks it `lit` (only the library's own default does; a colour a game writes is used as given, see
+  the implementation audit's M1); `createLookPasses` uses it. (`hazeOf` and the public API are unchanged.)
 - `games/base-3d/src/features/scene/scene.ts`: `FOG` starts at `CAMERA_DEFAULTS.distance` and is full 9 m beyond.
 
 Tests, each failing on main first: `tests/unit/look/haze.test.ts` (`hazeAt`), `tests/unit/app/haze-focus.test.ts`,
 base-3d's `tests/unit/scene/scene.test.ts` (the fog starts no nearer than the camera stands, 5 against 16 on main), and
 the guard below.
 
-Not changed: `SkyEffect` (`sky-pass.ts`) falls back to the profile's haze colour the same way below the horizon. Nothing in
-the renderer or the games uses it today; left for the 3D owner.
+`SkyEffect` (`sky-pass.ts`) takes its below-horizon colour from `hazeAt(DEFAULT_LOOK.haze, time)` too, so it follows the
+same rule. Nothing draws it today.
 
 ## The guard
 

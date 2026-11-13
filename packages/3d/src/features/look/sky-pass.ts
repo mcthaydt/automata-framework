@@ -9,6 +9,7 @@
 import { type EffectFragment, PostEffect } from '@pixi/3d'
 import { UniformGroup } from 'pixi.js'
 import type { TimeOfDay } from '../../shared/time-of-day/time-of-day.ts'
+import { hazeAt } from './haze.ts'
 import { DEFAULT_LOOK } from './look.ts'
 
 /** One silhouette layer of the horizon, its colour already resolved from the level's swatch. */
@@ -185,7 +186,7 @@ export function skyShaders(time: TimeOfDay, layers: readonly HorizonLayer[]): Ef
   const top = bands[last]?.at || 1
   const night = time.scene.light.sun === undefined
   const lit = Math.min(1, 0.3 + time.scene.light.ambient.level * 1.6)
-  const haze = time.scene.haze?.colour ?? DEFAULT_LOOK.haze.colour
+  const haze = hazeAt(DEFAULT_LOOK.haze, time).colour
 
   // The band the sky coordinate `s` falls in, found by a chain of comparisons against the bands' starts.
   const pick = (vec: (hex: string) => string, set: (name: string, v: string) => string): string =>

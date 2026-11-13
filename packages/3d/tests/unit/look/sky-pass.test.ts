@@ -1,6 +1,8 @@
 // The sky pass: the time of day's bands, clouds, a horizon of silhouette layers and the haze below it, drawn where no
 // mesh is. The shader is generated from the time and the layers; these tests pin what it is generated from.
 import { describe, expect, it } from 'vitest'
+import { hazeAt } from '#src/features/look/haze.ts'
+import { DEFAULT_LOOK } from '#src/features/look/look.ts'
 import { horizonProfile, skyShaders } from '#src/features/look/sky-pass.ts'
 import { timeOfDay } from '#src/shared/time-of-day/time-of-day.ts'
 
@@ -31,6 +33,15 @@ describe('skyShaders', () => {
     for (const band of day.scene.sky.slice(1)) expect(gl).toContain(band.at.toFixed(4))
     expect(gpu).toContain('fn effect(')
     expect(gl).toContain('vec4 effect(')
+  })
+
+  it('draws the ground below the horizon in the library’s haze colour, lit by the time that sets none', () => {
+    const night = timeOfDay('night')
+    expect(night.scene.haze).toBeUndefined()
+    const [r, g, b] = [1, 3, 5].map((at) =>
+      (Number.parseInt(hazeAt(DEFAULT_LOOK.haze, night).colour.slice(at, at + 2), 16) / 255).toFixed(4),
+    )
+    expect(skyShaders(night, []).gl).toContain(`vec3(${r}, ${g}, ${b}) * k`)
   })
 
   it('draws a city’s lit windows only when there is no sun', () => {
