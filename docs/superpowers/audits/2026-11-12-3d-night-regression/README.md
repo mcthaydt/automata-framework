@@ -94,6 +94,9 @@ journeys step.
 | base-3d e2e (`base-3d`, `base-3d-dev`) | 14 passed |
 | examples-3d e2e (`examples-3d`) | 21 passed, 1 failed (`look-pixel-art`, above) |
 | 3d-story e2e | 14 passed |
+| `TURBO_FORCE=true pnpm check` (after `git fetch origin main`) | lint, typecheck (56 tasks), boundaries, style, source-names passed; knip passed once the probes moved to `spikes/3d-night-probe/`; `test:unit` 66 of 66 tasks; `check:changesets` 0 problems |
+| `pnpm build`, `pnpm api-report`, `pnpm api-index` (check mode), `pnpm secrets` (unshallowed) | all passed: 0 API breaks, 0 undocumented, no leaks in the full history. No changeset: `@automata/3d` and base-3d are private |
+| `pnpm test:journeys:3d` | stops at once here: WebKit is not installed. Its Chromium instance alone (`journeys (chromium)`): 3 files, 16 tests passed, 36 s |
 | Not run | WebKit, Firefox (not installable here), a real GPU; cross-engine parity of the haze change is the Owner's runners' |
 
 ## For the tracker
