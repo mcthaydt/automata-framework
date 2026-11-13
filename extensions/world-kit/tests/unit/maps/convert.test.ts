@@ -1,4 +1,5 @@
-// EnvironmentBuilder's maps, converted once into `/2` (spec 9). The fixture is `maps.json` at 6d82a52.
+// EnvironmentBuilder's maps, converted once into `/2` (spec 9). The fixture is `maps.json` at 6d82a52, with
+// the bedroom’s `reads` from f7c5356 (the one change the source made to a map file after that).
 
 import { afSector2Schema } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
@@ -17,6 +18,10 @@ describe('converting a builder map', () => {
     expect(two.sectors[0].corners).toHaveLength(4)
     expect(two.props.length).toBeGreaterThan(0)
     expect(two.cast).toHaveLength(2)
+  })
+
+  it('the bedroom declares its reads, as the source’s last map file does', () => {
+    expect((convertBuilderMap(builderMap('bedroom')) as Json).reads).toEqual({})
   })
 
   it('converts every map to a level the /2 schema reads back unchanged', () => {

@@ -132,7 +132,11 @@ class Writer {
 class Reader {
   private readonly view: DataView
   pos = 0
-  constructor(private readonly bytes: Uint8Array) {
+  private readonly bytes: Uint8Array
+  // A declared field, not a parameter property: Node's type stripping cannot erase one, and the world kit's command
+  // loads this file under plain Node.
+  constructor(bytes: Uint8Array) {
+    this.bytes = bytes
     this.view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
   }
   private need(n: number): number {
