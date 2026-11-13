@@ -1183,7 +1183,7 @@ interface ProjectListSource<E, B extends string = string> {
 
 ```ts
 interface ProjectStore {
-    readonly kind: 'memory' | 'opfs' | 'folder' | 'download' | 'http';
+    readonly kind: 'memory' | 'opfs' | 'indexeddb' | 'folder' | 'download' | 'http';
     list(prefix?: string): Promise<StoredEntry[]>;
     read(path: string): Promise<Uint8Array | undefined>;
     write(path: string, data: Uint8Array | string, expected?: WriteExpectation): Promise<WriteResult>;
@@ -2368,7 +2368,7 @@ interface ProjectListSource<E, B extends string = string> {
 
 ```ts
 interface ProjectStore {
-    readonly kind: 'memory' | 'opfs' | 'folder' | 'download' | 'http';
+    readonly kind: 'memory' | 'opfs' | 'indexeddb' | 'folder' | 'download' | 'http';
     list(prefix?: string): Promise<StoredEntry[]>;
     read(path: string): Promise<Uint8Array | undefined>;
     write(path: string, data: Uint8Array | string, expected?: WriteExpectation): Promise<WriteResult>;
@@ -4550,6 +4550,7 @@ interface SuiteHandle {
 ```ts
 interface SuitePortsEnv extends Pick<ServedWorkspaceEnv, 'origin' | 'search' | 'fetch' | 'sessionStorage' | 'storage'> {
     readonly sample?: Readonly<Record<string, string>> | undefined;
+    readonly indexedDb?: IDBFactory | undefined;
 }
 ```
 
