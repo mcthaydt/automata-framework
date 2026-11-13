@@ -72,7 +72,10 @@ describe('turboArgs', () => {
   })
 })
 
-/** A commit on top of HEAD that changes `file` (a trailing line), made with a scratch index so the work tree is untouched. */
+/**
+ * A commit on top of HEAD that changes `file` (a blank line added at its end), made with a scratch index so the work tree
+ * is untouched. `git()` trims what it reads, so one newline only restores the file; the second is the change.
+ */
 function commitChanging(root: string, file: string): string {
   const index = join(mkdtempSync(join(tmpdir(), 'affected-index-')), 'index')
   const env = {
@@ -86,7 +89,7 @@ function commitChanging(root: string, file: string): string {
   const git = (args: string[], input?: string): string =>
     execFileSync('git', args, { cwd: root, env, input, encoding: 'utf8' }).trim()
   git(['read-tree', 'HEAD'])
-  const blob = git(['hash-object', '-w', '--stdin'], `${git(['show', `HEAD:${file}`])}\n`)
+  const blob = git(['hash-object', '-w', '--stdin'], `${git(['show', `HEAD:${file}`])}\n\n`)
   git(['update-index', '--cacheinfo', `100644,${blob},${file}`])
   return git(['commit-tree', git(['write-tree']), '-p', 'HEAD', '-m', 'scratch'])
 }
