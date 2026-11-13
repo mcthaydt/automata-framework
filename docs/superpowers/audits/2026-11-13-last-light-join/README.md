@@ -7,11 +7,11 @@ Execution session, no subagents. Joins, proves and measures; changes nothing of 
 |---|---|
 | 1. Merges | done (this section) |
 | 2. Gates on the joined tree | done (this section) |
-| 3. The joined game shot, Ada compared | not yet |
+| 3. The joined game shot, Ada compared | done (section 3) |
 | 4. Playthroughs (first night, second night) | not yet |
 | 5. Tick rate, measured | not yet |
 
-Overall: 2 of 5 items done (40%).
+Overall: 3 of 5 items done (60%).
 
 ## 1. The merges
 
@@ -102,3 +102,40 @@ Notes, so nothing is read as more than it is:
 - Without `AF_WEBGPU=software` figures' 105 webgpu cases skip and one WebGPU "instance dropped" rejection is reported; with it all pass.
 - Not run here: `pnpm test:browser:2d`, base-3d's and the game's browser, e2e and journey suites other than item 4's playthroughs, editor-3d's
   browser suites, the 3D workflow's journeys.
+
+## 3. The joined game shot, and Ada compared (`e7990013`+, Chromium, software GL, 1024 by 768, the play-shots harness)
+
+Pictures (all in this folder):
+
+- `shots-gameplay/hall-south.png`: the gameplay frame (the default step, `hall-south:KeyS:150`, as the Ada branch's `s4-item4`).
+- `shots-eight/{s,se,e,ne,n,nw,w,sw}.png` and the strip `join-eight-directions-in-play-1to1.png`: the eight sides, shot with the Ada
+  session's own steps (`s:KeyS:60;e:KeyD:50;n:KeyW:50;w:KeyA:60;se:KeyS+KeyD:40;sw:KeyS+KeyA:40;ne:KeyW+KeyD:40;nw:KeyW+KeyA:40`); each
+  crop is 260 by 560 at 1:1, picked by hand on her position.
+- `ada-321d194-same-harness/`: the same two shoots made on the Ada branch's head `321d194` in a worktree (the same harness, the same steps),
+  because the pictures the brief names were recorded **before** Ada's last hair commit (`102567b0`, 00:54; `s4-item4` and `s4-item3` are
+  from `0fe55f9b`, 00:47), so they cannot show the frozen head's hair. `ada-321d194-vs-join-hall-south-x2.png`: her cropped from that frame
+  and from the join's, side by side and as a (x3) difference, enlarged x2.
+- `ada-cells-hash-join.json`, `ada-cells-hash-321d194.json`: a hash of `ADA` and of her painted cell in every direction at densities 1
+  and 2 (a throwaway test, not committed), in both trees.
+
+What I saw, opening the pictures:
+
+- **She is the same Ada.** Her painted cells (all 16) and her definition hash are **byte-identical** in the join and at `321d194`; the join
+  changes nothing under `games/the-last-light/src/features/figures`, her swatches or `look.toml` against `321d194`. In the frame: the same
+  six-head figure, the same ash-brown bob, brows two texels thick, eyes with whites under a dark lid, a nose, a two-tone mouth, the oxblood
+  waistcoat with its four buttons, the cream sleeves, the grey-green trousers, the boots. Front, front three-quarter, both profiles and the
+  three backs read as in the Ada pictures, including what her session 4 left open: the backs' round dome (no nape) and the lighter brown wedge
+  across the waistcoat's back; the dark-red flap at the nape in profile.
+- **Against the brief's two named pictures** (not like for like): (a) her hair is ash brown, the older pictures show a reddish brown: that
+  is Ada's own later commit `102567b0`, the same in the `321d194` shoot; (b) the frame is not the same crop: the camera branch moved the
+  hall's camera, so she stands 36 px higher in the join's gameplay frame (her head top at y 205, Ada's older frame 242) at the same size
+  (about 485 px crown to boots); (c) in the older `SE` picture she was cut by the frame's right edge and is a ghost half; in the join she is
+  whole, against the wall (the camera session's room fit).
+- Against `321d194` in the same harness, the per-texel differences in her sprite (the difference panel, in the hair crown, the shoulders and
+  the boots) follow from the camera moving her on the screen (the screen pass's vignette, the dither and the lamp's step thresholds act on
+  screen position and on where she stands in the room's light). They are not her data: the painted cells above are identical. I did not
+  isolate each texel; I note it as measured-identical cells, differing frame.
+- Not hers, seen in the join's frames: black voids to the right of `SE` and `E` and at the lower left of `NE`: the far side of the cut
+  walls (the camera branch's occluder rule); the join did not make them (they are in the camera branch's own frames).
+
+Verdict: the join did not change Ada.
