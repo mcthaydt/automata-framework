@@ -243,6 +243,27 @@ The two generator changes, smallest first:
 The jeans' ease (`ease` 1 for `jeans` in `garments.ts`) is not the lever: at 0 it buys two texels from behind and would move every
 figure in jeans and the kit's recorded runway cells.
 
+### Round 3's gates
+
+Node 22.23.4, pnpm 10.34.6, `pnpm install --frozen-lockfile`, on `af9bd882` (`830308e3`'s code; the docs commit after it changes none).
+
+| Gate | Result |
+|---|---|
+| `pnpm format` | exit 0, no file changed |
+| `TURBO_FORCE=true pnpm check` | lint, typecheck, boundaries, style, source-names, knip and `test:unit` (57 of 57 tasks, 0 cached) pass. It then stopped at `changeset status`: this clone had no `origin/main`. With main fetched, `pnpm check:changesets` (the same last step) exits 0: `changeset status`, then `check-changesets` 87, 0 problems |
+| `TURBO_FORCE=true pnpm build` | exit 0, 16 of 16, 0 cached |
+| figures `AF_UNIT_FULL=1 pnpm test:unit` | 54 files, 730 tests, all pass |
+| figures Chromium `browser`, `webgpu`, `goldens` (`AF_WEBGPU=software`) | 11 files, 303 tests, all pass |
+| character kit `test:unit` | 379 tests pass (`skin-hue.test.ts` timed out once under load, then 15 of 15 run alone) |
+| character kit `browser (chromium)` and `webgpu` | 10 files passed, 3 skipped; 66 tests passed, 3 skipped |
+| the game's `test:unit` | 61 files, 474 tests, all pass, nothing re-recorded |
+| the game's build (content compiled by its vite plugin) | exit 0; tree clean, so `content.hash` and `sim-content.hash` did not move |
+
+Not run: WebKit and Firefox (not installed here; the kit's `browser` project lists them, so it was run as `browser (chromium)`),
+`pnpm test:browser:2d`, the game's browser, e2e and journey suites, the 3D workflow, and the eight-directions sheet and hall-south frame
+re-shoots (step 5: no new value was chosen, so her data is unchanged). Not needed: a changeset (`@automata/figures` and
+`@automata/character-kit` are private), `api-report` and `api-index` (no published package's exports changed).
+
 ## For the tracker
 
 | Session | Model | Branch | Row |
