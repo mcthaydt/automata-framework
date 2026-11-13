@@ -8,18 +8,20 @@ probe that changed code ran in this working tree and was reverted (`git status` 
 
 ## Verdict
 
-**Ready to merge: not at `bdc41959`; yes once the should-fixes are on the branch** (the "Fixes" section says which
-landed). The reasons: one should-fix touches a published package's behaviour (S1), and the record told the
-coordinator the Quit button needed new translations when it did not (S5).
+**Ready to merge: yes, at the branch's last commit.** Not at `bdc41959`: one should-fix touched a published package's
+behaviour (S1), and the record told the coordinator the Quit button needed new translations when it did not (S5). All
+five should-fixes have landed since, each in its own commit (see "Fixes"), and the whole uncached `pnpm check` passed
+after them.
 
 1. **What the branch claims holds, measured here:** the Linux toolchain installs from the README's commands (58 s with
    `tauri-driver`); a game made from the packed packages outside the workspace builds first time (205 s cold) and the
-   desktop journey passes (3 m 52 s). Broken on purpose three ways (no disk write, saves in page storage, a save never
+   desktop journey passes (3 m 52 s; 3 m 44 s again after the fixes, now quitting by the title's Quit). Broken on purpose three ways (no disk write, saves in page storage, a save never
    read back), the journey goes red each time at the step that should catch it, with that step's own message.
 2. **The save change is sound in order and in last-write-wins**, keeps every write off the sim and off the page's
    storage, and leaves `web`, `itch` and `ruken` untouched; **but a write that fails in the background is swallowed**
    (S1): `void saves.flush()` drops the refusal and `savesStatus` stays `saved`.
-3. **No blocker.** 5 should-fix, 9 notes. 14 findings in all.
+3. **No blocker.** 5 should-fix (all fixed), 9 notes. 14 findings in all. One more correction to the guide, found by
+   measuring: a second build takes about a minute, not seconds.
 
 ## Findings
 
@@ -145,7 +147,9 @@ Followed as a stranger with the packs standing in for the registry (the journey'
 messages): every command and path is true here. `pnpm dlx @automata/tools …` cannot run until the packages are on
 npmjs.org (the same line is in `packages/tools/README.md`). The guide's package list leaves out `patchelf` and
 `xdg-utils`, which the measurement installed; whether the AppImage step needs them is unproved (the README says so).
-"Later builds take seconds" was measured here on a kept folder (see "What was verified"). macOS and Windows are marked
+"Later builds take seconds" was not true here: a second `pnpm prepare:tauri` in a kept folder took 61 s (the game's
+crate compiled again in 26.6 s, since ship rewrites `.automata/tauri/` each run, then both bundles); the guide now says
+so. macOS and Windows are marked
 unverified.
 
 ### N6, note: against the branches in flight
@@ -189,6 +193,7 @@ the record's "For the tracker" (a fix below), and this audit's own row is under 
 | Mutation: never read back | `saves.get` answers `null` | red at step 5: `expected 'en' to be 'ja'` (the device's first-run flag skips the language screen, so the title opens in English: the `lang` check is the one that catches it) |
 | Save change | read against `hosting.ts`; the target unit tests | N2 |
 | Messages | the CLI from source in a game folder, three `PATH`s | N4 |
+| Warm rebuild | `pnpm prepare:tauri` again in a kept stranger folder | exit 0, 61 s |
 | Gates | see "Gates" | |
 
 ## What could not run
@@ -220,7 +225,21 @@ init, not the journey), N5 (`patchelf` and `xdg-utils` unproved either way; `pnp
 lanes' work), N9 (decisions for the Owner or other lanes). Not done: the `.deb`'s metadata, notices, Windows signing in
 `ship`, the 3D desktop build.
 
-The gates on the last code commit are below under "Gates after the fixes".
+### Gates after the fixes
+
+- `pnpm format` (Biome) on each commit's files; the pre-commit hook's affected unit tests on each.
+- `TURBO_FORCE=true pnpm check`, uncached, on `b05563d8` (every code fix in): **exit 0, 16 m 40 s**. A first run
+  (on `deb13602`) failed only at `pnpm style`'s docs check: the moved tracker rows' links (fixed in `cb9e07f4` and
+  `b05563d8`).
+- `pnpm build` (exit 0, 31 s); `pnpm api-report`: 1 break against the base, `ScreensCopy['title']` gains `quit`,
+  now declared by this branch's own changeset (`BREAKING:` line) rather than passing on another's; `--update` and
+  `pnpm api-index --write` committed (`1323b4ef`).
+- `pnpm secrets`: no leaks in the full history (3,785 commits).
+- The desktop journey on `deb13602` (the Quit and the driver log in): passed, 224 s; no live process afterwards.
+- Changesets, all `patch`, published packages only: `desktop-save-failure-status.md` and `desktop-title-quit.md`
+  (`@automata/framework`), beside the branch's two.
+- Not run: the 2D browser suites and journeys (no change reaches a rendered pixel but the title's one button; its
+  height was checked in the real WebKitGTK webview by the journey instead), parity, the 3D lane, macOS, Windows.
 
 ## For the tracker
 

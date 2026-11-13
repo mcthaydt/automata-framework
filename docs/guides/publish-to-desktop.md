@@ -77,7 +77,8 @@ shown, and copies the bundles to `dist-tauri/`:
 | Windows | `my-game-0.1.0-windows-nsis.exe`, `my-game-0.1.0-windows-msi.msi` |
 
 Measured on Linux, a new game on a 4-core machine: the first build took about 4 minutes (3 m 18 s of it compiling Rust);
-later builds reuse `.automata/tauri/src-tauri/target/` and take seconds. The `.deb` was 4.1 MB and the AppImage 82.7 MB
+later builds reuse `.automata/tauri/src-tauri/target/` and took about a minute (the game's own crate is compiled
+again, 27 s, because ship rewrites the project on every run; the rest is packing the two bundles). The `.deb` was 4.1 MB and the AppImage 82.7 MB
 (it carries the webview's libraries).
 
 A missing tool is named before anything is built, with the one command that installs it, for example:
