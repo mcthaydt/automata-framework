@@ -43,6 +43,11 @@ Left, and the Owner's:
 
 ## What is next
 
+**Changed on 2026-11-13 (the Owner):** AF launches with 2D alone. The story tools and online play stay; 3D leaves `main`
+as a first attempt that failed. The work, in order and with its files, is
+[`refactor/2026-11-13-2d-launch-cut-list.md`](refactor/2026-11-13-2d-launch-cut-list.md). Start there: it replaces the
+plan in the rest of this section, which is kept as it was written on 2026-11-06.
+
 After core and 2D: the 2D editors and the website, made ready to ship with 2D alone (the Owner, 2026-11-06); then the
 same for 3D (`games/base-3d`, `packages/3d`, the 3D editors and the site). Each slice goes audit, plan,
 plan audit, build, build audit, fixes, and is finished before the next starts. The 2D editors and website audit is

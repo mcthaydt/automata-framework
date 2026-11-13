@@ -7,6 +7,20 @@ day for the Owner's three decisions (below).
 **Measured at:** `main` `a234a3a2`. Sizes are `.ts` lines without tests. Every "who uses it" below is a `git grep` at that
 commit. Nothing was built, run or deleted to write this page: each step still has to pass `pnpm check` when it is done.
 
+## Handoff: for the session that does the work
+
+This page is the instruction. On 2026-11-13 the Owner said: "we're working in another claude session, so just push it
+to main as our handoff instructions".
+
+- **Nothing here has been started.** No file has been deleted or moved, and the tag in step 0 has not been pushed.
+- **The three decisions are made** (below). Do not reopen them.
+- **Start at step 1** and go in order, one pull request per step, with the failing test first where a step changes
+  behaviour (steps 2b and 3 do). Step 3 must be merged before step 4 starts.
+- **Step 0 is the Owner's.** Ask for the tag before step 4; steps 1 to 3 do not need it.
+- **The file lists are where to look first, not the whole truth.** They came from `git grep` at `a234a3a2`. Search
+  again at the start of each step, and trust `pnpm check`, `pnpm knip` and `pnpm boundaries` over this page.
+- **Record each step** in [`progress.md`](progress.md) as it lands, with what ran and what did not.
+
 ## The rules of the list
 
 - One step is one pull request, and `pnpm check` passes after each.
