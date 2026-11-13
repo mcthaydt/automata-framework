@@ -49,6 +49,7 @@
     "zod": "4.6.6"
   },
   "devDependencies": {
+    "@automata/content": "workspace:*",
     "@automata/examples-runner": "workspace:*",
     "@automata/playwright-preset": "workspace:*",
     "@automata/vitest-preset": "workspace:*",

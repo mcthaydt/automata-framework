@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { DEFAULT_LOCALES } from '@automata/content/locale'
 import { BROWSER_ENGINES } from '@automata/vitest-preset/engines'
 import { describe, expect, it } from 'vitest'
 import { playgroundExamples } from '#src/shared/framework/examples.ts'
@@ -27,6 +28,10 @@ describe('siteFacts', () => {
     expect(facts.examples).toBe(playgroundExamples().length)
   })
 
+  it('counts the languages every new game ships', () => {
+    expect(facts.languages).toBe(DEFAULT_LOCALES.length)
+  })
+
   it('reads the licence from the root package', () => {
     const root = JSON.parse(readFileSync(join(repositoryRoot, 'package.json'), 'utf8')) as { license: string }
     expect(facts.licence).toBe(root.license)
@@ -38,7 +43,8 @@ describe('Home does not type a number', () => {
     const folder = join(import.meta.dirname, '../../../src/features/home')
     for (const name of readdirSync(folder).filter((file) => /\.(svelte|ts)$/.test(file))) {
       const source = readFileSync(join(folder, name), 'utf8')
-      expect(source, name).not.toMatch(/\b\d+ (engines?|examples?|targets?)\b/i)
+      expect(source, name).not.toMatch(/\b\d+ (engines?|examples?|targets?|languages?)\b/i)
+      expect(source, name).not.toMatch(/\b(one|two|three|four|five|six|seven|eight|nine|ten) languages?\b/i)
     }
   })
 })

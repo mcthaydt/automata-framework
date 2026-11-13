@@ -132,3 +132,18 @@ now imports `virtual:framework/demo-urls`, the addresses only. Preloaded script:
 room). Test: `tests/unit/home/demos.test.ts` (the runner imports only the addresses). Demo journeys (`visitor.e2e.ts`, 6) pass.
 
 Gate record: `TURBO_FORCE=true pnpm check` passed on `31e23b4f0` (66 tasks, exit 0, 13 m 40 s).
+
+## Finding 4 (the coordinator's C3): "six languages" was typed
+
+**Where:** Home, Built in, "Languages".
+
+**Cause.** The card said "Menus in six languages" as a literal. A test checked that the word "six" was there, not that six is
+how many languages a new game ships.
+
+**Fix.** `siteFacts()` gains `languages`, the length of `DEFAULT_LOCALES` (`@automata/content/locale`, now a site dev
+dependency); the card's words carry `{languages}` and Home fills in the number as a word. A second test file mocks the facts
+to say three and requires Home to say "three languages"; the facts test pins `languages` to `DEFAULT_LOCALES.length`; and the
+"Home does not type a number" guard now also forbids "<number word> languages" in Home's source.
+
+**Tests:** `tests/unit/home/home-languages.test.ts` (new, failed first), `tests/unit/framework/facts.test.ts`,
+`tests/unit/home/home.test.ts`. Words on the page are unchanged ("Menus in six languages from the first run…").

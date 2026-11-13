@@ -83,10 +83,18 @@ export const BUILT_IN = {
     ['Every screen', 'Phones, tablets and computers, upright or sideways.'],
     [
       'Languages',
-      'Menus in six languages from the first run. The command automata words translates your own words.',
+      'Menus in {languages} languages from the first run. The command automata words translates your own words.',
     ],
   ],
 } as const
+
+/** A count in words for a sentence ("six"); past ten, the digits. */
+export function numberWord(count: number): string {
+  return (
+    ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'][count] ??
+    String(count)
+  )
+}
 
 /** The studios that ship on Automata, as the carousel shows them: a name, the logo's files and where it goes. */
 export const MADE_WITH = [

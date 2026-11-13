@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { DEFAULT_LOCALES } from '@automata/content/locale'
 import { BROWSER_ENGINES } from '@automata/vitest-preset/engines'
 import { playgroundExamples } from './examples.ts'
 import { repositoryRoot } from './root.ts'
@@ -18,6 +19,8 @@ export interface EngineFact {
 export interface SiteFacts {
   readonly engines: readonly EngineFact[]
   readonly examples: number
+  /** The languages a new game ships (the default locales), counting the one its words are written in. */
+  readonly languages: number
   readonly licence: string
 }
 
@@ -30,6 +33,7 @@ export function siteFacts(root: string = repositoryRoot): SiteFacts {
   return {
     engines: ids.map((id) => ({ id, name: NAMES[id], where: id === 'node' ? 'unit tests' : 'parity job' })),
     examples: playgroundExamples(root).length,
+    languages: DEFAULT_LOCALES.length,
     licence: license,
   }
 }

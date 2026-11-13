@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import facts from 'virtual:framework/facts'
 import example from 'virtual:framework/home-example'
 import { render, waitFor } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
@@ -10,6 +11,7 @@ import {
   DEMO_BAR,
   HERO,
   HOME_EXAMPLES,
+  numberWord,
   TARGETS,
 } from '#src/features/home/home-content.ts'
 import { APP_PRICES, NO_CREDITS } from '#src/shared/content/pricing.ts'
@@ -169,7 +171,8 @@ describe('Home', () => {
     const item = [...list.querySelectorAll('li')].find(
       (li) => li.querySelector('h3')?.textContent === 'Languages',
     )
-    expect(item?.textContent).toMatch(/six languages/i)
+    expect(item?.textContent).toContain(`${numberWord(facts.languages)} languages`)
+    expect(facts.languages).toBeGreaterThan(1)
     expect(item?.textContent).toContain('automata words')
     // The command it names is one the framework answers to: its guide documents it.
     expect(readFileSync(resolve(repo, 'docs/guides/languages.md'), 'utf8')).toContain('automata words')
