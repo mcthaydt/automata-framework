@@ -1,0 +1,70 @@
+// Temporary measurement probe (not a gate): ms per frame of the look with the DUEL snap on and off, GPU-synchronised.
+import '#src/entries/no-eval.ts'
+import { DirectionalLight } from '@pixi/3d'
+import type { RenderRow, StepResult } from '@automata/sim'
+import { describe, it } from 'vitest'
+import { createPixi3dRenderer } from '#src/app/create-renderer.ts'
+import { DuelSnapEffect } from '#src/features/look/duel-snap-filter.ts'
+import { DEFAULT_LOOK } from '#src/features/look/look.ts'
+import { box } from '#src/shared/render/views/box-view.ts'
+import { builtRenderer } from '#src/testing/built-renderer.ts'
+import { testTarget } from '#src/testing/test-target.ts'
+
+const frame = { alpha: 1, frameMs: 16, paused: false }
+const step = (render: StepResult['render']): StepResult => ({ tick: 0, events: [], render, rejected: [] })
+const rows: RenderRow[] = [{ sid: 1, components: { crate: { x: 0, y: 0, z: 0 } } }]
+
+describe('snap probe', () => {
+  it('times it', { timeout: 600_000 }, async () => {
+    const out: unknown[] = []
+    for (const [w, h, short] of [
+      [844, 390, 180],
+      [844, 390, 292],
+      [1024, 768, 180],
+      [1024, 768, 380],
+    ] as const) {
+      const host = document.createElement('div')
+      document.body.appendChild(host)
+      const renderer = await builtRenderer(
+        createPixi3dRenderer({
+          logicalWidth: w,
+          logicalHeight: h,
+          backgroundColor: 0x2e222f,
+          views: { crate: box({ width: 1, height: 1, depth: 1 }, { color: 0xf9c22b }) },
+          look: { ...DEFAULT_LOOK, pixel: { short } },
+          scene: (view) => {
+            view.camera.position.set(0, 2.5, 5)
+            view.camera.lookAt({ x: 0, y: 0.5, z: 0 })
+            const sun = new DirectionalLight({ intensity: 2 })
+            sun.rotation.set(-0.8, 0.5, 0)
+            view.root.addChild(sun)
+            return undefined
+          },
+        })(testTarget(host, {}, { width: w, height: h })),
+      )
+      renderer.apply(step({ resync: true, added: rows, changed: [], removed: [] }))
+      const gl = (renderer.stage.app.renderer as unknown as { gl: WebGL2RenderingContext }).gl
+      const px = new Uint8Array(4)
+      const time = (n: number): number => {
+        const t0 = performance.now()
+        for (let i = 0; i < n; i++) {
+          renderer.draw(frame)
+          gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px)
+        }
+        return (performance.now() - t0) / n
+      }
+      time(3)
+      const on = [time(8), time(8), time(8)]
+      const all = renderer.view.passes
+      renderer.view.passes = all.filter((p) => !(p instanceof DuelSnapEffect))
+      time(3)
+      const off = [time(8), time(8), time(8)]
+      renderer.view.passes = all
+      const c = renderer.stage.app.canvas
+      out.push({ stage: `${w}x${h}`, short, canvas: [c.width, c.height], onMs: on, offMs: off })
+      renderer.dispose()
+      document.body.replaceChildren()
+    }
+    console.log('PROBE ' + JSON.stringify(out))
+  })
+})
