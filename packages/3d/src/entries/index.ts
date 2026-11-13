@@ -14,7 +14,14 @@ export { render3dExtension } from '../app/render3d.extension.ts'
 export { type RoomHooksOptions, roomHooks } from '../app/room-hooks.ts'
 export { updatePieces } from '../app/update-pieces.ts'
 export { type WorldLightingOptions, worldLighting } from '../app/world-lighting.ts'
-export { drawWorld, sceneLamps, type WorldScene, type WorldView } from '../app/world-view.ts'
+export {
+  type DrawWorldOptions,
+  drawWorld,
+  type ModelledProp,
+  sceneLamps,
+  type WorldScene,
+  type WorldView,
+} from '../app/world-view.ts'
 export {
   type AngledCameraOptions,
   angledCamera,
@@ -48,6 +55,9 @@ export {
   wallFacesAway,
 } from '../features/camera/occluders/occluder-rule.ts'
 export {
+  createOccluders,
+  type DrawingCamera,
+  type OccluderStage,
   type Occluders,
   type PropOptions,
   TRIM_HEIGHT,
@@ -72,6 +82,7 @@ export {
 } from '../features/look/grade.ts'
 export { GradeEffect } from '../features/look/grade-effect.ts'
 export { HazeEffect, hazed, hazeOf, hazeShare } from '../features/look/haze.ts'
+export { drawLightPatches, type LightPatches } from '../features/look/light-patch-view.ts'
 export {
   DEFAULT_LOOK,
   type HazeProfile,
@@ -106,6 +117,7 @@ export {
   type WorldOptions,
   type WorldPart,
   type WorldPiece,
+  type WorldProp,
 } from '../features/world/build.ts'
 export { box as propBox, cylinder as propCylinder } from '../features/world/mesh.ts'
 export type { WorldLamp } from '../features/world/place-props.ts'
@@ -135,9 +147,12 @@ export type {
   FigureShadows,
   Silhouette,
 } from '../shared/render/light/figure-shadow.ts'
+export type { LightPatch } from '../shared/render/light/light-patch.ts'
 export { type BakeOptions, createSceneLight, type SceneLight } from '../shared/render/light/scene-light.ts'
 export { sceneLightingContent } from '../shared/render/light/scene-lighting.content.ts'
 export {
+  type ContactShadow,
+  contactSchema,
   type Lamp,
   lampSchema,
   type OccluderBox,

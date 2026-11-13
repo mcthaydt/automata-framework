@@ -37,8 +37,16 @@ export interface Look {
    * takes that shape's colour, a few steps down its ramp.
    */
   readonly outline: { readonly gap: number; readonly perMetre: number }
-  /** The Bayer offset (in colour units, 0 to 1) a pixel gets before it snaps to DUEL. */
-  readonly dither: { readonly strength: number }
+  /**
+   * The Bayer offset (in colour units, 0 to 1) a pixel gets before it snaps to DUEL. `lumaWeight` (0 to 1, default 0) takes that share
+   * of the pixel's luma off the offset, so the lights speckle less than the darks; `shadowTaper` (default false) takes the offset to
+   * nothing in the deep blacks, `smoothstep(0.02, 0.08, luma)`. Neither set, every pixel gets the same amplitude.
+   */
+  readonly dither: {
+    readonly strength: number
+    readonly lumaWeight?: number | undefined
+    readonly shadowTaper?: boolean | undefined
+  }
   /** Where the grade comes from: the time of day's, or none. */
   readonly grade: 'time' | 'none'
   readonly haze: HazeProfile
@@ -55,7 +63,13 @@ export const lookSchema: z.ZodType<Look, unknown> = z.strictObject({
   outline: z
     .strictObject({ gap: z.number().min(0), perMetre: z.number().min(0) })
     .default({ gap: 0.06, perMetre: 0.03 }),
-  dither: z.strictObject({ strength: z.number().min(0).max(1) }).default({ strength: 0.04 }),
+  dither: z
+    .strictObject({
+      strength: z.number().min(0).max(1),
+      lumaWeight: z.number().min(0, 'lumaWeight is 0 to 1').max(1, 'lumaWeight is 0 to 1').optional(),
+      shadowTaper: z.boolean().optional(),
+    })
+    .default({ strength: 0.04 }),
   grade: z.enum(['time', 'none']).default('time'),
   haze: z
     .strictObject({

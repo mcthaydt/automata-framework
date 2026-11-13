@@ -7,7 +7,7 @@
 import { DEFAULT_PALETTE } from '@automata/content/palette'
 import { type EffectFragment, type EffectIO, PostEffect, type RenderGraph } from '@pixi/3d'
 import { UniformGroup } from 'pixi.js'
-import { EXACT } from './duel-snap.ts'
+import { type DitherOptions, EXACT } from './duel-snap.ts'
 import { addColourOnlyPass } from './present-pass.ts'
 
 /** A palette as 0 to 1 channel triples, in palette order. */
@@ -40,7 +40,9 @@ vec4 effect(vec2 uv) {
   vec4 c = sampleColor(uv);
   vec2 p = floor(uv / texel());
   int cell = int(mod(p.x, 4.0)) + int(mod(p.y, 4.0)) * 4;
-  vec3 want = c.rgb + (BAYER[cell] / 16.0 - 0.5) * uDither;
+  float luma = dot(c.rgb, vec3(0.2126, 0.7152, 0.0722));
+  float amplitude = uDither * (1.0 - uLumaWeight * luma) * mix(1.0, smoothstep(0.02, 0.08, luma), uShadowTaper);
+  vec3 want = c.rgb + (BAYER[cell] / 16.0 - 0.5) * amplitude;
   float best = 1e9;
   vec3 pick = want;
   float exact = 1e9;
@@ -65,7 +67,9 @@ fn effect(uv: vec2<f32>) -> vec4<f32> {
   let c = sampleColor(uv);
   let p = floor(uv / texel());
   let cell = i32(p.x % 4.0) + i32(p.y % 4.0) * 4;
-  let want = c.rgb + (BAYER[cell] / 16.0 - 0.5) * fx.uDither;
+  let luma = dot(c.rgb, vec3<f32>(0.2126, 0.7152, 0.0722));
+  let amplitude = fx.uDither * (1.0 - fx.uLumaWeight * luma) * mix(1.0, smoothstep(0.02, 0.08, luma), fx.uShadowTaper);
+  let want = c.rgb + (BAYER[cell] / 16.0 - 0.5) * amplitude;
   var best = 1e9;
   var pick = want;
   var exact = 1e9;
@@ -87,10 +91,25 @@ export class DuelSnapEffect extends PostEffect {
   protected override readonly fragment: EffectFragment = { gpu: WGSL, gl: GLSL }
   protected override readonly uniforms: UniformGroup
 
-  /** `dither` is the Bayer offset in colour units (0 snaps flat). */
-  constructor(dither: number) {
+  /**
+   * `dither` is the Bayer offset in colour units (0 snaps flat); `options` are the amplitude's luma weight and shadow taper, off unless
+   * given (`ditherAmplitude` is the same rule on the CPU).
+   */
+  constructor(dither: number, options: DitherOptions = {}) {
     super()
-    this.uniforms = new UniformGroup({ uDither: { value: dither, type: 'f32' } })
+    this.uniforms = new UniformGroup({
+      uDither: { value: dither, type: 'f32' },
+      uLumaWeight: { value: options.lumaWeight ?? 0, type: 'f32' },
+      uShadowTaper: { value: options.shadowTaper === true ? 1 : 0, type: 'f32' },
+    })
+  }
+
+  get lumaWeight(): number {
+    return this.uniforms.uniforms.uLumaWeight as number
+  }
+
+  get shadowTaper(): number {
+    return this.uniforms.uniforms.uShadowTaper as number
   }
 
   /** Reads the colour only: this is the pass that draws to the canvas, and it must not sample the depth (`present-pass.ts`). */

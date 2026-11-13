@@ -111,6 +111,62 @@ describe('bakeVertices', () => {
     const beside = colours(bakeVertices(positions, normals, IDENTITY, { ...lit, planes: wall }))
     expect(beside).toEqual(without)
   })
+
+  // The old game multiplied its whole light by the contact darkening, lamps included: the pool at a wall's foot is darker than
+  // the pool in the open. A room opts in with `contact.lamps` (the share of the darkening lamp light takes).
+  it('with `contact.lamps` the darkening also multiplies a lamp’s light, by that share, and only near the wall', () => {
+    const { positions, normals } = floorPatch()
+    const lit = { ...lighting, ambient: 0 }
+    const wall = [
+      { x: -2.05, y: 1, z: 0, normal: [1, 0, 0] as [number, number, number], width: 6, height: 2 },
+    ]
+    const room = { ...lit, planes: wall }
+    const plain = colours(bakeVertices(positions, normals, IDENTITY, room), { warm: 1 })
+    const full = colours(
+      bakeVertices(
+        positions,
+        normals,
+        IDENTITY,
+        sceneLightingSchema.parse({ ...room, contact: { lamps: 1 } }),
+      ),
+      { warm: 1 },
+    )
+    const half = colours(
+      bakeVertices(
+        positions,
+        normals,
+        IDENTITY,
+        sceneLightingSchema.parse({ ...room, contact: { lamps: 0.5 } }),
+      ),
+      { warm: 1 },
+    )
+    // The row against the wall (x = -2, i = 0): darker with the opt-in; the far side (x = 2, i = 4) is as it was.
+    const against = (0 * 5 + 2) * 4
+    const away = (4 * 5 + 2) * 4
+    expect(full[against] ?? 0).toBeLessThan((plain[against] ?? 0) * 0.9)
+    expect(full[away]).toBe(plain[away])
+    expect(half[against] ?? 0).toBeGreaterThan(full[against] ?? 0)
+    expect(half[against] ?? 0).toBeLessThan(plain[against] ?? 0)
+  })
+
+  it('with no contact block, or `lamps: 0`, a lamp’s light is as it always was', () => {
+    const { positions, normals } = floorPatch()
+    const wall = [
+      { x: -2.05, y: 1, z: 0, normal: [1, 0, 0] as [number, number, number], width: 6, height: 2 },
+    ]
+    const room = { ...lighting, planes: wall }
+    const plain = colours(bakeVertices(positions, normals, IDENTITY, room), { warm: 1 })
+    const zero = colours(
+      bakeVertices(
+        positions,
+        normals,
+        IDENTITY,
+        sceneLightingSchema.parse({ ...room, contact: { lamps: 0 } }),
+      ),
+      { warm: 1 },
+    )
+    expect(zero).toEqual(plain)
+  })
 })
 
 // The room light as a look gives it: a key, a fill and a sun in the base, a cap and steps on the sum, a shade per room.

@@ -1,7 +1,7 @@
 // Occlusion for the baked light: what blocks a lamp (boxes and planes), and contact darkening where surfaces meet. AF's
 // change: the source read its level's sector map and furniture list; here the occluders are the `SceneLighting`'s boxes
 // and planes, so a sector wall is a plane and the darkening rules apply to any plane.
-import type { OccluderBox, OccluderPlane, SceneLighting } from './scene-lighting.schema.ts'
+import type { ContactShadow, OccluderBox, OccluderPlane, SceneLighting } from './scene-lighting.schema.ts'
 
 /** A point on a surface and its unit normal, in world metres. */
 export interface LightSample {
@@ -13,7 +13,7 @@ export interface LightSample {
   readonly nz: number
 }
 
-type Occluders = Pick<SceneLighting, 'boxes' | 'planes'>
+type Occluders = Pick<SceneLighting, 'boxes' | 'planes'> & { readonly contact?: ContactShadow | undefined }
 type Axes = { readonly u: readonly [number, number, number]; readonly v: readonly [number, number, number] }
 
 // The part of a segment that counts: its ends are surfaces and lamps, which must not block themselves.
@@ -134,6 +134,18 @@ export function floorUnder(occluders: Occluders, x: number, y: number, z: number
   return floor
 }
 
+/** The source's strengths: what a room with no `contact` block gets, and no lamp takes the darkening. */
+export const SOURCE_CONTACT: ContactShadow = {
+  lamps: 0,
+  join: 0.38,
+  corner: 0.3,
+  under: 0.15,
+  base: 0.28,
+  ceiling: 0.3,
+  foot: 0.45,
+  floor: 0.3,
+}
+
 /**
  * Contact darkening, baked once per vertex (the source's `occlusion`, its rules and constants): a factor to multiply
  * light by, 1 in the open and never below 0.3.
@@ -146,6 +158,7 @@ export function floorUnder(occluders: Occluders, x: number, y: number, z: number
  *   footprint.
  */
 export function contactShade(sample: LightSample, occluders: Occluders): number {
+  const k = occluders.contact ?? SOURCE_CONTACT
   let open = 1
   const upright = Math.abs(sample.ny) <= 0.5
   for (const plane of occluders.planes) {
@@ -159,12 +172,12 @@ export function contactShade(sample: LightSample, occluders: Occluders): number 
     const ny = plane.normal[1]
     if (Math.abs(ny) > 0.5) {
       // A floor or a ceiling: only upright surfaces in front of it darken toward it.
-      if (upright && d >= 0) open *= 1 - (ny > 0 ? 0.28 : 0.3) * Math.exp(-d / 0.35)
+      if (upright && d >= 0) open *= 1 - (ny > 0 ? k.base : k.ceiling) * Math.exp(-d / 0.35)
       continue
     }
     if (d < -0.02 || d > 0.9) continue
     if (d < 0.06 && dot(plane.normal, sample.nx, sample.ny, sample.nz) > 0.7) continue
-    const strength = sample.ny > 0.5 ? 0.38 : upright ? 0.3 : 0.15
+    const strength = sample.ny > 0.5 ? k.join : upright ? k.corner : k.under
     open *= 1 - strength * Math.exp(-Math.max(0, d) / 0.28)
   }
   if (sample.ny > 0.5)
@@ -173,7 +186,7 @@ export function contactShade(sample: LightSample, occluders: Occluders): number 
       const dx = Math.max(0, Math.abs(sample.x - box.x) - box.width / 2)
       const dz = Math.max(0, Math.abs(sample.z - box.z) - box.depth / 2)
       const d = Math.hypot(dx, dz)
-      if (d < 0.6) open *= 1 - 0.45 * Math.exp(-d / 0.18)
+      if (d < 0.6) open *= 1 - k.foot * Math.exp(-d / 0.18)
     }
-  return Math.max(0.3, open)
+  return Math.max(k.floor, open)
 }
