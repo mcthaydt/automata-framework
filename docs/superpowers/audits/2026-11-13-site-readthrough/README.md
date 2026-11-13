@@ -57,3 +57,18 @@ printed hint that the code scrolls; the cut-off line at the bottom is the cue. S
 
 Checked each place that shows code beside a picture, a number beside a claim, or a command beside its output. (Filled in as
 each is judged; a mismatch becomes its own finding below.)
+
+## Finding 3: `check:launch` crashes before it checks anything
+
+**Where:** `pnpm --filter @automata/site check:launch` (the deploy job runs it under plain Node).
+
+**Cause.** `site/src/features/home/home-content.ts` imported `'../../shared/content/agent-prompt'` without `.ts`. Vite and
+Vitest add the extension, plain Node does not, so the script died with `ERR_MODULE_NOT_FOUND`; the gate's unit tests import
+its functions under Vite and never ran the script.
+
+**Fix.** The import now says `.ts`. Every other script under `site/scripts` was checked for the same fault by walking the
+import graph each one reaches (relative imports and `#src/`): this was the only one.
+
+**Tests (watched fail first):** `tests/unit/scripts/node-imports.test.ts`: the import graph of every `scripts/*.ts` resolves
+under plain Node, and `node scripts/check-launch.ts` run as a child process exits non-zero with its own refusals (the
+repository is private) and no `ERR_MODULE_NOT_FOUND`. No workflow file changed.
