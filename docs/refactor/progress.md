@@ -915,3 +915,13 @@ quota was full, so traces no longer uploaded when a run failed.
 | Still uploads on a green run | `evidence` (ci.yml, push to main, 90 days): the golden-hash file; its comment says the website reads it, nothing in the repository downloads it. It is the one name on the rule's allow-list | — |
 | `pnpm evidence` step of the parity job: emberwick's `test:evidence` named `tests/browser/golden.test.ts`, which "lay the game out by feature" (95dc5c33) moved to `tests/browser/testing/`. The path is fixed, and `tooling/repo-hygiene/tests/unit/script-paths.test.ts` fails when any package or root script names a test file that is not on disk (it failed first on that one script; no other script was wrong) | Before: vitest "No test files found". After: `pnpm --filter @af-games/emberwick test:evidence` runs the golden test in Node and Chromium (2 of 2) | `pnpm test:unit` in `tooling/repo-hygiene` (173 of 173) |
 | Not run | The workflows themselves (they run on GitHub); the evidence step in Firefox and WebKit (not installed here), and the evidence collector over all four engines; `actionlint` (`pnpm lint:actions` needs Docker, none here), the YAML parses | — |
+
+## The 2D launch cut list (2026-11-13, branch `claude/gallant-faraday-mmmovo`)
+
+The Owner: "audit the codebase for overengineering; what should be kept and what should be cut. We're launching fully
+with 2D before doing 3D", then "write up the ordered cut list".
+
+| Step | Status | Record |
+|---|---|---|
+| The list: six steps in order, with the files each one removes and edits, and three calls for the Owner | Written at `main` `a234a3a2`; no product code changed | [2026-11-13-2d-launch-cut-list.md](2026-11-13-2d-launch-cut-list.md) |
+| Not run | Nothing was built, tested or deleted: every "who uses it" is a `git grep`, and each step still has to pass `pnpm check` | |
