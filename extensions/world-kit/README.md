@@ -41,6 +41,21 @@ and a generator (`kind = "sink"`) that draws without one. A floor prop's origin 
 
 Every swatch is a parameter with a default (`mat`, `metal`, `tyre`), so a game paints them its own way.
 
+## A railway's things
+
+Four props for a line, a yard or a tram stop, each a preset of the same name and a generator (`kind = "rails"`) that draws
+without one. A prop's origin is the centre of its base and its front is +z; the track and the platform edge run along x.
+
+| Kind | Parameters | Bounds with the defaults (m) |
+|---|---|---|
+| `rails` | `length` (6), `gauge` (1.435), swatches `rail`, `sleeper`, `bed` | 6 × 0.3 × 2.6 |
+| `platformEdge` | `length` (6), `height` (0.9), `line` (true: the white line on the coping) | 6 × 0.9 × 0.6 |
+| `canopy` | `length` (6), `depth` (3), `posts` (2), `height` (3.2: the front's underside; the roof pitches up toward the back) | 6 × 3.6 × 3 |
+| `signal` | `clear` (false: the arm level; true: raised 40°), `lit` (true: a red glass and a light), `height` (5); the arm reaches out along +x | 1.2 × 5 × 0.5 |
+
+The track's ground is `ballast`, its sleepers `sleeper`: the two photos `assets/photos` holds for them (Poly Haven's
+`gravel_stones` and `rough_wood`, CC0).
+
 ## Furnish a room
 
 Give a room a purpose and run `dressLevel` once, before the level is built:

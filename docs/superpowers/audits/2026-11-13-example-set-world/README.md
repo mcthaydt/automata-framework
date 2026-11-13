@@ -49,6 +49,38 @@ One thing for the next person: `pnpm textures` under plain Node 24.21 stops on `
 tiles it writes are one line each, which `pnpm format` then lays out as the committed ones are. I ran it with
 `NODE_OPTIONS=--experimental-transform-types`, then `pnpm format`. Nothing in the repo changed for that.
 
+## W2: track and platform props
+
+New: `src/features/props/railway.ts` (`rails`, `platformEdge`, `canopy`, `signal`; registered in `register-props.ts`),
+`tests/unit/props/railway.test.ts`, four presets of the same names in `library/props.json`, a README section "A railway's
+things". No existing file's behaviour changed.
+
+Steps, with evidence:
+
+- Step 1 (failing): the test written first; `pnpm --filter @automata/world-kit test:unit -- railway` failed 39 tests,
+  each `rails is not registered: unknown-generator` (and the same for the other three).
+- Step 2: generators, registration, presets. The first run failed three tests, each for a real reason: the lamp kit refuses a
+  coloured `bulb` (`lamp-off-tone`: a red light must be a `neon`), and the signal measured 1.35 m wide, not 1.2 (the arm's
+  tail stuck out 0.1 m beyond the arm and the footing is 0.25 m either side; the arm now starts at the footing's edge). After
+  the fixes: 22 files, 304 tests, all pass.
+
+Choices the plan left open: the sleepers are 2.6 m long (so the track is 2.6 m deep, as the plan's bounds say), laid every
+0.6 m with a 2.4 m ballast bed under them; `clear: true` raises the arm 40° (the plan: "far end higher"); a lit signal's
+glass is `neonRed` and its light a `neon` of `#ff3b2f` (the lamp kit's only kind that takes any colour); the canopy's roof
+is pitched 6° up toward the back and has a knee brace for each post (its own piece, `braces`).
+
+Sheet: [`w2-railway.png`](w2-railway.png): each prop from two yaws, then the signal with `clear: true`. It is flat-shaded
+in the swatches' DUEL colours by a small scratch renderer, not the kit's look, no texture and no light: it shows shape,
+not the picture the game draws.
+
+What I see. *Rails*: track as a child would draw it, two rails on evenly spaced sleepers on a pale bed: reads at once.
+*Platform edge*: a plain wall with a coping and the pale line: correct, and dull on its own; the swatch's texture will
+carry it. *Canopy*: weakest: a green slab on two thin dark posts. The pitch and the fascia read, but the braces hide
+behind the fascia at the sheet's angles and it looks like a table; a real station canopy has a back wall and more posts
+(`posts: 3` or `4` for a longer one), which the level supplies. *Signal*: post, level red arm, small lantern with a red
+glass; raised, the arm reads clearly as "clear". The lamp is small, so at the game's scale it will be a few pixels: the
+light it carries is what will say "lit".
+
 ## For the tracker
 
 (Rows for `docs/superpowers/progress.md`, for the coordinator to copy. Filled in as the tasks finish.)

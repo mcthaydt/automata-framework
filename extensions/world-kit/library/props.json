@@ -563,5 +563,17 @@
   },
   "dripStand": {
     "kind": "dripStand"
+  },
+  "rails": {
+    "kind": "rails"
+  },
+  "platformEdge": {
+    "kind": "platformEdge"
+  },
+  "canopy": {
+    "kind": "canopy"
+  },
+  "signal": {
+    "kind": "signal"
   }
 }

@@ -4,10 +4,11 @@
 import { registerPropGenerator } from '@automata/3d/props-kit'
 import { FURNITURE } from './furniture.ts'
 import { NATURE } from './nature.ts'
+import { RAILWAY } from './railway.ts'
 import { SIGNS } from './signs.ts'
 import { SMALL_THINGS } from './small-things.ts'
 import { STREET } from './street.ts'
 import { WARD } from './ward.ts'
 
-for (const table of [FURNITURE, SMALL_THINGS, STREET, NATURE, SIGNS, WARD])
+for (const table of [FURNITURE, SMALL_THINGS, STREET, NATURE, SIGNS, WARD, RAILWAY])
   for (const [kind, generator] of Object.entries(table)) registerPropGenerator(kind, generator)
