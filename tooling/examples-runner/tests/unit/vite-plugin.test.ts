@@ -21,8 +21,25 @@ describe('examplePage', () => {
       { start: stubStart, noEval: '@automata/framework/no-eval' },
     )
     const imports = [...html.matchAll(/^\s*import .*'(.+)'$/gm)].map((match) => match[1])
-    expect(imports).toEqual(['@automata/framework/no-eval', stubStart, '/core/core-stub.ts'])
-    expect(html).toContain('startGame(example)')
+    expect(imports).toEqual([
+      '@automata/framework/no-eval',
+      stubStart,
+      '@automata/examples-runner/start-at-play',
+      '/core/core-stub.ts',
+    ])
+    expect(html).toContain('startGame(')
+  })
+
+  // A page that frames an example where the visitor has already pressed Play (the site's 3D pages) asks for it with
+  // `?play`, so the game's own title is not a second Play; without it, the page starts the game as it is.
+  it('starts at the play screen only when the address asks for it with `?play`', () => {
+    const html = examplePage(
+      { path: 'core/core-stub.ts', id: 'core-stub', title: 'a stub' },
+      { start: stubStart, noEval: '@automata/framework/no-eval' },
+    )
+    expect(html).toContain(
+      "startGame(new URLSearchParams(location.search).has('play') ? { ...example, content: startAtPlay(example) } : example)",
+    )
   })
 
   it('gives the game its root, `#game`, before the script that starts it', () => {

@@ -12,7 +12,8 @@
     "./host/testing": "./host/testing.ts",
     "./header": "./src/header.ts",
     "./page-template": "./src/page-template.ts",
-    "./examples-ship-config": "./src/examples-ship-config.ts"
+    "./examples-ship-config": "./src/examples-ship-config.ts",
+    "./start-at-play": "./src/start-at-play.ts"
   },
   "imports": {
     "#src/*": "./src/*"

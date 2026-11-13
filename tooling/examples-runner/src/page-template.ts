@@ -37,7 +37,11 @@ ${body}
 `
 }
 
-/** The page that runs one example: its root `#game`, then no-eval, `startGame` and the example's default export. */
+/**
+ * The page that runs one example: its root `#game`, then no-eval, `startGame` and the example's default export. A frame
+ * whose visitor has already pressed Play (the site's 3D pages) asks with `?play` for the play screen at once
+ * (`startAtPlay`), so the game's own title is not a second Play; without it the game starts as it is.
+ */
 export function examplePage(
   entry: Pick<CatalogEntry, 'path' | 'id'> & { readonly title: string },
   modules: PageModules,
@@ -48,8 +52,9 @@ export function examplePage(
     <script type="module">
       import '${modules.noEval}'
       import { startGame } from '${modules.start}'
+      import { startAtPlay } from '@automata/examples-runner/start-at-play'
       import example from '/${entry.path}'
-      startGame(example)
+      startGame(new URLSearchParams(location.search).has('play') ? { ...example, content: startAtPlay(example) } : example)
     </script>`,
   )
 }
