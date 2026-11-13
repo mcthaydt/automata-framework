@@ -65,7 +65,7 @@ describe('TunerRows', () => {
     expect(text(controller)).toContain('GREETING = "hi"')
   })
 
-  // P14: a text setting was written only when the field was left, so a reload lost it while the bar said "Saved".
+  // A text setting was written only when the field was left, so a reload lost it while the bar said "Saved".
   it('writes a text value half a second after the last key, with the focus still in the field', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: false })
     try {

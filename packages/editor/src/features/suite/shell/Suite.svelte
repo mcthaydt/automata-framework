@@ -140,7 +140,7 @@ $effect(() => {
 
 // Editing (flows 3 to 8): every editor is opened with ports whose writes take the suite's write path; the pills and
 // Undo follow it. The session lives as long as the suite.
-// Typed words are written as they are typed (P14): every field of every editor registers here, and the registry keeps
+// Typed words are written as they are typed: every field of every editor registers here, and the registry keeps
 // the words in the browser's own storage until the write has landed, so a page that goes away inside the half second
 // gets them back.
 // svelte-ignore state_referenced_locally

@@ -6,7 +6,7 @@ import { expect, openEditor, pressInList, savedInto, test } from '../harness/fix
 import { runEditor } from '../harness/run-editor.ts'
 import { serveSuitePage } from '../harness/static-page.ts'
 
-// P14: words typed into a field were written only when the field was left, so a tab closed or a page reloaded with the
+// Words typed into a field were written only when the field was left, so a tab closed or a page reloaded with the
 // cursor still in the field lost them, while the bar said "Saved". Each of these types without ever leaving the field,
 // then reloads or closes the tab, and looks for the words: on the disk of the game the editor serves, and in the page
 // the browser keeps.

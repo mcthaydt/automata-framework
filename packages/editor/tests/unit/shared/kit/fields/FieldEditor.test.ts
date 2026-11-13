@@ -71,7 +71,7 @@ describe('FieldEditor', () => {
     expect(oncommit).toHaveBeenLastCalledWith('caves')
   })
 
-  // P14: the Levels inspectors wrote text only when the field was left.
+  // The Levels inspectors wrote text only when the field was left.
   it('commits text half a second after the last key, with the focus still in the field', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: false })
     try {
@@ -93,7 +93,7 @@ describe('FieldEditor', () => {
     }
   })
 
-  // P14: a page that is hidden inside the half second (a closed tab, a phone put to sleep) still gets the words saved.
+  // A page that is hidden inside the half second (a closed tab, a phone put to sleep) still gets the words saved.
   it('saves typed words when the page is hidden before the wait is over', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     try {

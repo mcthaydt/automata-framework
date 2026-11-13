@@ -63,7 +63,7 @@ describe('openTomlSession', () => {
     expect(session.read()).toMatchObject({ kind: 'ok', value: { entry: [{ shake: 0.6 }] } })
   })
 
-  // P14: a person who types, stops to think and types again made one Undo step per pause.
+  // A person who types, stops to think and types again made one Undo step per pause.
   it('makes the edits of one visit to a field one Undo step, however long the pauses', async () => {
     const base = await portsWith({ [PATH]: TEXT })
     let visit: string | undefined = 'visit-1'

@@ -128,7 +128,7 @@ describe('the write path (flows 3 and 4)', () => {
     expect(await text(ports)).toBe('MAX_MOVE_SPEED = 8\n')
   })
 
-  // P14: one visit to a field writes again at every pause in the typing; it is still one thing to undo.
+  // One visit to a field writes again at every pause in the typing; it is still one thing to undo.
   test('writes of one visit to a file join one step whose undo restores the text before the first', async () => {
     const { ports, path } = await setup()
     await path.write(TUNING, 'MAX_MOVE_SPEED = 8\n', 'Raise speed', '', { join: 'v1' })

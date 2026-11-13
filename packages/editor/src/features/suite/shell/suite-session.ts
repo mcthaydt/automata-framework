@@ -49,7 +49,7 @@ function resultOf(outcome: WriteOutcome, mtime: number | undefined) {
 export interface SuiteSessionOptions {
   /** The typing registry: its open visit joins the writes of one visit to a field into one Undo step. */
   readonly drafts?: TypingDrafts | undefined
-  /** Called on every write; the first asks the browser to keep this site's files (P7). Asks once. */
+  /** Called on every write; the first asks the browser to keep this site's files. Asks once. */
   readonly keep?: (() => Promise<void>) | undefined
 }
 

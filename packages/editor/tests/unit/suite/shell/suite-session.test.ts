@@ -63,7 +63,7 @@ async function setup(checks: readonly MemoryCheck[] = []) {
 const drafts = () => createTypingDrafts({ timers: { after: () => () => undefined }, scope: 'game' })
 
 describe('the session behind the suite’s editors', () => {
-  // P14: the pauses in one visit to a field must not be seams in the Undo history.
+  // The pauses in one visit to a field must not be seams in the Undo history.
   test('writes made during one visit to a field are one Undo step, and the registry hears of each write', async () => {
     const memory = await createMemoryPorts({
       files: FILES,

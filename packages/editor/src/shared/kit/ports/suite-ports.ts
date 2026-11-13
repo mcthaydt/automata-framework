@@ -12,7 +12,7 @@ export interface SuitePorts {
   readonly gates?: Gates | undefined
   /**
    * Added by the suite: the key of the person's open visit to a field, or none. Edits made during one visit are one
-   * Undo step, however long the pauses between them (P14).
+   * Undo step, however long the pauses between them.
    */
   readonly visit?: (() => string | undefined) | undefined
 }

@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import FieldRow from '#src/shared/ui/FieldRow.svelte'
 import WordsField from '#src/shared/ui/WordsField.svelte'
 
-// P14: words typed into a field were written only when the field was left, so a reload or a closed tab lost them while
+// Words typed into a field were written only when the field was left, so a reload or a closed tab lost them while
 // the bar said "Saved". A field now writes half a second after the last key, with the focus still in it.
 
 beforeEach(() => vi.useFakeTimers({ shouldAdvanceTime: false }))

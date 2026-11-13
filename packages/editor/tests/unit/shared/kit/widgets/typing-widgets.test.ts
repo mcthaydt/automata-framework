@@ -9,7 +9,7 @@ import {
 } from '#src/shared/kit/storage/typing-drafts.ts'
 import TypingHost from '#src/testing/kit/TypingHost.svelte'
 
-// P14 for the widgets that type into a text box of their own: a number or a colour typed and not yet left is written
+// For the widgets that type into a text box of their own: a number or a colour typed and not yet left is written
 // after a pause, and is offered back to a page that closed with it still in the box.
 
 function fakeTimers() {
