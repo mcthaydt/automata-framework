@@ -18,10 +18,10 @@
 import { tick } from 'svelte'
 import { attachGestures } from '../gestures/attach-gestures'
 import type { DragEndGesture, DragGesture, DragStartGesture } from '../gestures/gesture-events'
-import type { BlockedProps, EditEvent } from './edit-event'
-import { parseNumberText, scrubbedValue, steppedValue } from './stepper-model'
 import type { TypingField } from '../storage/typing-drafts'
+import type { BlockedProps, EditEvent } from './edit-event'
 import { fieldPosition } from './field-position'
+import { parseNumberText, scrubbedValue, steppedValue } from './stepper-model'
 import { typingDrafts } from './typing-context'
 
 interface Props extends BlockedProps {
