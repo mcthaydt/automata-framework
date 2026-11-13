@@ -47,10 +47,10 @@ let scene = $derived('frameUrl' in example)
   .demo-list p { margin: 1rem 0 .25rem; font-size: var(--step-small); font-weight: 600; }
   .demo-list a { min-height: 44px; display: flex; align-items: center; }
   @media (max-width: 900px) { .examples-layout { grid-template-columns: minmax(0, 1fr); } aside { order: 1; } }
-  /* A phone on its side: the facts would fill the screen, so the running example comes first. A 3D example keeps its
-     words above: its frame is a stage with one Play button, and the facts it has left are one line. */
+  /* A phone on its side: the facts would fill the screen, so the running example (a 3D example's stage and its Play)
+     comes first and the words follow. */
   @media (orientation: landscape) and (max-height: 500px) {
-    article:not(.scene) { display: flex; flex-direction: column; }
-    article:not(.scene) .spec-list { order: 1; }
+    article { display: flex; flex-direction: column; }
+    .spec-list { order: 1; }
   }
 </style>

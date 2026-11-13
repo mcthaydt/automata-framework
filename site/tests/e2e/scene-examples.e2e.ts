@@ -1,5 +1,7 @@
 // The 3D example page on a site built from tests/fixtures/scene-examples (`pnpm test:e2e:scenes`): the words above the
-// frame, no horizontal scroll, a Play button a thumb can hit, and focus into the frame and back out.
+// frame (below it on a phone held sideways, where the stage and its Play come first, as on the 2D pages), Play on the
+// first screen with no scroll, no horizontal scroll, a Play button a thumb can hit, one press that reaches the game's
+// play screen, and focus into the frame and back out.
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { expect, type Page, test } from '@playwright/test'
@@ -8,8 +10,9 @@ import { BANNED_PHRASES, FRAMING_PHRASES, ownText, STANDALONE_NAMES } from '../.
 import { horizontalOverflow } from './gates'
 
 const SIZES = [
-  { name: 'phone', width: 390, height: 844 },
-  { name: 'desktop', width: 1280, height: 800 },
+  { name: 'phone', width: 390, height: 844, wordsFirst: true },
+  { name: 'phone held sideways', width: 844, height: 390, wordsFirst: false },
+  { name: 'desktop', width: 1280, height: 800, wordsFirst: true },
 ]
 
 const stage = (page: Page) => page.locator('.scene-frame .stage')
@@ -19,14 +22,19 @@ for (const size of SIZES) {
   test.describe(`at ${size.width} × ${size.height}`, () => {
     test.use({ viewport: { width: size.width, height: size.height } })
 
-    test('says what it shows above the frame, scrolls sideways nowhere, and has a Play button a thumb can hit', async ({
+    test(`says what it shows ${size.wordsFirst ? 'above' : 'below'} the frame, scrolls sideways nowhere, and has a Play button a thumb can hit on the first screen`, async ({
       page,
     }) => {
       await page.goto('/examples/scene-lamp')
       const words = await page.locator('.spec-list').boundingBox()
       const frame = await stage(page).boundingBox()
-      expect(words && frame && words.y + words.height <= frame.y + 1).toBe(true)
+      if (size.wordsFirst) expect(words && frame && words.y + words.height <= frame.y + 1).toBe(true)
+      else expect(words && frame && frame.y + frame.height <= words.y + 1).toBe(true)
       expect(await horizontalOverflow(page)).toEqual([])
+      // Play is on the first screen: no scroll before the one press.
+      const first = await play(page).boundingBox()
+      expect(first!.y).toBeGreaterThanOrEqual(0)
+      expect(first!.y + first!.height).toBeLessThanOrEqual(size.height)
       const button = await play(page).boundingBox()
       expect(button!.height).toBeGreaterThanOrEqual(48)
       expect(button!.width).toBeGreaterThanOrEqual(48)
@@ -50,9 +58,20 @@ for (const size of SIZES) {
       await play(page).click()
       await expect(page.locator('.scene-frame iframe')).toHaveAttribute(
         'src',
-        '/scenes/scene/lamp/index.html',
+        '/scenes/scene/lamp/index.html?play',
       )
       await expect.poll(() => requests.some((path) => path.startsWith('/scenes/scene/lamp/'))).toBe(true)
+    })
+
+    test("reaches the game's play screen with one press, with no second Play inside the frame", async ({
+      page,
+    }) => {
+      await page.goto('/examples/scene-lamp')
+      await play(page).click()
+      const game = page.frameLocator('.scene-frame iframe')
+      await expect(game.locator('[data-screen="play"]')).toBeAttached()
+      await expect(game.locator('[data-screen="title"]')).toHaveCount(0)
+      await expect(game.getByRole('button', { name: 'Play' })).toHaveCount(0)
     })
 
     test('moves focus into the frame on Play and back out with Escape', async ({ page }) => {
@@ -64,6 +83,22 @@ for (const size of SIZES) {
       await expect.poll(() => page.evaluate(() => document.activeElement?.tagName)).toBe('IFRAME')
       await page.keyboard.press('Escape')
       await expect(page.getByRole('button', { name: 'Stop' })).toBeFocused()
+      // The game pauses when its frame loses the keys, and its pause screen must not take them back.
+      await expect(page.frameLocator('.scene-frame iframe').locator('[data-screen="paused"]')).toBeAttached()
+      await expect(page.getByRole('button', { name: 'Stop' })).toBeFocused()
+    })
+
+    test('gives the keys back to the frame when the visitor goes back to it', async ({ page }) => {
+      await page.goto('/examples/scene-lamp')
+      await play(page).click()
+      await expect.poll(() => page.evaluate(() => document.activeElement?.tagName)).toBe('IFRAME')
+      await page.keyboard.press('Escape')
+      await expect(page.getByRole('button', { name: 'Stop' })).toBeFocused()
+      // Focusing Stop scrolled the page down to it; the visitor scrolls back to the stage, then presses in it.
+      await stage(page).scrollIntoViewIfNeeded()
+      await page.frameLocator('.scene-frame iframe').getByRole('button', { name: 'Resume' }).click()
+      await expect.poll(() => page.evaluate(() => document.activeElement?.tagName)).toBe('IFRAME')
+      await expect(page.frameLocator('.scene-frame iframe').locator('[data-screen="play"]')).toBeAttached()
     })
   })
 }

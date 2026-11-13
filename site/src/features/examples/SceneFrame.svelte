@@ -1,7 +1,7 @@
 <script lang="ts">
 // A 3D example on its page: a stage with one Play button, and nothing of the 3D build is fetched until it is pressed, so
 // a phone on a slow line pays for 3D only when asked. Pressed, the example's own page (built by `buildScenes` in
-// scripts/build-demos.ts) loads in a frame, the keys go to it, and Escape (read inside the frame, which the page cannot
+// scripts/build-demos.ts) loads in a frame at its play screen (`?play`: the visitor has pressed Play once already), the keys go to it, and Escape (read inside the frame, which the page cannot
 // see otherwise) hands them back to Stop, so a keyboard visitor is never held by the canvas. Under the stage is one line
 // of what to press (the header's `Controls`), then the code, read-only: unlike the 2D pages, a 3D page does not compile
 // the code in the browser (the runtime holds no 3D).
@@ -18,6 +18,9 @@ let loaded = $state(false)
 let iframe: HTMLIFrameElement | undefined = $state()
 let play: HTMLButtonElement | undefined = $state()
 let stop: HTMLButtonElement | undefined = $state()
+let stage: HTMLDivElement | undefined = $state()
+/** Escape handed the keys to Stop; the frame may not take them back until the visitor goes to it. */
+let keptOut = false
 
 // The page is prerendered, so Play is on screen before the script that answers it. The page's first-press script keeps
 // a press made until then (`data-play-pressed`, shared/html/hydration.ts); this starts from it when it mounts, so the
@@ -31,8 +34,11 @@ onMount(() => {
 })
 
 function start() {
+  keptOut = false
   loaded = false
   playing = true
+  // On a short screen the stage starts part way down: bring all of it into view for the game.
+  stage?.scrollIntoView?.({ block: 'nearest' })
 }
 
 /** The frame is ready to take keys: it gets them, and Escape in it comes back here. */
@@ -40,9 +46,29 @@ function framed() {
   const frame = iframe?.contentWindow
   if (frame === null || frame === undefined) return
   loaded = true
-  frame.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') stop?.focus()
-  })
+  // Escape is the page's: read first (capture) and kept from the game, whose own Escape (its pause screen) would take
+  // the focus straight back into the frame. The game's pause stays on its own buttons.
+  frame.addEventListener(
+    'keydown',
+    (event) => {
+      if (event.key !== 'Escape') return
+      event.preventDefault()
+      event.stopImmediatePropagation()
+      keptOut = true
+      stop?.focus()
+    },
+    { capture: true },
+  )
+  // The game pauses when its frame loses the keys (the host's lifecycle) and its pause screen focuses Resume, which
+  // would pull them back into the frame. After Escape they stay on this page until the visitor goes back to the frame
+  // themselves: a press inside it, or Tab from here.
+  frame.addEventListener('pointerdown', () => (keptOut = false), { capture: true })
+  // A press focuses the frame before its pointerdown arrives, so whether the visitor went back is read a task later.
+  frame.addEventListener('focus', () =>
+    setTimeout(() => {
+      if (keptOut) stop?.focus()
+    }),
+  )
   // The visitor pressed a button in this page, so the keys would go to it: hand them to the example.
   frame.focus()
 }
@@ -53,10 +79,11 @@ function leave() {
   queueMicrotask(() => play?.focus())
 }
 </script>
+<svelte:window onkeydown={(event) => { if (event.key === 'Tab') keptOut = false }} />
 <section class="scene-frame" aria-label={'Play ' + example.title}>
-  <div class="stage" data-playing={playing ? '' : undefined}>
+  <div class="stage" bind:this={stage} data-playing={playing ? '' : undefined}>
     {#if playing}
-      <iframe bind:this={iframe} src={example.frameUrl} title={example.title} allow="autoplay; fullscreen" onload={framed}></iframe>
+      <iframe bind:this={iframe} src={example.frameUrl + '?play'} title={example.title} allow="autoplay; fullscreen" onload={framed}></iframe>
       {#if !loaded}<p class="starting" role="status">Starting…</p>{/if}
     {:else}
       {#if example.still}<img class="still" src={example.still} alt="" />{/if}
@@ -93,6 +120,8 @@ function leave() {
   .starting { position: absolute; left: .75rem; right: .75rem; bottom: .75rem; z-index: 1; margin: 0; padding: .6rem .9rem; border-radius: var(--edge-sm); background: rgb(17 21 28 / .85); }
   /* The primary action: 48 px high, in the middle of the stage. */
   .play { position: relative; z-index: 2; min-height: 48px; min-width: 48px; padding: .6rem 1.6rem; border: 0; border-radius: var(--edge-sm); background: var(--lime); color: var(--charcoal); font-weight: 600; }
+  /* A phone on its side: the stage starts under the title, so Play sits at its top, on the first screen. */
+  @media (orientation: landscape) and (max-height: 500px) { .cover { justify-content: flex-start; } }
   .stage :focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
   .under { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; }
   .controls { margin: 0; flex: 1 1 14rem; min-width: 0; overflow-wrap: anywhere; }

@@ -92,7 +92,7 @@ describe('the 3D example page', () => {
     const view = await open()
     await fireEvent.click(view.getByRole('button', { name: 'Play' }))
     const frame = view.container.querySelector('iframe') as HTMLIFrameElement
-    expect(frame.getAttribute('src')).toBe('/scenes/scene/lamp/index.html')
+    expect(frame.getAttribute('src')).toBe('/scenes/scene/lamp/index.html?play')
     expect(frame.title).toContain('a fixture scene example that imports only public names')
     expect(view.getByText('Tap or press any key; Escape leaves the frame.')).toBeTruthy()
     const code = view.container.querySelector('pre.static-code') as HTMLElement
