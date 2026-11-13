@@ -1,7 +1,9 @@
 <script lang="ts">
 // The site's one code box. `block` is highlighted code that scrolls sideways inside the box; `command` is one shell
 // line behind a `$`, cut with an ellipsis where it cannot fit, whose copy button still copies all of it. `label` is
-// words above the box that say where the code goes ("In your terminal"), never the language.
+// words above the box that say where the code goes ("In your terminal"), never the language. `regionLabel`
+// names the scroll region for a screen reader when the box has no words above it, and `describedBy` is the id of words
+// that say more about it (that it scrolls).
 import { highlightCode } from '../utils/highlight'
 import CopyButton from './CopyButton.svelte'
 
@@ -10,6 +12,8 @@ let {
   lang = 'typescript',
   variant = 'block',
   label = '',
+  regionLabel = '',
+  describedBy = undefined,
   copyable = true,
   class: className = '',
 }: {
@@ -17,6 +21,8 @@ let {
   lang?: string
   variant?: 'block' | 'command'
   label?: string
+  regionLabel?: string
+  describedBy?: string | undefined
   copyable?: boolean
   class?: string
 } = $props()
@@ -63,7 +69,7 @@ $effect(() => {
     <div class="box">
       <!-- Keyboard focus lets users scroll long code with arrow keys. -->
       <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-      <div class="code-scroll" tabindex="0" role="region" aria-label={label || 'Code example'}>
+      <div class="code-scroll" tabindex="0" role="region" aria-label={regionLabel || label || 'Code example'} aria-describedby={describedBy}>
         {#if html}{@html html}{:else}<!-- svelte-ignore a11y_no_noninteractive_tabindex --><pre tabindex="0"><code>{code}</code></pre>{/if}
       </div>
       {#if copyable}<div class="copy"><CopyButton text={code} /></div>{/if}

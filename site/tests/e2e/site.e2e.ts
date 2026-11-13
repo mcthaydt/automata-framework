@@ -506,3 +506,81 @@ test.describe('the command on a phone', () => {
     expect(style).toEqual({ overflow: 'hidden', ellipsis: 'ellipsis', wrap: 'nowrap' })
   })
 })
+
+// "Built for agents" shows the example's whole file beside what it draws: on a phone the code is a scroll region of its
+// own, reachable by keyboard and touch, and nothing about the page sideways.
+for (const size of [
+  { name: 'phone', width: 390, height: 844 },
+  { name: 'desktop', width: 1280, height: 800 },
+]) {
+  test.describe(`the shapes example on Home at ${size.name} ${size.width}×${size.height}`, () => {
+    test.use({ viewport: { width: size.width, height: size.height } })
+
+    test('the whole file scrolls inside a region with a set height, by keyboard, and the picture draws', async ({
+      page,
+    }) => {
+      await open(page, '/')
+      const region = page.locator('.show .sample .code-scroll')
+      await region.scrollIntoViewIfNeeded()
+      const before = await region.evaluate((element) => ({
+        tall: element.scrollHeight > element.clientHeight,
+        height: element.clientHeight,
+        top: element.scrollTop,
+        focusable: element.tabIndex === 0,
+        text: element.textContent ?? '',
+      }))
+      expect(before.focusable).toBe(true)
+      expect(before.tall).toBe(true)
+      expect(before.height).toBeGreaterThanOrEqual(200)
+      expect(before.text).toContain('import { defineComponent')
+      expect(before.text).toContain('sim.spawn([[Spinner')
+      await region.focus()
+      await page.keyboard.press('End')
+      // The last line of the file is reachable in the region (the scroll may be smooth, so wait for it), so no line is cut.
+      await expect
+        .poll(() =>
+          region.evaluate((element) => element.scrollHeight - element.clientHeight - element.scrollTop),
+        )
+        .toBeLessThanOrEqual(1)
+      expect(await region.evaluate((element) => element.scrollTop)).toBeGreaterThan(before.top)
+      // The picture is drawn: its canvas has the blue, green and red of the example's three views.
+      const canvas = page.locator('.show .run canvas')
+      await expect(canvas).toBeVisible()
+      const colours = await canvas.evaluate((element: HTMLCanvasElement) => {
+        const data = element.getContext('2d')!.getImageData(0, 0, element.width, element.height).data
+        const seen = new Set<string>()
+        for (let index = 0; index < data.length; index += 4)
+          if (data[index + 3] === 255) seen.add(`${data[index]},${data[index + 1]},${data[index + 2]}`)
+        return [...seen]
+      })
+      for (const colour of ['82,210,255', '127,189,57', '228,92,95']) expect(colours).toContain(colour)
+      expect(await horizontalOverflow(page)).toEqual([])
+    })
+
+    test('says the code scrolls, in a line under it, and keeps "What it draws" off the drawing', async ({
+      page,
+    }) => {
+      await open(page, '/')
+      const hint = page.locator('.show .hint')
+      await hint.scrollIntoViewIfNeeded()
+      await expect(hint).toBeVisible()
+      await expect(hint).toContainText(/scroll/i)
+      const boxes = await page.evaluate(() => {
+        const rect = (selector: string) => {
+          const box = document.querySelector(selector)!.getBoundingClientRect()
+          return { top: box.top, bottom: box.bottom, left: box.left, right: box.right }
+        }
+        return {
+          code: rect('.show .sample .code-scroll'),
+          hint: rect('.show .hint'),
+          canvas: rect('.show .run canvas'),
+          label: rect('.show .runbar'),
+        }
+      })
+      // Top to bottom: the code, the line about scrolling it, the drawing, then the label on a strip of its own.
+      expect(boxes.hint.top).toBeGreaterThanOrEqual(boxes.code.bottom - 1)
+      expect(boxes.canvas.top).toBeGreaterThanOrEqual(boxes.hint.bottom - 1)
+      expect(boxes.label.top).toBeGreaterThanOrEqual(boxes.canvas.bottom - 1)
+    })
+  })
+}

@@ -9,6 +9,7 @@ import { withContentSecurityPolicy } from '#src/shared/html/csp.ts'
 import { checkSite } from '../../../scripts/site-checks'
 import {
   BANNED_PHRASES,
+  checkHomeExample,
   checkTargets,
   FRAMING_PHRASES,
   STANDALONE_NAMES,
@@ -818,5 +819,31 @@ describe('checkMotionChunks', () => {
     expect(checkMotionChunks(site.root, bundled).failures).toEqual([
       `${ANIMATE} is part of an entry, so every visitor downloads it; import it only with import()`,
     ])
+  })
+})
+
+// Home shows the shapes example's file whole: the build fails when the code on the built page is not the file's.
+describe('checkHomeExample', () => {
+  const CODE = "import { x } from 'y'\n\nconst a = 1 < 2 && 'b'"
+  const home = (code: string) =>
+    `<html><body><div class="show"><figure class="sample"><div class="code-scroll"><pre><code>${code}</code></pre></div></figure></div></body></html>`
+
+  it('passes the file as written, with its angle brackets and quotes escaped as HTML', () => {
+    const site = goodSite()
+    site.write(
+      'index.html',
+      home('import { x } from &#39;y&#39;\n\nconst a = 1 &lt; 2 &amp;&amp; &#39;b&#39;'),
+    )
+    expect(checkHomeExample(site.root, CODE)).toEqual([])
+  })
+
+  it('fails a line that differs, and a page that shows no code', () => {
+    const site = goodSite()
+    site.write('index.html', home("import { x } from 'y'\n\nconst a = 1"))
+    expect(checkHomeExample(site.root, CODE)).toEqual([
+      'index.html: the code beside the picture is not the example file as written',
+    ])
+    site.write('index.html', '<html><body><p>No code.</p></body></html>')
+    expect(checkHomeExample(site.root, CODE)).toEqual(['index.html: has no code beside the picture'])
   })
 })

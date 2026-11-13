@@ -1,16 +1,18 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import facts from 'virtual:framework/facts'
+import example from 'virtual:framework/home-example'
 import { render, waitFor } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
 import Home from '#src/features/home/Home.svelte'
 import {
+  AGENT_SECTION,
   CHANGELOG_SECTION,
   CREATE_COMMAND,
   DEMO_BAR,
-  EXAMPLE_EXCERPT,
-  EXAMPLE_PATH,
   HERO,
   HOME_EXAMPLES,
+  numberWord,
   TARGETS,
 } from '#src/features/home/home-content.ts'
 import { APP_PRICES, NO_CREDITS } from '#src/shared/content/pricing.ts'
@@ -36,10 +38,39 @@ describe('Home', () => {
     expect(CREATE_COMMAND).toMatch(/^npx @automata\/tools create-game /)
   })
 
-  it('shows code that is in the example, line for line', () => {
-    const source = readFileSync(resolve(repo, EXAMPLE_PATH), 'utf8')
-    for (const line of EXAMPLE_EXCERPT.split('\n').filter((each) => each.trim() !== ''))
-      expect(source, `"${line.trim()}" is not in ${EXAMPLE_PATH}`).toContain(line.trim())
+  it("shows the example's whole code, not an excerpt, as a scroll region the keyboard can reach", () => {
+    const source = readFileSync(resolve(repo, example.dir, example.file), 'utf8')
+    // The file minus its header comment (the leading `//` lines, which are for the catalogue): every other byte is shown.
+    const code = source.replace(/^(\/\/.*\n)+/, '')
+    expect(code.startsWith('import { defineComponent, defineGame,')).toBe(true)
+    const view = render(Home)
+    const region = view.container.querySelector('.show .sample .code-scroll')
+    expect(region?.textContent).toBe(code.trimEnd())
+    expect(region?.getAttribute('tabindex')).toBe('0')
+    expect(region?.getAttribute('role')).toBe('region')
+    expect(region?.getAttribute('aria-label')).toBe("The example's code, whole")
+  })
+
+  it("shows the golden's hash in the Checks table, for every engine, and claims no result it did not measure", () => {
+    const view = render(Home)
+    const table = view.container.querySelector('table')!
+    const rows = [...table.querySelectorAll('tbody tr')]
+    expect(rows.map((row) => row.querySelector('th')?.textContent)).toEqual(
+      facts.engines.map((engine) => engine.name),
+    )
+    for (const row of rows) expect(row.querySelector('td code')?.textContent).toBe(facts.golden.hash)
+    const section = table.closest('.show')!
+    expect(section.textContent).toContain(facts.golden.file)
+    expect(section.textContent).toContain(`${facts.golden.ticks} ticks`)
+    expect(section.textContent).not.toMatch(/same result/i)
+  })
+
+  it('says in words, beside the code, that it scrolls, and the code region is described by those words', () => {
+    const view = render(Home)
+    const region = view.container.querySelector('.show .sample .code-scroll')!
+    const hint = view.container.querySelector(`#${region.getAttribute('aria-describedby')}`)
+    expect(hint?.textContent?.trim()).toBe(AGENT_SECTION.scrollHint)
+    expect(AGENT_SECTION.scrollHint).toMatch(/scroll/i)
   })
 
   it('names the four places a game goes, each with a command automata ship accepts', () => {
@@ -163,7 +194,8 @@ describe('Home', () => {
     const item = [...list.querySelectorAll('li')].find(
       (li) => li.querySelector('h3')?.textContent === 'Languages',
     )
-    expect(item?.textContent).toMatch(/six languages/i)
+    expect(item?.textContent).toContain(`${numberWord(facts.languages)} languages`)
+    expect(facts.languages).toBeGreaterThan(1)
     expect(item?.textContent).toContain('automata words')
     // The command it names is one the framework answers to: its guide documents it.
     expect(readFileSync(resolve(repo, 'docs/guides/languages.md'), 'utf8')).toContain('automata words')

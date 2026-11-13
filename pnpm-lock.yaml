@@ -2215,6 +2215,9 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
+      '@automata/content':
+        specifier: workspace:*
+        version: link:../packages/content
       '@automata/examples-runner':
         specifier: workspace:*
         version: link:../tooling/examples-runner
