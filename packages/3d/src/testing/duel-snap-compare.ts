@@ -3,12 +3,17 @@
 // the three pictures. Each pixel's colour is `(5 · pixel + frame · 1048573) mod 2^24`, so a frame of 2^18 pixels is a
 // different quarter-million colours from every other, in every Bayer cell.
 
+import { DEFAULT_PALETTE } from '@automata/content/palette'
 import { type EffectFragment, type EffectIO, type Pass3D, PostEffect, type RenderGraph } from '@pixi/3d'
 import { UniformGroup } from 'pixi.js'
 import type { Pixi3dRenderer } from '../app/create-renderer.ts'
 import { DuelSnapEffect } from '../features/look/duel-snap-filter.ts'
+import { referenceSnap } from '../features/look/duel-snap-table.ts'
 import { addColourOnlyPass, PresentEffect } from '../features/look/present-pass.ts'
 import { DuelSnapReferenceEffect } from './duel-snap-reference.ts'
+
+/** The stage colour of the rows the view does not cover. */
+export const BACKGROUND = 0x2e222f
 
 const STRIDE = 5
 const SHIFT = 1048573
@@ -78,10 +83,13 @@ export function compareSnaps(
   frames: number,
   read: (renderer: Pixi3dRenderer) => ArrayLike<number>,
   each: (frame: SnapFrame) => void,
+  startedAt: number = strength,
 ): void {
   const frame = { alpha: 1, frameMs: 16, paused: false }
   const gradient = new GradientEffect()
-  const table = new DuelSnapEffect(strength)
+  // `startedAt` differing from `strength` makes the table's effect change its dither after it was made.
+  const table = new DuelSnapEffect(startedAt)
+  table.dither = strength
   const loop = new DuelSnapReferenceEffect(strength)
   const present = new PresentEffect()
   const picture = (passes: Pass3D[], n: number): ArrayLike<number> => {
@@ -103,4 +111,65 @@ export function compareSnaps(
   } finally {
     table.destroy()
   }
+}
+
+/** What `compareSnaps` found over all the frames. */
+export interface SnapStats {
+  /** Pixels the gradient drew (the view's rows; the rest keep the stage's background and are not counted). */
+  readonly pixels: number
+  readonly background: number
+  /** Distinct input colours seen, and Bayer cells they met. */
+  readonly colours: number
+  readonly cells: number
+  /** Pixels where the table's snap and the loop's differ in any byte: must be none. */
+  readonly differ: number
+  /** Pixels the table's snap left off the palette: must be none. */
+  readonly notPalette: number
+  /** Pixels where the GPU's answer is not the CPU model's (double precision): exact ties 32-bit arithmetic breaks the other way. */
+  readonly offModel: number
+}
+
+/** Runs `compareSnaps` over `frames` frames of a `size` × `size` view, and counts what the pictures show. */
+export function snapStats(
+  renderer: Pixi3dRenderer,
+  strength: number,
+  frames: number,
+  size: number,
+  read: (renderer: Pixi3dRenderer) => ArrayLike<number>,
+  startedAt: number = strength,
+): SnapStats {
+  const palette = DEFAULT_PALETTE.colors.map((hex) => Number.parseInt(hex.slice(1), 16))
+  const colours = new Set<number>()
+  const cells = new Set<number>()
+  const found = { pixels: 0, background: 0, differ: 0, notPalette: 0, offModel: 0 }
+  compareSnaps(
+    renderer,
+    strength,
+    frames,
+    read,
+    (f) => {
+      for (let i = 0; i < f.input.length; i += 4) {
+        const rgb = [f.input[i] ?? 0, f.input[i + 1] ?? 0, f.input[i + 2] ?? 0] as const
+        const key = (rgb[0] << 16) | (rgb[1] << 8) | rgb[2]
+        // Rows the view does not cover keep the stage's background, which no pass draws.
+        if (key === BACKGROUND) {
+          found.background++
+          continue
+        }
+        found.pixels++
+        colours.add(key)
+        if (f.table[i] !== f.loop[i] || f.table[i + 1] !== f.loop[i + 1] || f.table[i + 2] !== f.loop[i + 2])
+          found.differ++
+        const got = ((f.table[i] ?? 0) << 16) | ((f.table[i + 1] ?? 0) << 8) | (f.table[i + 2] ?? 0)
+        if (!palette.includes(got)) found.notPalette++
+        // The gradient's colour says which pixel drew it, so which Bayer cell it met.
+        const { cell } = inputAt(rgb, f.frame, size)
+        cells.add(cell)
+        const want = referenceSnap([rgb[0] / 255, rgb[1] / 255, rgb[2] / 255], cell, strength)
+        if (palette[want] !== got) found.offModel++
+      }
+    },
+    startedAt,
+  )
+  return { ...found, colours: colours.size, cells: cells.size }
 }

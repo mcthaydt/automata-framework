@@ -52,21 +52,21 @@ vec4 effect(vec2 uv) {
   int cell = int(mod(p.x, 4.0)) + int(mod(p.y, 4.0)) * 4;
   vec3 want = c.rgb + (BAYER[cell] / 16.0 - 0.5) * uDither;
   ivec3 at = clamp(ivec3(floor(c.rgb * ${GRID.toFixed(1)})), ivec3(0), ivec3(${GRID - 1}));
-  vec4 head = candidates(at, 0);
-  int count = int(head.x * 255.0 + 0.5) + 1;
+  vec4 t = candidates(at, 0);
+  int count = int(t.x * 255.0 + 0.5) + 1;
   float best = 1e9;
   vec3 pick = want;
   float exact = 1e9;
   vec3 same = c.rgb;
   for (int s = 1; s <= count; s++) {
-    vec4 t = s < 4 ? head : candidates(at, s >> 2);
-    int i = int(t[s & 3] * 255.0 + 0.5);
-    vec3 d = DUEL[i] - want;
+    if ((s & 3) == 0) t = candidates(at, s >> 2);
+    vec3 colour = DUEL[int(t[s & 3] * 255.0 + 0.5)];
+    vec3 d = colour - want;
     float e = dot(d, d);
-    if (e < best) { best = e; pick = DUEL[i]; }
-    vec3 x = DUEL[i] - c.rgb;
+    if (e < best) { best = e; pick = colour; }
+    vec3 x = colour - c.rgb;
     float ex = dot(x, x);
-    if (ex < exact) { exact = ex; same = DUEL[i]; }
+    if (ex < exact) { exact = ex; same = colour; }
   }
   // A colour that is already a DUEL colour (a figure's texel) stays itself: the dither does not tip it onto a neighbour.
   if (exact < ${EXACT_GLSL}) pick = same;
@@ -88,22 +88,21 @@ fn effect(uv: vec2<f32>) -> vec4<f32> {
   let cell = i32(p.x % 4.0) + i32(p.y % 4.0) * 4;
   let want = c.rgb + (BAYER[cell] / 16.0 - 0.5) * fx.uDither;
   let at = clamp(vec3<i32>(floor(c.rgb * ${GRID.toFixed(1)})), vec3<i32>(0), vec3<i32>(${GRID - 1}));
-  let head = candidates(at, 0);
-  let count = i32(head.x * 255.0 + 0.5) + 1;
+  var t = candidates(at, 0);
+  let count = i32(t.x * 255.0 + 0.5) + 1;
   var best = 1e9;
   var pick = want;
   var exact = 1e9;
   var same = c.rgb;
   for (var s = 1; s <= count; s++) {
-    var t = head;
-    if (s >= 4) { t = candidates(at, s >> 2u); }
-    let i = i32(t[s & 3] * 255.0 + 0.5);
-    let d = DUEL[i] - want;
+    if ((s & 3) == 0) { t = candidates(at, s >> 2u); }
+    let colour = DUEL[i32(t[s & 3] * 255.0 + 0.5)];
+    let d = colour - want;
     let e = dot(d, d);
-    if (e < best) { best = e; pick = DUEL[i]; }
-    let x = DUEL[i] - c.rgb;
+    if (e < best) { best = e; pick = colour; }
+    let x = colour - c.rgb;
     let ex = dot(x, x);
-    if (ex < exact) { exact = ex; same = DUEL[i]; }
+    if (ex < exact) { exact = ex; same = colour; }
   }
   // A colour that is already a DUEL colour (a figure's texel) stays itself: the dither does not tip it onto a neighbour.
   if (exact < ${EXACT_GLSL}) { pick = same; }
