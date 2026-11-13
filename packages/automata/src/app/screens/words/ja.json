@@ -1,6 +1,7 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
   "title_play": "プレイ",
+  "title_quit": "終了",
   "play_pause": "一時停止",
   "play_move": "移動",
   "paused_title": "一時停止中",

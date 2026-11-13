@@ -159,7 +159,8 @@
       "settings_vibration_on": "130011756125313c72f2cab730db4347e2841526d236a89cb25f38789fa49229",
       "settings_vibration_title": "59e1fd02f6c20f7e1cc84937c36e22ec9574fc3fba67ea9a88bd8df9c456fb34",
       "settings_vibration_toggle": "da406d988f90282d060274894b18626b9df16e706d3990a34c014604ba7d12b8",
-      "title_play": "436e61016e26fcb773b9725745cbbf0afe7f001ea26041a814a7712c2925c442"
+      "title_play": "436e61016e26fcb773b9725745cbbf0afe7f001ea26041a814a7712c2925c442",
+      "title_quit": "b3eb37acb66ba4bbe8fb1ba296815daf194be94f5a5fb50dab2fb5e4a57ba29e"
     },
     "ja": {
       "board_empty": "1ab6157ed65280bd49bb5601c85de136f444f173e8a98a33659a35020ba7ccc2",
@@ -320,7 +321,8 @@
       "settings_vibration_on": "130011756125313c72f2cab730db4347e2841526d236a89cb25f38789fa49229",
       "settings_vibration_title": "59e1fd02f6c20f7e1cc84937c36e22ec9574fc3fba67ea9a88bd8df9c456fb34",
       "settings_vibration_toggle": "da406d988f90282d060274894b18626b9df16e706d3990a34c014604ba7d12b8",
-      "title_play": "436e61016e26fcb773b9725745cbbf0afe7f001ea26041a814a7712c2925c442"
+      "title_play": "436e61016e26fcb773b9725745cbbf0afe7f001ea26041a814a7712c2925c442",
+      "title_quit": "b3eb37acb66ba4bbe8fb1ba296815daf194be94f5a5fb50dab2fb5e4a57ba29e"
     },
     "ko": {
       "board_empty": "1ab6157ed65280bd49bb5601c85de136f444f173e8a98a33659a35020ba7ccc2",
@@ -481,7 +483,8 @@
       "settings_vibration_on": "130011756125313c72f2cab730db4347e2841526d236a89cb25f38789fa49229",
       "settings_vibration_title": "59e1fd02f6c20f7e1cc84937c36e22ec9574fc3fba67ea9a88bd8df9c456fb34",
       "settings_vibration_toggle": "da406d988f90282d060274894b18626b9df16e706d3990a34c014604ba7d12b8",
-      "title_play": "436e61016e26fcb773b9725745cbbf0afe7f001ea26041a814a7712c2925c442"
+      "title_play": "436e61016e26fcb773b9725745cbbf0afe7f001ea26041a814a7712c2925c442",
+      "title_quit": "b3eb37acb66ba4bbe8fb1ba296815daf194be94f5a5fb50dab2fb5e4a57ba29e"
     },
     "pt-BR": {
       "board_empty": "1ab6157ed65280bd49bb5601c85de136f444f173e8a98a33659a35020ba7ccc2",
@@ -642,7 +645,8 @@
       "settings_vibration_on": "130011756125313c72f2cab730db4347e2841526d236a89cb25f38789fa49229",
       "settings_vibration_title": "59e1fd02f6c20f7e1cc84937c36e22ec9574fc3fba67ea9a88bd8df9c456fb34",
       "settings_vibration_toggle": "da406d988f90282d060274894b18626b9df16e706d3990a34c014604ba7d12b8",
-      "title_play": "436e61016e26fcb773b9725745cbbf0afe7f001ea26041a814a7712c2925c442"
+      "title_play": "436e61016e26fcb773b9725745cbbf0afe7f001ea26041a814a7712c2925c442",
+      "title_quit": "b3eb37acb66ba4bbe8fb1ba296815daf194be94f5a5fb50dab2fb5e4a57ba29e"
     },
     "zh-Hans": {
       "board_empty": "1ab6157ed65280bd49bb5601c85de136f444f173e8a98a33659a35020ba7ccc2",
@@ -803,7 +807,8 @@
       "settings_vibration_on": "130011756125313c72f2cab730db4347e2841526d236a89cb25f38789fa49229",
       "settings_vibration_title": "59e1fd02f6c20f7e1cc84937c36e22ec9574fc3fba67ea9a88bd8df9c456fb34",
       "settings_vibration_toggle": "da406d988f90282d060274894b18626b9df16e706d3990a34c014604ba7d12b8",
-      "title_play": "436e61016e26fcb773b9725745cbbf0afe7f001ea26041a814a7712c2925c442"
+      "title_play": "436e61016e26fcb773b9725745cbbf0afe7f001ea26041a814a7712c2925c442",
+      "title_quit": "b3eb37acb66ba4bbe8fb1ba296815daf194be94f5a5fb50dab2fb5e4a57ba29e"
     }
   }
 }

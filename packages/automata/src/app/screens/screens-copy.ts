@@ -68,7 +68,8 @@ export interface FirstRunCopy {
 
 /** Every word the default title, play, paused and settings screens show. */
 export interface ScreensCopy {
-  readonly title: { readonly play: string }
+  /** `quit` is the desktop's alone: elsewhere the browser or the host owns leaving the game. */
+  readonly title: { readonly play: string; readonly quit: string }
   /** The play screen's corner button and the touch stick, read by assistive technology. */
   readonly play: { readonly pause: string; readonly move: string }
   readonly paused: {
@@ -140,7 +141,7 @@ export const BOARD_COPY: LeaderboardCopy = {
 
 /** The default screens' English words. */
 export const DEFAULT_SCREENS_COPY: ScreensCopy = {
-  title: { play: 'Play' },
+  title: { play: 'Play', quit: 'Quit' },
   play: { pause: 'Pause', move: 'Move' },
   paused: {
     title: 'Paused',

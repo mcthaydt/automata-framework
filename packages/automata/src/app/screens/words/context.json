@@ -2,6 +2,9 @@
   "title_play": {
     "note": "The big button on the title screen. Pressing it starts or continues the game."
   },
+  "title_quit": {
+    "note": "Button on the title screen, only in the desktop app. Closes the game and its window. The same word as the desktop's Quit on an error (runtime_quit)."
+  },
   "play_pause": {
     "note": "The corner button while playing. Pressing it pauses the game. Read aloud by screen readers."
   },

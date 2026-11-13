@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import type { RunResult } from '#src/shared/node/process-runner.ts'
 import { defineShipConfig, type ShipConfig } from '#src/shared/ship/config/ship-config.ts'
 import { prepareTauri } from '#src/shared/ship/targets/tauri/prepare-tauri.ts'
-import { fakeProcessRunner, type RecordedRun } from '#src/testing/fake-process-runner.ts'
+import { fakeProcessRunner, NOT_INSTALLED, type RecordedRun } from '#src/testing/fake-process-runner.ts'
 
 // DIST spec §6.2: `automata ship prepare --target tauri` checks the build and the toolchain before writing anything,
 // writes the Tauri project into `.automata/tauri/`, runs `tauri build` for the host OS and copies the bundles.
@@ -46,11 +46,17 @@ function gameFolder(withTauri = true): { gameDir: string; distDir: string } {
 
 const ok: RunResult = { exitCode: 0, stdout: '', stderr: '' }
 
+/** An exit code, or a program that is not installed at all (the real runner cannot start it). */
+type Answer = number | typeof NOT_INSTALLED
+
+const answer = (code: Answer | undefined): RunResult | typeof NOT_INSTALLED =>
+  code === NOT_INSTALLED ? NOT_INSTALLED : { ...ok, exitCode: code ?? 0 }
+
 /** Answers like a machine with the toolchain; `tauri build` writes a .deb and an AppImage as Tauri does. */
-function toolchain(overrides: { cargo?: number; webkit?: number; build?: number } = {}) {
-  return (run: RecordedRun): RunResult => {
-    if (run.command === 'cargo') return { ...ok, exitCode: overrides.cargo ?? 0 }
-    if (run.command === 'pkg-config') return { ...ok, exitCode: overrides.webkit ?? 0 }
+function toolchain(overrides: { cargo?: Answer; webkit?: Answer; build?: number } = {}) {
+  return (run: RecordedRun): RunResult | typeof NOT_INSTALLED => {
+    if (run.command === 'cargo') return answer(overrides.cargo)
+    if (run.command === 'pkg-config') return answer(overrides.webkit)
     if (/tauri(\.cmd)?$/.test(run.command)) {
       if ((overrides.build ?? 0) !== 0)
         return { exitCode: overrides.build ?? 1, stdout: '', stderr: 'linker failed' }
@@ -67,7 +73,7 @@ function toolchain(overrides: { cargo?: number; webkit?: number; build?: number 
 
 const run = (
   input: Parameters<typeof prepareTauri>[0],
-  reply: (run: RecordedRun) => RunResult = toolchain(),
+  reply: (run: RecordedRun) => RunResult | typeof NOT_INSTALLED = toolchain(),
 ) => {
   const fake = fakeProcessRunner(reply)
   const result = Effect.runSync(Effect.either(prepareTauri(input).pipe(Effect.provide(fake.layer))))
@@ -110,28 +116,50 @@ describe('prepareTauri', () => {
     expect(readFileSync(join(gameDir, '.automata/tauri/src-tauri/icons/icon.png'), 'utf8')).toBe('my icon')
   })
 
+  // The drunk grandma test: each says what is missing and the one command that installs it, and nothing is written.
+  const RUSTUP = "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
+  const APT =
+    'sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev'
   it.each([
-    ['cargo', { cargo: 127 }, 'cargo'],
-    ['WebKitGTK', { webkit: 1 }, 'webkit2gtk-4.1'],
+    ['cargo exits with an error', { cargo: 127 }, 'cargo', RUSTUP],
+    ['cargo is not on the path', { cargo: NOT_INSTALLED }, 'cargo', RUSTUP],
+    ['WebKitGTK is missing', { webkit: 1 }, 'webkit2gtk-4.1', APT],
+    ['pkg-config is not on the path', { webkit: NOT_INSTALLED }, 'webkit2gtk-4.1', APT],
   ] as const)(
-    'stops before writing anything when %s is missing, saying what to install',
-    (_what, overrides, missing) => {
+    'stops before writing anything when %s, naming the one command that fixes it',
+    (_what, overrides, missing, command) => {
       const { gameDir, distDir } = gameFolder()
       const { result, runs } = run({ distDir, gameDir, config, platform: 'linux' }, toolchain(overrides))
       expect(Either.isLeft(result) && result.left).toMatchObject({ _tag: 'TauriToolchainMissing', missing })
+      const message = Either.isLeft(result) ? result.left.message : ''
+      expect(message.split('\n')).toContain(`  ${command}`)
+      expect(message).toMatch(/then run this again/)
+      expect(message).not.toMatch(/ENOENT|could not run/)
       expect(runs.some((each) => /tauri(\.cmd)?$/.test(each.command))).toBe(false)
       expect(existsSync(join(gameDir, '.automata'))).toBe(false)
     },
   )
 
-  it('stops when the game has no tauri CLI installed, naming the package and version', () => {
+  it('names the Windows installer for Rust on Windows', () => {
+    const { gameDir, distDir } = gameFolder()
+    const { result } = run(
+      { distDir, gameDir, config, platform: 'win32' },
+      toolchain({ cargo: NOT_INSTALLED }),
+    )
+    const message = Either.isLeft(result) ? result.left.message : ''
+    expect(message.split('\n')).toContain('  winget install --id Rustlang.Rustup -e')
+  })
+
+  it('stops when the game has no tauri CLI installed, naming the command that installs it', () => {
     const { gameDir, distDir } = gameFolder(false)
     const { result } = run({ distDir, gameDir, config, platform: 'linux', pathEnv: '' })
     expect(Either.isLeft(result) && result.left).toMatchObject({
       _tag: 'TauriToolchainMissing',
       missing: 'tauri',
     })
-    expect(Either.isLeft(result) && result.left.message).toContain('@tauri-apps/cli@2.12.3')
+    const message = Either.isLeft(result) ? result.left.message : ''
+    expect(message.split('\n')).toContain('  pnpm add -D @tauri-apps/cli@2.12.3')
+    expect(message).toMatch(/then run this again/)
   })
 
   it('stops on a refused check before running anything: no tauri section, a non-semver version, a tag mismatch', () => {
@@ -147,6 +175,17 @@ describe('prepareTauri', () => {
     expect(run({ distDir, gameDir, config, tag: 'v9.9.9', platform: 'linux' }).result).toMatchObject({
       left: { _tag: 'VersionMismatch' },
     })
+  })
+
+  it('names the command that makes the web build when there is none, instead of a file error', () => {
+    const { gameDir, distDir } = gameFolder()
+    rmSync(distDir, { recursive: true })
+    const { result, runs } = run({ distDir, gameDir, config, platform: 'linux' })
+    expect(Either.isLeft(result) && result.left).toMatchObject({ _tag: 'TauriBuildInvalid' })
+    const message = Either.isLeft(result) ? result.left.message : ''
+    expect(message).toContain('pnpm build:tauri')
+    expect(message).not.toMatch(/ENOENT|lstat/)
+    expect(runs).toEqual([])
   })
 
   it("relays tauri build's failure with its exit code, and copies nothing", () => {

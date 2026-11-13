@@ -155,7 +155,14 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
               },
             } satisfies SavesStart)
       const copy = words(context)
-      show(screen, TitleScreen, layer, { title: game.title, onPlay: play, saves, copy })
+      // Quit only where the host is the desktop app and lets the game quit it: on the web, itch.io and Ruken leaving is
+      // the browser's or the host's, and a Quit there would do nothing a player could see.
+      const { hosting } = services
+      const onQuit =
+        hosting.kind === 'tauri' && hosting.granted.has('exit')
+          ? () => void hosting.exit('player')
+          : undefined
+      show(screen, TitleScreen, layer, { title: game.title, onPlay: play, onQuit, saves, copy })
       // Enter or Space anywhere on the title plays; on a focused button the button's own click does.
       if (saves === undefined)
         listen(screen, target, 'keydown', (event) => {
