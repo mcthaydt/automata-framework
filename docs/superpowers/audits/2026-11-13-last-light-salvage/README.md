@@ -80,19 +80,53 @@ game's name and ties, and committed with the source commits named in its body.
 
 (Filled in as the work lands; the rows are the Owner's to paste.)
 
-## Where the work stands (resume point)
+## Result
 
-Steps 1 to 3 are done and pushed: the map, the carry (every group above, one or more commits each) and the ties cut.
+Steps 1 to 5 are done. Nothing existing moved: no golden, recorded picture or hash was re-recorded, and the working tree was clean after
+every suite.
 
 **One carried change was not opt-in and is changed here.** In the source the painted figure's `density` defaulted to `'auto'`, which
-moves every figure's cell. Here a figure that names no density is painted at 2, as on main, and `'auto'` is asked for. The kit's
-Chromium and webgpu browser suites are otherwise unchanged (only `painted-density.test.ts`, which asked for the default, now asks for
-`'auto'`, and has a test of the default).
+moves every figure's cell. Here a figure that names no density is painted at 2, as on main, and `'auto'` is asked for.
+`painted-density.test.ts` asks for `'auto'` and has a test of the default; `examples/3d/characterkit/characterkit-painted.ts` keeps
+main's text (the source pinned `density: 2` there only because of that default).
 
-**Not yet run (step 5 and the trial merges' last part):** `TURBO_FORCE=true pnpm check` was started and its result is in the final
-report; after it: `pnpm build`, `pnpm api-report --update` and `pnpm api-index --write` (commit what they write), then the
-packages/3d unit, Chromium browser and webgpu-software suites, the figures Chromium goldens, the world-kit and lcd-panel Chromium
-suites, the base-3d and examples-3d e2e in Chromium. A resuming session starts with those, in that order.
+**One test added** for a piece only the game exercised: `drawLightPatches` (`tests/unit/look/light-patch-view.test.ts`).
+
+**Cut ties.** The game's name is out of every carried comment and test (main's `source-names` rule forbids it in code);
+`ada-pieces.test.ts` is now `outfit-pieces.test.ts`. No carried test reads a file of the game. Nothing was left out for being unable
+to stand alone; the left-behind list above is the game's own code.
+
+### Gates (uncached, on `claude/last-light-salvage`)
+
+| Gate | Result |
+|---|---|
+| `pnpm install --frozen-lockfile` | passes; the new `lcd-panel` peer needs no lockfile change |
+| `pnpm format` | no fixes |
+| `TURBO_FORCE=true pnpm check` | lint, typecheck, boundaries, style, source-names and knip pass. Its first run stopped at the committed API reports (stale until `pnpm api-report --update`); after the reports were regenerated, `TURBO_FORCE=true pnpm test:unit` ran all 66 tasks green and `pnpm check:changesets` reports 88 changesets, 0 problems |
+| `pnpm build` | 16 of 16 |
+| `pnpm api-report --update`, `pnpm api-index --write`, `pnpm agent-skills` | written and committed; 0 undocumented exports |
+| packages/3d: unit; Chromium `browser` and `webgpu` (software adapter) | 1632 unit tests; 16 files, 55 passed, 2 skipped |
+| figures: unit with `AF_UNIT_FULL=1`; goldens; Chromium browser and webgpu | 671 unit, 76 goldens; 227 browser |
+| character-kit: unit; Chromium browser and webgpu | 373 unit; 67 passed, 3 skipped (the gate-sheets suites, which need `scripts/gate.ts`) |
+| world-kit, lcd-panel: unit; Chromium browser | 390 and 25 unit; 30 and 11 browser |
+| base-3d and examples-3d e2e, Chromium projects | 14 and 22 passed |
+
+**Not run:** WebKit and Firefox (no browsers installed here), a real GPU, `packages/3d`'s journeys and the 2D browser suites and
+journeys (the letterbox change touches 2D; its unit tests pass, and the 2D journeys are the PR's CI), `examples/3d-story`'s e2e.
+Those are the Owner's runners.
+
+### Changesets
+
+The prologue's eight carry (`screen-post-filters`, `letterbox-whole-landscape-height`, `inputs-stick-and-drag-only`,
+`play-handle-input-method`, `camera-drag-either-button`, `audio-synth-cue-gain`, `audio-synth-recorded-cue`,
+`ui-screens-content-entry`), all `patch`. Every other package that changed (`@automata/3d`, character-kit, figures, world-kit,
+lcd-panel, retro-crisp, cutscenes, narrative, editor-3d) is private and takes none.
+
+## For the tracker
+
+| Session | Kind | Branch | Row |
+|---|---|---|---|
+| Salvage | EXECUTION (no subagents) | `claude/last-light-salvage` | 2026-11-13, from `a234a3a20`. The generic framework and kit work from the scrapped game's branches, without the game: screen post-filter and the LCD panel as one; the camera (lens, focus box, lead, peek reach, `fitFocus`, a free yaw plugin) and the occluder rule for the world's pieces; props that name a model; contact darkening, the dither's weights, the light patch; audio-synth gain and recorded cues, cutscene `cameraAt`, the credits entry; world-kit joint colour; the painted figure's density (`'auto'` opt-in), grid, `dimmest`, `holdSkinHue` and new hair, face and garment pieces; the figures' `seat` range and `thighs`. Nothing moved. Gates in this file. The game's studies and its guide are left out. |
 
 ## Trial merges (not pushed, in a scratch worktree)
 
