@@ -159,6 +159,9 @@ export async function keyboardProblems(page: Page): Promise<string[]> {
   return problems
 }
 
+/** How many times a press that the button never heard is made again (a page scrolled it away from the pointer). */
+const PRESS_ATTEMPTS = 3
+
 /**
  * Clicks every visible, enabled button and expects something to happen: a DOM change, a navigation, a popup or a
  * fullscreen change. After each click the page is put back (navigate back, close a dialog, leave fullscreen).
@@ -188,43 +191,77 @@ export async function deadButtons(page: Page): Promise<string[]> {
     const label = ((await button.getAttribute('aria-label')) ?? (await button.innerText()))
       .trim()
       .replace(/\s+/g, ' ')
-    await page.evaluate(() => {
-      const state = window as unknown as { __qbChanges: number; __qbObserver?: MutationObserver }
-      state.__qbObserver?.disconnect()
-      state.__qbChanges = 0
-      state.__qbObserver = new MutationObserver((records) => {
-        state.__qbChanges += records.length
-      })
-      state.__qbObserver.observe(document, {
-        subtree: true,
-        childList: true,
-        attributes: true,
-        characterData: true,
-      })
-      document.addEventListener(
-        'fullscreenchange',
-        () => {
+    // What a press changes is observed from just before that press, and the observation starts again for every attempt.
+    // A press that missed the button lands on something else, and that something may change the page (a scroll puts
+    // Home's frame under the pointer, which focuses it and mutates the DOM). Carried over, that change would make a
+    // later press, the one the button did hear, look as if the button had acted: a dead button would pass. So only what
+    // follows a press the button heard counts for it.
+    let leftover: Page | null = null as Page | null
+    const onPage = (opened: Page) => {
+      leftover = opened
+    }
+    page.context().on('page', onPage)
+    let popup: Promise<Page | null> = Promise.resolve(null)
+    let pressed = false
+    let pressStart = start
+    // A press can miss: Home's demo focuses its frame once the game is ready, which scrolls the page (221 px to 666 px
+    // on a loaded machine), and a late scroll after Playwright's hit check puts the pointer where the button was (the
+    // bar's Stop, run after run with the cores busy). A button that never got the press has not shown it does nothing, so
+    // the press is made again, a few times, until the button itself has heard it; a button that hears it and changes nothing is
+    // still reported.
+    for (let attempt = 0; attempt < PRESS_ATTEMPTS && !pressed; attempt++) {
+      // A popup that a missed press opened is closed, not counted.
+      await (leftover as Page | null)?.close()
+      leftover = null
+      popup = page
+        .context()
+        .waitForEvent('page', { timeout: 1500 })
+        .catch(() => null)
+      pressStart = page.url()
+      await page.evaluate(() => {
+        const state = window as unknown as {
+          __qbChanges: number
+          __qbObserver?: MutationObserver
+          __qbFullscreen?: () => void
+        }
+        state.__qbObserver?.disconnect()
+        if (state.__qbFullscreen) document.removeEventListener('fullscreenchange', state.__qbFullscreen)
+        state.__qbChanges = 0
+        state.__qbObserver = new MutationObserver((records) => {
+          state.__qbChanges += records.length
+        })
+        state.__qbObserver.observe(document, {
+          subtree: true,
+          childList: true,
+          attributes: true,
+          characterData: true,
+        })
+        state.__qbFullscreen = () => {
           state.__qbChanges++
-        },
-        { once: true },
-      )
-    })
-    const popup = page
-      .context()
-      .waitForEvent('page', { timeout: 1500 })
-      .catch(() => null)
-    await button.click()
+        }
+        document.addEventListener('fullscreenchange', state.__qbFullscreen)
+      })
+      await button.evaluate((element) => {
+        const state = window as unknown as { __qbPressed: boolean }
+        state.__qbPressed = false
+        element.addEventListener('click', () => (state.__qbPressed = true), { once: true })
+      })
+      await button.click()
+      pressed = await page.evaluate(() => (window as unknown as { __qbPressed: boolean }).__qbPressed)
+    }
+    if (!pressed) dead.push(`button "${label}" never received the press`)
     const changedSince = (url: string) =>
       location.href !== url || (window as unknown as { __qbChanges: number }).__qbChanges > 0
     // The observer counts a change the moment it happens, but the poll that reads the count runs on the page's main
     // thread. A click that starts a demo (Restart replaces its frame, whose WebGL boot then holds that thread for
     // seconds on the Mac's GPU, run 41012189000) starves the poll past the window though the page changed at once. So a
     // timed-out poll asks once more, after the page is free: the change must still have happened, not be waited for.
-    const changed = await page.waitForFunction(changedSince, start, { timeout: 1500 }).then(
+    const changed = await page.waitForFunction(changedSince, pressStart, { timeout: 1500 }).then(
       () => true,
-      () => page.evaluate(changedSince, start),
+      () => page.evaluate(changedSince, pressStart),
     )
     const opened = await popup
+    page.context().off('page', onPage)
     if (opened) await opened.close()
     if (!changed && !opened) dead.push(`button "${label}" changed nothing`)
     if (page.url() !== start) await page.goto(start)
