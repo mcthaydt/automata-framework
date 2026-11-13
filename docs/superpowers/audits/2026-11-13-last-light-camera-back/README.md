@@ -16,7 +16,7 @@ original game somewhat closely". Branch `claude/last-light-camera-back`, from `c
 ## 1. The original, measured
 
 The original is `mcthaydt/PixiJS3D_Experiment_001` at `92e6704` (read only, cloned beside this repository). It runs headless here:
-`npm ci`, Vite on port 5197, Chromium with SwiftShader WebGL. `tools/shoot-original.mjs` opens
+`npm ci`, Vite on port 5197, Chromium with SwiftShader WebGL. `tools/shoot-original.mjs.txt` (a record of the script run, kept as text so the repository's checks do not read it as source) opens
 `?debug&renderer=webgl&scene=prologue&framing=on&scale=letterbox&crew=off` (`framing=on` keeps the play camera's own framing under
 `?debug`; `scale=letterbox` gives play's framebuffer, not the 640 by 480 capture one), skips the opening, puts Ada at a point with
 `game.place(x, z, 0)` (facing +z, toward the camera), steps 240 ticks, and records the camera `lookAt` gave the engine and Ada's
