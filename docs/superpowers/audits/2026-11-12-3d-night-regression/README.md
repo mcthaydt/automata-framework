@@ -94,7 +94,7 @@ game's `lookOf` spreads `DEFAULT_LOOK.haze` and writes its own colour, which is 
 |---|---|---|---|
 | base-3d play frames, every time of day | flat veil (`base-3d-before-*`) | the room (`base-3d-after-*`) | the fix |
 | template game frames | one veil (`template-before-*`) | the room (`template-after-*`) | the fix |
-| `examples/3d` `look-pixel-art` brightness (`tests/e2e/look-pixel-art.test.ts`, bar `> 40`) | 50.7 (48.5 recorded): the floor flat under the day veil | 38.9 to 43.3 over runs: the floor in its own dithered swatch, Wick sharper (`look-pixel-art-*.png`) | **red, intermittently; not changed.** The bar was set while the unfocused veil lifted the floor; the frame it guards against (fog everywhere) read 19.7 to 32.3. The Owner decides the new bar. |
+| `examples/3d` `look-pixel-art` brightness (`tests/e2e/look-pixel-art.test.ts`) | bar `> 40`, read at whatever moment the canvas was first non-trivial: 50.7 (48.5 recorded) on main under the day veil; 38.9 to 43.3 on this branch | held at sim tick 600 (Wick standing, camera settled; the page's clock in the test's hands): 40.35 healthy (three runs 40.3505, 40.3494, 40.3505), 19.61 with the fog at 5 to 14 m (three runs); bar `> 30` | **the expectation moved, 40 to 30, and the way it is read.** 40 was measured through the day veil, which was the bug. Fails with the defect planted, passes with it removed |
 | Sim hashes, goldens | | | none move (presentation only) |
 | world-kit looks, The Last Light's look | | | not run here: anything using `look` with the angled camera, or Night / Lamplight, draws differently |
 
@@ -117,4 +117,6 @@ game's `lookOf` spreads `DEFAULT_LOOK.haze` and writes its own colour, which is 
 
 | Step | Status | Record |
 |---|---|---|
-| 3D night brighter than day (editor's night journeys) | Fixed, test first: the haze focused on the gameplay camera, a time with no haze lights the profile's colour, base-3d's fog moved out to the 16 m camera. Guard: `gameplay-time.parity.test.ts` in the 3D parity job. `look-pixel-art`'s brightness bar (40) now reads 38.9 to 43.3: left red for the Owner | `docs/superpowers/audits/2026-11-12-3d-night-regression/` |
+| 3D night brighter than day (editor's night journeys) | Fixed, test first: the haze focused on the gameplay camera, a time with no haze lights the library's own haze colour, base-3d's fog moved out to the 16 m camera. Guard: `gameplay-time.parity.test.ts` in the 3D parity job | `docs/superpowers/audits/2026-11-12-3d-night-regression/` |
+| A game's own haze colour (M1 ruled) | Done: `HazeProfile.lit`; only the library's default colour is lit by the time, a colour a game writes is used as given. The Last Light's play and cutscene frames are the same before and after (`last-light-*-before-after.png`). `SkyEffect` follows the same rule | same, "The Last Light, after the haze rule" |
+| `examples/3d` `look-pixel-art` brightness (M2 ruled) | Done: read at sim tick 600 with the page's clock held; 40.35 healthy, 19.61 with the defect, floor 30 (was 40, measured through the day veil). Fails planted, passes removed | same, "What moves" |

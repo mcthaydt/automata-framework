@@ -109,7 +109,14 @@ export default defineGame({
       scene: (view, _stage, occluders) => {
         view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
         occluders.box({ min: [-4, -0.1, -4], max: [4, 0, 4] }, 0x8690b2)
-        return undefined
+        // The sim tick the page last drew, for the journey: it holds the scene at a tick, never at a moment.
+        return {
+          draw: () => {},
+          reset: () => {},
+          apply: (result) => {
+            document.documentElement.dataset.tick = String(result.tick)
+          },
+        }
       },
     }),
 })
