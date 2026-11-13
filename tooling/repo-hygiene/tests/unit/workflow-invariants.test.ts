@@ -129,6 +129,69 @@ jobs:
   })
 })
 
+// Rule 7, the Owner's ruling of 2026-11-12: "stop using the artifact storage unless something fails". Evidence (traces,
+// reports, screenshots, results) is uploaded only when the job failed, for a few days.
+describe('artifact uploads', () => {
+  const upload = (step: string): string => `
+on: push
+permissions: {}
+jobs:
+  e2e:
+    steps:
+      - uses: actions/upload-artifact@v7
+${step}
+`
+  const problemsOf = (step: string): readonly string[] => fixture(upload(step))
+
+  it('accept evidence that uploads only on failure, kept for a week at most', () => {
+    for (const condition of ['failure()', '${{ failure() }}', "failure() && github.event_name == 'push'"])
+      expect(
+        problemsOf(
+          `        if: ${JSON.stringify(condition)}\n        with: { name: report, retention-days: 7 }`,
+        ),
+      ).toEqual([])
+  })
+
+  it('refuse evidence that uploads on a green run', () => {
+    for (const condition of [
+      'always()',
+      '!cancelled()',
+      "failure() || github.event_name == 'push'",
+      "github.event_name == 'push'",
+    ])
+      expect(
+        problemsOf(
+          `        if: ${JSON.stringify(condition)}\n        with: { name: report, retention-days: 7 }`,
+        ),
+      ).toEqual([`fixture.yml e2e: uploads the evidence "report" on a green run (if: ${condition})`])
+    expect(problemsOf('        with: { name: report, retention-days: 7 }')).toEqual([
+      'fixture.yml e2e: uploads the evidence "report" on a green run (no if)',
+    ])
+  })
+
+  it('refuse evidence kept longer than a week, or with no retention', () => {
+    const expected = [
+      'fixture.yml e2e: the evidence "report" is kept longer than 7 days (retention-days is not set to 7 or less)',
+    ]
+    expect(problemsOf('        if: failure()\n        with: { name: report, retention-days: 30 }')).toEqual(
+      expected,
+    )
+    expect(problemsOf('        if: failure()\n        with: { name: report }')).toEqual(expected)
+  })
+
+  it('leave an artifact on the allow-list of consumed ones as it is', () => {
+    expect(problemsOf('        with: { name: evidence, retention-days: 90 }')).toEqual([])
+  })
+
+  it('also cover the pages artifact', () => {
+    const pages = upload('        with: { name: github-pages }').replace(
+      'upload-artifact',
+      'upload-pages-artifact',
+    )
+    expect(fixture(pages)).toHaveLength(2)
+  })
+})
+
 // The 3D workflow is the only gate for the 3D browser suites and journeys, so its shape is pinned: three jobs (the unit
 // tests run in the core job of ci.yml, which `pnpm check` also runs) and a path filter that includes the lockfile, which is
 // where a new Pixi 3D arrives (it comes from npmjs.org, not from a folder in the repository).

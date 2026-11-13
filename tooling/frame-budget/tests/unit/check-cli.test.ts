@@ -41,6 +41,20 @@ describe('budget:frame exit codes', () => {
     expect(done.code).toBe(0)
   })
 
+  it('exits 0 and says nothing was measured when the 3D projects were skipped for software and the rest drawn by it', () => {
+    const done = run(['result-swiftshader.json', 'skip-3d-phone.json'], 'budget-set-3d.json')
+    expect(done.out).toContain('skipped frame-budget-3d-phone')
+    expect(done.out).toContain('frame budget: SKIPPED, nothing was measured')
+    expect(done.out).not.toContain('INVALID')
+    expect(done.code).toBe(0)
+  })
+
+  it('still exits 1 for a budgeted project with neither a result nor a skip record', () => {
+    const done = run(['result-swiftshader.json'], 'budget-set-3d.json')
+    expect(done.out).toContain('INVALID frame-budget-3d-phone: no result for this budgeted project')
+    expect(done.code).toBe(1)
+  })
+
   it('exits 0 on a result within its budget, and 1 on one over it', () => {
     expect(run(['result-within.json'], 'budget-set.json').code).toBe(0)
     const over = run(['result-over-budget.json'], 'budget-set.json')

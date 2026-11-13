@@ -10,6 +10,9 @@
 //    one of the light gates every pull request runs.
 // 6. No step fetches a submodule: the repository has none, so `actions/checkout` is never given `submodules:` (other
 //    than false) and no command runs `git submodule`.
+// 7. Artifact storage is a small shared quota ("stop using the artifact storage unless something fails", the Owner,
+//    2026-11-12). Every upload is evidence (traces, reports, screenshots, results) and runs only when the job failed
+//    (`failure()`, alone or as one `&&` term), kept for 7 days at most, unless its name is in `CONSUMED_ARTIFACTS`.
 
 /** The parts of a workflow the rules read. */
 export interface Workflow {
@@ -26,7 +29,9 @@ interface Job {
   readonly steps?: readonly Step[]
 }
 interface Step {
+  readonly name?: string
   readonly uses?: string
+  readonly if?: string
   readonly run?: string
   readonly env?: Readonly<Record<string, unknown>>
   readonly with?: Readonly<Record<string, unknown>>
@@ -37,6 +42,25 @@ const READ_ONLY_SECRETS: ReadonlySet<string> = new Set(['GITHUB_TOKEN', 'AF_READ
 
 /** The light gate every pull request runs, drafts included (lint, typecheck, unit). */
 const LIGHT_GATES: ReadonlySet<string> = new Set(['checks'])
+
+/**
+ * The artifacts that are not evidence, so they may upload on a green run: something later reads them.
+ * - `evidence`: the golden-hash file of a push to main (ci.yml). Its comment says the website reads it; nothing in the
+ *   repository downloads it, so a person or the website's host does, long after the run, which is why it is kept 90 days.
+ */
+const CONSUMED_ARTIFACTS: ReadonlySet<string> = new Set(['evidence'])
+
+/** The longest an evidence artifact is kept, in days. */
+const EVIDENCE_RETENTION_DAYS = 7
+
+/** An upload to artifact storage: the artifact action, or the pages one that deploys a site. */
+const UPLOAD = /^actions\/upload(-pages)?-artifact@/
+
+/** Whether a condition holds only when the job failed: `failure()` alone or one term of an `&&`, never of an `||`. */
+function failureOnly(condition: string | undefined): boolean {
+  const bare = (condition ?? '').replace(/^\s*\$\{\{|\}\}\s*$/g, '').trim()
+  return !bare.includes('||') && bare.split('&&').some((term) => term.trim() === 'failure()')
+}
 
 /** `git submodule …` in a command, however it is spaced or wrapped. */
 const GIT_SUBMODULE = /\bgit\s+submodule\b/
@@ -90,6 +114,18 @@ export function workflowProblems(file: string, workflow: Workflow): readonly str
     for (const name of secretsIn(job.env))
       problems.push(`${file} ${id}: hands ${name} to every step (job env)`)
     for (const step of job.steps ?? []) {
+      const artifact = String(step.with?.name ?? step.name ?? 'unnamed')
+      if (UPLOAD.test(step.uses ?? '') && !CONSUMED_ARTIFACTS.has(artifact)) {
+        if (!failureOnly(step.if))
+          problems.push(
+            `${file} ${id}: uploads the evidence "${artifact}" on a green run (${step.if === undefined ? 'no if' : `if: ${step.if}`})`,
+          )
+        const days = Number(step.with?.['retention-days'])
+        if (!(days > 0 && days <= EVIDENCE_RETENTION_DAYS))
+          problems.push(
+            `${file} ${id}: the evidence "${artifact}" is kept longer than ${EVIDENCE_RETENTION_DAYS} days (retention-days is not set to ${EVIDENCE_RETENTION_DAYS} or less)`,
+          )
+      }
       for (const name of secretsIn([step.run, step.with]))
         problems.push(`${file} ${id}: names ${name} outside a step's env`)
       if (fetchesSubmodule(step))

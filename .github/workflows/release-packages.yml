@@ -123,7 +123,13 @@ jobs:
     needs: [plan, release-checks]
     if: needs.plan.outputs.pending == 'false'
     runs-on: ${{ vars.AF_RELEASE_RUNNER || 'af-mac' }}
-    timeout-minutes: 20
+    # The whole `pnpm check` below took 26 minutes on the shared Mac (ci run 43271549732), so the old 20 could never
+    # finish. Unlike the version job, this one keeps the unit tests: it needs `release-checks`, which builds and runs
+    # the release-only checks but not the unit tests, so nothing it depends on has run them on this commit. The rest is
+    # estimated, not measured (no timed publish run to read): install and browser about 2 minutes,
+    # build and publish about 5, the registry checks and smoke about 5. About 40 in all; 60 leaves headroom. The
+    # time waiting for the Owner's approval below does not count against it.
+    timeout-minutes: 60
     # The job waits for the Owner's approval in the `release` environment (Settings -> Environments,
     # required reviewer: the Owner, deployments from main only) before it can publish anything. Only this job
     # waits; rejecting the approval only skips this run.
