@@ -26,7 +26,7 @@ Biome. Markdown is not formatted by a tool.
 
 | Task | Part | Branch | Sessions | Model | Start | State | % |
 |---|---|---|---|---|---|---|---|
-| F1 The set's shape: the catalog, the package, the entry | 0 | `claude/example-set-shape` | 1 | Sonnet | **now** | in progress (`claude/example-set-f1`): steps 1 and 2 done | 40% |
+| F1 The set's shape: the catalog, the package, the entry | 0 | `claude/example-set-shape` | 1 | Sonnet | **now** | in progress (`claude/example-set-f1`): steps 1 to 4 done, gates pending | 80% |
 | F2 A whole-pixel field and a look file, in the framework | 0 | `claude/example-set-field` | 1 | Sonnet | after the joined prologue branch | not started | 0% |
 | F3 The site can show a 3D example (the mechanism, on fixtures) | 0 | `claude/example-set-site` | 1 | Sonnet | **now**, after F1 | not started | 0% |
 | F4 The site shows the set | 0 | `claude/example-set-site` | 1 | Sonnet | after ship-3d B10, `pixi-3d-public`, E1 | not started | 0% |
@@ -371,12 +371,12 @@ export const SCENE_CAST: readonly SceneCast[]
   `@automata/nav`, `@automata/systems`, `@automata/narrative`, `@automata/interact` and `@automata/hud` to
   `EXTENSION_PACKAGES` (they stay refused while private and not in `UNPUBLISHED_EXTENSIONS`, so nothing on `main`
   changes; the 3D ship plan's A5 and B10 are told, in the Dependencies table). Run the test. Expected: PASS.
-- [ ] **Step 3: the failing shape test.** `scene.test.ts`: `scene({ start: 'nowhere' })` throws
+- [x] **Step 3: the failing shape test.** `scene.test.ts`: `scene({ start: 'nowhere' })` throws
   `There is no zone called "nowhere". The zones are: …`; `scene({ start: SCENE_ZONES[0] })` returns a definition whose
   extensions include `render3dExtension`; `SCENE_ZONES` equals the zones read from the level file. The skeleton ships
   with a one-room level (`content/levels/station.af-sector.json`, one sector, zone `platform`) so the test has a file;
   L1 replaces it. Run `pnpm --filter @af-examples/set-3d test:unit`. Expected: FAIL, the module does not exist.
-- [ ] **Step 4:** write `scene.ts` (content through the content compiler, as a game does; no fetch by hand) and the
+- [x] **Step 4:** write `scene.ts` (content through the content compiler, as a game does; no fetch by hand) and the
   probe's shape (zone and time; `fact` and `carried` return nothing until F5 and the examples' kits fill them). It draws
   the level and nothing else: the walker, the cast and the zone's view are F5's. Run. Expected: PASS.
 - [ ] **Step 5:** gates; commit `feat(examples): the example set's package, its one entry and the catalog's rule for it`.

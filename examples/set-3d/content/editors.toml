@@ -1,0 +1,9 @@
+format = "af-editors/1"
+
+# The station is one 3D level, edited in Levels 3D. The set has no gates, so every row says so with `gates = []`.
+[[file]]
+glob = "content/levels/*.af-sector.json"
+editor = "levels-3d"
+modes = ["edit"]
+gates = []
+checks = ["content"]

@@ -5,12 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "automata-examples dev",
-    "build": "vite build",
+    "build": "vite build --configLoader runner",
     "typecheck": "automata-examples typecheck",
-    "e2e:examples": "vite build && vite preview --strictPort --host localhost --port $AF_E2E_EXAMPLES_PORT",
+    "e2e:examples": "vite build --configLoader runner && vite preview --configLoader runner --strictPort --host localhost --port $AF_E2E_EXAMPLES_PORT",
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@af-examples/set-3d": "workspace:*",
     "@automata/3d": "workspace:*",
     "@automata/character-kit": "workspace:*",
     "@automata/cutscenes": "workspace:*",

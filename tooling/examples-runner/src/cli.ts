@@ -30,6 +30,11 @@ const host = await createServer({
   server: { port: demoHostPort, strictPort: true, host: '127.0.0.1' },
 })
 await host.listen()
-const server = await createServer(entry === undefined ? {} : { server: { open: entry.url } })
+// The runner loader reads the config's workspace imports as source: the 3D examples' config imports the set's content
+// plugin, a workspace package, and Node alone would refuse its TypeScript.
+const server = await createServer({
+  configLoader: 'runner',
+  ...(entry === undefined ? {} : { server: { open: entry.url } }),
+})
 await server.listen()
 server.printUrls()

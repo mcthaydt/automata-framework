@@ -8,6 +8,8 @@ packages:
   - examples/2d
   - examples/3d
   - examples/3d/wardrobe
+  # The 3D example set's place and cast, and the one entry every 3D example calls (`scene()`).
+  - examples/set-3d
   - examples/2d-story
   - examples/3d-story
   - examples/2d/*/*

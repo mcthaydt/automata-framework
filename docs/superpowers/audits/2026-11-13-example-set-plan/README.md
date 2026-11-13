@@ -262,7 +262,7 @@ take the 3D job's time: 19 min 16 s on 2026-11-10 on the shared runner (`3d.yml`
 Rows for `docs/superpowers/progress.md`, for the coordinator to copy:
 
 > **Workstream: one example set (3D).** Stage 3 (plan audit, Opus) done 2026-11-13 on `claude/example-set-plan-audit`:
-> [audit](audits/2026-11-13-example-set-plan/README.md). 9 must fix (8 fixed in the plan; M9, when the Owner's sheets
+> audit: `docs/superpowers/audits/2026-11-13-example-set-plan/README.md`. 9 must fix (8 fixed in the plan; M9, when the Owner's sheets
 > come, ruled: last), 13 should fix (all fixed; S1, S3, S11 ruled), notes. Plan now 41 tasks, about 39.5 build
 > sessions (30.5 Sonnet, 9 Opus): F5 added (`scene()` plays the place), O2 added (the pictures after the Owner's yes);
 > nothing waits on the Owner, whose sheets (O1) are the last task. Can start now from `main`: F1, F3 (after

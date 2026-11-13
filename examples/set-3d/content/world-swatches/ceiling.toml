@@ -1,0 +1,5 @@
+# `ceiling`: the ceilings, a DUEL ramp until the photo tiles replace it.
+# Colour: DUEL ramp dusk, step 0.
+
+ramp = "dusk"
+step = 0

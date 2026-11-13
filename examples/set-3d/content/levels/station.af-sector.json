@@ -1,0 +1,17 @@
+{
+  "format": "af-sector/2",
+  "name": "station",
+  "sectors": [
+    {
+      "id": "platform",
+      "zone": "platform",
+      "floor": 0,
+      "ceiling": 4,
+      "light": 1,
+      "corners": [[-6, -4], [6, -4], [6, 4], [-6, 4]],
+      "floorTexture": "floor",
+      "ceilingTexture": "ceiling",
+      "wallTexture": "wall"
+    }
+  ]
+}

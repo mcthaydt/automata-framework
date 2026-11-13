@@ -1,0 +1,31 @@
+{
+  "name": "@af-examples/set-3d",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The 3D example set's one place and its one cast, as content an editor opens, and `scene()`, the one entry every 3D example calls.",
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "exports": {
+    ".": "./src/entries/index.ts",
+    "./vite": "./src/entries/vite.ts"
+  },
+  "scripts": {
+    "test:unit": "vitest run --configLoader runner --project unit",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@automata/3d": "workspace:*",
+    "@automata/framework": "workspace:*",
+    "svelte": "5.57.1"
+  },
+  "devDependencies": {
+    "@automata/content": "workspace:*",
+    "@automata/vitest-preset": "workspace:*",
+    "@types/node": "24.19.1",
+    "typescript": "6.0.3",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  }
+}
