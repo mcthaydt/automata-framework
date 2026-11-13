@@ -1,19 +1,56 @@
 # AutomataFramework: Agent Rules
 
-AF is a TypeScript framework for small, deterministic web games. The simulation runs on Koota and is checked bit
+AF is a TypeScript framework for small, deterministic 2D web games. The simulation runs on Koota and is checked bit
 for bit in Node, Chromium, WebKit and Firefox. PixiJS draws the game. `web`, `itch`, `ruken` and `tauri` are peer
-distribution targets, chosen when the game is built. The Owner's direction, decision by decision, is in
-[`docs/archive/direction-log.md`](docs/archive/direction-log.md).
+distribution targets, chosen when the game is built.
+
+## What we are doing now
+
+**Make 2D perfect and ship 2D only.** The Owner's words, 2026-11-13. A first 3D attempt was made and is being moved
+out of `main`; [`docs/refactor/2026-11-13-2d-launch-cut-list.md`](docs/refactor/2026-11-13-2d-launch-cut-list.md) is
+the order of work until it is done. If a task does not make the 2D launch better or sooner, it waits.
 
 ## Read order
 
-1. [`docs/README.md`](docs/README.md): what AF is and where things are.
-2. [`docs/status.md`](docs/status.md): what works today and what is next.
-3. [`docs/refactor/progress.md`](docs/refactor/progress.md): the refactor's tasks, with evidence.
-4. [`docs/refactor/2026-11-05-core-and-2d-spec.md`](docs/refactor/2026-11-05-core-and-2d-spec.md): the layout and
-   the rules below, with reasons. Its plan is next to it.
+1. This page.
+2. [`docs/README.md`](docs/README.md): what AF is and where things are.
+3. The cut list above, while the cut is running; then [`docs/status.md`](docs/status.md).
 
-The 2026-10 specs, plans and task lists are in `docs/archive/`. They are history, not a source of tasks.
+Everything under `docs/archive/`, `docs/refactor/` (but the cut list) and `docs/superpowers/` is history, not a source
+of tasks.
+
+## Staying on the rails
+
+These exist because the project went off them once: 3D and a showcase game took over before 2D shipped, 70 branches
+and 18 "known" test failures piled up, and each piece of work passed through seven sessions and as many documents.
+
+**Scope**
+- Nothing new starts without the Owner's words: no new package, extension, game, example, editor, target or
+  dependency. "It would be useful later" is not a reason. Say what you found and ask.
+- No 3D work in this repository until the Owner says 2D has shipped.
+- Build nothing ahead of its user. Code stays only if a game, an example or a journey in this repository uses it.
+- Keep the change to what was asked. A second problem found on the way is reported, not fixed in the same change,
+  unless it blocks the task.
+- A decision the Owner has made is not reopened. If new facts make it look wrong, say so once, with the facts.
+
+**Pace**
+- One piece of work is one branch and one pull request, small enough to review in one sitting. It merges or closes
+  within two days. Never build on a branch that is not in `main`.
+- At most three pull requests open, and one in CI at a time: the runners are the Owner's own machines.
+- The process is: say what you will build (in the pull request, a few lines), build it test first, have it reviewed.
+  No committed plans, audits, handoffs or progress pages; what a reader needs goes in the pull request and the
+  commit message. The cut list's own record is the one exception, until the cut is done.
+- Stop and tell the Owner when a task has taken twice what was expected, when the third fix for the same failure
+  has not worked, or when a look has been through two rounds without his "fine". Do not start a fourth attempt.
+- Do not delegate to subagents or start other sessions unless asked.
+
+**Truth**
+- `main` is green. A test that fails on `main` is fixed, or its cause removed, before any other work. There is no
+  list of known failures to merge past, and no step may hide behind a failing one.
+- A test that fails once and passes on retry is a defect to find, not a flake to note.
+- "Done" means merged to `main` and green there. Otherwise say where it is: "on a branch", "in CI", "not started".
+- Report what you ran, what you did not run and why, and what is still open. Never round up.
+- Speak plainly to the Owner: the conclusion first, short, no jargon he did not use.
 
 ## The laws
 
@@ -68,9 +105,7 @@ The 2026-10 specs, plans and task lists are in `docs/archive/`. They are history
 - A hash that moves is investigated, not re-recorded per engine. Say why in the commit when it must move.
 - Look at the real expected, actual and diff images before accepting a visual change, and explain each change.
 - Facts come from artifacts: hashes, sizes and timings are measured, never written by hand.
-- Keep the change to what was asked. Preserve other people's changes. Do not delegate to subagents unless asked.
-- Update `docs/refactor/progress.md` and the plan's log in the same session as the work. Tick a plan step only when
-  its checks pass. Leave a gate unchecked if it did not run, and say which.
+- Preserve other people's changes.
 
 ## Gates
 
@@ -91,7 +126,10 @@ The 2026-10 specs, plans and task lists are in `docs/archive/`. They are history
 
 ## Branches and pull requests
 
-- Work on a branch and open a draft pull request. Do not leave backup or handoff branches; a draft PR or a tag does
-  that job. When a branch's pull request is merged, delete the branch.
-- `main` and the branches with an open pull request are the only long-lived branches.
-- Credentials, money, real-device tests, release approvals and branch deletions are the Owner's.
+- `main` and the branches with an open pull request are the only branches. No backup, handoff or notes branches; a
+  tag does that job. When a pull request merges, its branch is deleted.
+- Merge with a merge commit, never a squash, so ancestry shows what is in `main`.
+- Never force-push. Never loosen, skip or re-record a test to get green; a golden moves only with the Owner seeing
+  before and after.
+- Workflow files (`.github/workflows/*`) change only on the Owner's words, quoted in the commit.
+- Credentials, money, real-device tests, release approvals, tags and branch deletions are the Owner's.
