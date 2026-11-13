@@ -5,7 +5,8 @@
 // - the goldens' per-engine hashes from each package's `.evidence/goldens.json` (Vitest's JSON reporter);
 // - the revision from GITHUB_SHA or git, and the run from GitHub Actions' variables;
 // - the Playwright version each reporting package resolves;
-// - the publishable packages' versions from their manifests, and whether each was released from git's tags.
+// - the publishable packages' versions from their manifests, and whether each was released from git's tags
+//   (`<name>@<version>` among them; a version no tag names is reported unreleased, which is true before a first release).
 // The parity job in ci.yml runs it on every push to `main` and uploads both files as the `evidence` artifact.
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
@@ -22,6 +23,7 @@ import {
   type VitestJsonReport,
 } from './collect.ts'
 import { EvidenceSchema } from './evidence.schema.ts'
+import { releaseTags } from './release-tags.ts'
 
 const REPORT = '.evidence/goldens.json'
 
@@ -72,7 +74,7 @@ function main(): void {
     goldens: goldensFromReports(reports, root),
     packages: packagesFromManifests(
       publishablePackages(root).map((pkg) => pkg.manifest),
-      git(root, 'tag', '--list', '@automata/*').split('\n').filter(Boolean),
+      releaseTags(root),
     ),
   })
   writeFileSync(join(root, 'evidence.json'), `${JSON.stringify(evidence, null, 2)}\n`)
@@ -81,11 +83,12 @@ function main(): void {
     `${JSON.stringify(z.toJSONSchema(EvidenceSchema), null, 2)}\n`,
   )
   const agreeing = evidence.goldens.filter((golden) => golden.enginesAgree).length
+  const released = evidence.packages.filter((pkg) => pkg.released).length
   console.log(
     `evidence.json: ${evidence.revision.sha.slice(0, 7)}${evidence.revision.dirty ? ' (dirty)' : ''}, ` +
       `${evidence.run.kind === 'ci' ? evidence.run.url : 'local run'}; ` +
       `${evidence.goldens.length} goldens (${agreeing} agree in all four engines), ` +
-      `${evidence.packages.length} packages (${evidence.packages.filter((pkg) => pkg.released).length} released)`,
+      `${evidence.packages.length} packages (${released === 0 ? 'no release tag for any of these names yet' : `${released} released`})`,
   )
 }
 
