@@ -45,6 +45,7 @@ function setup(extra: Partial<Parameters<typeof audioStage>[0]> = {}) {
   const inputs = new Map<string, FakeNode>()
   let unlocked = false
   const ducks: unknown[] = []
+  const files: unknown[] = []
   const audio = {
     unlocked: { get: () => unlocked },
     input: (name: string) => {
@@ -57,6 +58,7 @@ function setup(extra: Partial<Parameters<typeof audioStage>[0]> = {}) {
       return node
     },
     duck: (...args: unknown[]) => void ducks.push(args),
+    sound: (...args: unknown[]) => void files.push(args),
   }
   const listeners: ((fact: { tick: number; events: readonly SimEvent[] }) => void)[] = []
   const bus = {
@@ -94,6 +96,7 @@ function setup(extra: Partial<Parameters<typeof audioStage>[0]> = {}) {
     oscillators,
     flush,
     faults,
+    files,
     listeners,
     unlock: () => (unlocked = true),
     setMode: (next: string) => (mode = next),
@@ -101,6 +104,20 @@ function setup(extra: Partial<Parameters<typeof audioStage>[0]> = {}) {
 }
 
 describe('audioStage: cues', () => {
+  it('plays a cue that names a recorded sound through core, on its bus', () => {
+    const file = { id: 'thud', bus: 'ui', voices: [], sound: 'sounds/thud.ogg' }
+    const content = {
+      ...CONTENT,
+      cue: [...(CONTENT.cue ?? []), file],
+      event: [{ on: 'thud.heard', cue: 'thud' }],
+    }
+    const { step, files, oscillators, unlock } = setup({ content: () => content as never })
+    unlock()
+    step(1, 'thud.heard')
+    expect(files).toEqual([['sounds/thud.ogg', { bus: 'ui' }]])
+    expect(oscillators()).toHaveLength(0)
+  })
+
   it('plays the cue an event maps to, on its bus, once the audio is unlocked', () => {
     const { step, oscillators, unlock } = setup()
     step(1, 'coin.picked')

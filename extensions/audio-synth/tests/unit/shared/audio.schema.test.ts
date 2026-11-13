@@ -83,6 +83,8 @@ describe('audioSchema', () => {
     expect(paths({})).toEqual([])
   })
   it('fails a voice that is neither a tone nor a hiss, or both', () => {
+    expect(paths({ cue: [{ ...cue, gain: -1 }] })).toEqual([['cue', 0, 'gain']])
+    expect(audioSchema.safeParse({ cue: [{ ...cue, gain: 4 }] }).success).toBe(true)
     expect(paths({ cue: [{ ...cue, voices: [{ length: 1, volume: 1 }] }] })).toEqual([
       ['cue', 0, 'voices', 0],
     ])

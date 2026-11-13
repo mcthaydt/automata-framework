@@ -49,6 +49,8 @@ export function audioStage(options: AudioStageOptions): GameAudioStart {
       port: {
         input: (name) => audio.input(name),
         duck: (name, amount, seconds) => audio.duck(name, amount, seconds),
+        sound: (alias, name, gain) =>
+          audio.sound(alias, { bus: name, ...(gain === undefined ? {} : { gain }) }),
       },
     })
     // The picture and the sound share a step: a cue sounds as the step that caused it is drawn.
