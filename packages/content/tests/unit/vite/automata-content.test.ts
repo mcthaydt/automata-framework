@@ -2,7 +2,9 @@
 // behavior worth pinning is recovery. A bad save reports, keeps the last good bytes and module, and leaves
 // the watcher alive, so the fix is one more save rather than a restarted server.
 
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { createServer as createHttpServer } from 'node:http'
+import type { AddressInfo } from 'node:net'
 import { dirname, join } from 'node:path'
 import { Effect } from 'effect'
 import { build, createLogger, createServer, type HotPayload, type ViteDevServer } from 'vite'
@@ -410,6 +412,71 @@ describe('vite dev', () => {
     expect(events[1]?.event).toBe('automata:content')
     expect(await loadHash(server)).toBe(events[1]?.data.hash)
   }, 90_000)
+
+  // The editor's Play opens a page right after the Tuner saves. On a busy machine the watcher reports the save, and
+  // the debounced build finishes, seconds later; a page that imported the module in that window kept the old
+  // content (its HMR update arrived while it was still loading), so a key just bound did nothing until a reload.
+  describe('a page that asks for the module before the watcher reports a save', () => {
+    const serve = async (root: string, pluginOptions: AutomataContentOptions = options(root)) => {
+      const { server, events } = await devServer(root, pluginOptions)
+      const http = createHttpServer(server.middlewares)
+      await new Promise<void>((resolve) => http.listen(0, '127.0.0.1', resolve))
+      const { port } = http.address() as AddressInfo
+      servers.push({
+        close: () => new Promise<void>((resolve) => http.close(() => resolve())),
+      } as ViteDevServer)
+      const fetchModule = async () =>
+        (await fetch(`http://127.0.0.1:${port}/@id/__x00__virtual:automata/content`)).text()
+      return { server, events, fetchModule }
+    }
+
+    it('gets the content on disk, not the build before it', async () => {
+      const root = copyFixture('valid')
+      const { server, fetchModule } = await serve(root)
+      expect(await fetchModule()).toContain('"Cyan"')
+      // A watcher that has not reported the save yet.
+      await server.watcher.close()
+      editFile(root, 'characters/cyan.toml', (text) => text.replace('"Cyan"', '"Cyan Two"'))
+      expect(await fetchModule()).toContain('"Cyan Two"')
+    }, 90_000)
+
+    it('gets the content on disk after a file is deleted', async () => {
+      const root = copyFixture('valid')
+      const mood = defineContentSchema('mood', z.strictObject({ name: z.string() }), { folder: 'moods' })
+      mkdirSync(join(root, 'content/moods'))
+      writeFileSync(join(root, 'content/moods/calm.toml'), 'name = "calm"\n')
+      writeFileSync(join(root, 'content/moods/tense.toml'), 'name = "tense"\n')
+      const { server, fetchModule } = await serve(root, {
+        ...options(root),
+        schemas: [...options(root).schemas, mood],
+      })
+      expect(await fetchModule()).toContain('"tense"')
+      await server.watcher.close()
+      rmSync(join(root, 'content/moods/tense.toml'))
+      expect(await fetchModule()).not.toContain('"tense"')
+    }, 90_000)
+
+    it('tells the other pages once, not again when the watcher catches up', async () => {
+      const root = copyFixture('valid')
+      const { events, fetchModule } = await serve(root)
+      await fetchModule()
+      editFile(root, 'characters/cyan.toml', (text) => text.replace('"Cyan"', '"Cyan Two"'))
+      expect(await fetchModule()).toContain('"Cyan Two"')
+      await waitFor(() => events.length >= 1, 'the content event')
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      expect(events.map(({ event }) => event)).toEqual(['automata:content'])
+    }, 90_000)
+
+    it('builds nothing more when nothing changed', async () => {
+      const root = copyFixture('valid')
+      const { events, fetchModule } = await serve(root)
+      const first = await fetchModule()
+      const hash = readFileSync(join(root, 'content/generated/content.hash'), 'utf8')
+      expect(await fetchModule()).toBe(first)
+      expect(readFileSync(join(root, 'content/generated/content.hash'), 'utf8')).toBe(hash)
+      expect(events).toEqual([])
+    }, 90_000)
+  })
 
   it('ignores a file that is not an authored source', async () => {
     const root = copyFixture('valid')
