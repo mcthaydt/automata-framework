@@ -30,6 +30,7 @@ Biome. Markdown is not formatted by a tool.
 | F2 A whole-pixel field and a look file, in the framework | 0 | `claude/example-set-field` | 1 | Sonnet | after the joined prologue branch | not started | 0% |
 | F3 The site can show a 3D example (the mechanism, on fixtures) | 0 | `claude/example-set-site` | 1 | Sonnet | **now**, after F1 | not started | 0% |
 | F4 The site shows the set | 0 | `claude/example-set-site` | 1 | Sonnet | after ship-3d B10, `pixi-3d-public`, E1 | not started | 0% |
+| F5 `scene()` plays the place: the walker, the cast, the view, the look | 0 | `claude/example-set-play` | 2 | Sonnet | after F2, K1, L1 | not started | 0% |
 | W1 Two photos and their swatches | 1 | `claude/example-set-props` | 0.5 | Sonnet | **now** | not started | 0% |
 | W2 Track and platform props | 1 | `claude/example-set-props` | 1 | Sonnet | **now** | not started | 0% |
 | W3 Indoor props and the platform lamp | 1 | `claude/example-set-props` | 0.5 | Sonnet | **now** | not started | 0% |
@@ -44,7 +45,7 @@ Biome. Markdown is not formatted by a tool.
 | C2 Two things to hold and a pose | 2 | `claude/example-set-holds` | 1 | Sonnet | **now** (the pose after F1) | not started | 0% |
 | C3 The traveller | 2 | `claude/example-set-cast` | 1 | Opus | after K1, C2 | not started | 0% |
 | C4 The stationmaster and the porter | 2 | `claude/example-set-cast` | 1 | Opus | after C3 | not started | 0% |
-| C5 The cast in the place | 2 | `claude/example-set-cast` | 1 | Opus | after C4, L4 | not started | 0% |
+| C5 The cast in the place | 2 | `claude/example-set-cast` | 1 | Opus | after C4, L4, F5 | not started | 0% |
 | E1 `scene-camera`, and the journeys' harness | 3 | `claude/example-set-examples-a` | 1 | Sonnet | after the Owner's yes, ship-3d B10 | not started | 0% |
 | E2 `scene-light` | 3 | `claude/example-set-examples-a` | 0.5 | Sonnet | after E1 | not started | 0% |
 | E3 `scene-looks` | 3 | `claude/example-set-examples-a` | 0.5 | Sonnet | after E1 | not started | 0% |
@@ -66,10 +67,11 @@ Biome. Markdown is not formatted by a tool.
 | S5 A journey for each editor | 4 | `claude/example-set-editors` | 2 | Sonnet | after v2 task 6, S1 to S3, K4 | not started | 0% |
 | O1 The sheets for the Owner | Owner | `claude/example-set-sheets` | 1 | Opus | after L4, C5 | not started | 0% |
 
-Progress: 0 of 39 tasks (0%). Per part: 0 of 4 (Part 0), 0 of 7 (Part 1), 0 of 4 (Part K), 0 of 4 (Part 2), 0 of 15
+Progress: 0 of 40 tasks (0%). Per part: 0 of 5 (Part 0), 0 of 7 (Part 1), 0 of 4 (Part K), 0 of 4 (Part 2), 0 of 15
 (Part 3), 0 of 4 (Part 4), 0 of 1 (the Owner's sheets). Part 5 (2D) has no tasks until the Owner says yes. Sessions:
-37 (28 Sonnet at high effort, 9 Opus at medium), before audits and fixes. (There is no task C1 or S4: they became
-Part K, which is planned once for this set and for the game.)
+39 (30 Sonnet at high effort, 9 Opus at medium), before audits and fixes. (There is no task C1 or S4: they became
+Part K, which is planned once for this set and for the game. F5 was added at the plan audit: nothing else made
+`scene()` walk a person, draw the cast or use the zone's view.)
 
 ## Order and dependencies
 
@@ -79,6 +81,7 @@ now, on main ──► W1 W2 W3 (kit props)          now, on main ──► C2 (
 the joined prologue branch on main ──► F2 (field, look file)
                                    ──► K1 ─► K2 ─► [v2 tasks 2-4] ─► K3 ─► K4        (Part K: also the game's)
                                    ──► L1 ─► L2 ─► [night fix] L3 ─► [F2] L4 ─┐
+                          F1 + F2 + K1 + L1 ─► F5 (scene() plays the place) ───┤
                                         K1 + C2 ─► C3 ─► C4 ───────────────────┴─► C5 ─► O1 ─► the Owner's yes
 the Owner's yes + ship-3d B10 (kits public, with interact and hud) ──► E1 ─► E2…E13 (three branches) ─► E14 ─► E15
 ship-3d B10 + pixi-3d-public + E1 ──► F4 (the site shows the set)
@@ -86,7 +89,10 @@ editors v2 tasks 2-4 ──► S2, S3 ;  E14 + K3 ──► S1 ;  v2 task 6 + S1
 ```
 
 **The base (the coordinator's ruling, 2026-11-13).** No task is built on `claude/last-light-camera` or
-`claude/last-light-ada` directly. Camera and ada have diverged (9 and 22 commits the other lacks; 59 and 61 changed
+`claude/last-light-ada` directly. "The joined prologue branch" is the branch that brings both to `main`; at the plan
+audit no branch on `origin` does (`claude/last-light-prologue` at `8d8202694` lacks 11 of camera's commits and 24 of
+ada's), so the coordinator names it, and the commands below are the test, not the name. Camera and ada have diverged
+(11 and 24 commits the other lacks at the audit, 9 and 22 at writing; 59 and 61 changed
 files in `character-kit`, 58 and 42 in `packages/3d`), so a branch stacked on them would merge both itself and be
 rebuilt when they land, and every look frame taken before that would be taken again. Place and cast tasks start from
 `main` **after the joined prologue branch has merged**. A session checks the features it needs are on `main` before
@@ -108,8 +114,8 @@ the above.
   `examples` between them, none of them the catalog. **F3** follows it on fixtures, and ships nothing 3D.
 - **W1 to W3**: the seven prop generators, the lamp preset and the two CC0 photos. New files in
   `extensions/world-kit` and one line each in `register-props.ts`, `props.json`, `swatches.json`, `photos.json`.
-- **C2**: the items `suitcase` and `handLamp` (library data in `extensions/figures`) and the pose `pullLever` (a
-  content file, once F1 has made the folder).
+- **C2**: the items `suitcase` and `handLamp` and the stand `pullLever` (library data in `extensions/figures`, the
+  painter's own `items.json` and `poses.json`).
 
 **What waits, and on what:**
 
@@ -127,7 +133,9 @@ the above.
 | Plan | What this set needs it to do | Why |
 |---|---|---|
 | 3D ship plan, Part B | **Add `@automata/interact` and `@automata/hud` to the publish list** (two more kit recipes, and B10's join) | They were kept private only because nothing public imported them. The example set is public: an example a stranger can open imports only packages a stranger can install. `scene-use`, `scene-dark` and the story import both. Their own dependencies are public after B10 (`interact`: `3d`, `nav`, `puzzle`; `hud`: `content`, `narrative`, `puzzle`). |
-| 3D ship plan, Part B | Nothing else: every other package an example imports is already on its list (`3d`, `world-kit`, `lcd-panel`, `retro-crisp`, `character-kit` with `figures` behind it, `sectors`, `places`, `nav`, `systems`, `narrative`, `cutscenes`) or public today (`puzzle`, `audio-synth`, `feel`) | Checked against each example's row in Part 3 |
+| 3D ship plan, Part B | Every other package an example imports is already on its list (`3d`, `world-kit`, `lcd-panel`, `retro-crisp`, `character-kit` with `figures` behind it, `sectors`, `places`, `nav`, `systems`, `narrative`, `cutscenes`) or public today (`puzzle`, `audio-synth`, `feel`) | Checked against each example's row in Part 3 |
+| 3D ship plan, A5 and B10 (the catalog) | Know that the catalog calls any workspace `@automata/*` package outside `EXTENSION_PACKAGES` "a core package" (`catalog.ts` `importProblem`): `@automata/3d`, `figures`, `sectors`, `places`, `nav`, `systems`, `narrative`, `interact` and `hud` are not in it, and 3D imports pass today only because `UNPUBLISHED_EXTENSIONS` names them. F1 adds them to `EXTENSION_PACKAGES` now; A5 and B10 rebase on it | Otherwise emptying `UNPUBLISHED_EXTENSIONS` makes every 3D example's import a problem |
+| 3D ship plan, the `interact` and `hud` recipes | `interact` exports `./testing/pantry`, which imports `@automata/sectors/sim` while `sectors` is only a devDependency: the entry joins the workspace-only list (A's step 0a) or `sectors` becomes a peer. `hud`'s `svelte` peer is exact (`5.57.1`) and becomes a caret range as B10 does for the others. B10's named assertion that `interact` and `hud` are not publishable, and its count of 26 names, change to 28 | Found at the plan audit (`extensions/interact/package.json`, `src/testing/pantry.ts:29`) |
 | 3D ship plan, B5 | `@automata/character-kit`'s published surface includes Part K's `characterFileSchema`, `charactersOf`, `paintedFromFile` if K1 lands first; if B5 lands first, K1 adds them with a `patch` changeset | One kind, one package |
 | The game's plan (The Last Light) | Convert Ada and the nurse to character files **with Part K's kind**, after K1; give its `PLAY_FIGURE`, `fieldFor`, `wholeScaleFor` and look wiring up for F2's and K1's framework versions | The Owner: "Ada should be data, characters should be an editor too right?" The kind is planned once, here |
 | Editors v2 landing | Tasks 2 to 4 before K3, K4, S2, S3; task 6 before S5 | The editors' pages change under v2 |
@@ -136,25 +144,40 @@ the above.
 
 | Branch | Owns |
 |---|---|
-| `claude/example-set-shape` | `tooling/examples-runner/src/catalog.ts` and its test; `examples/set-3d/` (skeleton: `package.json`, `src/`, `tests/unit/shape/`) |
+| `claude/example-set-shape` | `tooling/examples-runner/src/catalog.ts` and its test; `examples/set-3d/` (skeleton: `package.json`, `src/`, `tests/unit/shape/`); `examples/3d/vite.config.ts`; the root `package.json`'s `test:unit:2d` and `test:unit:3d` filters (one line each) |
+| `claude/example-set-play` | `examples/set-3d/src/` and `tests/unit/play/` (after F1 has merged) |
 | `claude/example-set-props` | `extensions/world-kit/` |
-| `claude/example-set-holds` | `extensions/figures/src/shared/outfit/library/items.json` and its test; `examples/set-3d/content/figure-poses/` |
+| `claude/example-set-holds` | `extensions/figures/src/shared/outfit/library/items.json`, `extensions/figures/src/shared/motion/library/poses.json` and their tests (before K2 touches those registries) |
 | `claude/example-set-field` | `extensions/retro-crisp/src`, `packages/3d/src/features/look` |
 | `claude/character-data` | `extensions/character-kit/src` and `tests`, the registries in `extensions/figures/src/shared` (but for `items.json`) |
 | `claude/character-data-studio` | `packages/editor-3d/src/features/studio` and its tests |
 | `claude/example-set-place` | `examples/set-3d/content/levels`, `content/world-*`, `content/look.toml`, `tests/unit/place/` |
 | `claude/example-set-cast` | `examples/set-3d/content/characters`, `tests/unit/cast/`; C5 alone adds the level's `cast` block, after `-place` has merged |
-| `claude/example-set-examples-a`, `-b`, `-c` | each its own files in `examples/3d/scene/` and `examples/3d/tests/e2e/`, the old files it deletes, and its own content folders in `examples/set-3d/content` (named per task). `examples/README.md` and `examples/3d/README.md` are regenerated by one command (E1 adds it), never edited by hand, so three branches do not collide on them |
+| `claude/example-set-examples-a`, `-b`, `-c` | each its own files in `examples/3d/scene/` and `examples/3d/tests/e2e/`, the old files it deletes, and its own content folders in `examples/set-3d/content` (named per task). `examples/README.md` and `examples/3d/README.md` are regenerated by one command (E1 adds it), never edited by hand, so three branches do not collide on them. `examples/3d/package.json` and `pnpm-lock.yaml` are E1's alone: E1 adds every kit the thirteen import, once. The level file is E7's alone among the examples: E7 adds every hotspot the table names (clock, newspaper, ticket window, levers, key cabinet, lamp, store-room door). E6 alone edits the root `package.json` and `pnpm-workspace.yaml` (the wardrobe package's lines); E5 alone edits `extensions/character-kit/tests/unit/painted/painted-scale.test.ts` and `scripts/gate.ts` |
 | `claude/example-set-editors` | `packages/editor`, `packages/editor-3d/src/features/levels-3d`, `extensions/editors`, `examples/set-3d/content/editors.toml`, `examples/3d-story/tests/e2e/editors/` |
 | `claude/example-set-site` | `site/` |
 | `claude/example-set-story` | `examples/3d-story/` but for `tests/e2e/editors/` |
 
-**The critical path:** the joined prologue branch on `main` → K1 → C3, C4 → C5 → O1 → the Owner's yes → E1 → E14 →
-S1 → S5. The longest waits this plan does not control are the joined prologue branch (gates K1 and the place) and
+**Files this plan shares with other plans** (whoever lands second rebases; neither edits the other's lines):
+`tooling/examples-runner/src/catalog.ts` (F1 now; the 3D ship plan's A5 and B10 later), `extensions/character-kit/src`
+(K1 and K2; the ship plan's B5 writes types there), `extensions/retro-crisp/src` and `packages/3d/src/features/look`
+(F2; the ship plan's Part A and B-looks), `site/` (F3 and F4; B10's `playground-catalog.ts`, the v2 landing's task 7),
+`extensions/world-kit/library/tiles/` (W1; both game branches change the texture pipeline, `tile.ts` among nine
+world-kit files, so after the prologue lands whoever merges second reruns `pnpm --filter @automata/world-kit textures`
+and `textures:check`).
+
+**3D journeys on a pull request.** `.github/workflows/3d.yml` runs on paths `examples/3d/**`, `packages/**`,
+`extensions/**` and others, not `examples/set-3d/**` or `examples/3d-story/**`; a pull request that changes only the
+set's content (L1 to L4, C3 to C5, F5) runs no 3D journey in CI. Workflow files are not edited here, so those tasks
+run `pnpm --filter @af-examples/examples-3d test:e2e` (once it has journeys) in the session and report it; adding the
+two paths to the workflow is the coordinator's call.
+
+**The critical path:** the joined prologue branch on `main` → K1 → F5 and C3, C4 → C5 → O1 → the Owner's yes → E1 →
+E14 → S1 → S5. The longest waits this plan does not control are the joined prologue branch (gates K1 and the place) and
 ship-3d B10 (gates E1).
 
-**The honest total:** 37 build sessions (9 of them Opus look sessions), plus the plan audit (1), implementation
-audits (about 4) and fixes (about 4): **about 46 sessions**. Six of the 37 are Part K, which the game's lane would
+**The honest total:** 39 build sessions (9 of them Opus look sessions), plus the plan audit (1), implementation
+audits (about 4) and fixes (about 4): **about 48 sessions**. Six of the 39 are Part K, which the game's lane would
 otherwise have to plan and pay for itself. With the props, the shape, the site's mechanism and the holds starting now,
 and three example branches in parallel later, the calendar is shorter than the count.
 
@@ -293,7 +316,18 @@ what ran, what did not, and what is pending. Never `--no-verify`; stage files by
 **Files:**
 - Modify: `tooling/examples-runner/src/catalog.ts` (module lists, the import rule, the line budget), `tooling/examples-runner/tests/unit/catalog.test.ts`
 - Create: `examples/set-3d/package.json` (`@af-examples/set-3d`, private, `exports: { ".": "./src/entries/index.ts" }`, `imports: { "#src/*": "./src/*" }`), `tsconfig.json`, `vitest.config.ts`, `src/entries/index.ts`, `src/app/scene.ts`, `src/app/scene-options.ts`, `content/editors.toml`, `tests/unit/shape/scene.test.ts`
-- Modify: `pnpm-workspace.yaml` (add `examples/set-3d`), `knip.jsonc`, `examples/3d/package.json` (dependency `@af-examples/set-3d`)
+- Modify: `pnpm-workspace.yaml` (add `examples/set-3d`), `knip.jsonc`, `examples/3d/package.json` (dependency `@af-examples/set-3d`), `examples/3d/vite.config.ts` (the content compiler, below), root `package.json` (`--filter='@af-examples/set-3d'` in `test:unit:3d`, `--filter='!@af-examples/set-3d'` in `test:unit:2d`, as the other 3D packages are listed)
+
+**Content reaches the page through the content compiler.** The examples on `main` write their content inline "as
+compiled" (`examples/3d/world/world-level-room.ts:27-29`) because the runner's Vite config (`examples/3d/vite.config.ts`)
+has only `examplesRunner`. `scene()` reads `virtual:automata/content` as a game does (`games/base-3d/src/testing/sim.ts`),
+so F1 adds `automataContent` from `@automata/content/vite` to `examples/3d/vite.config.ts` and to
+`examples/set-3d/vitest.config.ts`, with the root `examples/set-3d` and the copy an editor journey names
+(`AF_E2E_CONTENT_ROOT`, as `contentRootOf` in `games/base-3d/vite.config.ts` does), and the content kinds of the kits the
+set uses. E14 does the same for `examples/3d-story/vite.config.ts`.
+
+**The unit script is `test:unit`**, as every package `pnpm check` reaches (`turbo run test:unit`); a script named `test`
+would never run in the gate, and S1's round-trip relies on running there.
 
 **Interfaces, produced (every later task relies on these names):**
 
@@ -316,24 +350,31 @@ export const SCENE_CAST: readonly SceneCast[]
 
 - [ ] **Step 1: the failing catalog tests.** In `catalog.test.ts`, with a fixture folder: (a) `scene/scene-camera.ts`
   importing `@af-examples/set-3d` and `@automata/framework` has no problems; (b) a `scene` file with 41 code lines has
-  the problem `41 code lines, more than 40`; (c) a `scene` file importing `@automata/lcd-panel` with `Tier: extension`
-  and one importing only the umbrella with `Tier: core` both pass (the tier follows the imports in this module);
-  (d) a file in any other module importing `@af-examples/set-3d` has the problem
-  `import "@af-examples/set-3d" is not a public entry`.
+  the problem `41 code lines, over the budget of 40` (the wording `catalog.ts` already uses); (c) a `scene` file
+  importing `@automata/lcd-panel` with `Tier: extension` and one importing only the umbrella with `Tier: core` both
+  pass (the tier follows the imports in this module); (d) a file in any other module importing `@af-examples/set-3d`
+  has the problem `import "@af-examples/set-3d" is not a public entry`; (e) with a fixture packages folder in which
+  `@automata/nav` and `@automata/3d` are public (no `private`), a `scene` file importing `@automata/nav/sim` and
+  `@automata/3d` has no problems (today `importProblem` calls them "a core package": they are not in
+  `EXTENSION_PACKAGES`).
   Run `pnpm --filter @automata/examples-runner test -- catalog`. Expected: FAIL, `"scene" is not a module`.
 - [ ] **Step 2:** add `SET_MODULE = 'scene'`, `SET_PACKAGE = '@af-examples/set-3d'`, `SET_CODE_LINE_BUDGET = 40` and
-  the three rules to `catalog.ts`. Run the test. Expected: PASS.
+  the three rules to `catalog.ts`; add `@automata/3d`, `@automata/figures`, `@automata/sectors`, `@automata/places`,
+  `@automata/nav`, `@automata/systems`, `@automata/narrative`, `@automata/interact` and `@automata/hud` to
+  `EXTENSION_PACKAGES` (they stay refused while private and not in `UNPUBLISHED_EXTENSIONS`, so nothing on `main`
+  changes; the 3D ship plan's A5 and B10 are told, in the Dependencies table). Run the test. Expected: PASS.
 - [ ] **Step 3: the failing shape test.** `scene.test.ts`: `scene({ start: 'nowhere' })` throws
   `There is no zone called "nowhere". The zones are: …`; `scene({ start: SCENE_ZONES[0] })` returns a definition whose
   extensions include `render3dExtension`; `SCENE_ZONES` equals the zones read from the level file. The skeleton ships
   with a one-room level (`content/levels/station.af-sector.json`, one sector, zone `platform`) so the test has a file;
-  L1 replaces it. Run `pnpm --filter @af-examples/set-3d test`. Expected: FAIL, the module does not exist.
+  L1 replaces it. Run `pnpm --filter @af-examples/set-3d test:unit`. Expected: FAIL, the module does not exist.
 - [ ] **Step 4:** write `scene.ts` (content through the content compiler, as a game does; no fetch by hand) and the
-  probe. Run. Expected: PASS.
+  probe's shape (zone and time; `fact` and `carried` return nothing until F5 and the examples' kits fill them). It draws
+  the level and nothing else: the walker, the cast and the zone's view are F5's. Run. Expected: PASS.
 - [ ] **Step 5:** gates; commit `feat(examples): the example set's package, its one entry and the catalog's rule for it`.
 
-**Done means:** both tests pass; `pnpm check` exit 0; no file under `examples/3d` or `examples/3d-story` changed but
-`examples/3d/package.json`.
+**Done means:** both tests pass; `pnpm check` exit 0 and its unit step lists `@af-examples/set-3d`; no file under
+`examples/3d` or `examples/3d-story` changed but `examples/3d/package.json` and `examples/3d/vite.config.ts`.
 
 ### Task F2: A whole-pixel field and a look file, in the framework
 
@@ -421,19 +462,56 @@ Waits for ship-3d B10, `claude/pixi-3d-public` and E1; run again after E13 and E
 **Done means:** every `scene` example whose imports are public and the story have a page; the log records how many
 pages changed (expected: the index, the home, one new page per example, one demo).
 
+### Task F5: `scene()` plays the place: the walker, the cast, the view, the look (`claude/example-set-play`, two sessions)
+
+Added at the plan audit. Nothing on `main` or on the game's branches draws a level's `cast` block at run time (the
+block is read only by the editor, `packages/editor-3d/src/shared/level-session/af-sector/af-placed.ts:120`, and the
+furnisher, `extensions/world-kit/src/features/furnish/context.ts:231`), and no other task makes `scene()` walk a
+person, follow the zone's view or read `look.toml`. C5's in-place frames, O1's "each in the place", E1's "walk 6 m",
+E5's porter who faces you and E11's porter on his round all stand on it. Waits for F1, F2, K1 and L1 merged.
+
+**Files:** `examples/set-3d/src/app/scene.ts` (extended), `src/features/walker/` (`walker.component.ts`,
+`walk.command.ts`, `walker.system.ts`: the walked character on the level's floors and walls, through
+`@automata/sectors/sim`, as `games/base-3d/src/features/hero/` does for its hero), `src/features/cast/cast-view.ts`
+(each `cast` place and the walked character drawn with K1's `paintedFromFile` and the defaults of `look.toml`'s
+`[figure]`, read by F2's `readLook`; a figure's `who` is registered with the cutscenes' actors so an action can be
+asked of it), `src/features/view/zone-view.ts` (the camera is the current zone's `view`; the field is F2's `fieldFor`
+at `wholeScaleFor`), `src/app/scene-probe.ts`, `tests/unit/play/`, `tests/browser/play/`.
+
+- [ ] **Session 1, failing first (unit, Node):** with a fixed seed and an input script, the walker moves 6 m along the
+  platform in 6 s at the gait's speed and stops at a wall; walking through a door changes `probe.zone()`; the same
+  script gives the same sim hash twice. Then the walker, the command, the system. PASS.
+- [ ] **Session 2, failing first (browser):** `scene({ start: 'platform', cast: SCENE_CAST })` draws one painted
+  figure per cast place plus the walker, each at the density `look.toml` gives; the camera's view is the zone's and
+  changes at a door; asking the porter's figure for `wave` plays it (the probe reports the action). Then the views and
+  the probe. PASS. `SCENE_CAST` before C3 is K1's fixture `plain.toml` copied into the set; C3 replaces it.
+- [ ] Gates after each session (`pnpm check`; `pnpm test:browser:3d` where the session can, else pending); commits
+  `feat(examples): the set's walker`, `feat(examples): the set draws its people and follows the zone's view`.
+
+**Done means:** both suites pass; the sim files obey the laws (no I/O, clock or `Math.random`; role suffixes;
+`pnpm boundaries` exit 0); no picture recorded.
+
 ---
 
 ## Part 1: the place
 
 ### Task W1: Two photos and their swatches (`claude/example-set-props`)
 
-**Files:** `extensions/world-kit/assets/photos/ballast.jpg`, `sleeper.jpg`, `assets/photos/photos.json`,
-`library/swatches.json` (`ballast`, `sleeper`), `library/tiles/` (written by the command), `tests/unit/textures/` (the
-existing library test covers new rows).
+**Files:** `extensions/world-kit/assets/photos/ballast.png`, `sleeper.png` (PNG, square, 128 or 256 px, as the 38
+there are), `assets/photos/photos.json`, `library/swatches.json` (`ballast`, `sleeper`), `library/tiles/` (written by
+the command), `tests/unit/textures/` (the existing library test covers new rows).
 
-- [ ] **Step 1:** add the two rows to `photos.json` first (source URL, `licence: "CC0"`, credit) with no file. Run
+**Where the photos come from.** Every photo in the kit is Poly Haven's (CC0), recorded as
+`{ "file", "size": [metres, metres], "source": "polyhaven:<id>", "licence": "CC0", "credit": "<name> by <authors>,
+polyhaven.com/a/<id>" }`. Candidates checked at the plan audit against `api.polyhaven.com/info/<id>` (all Poly Haven
+assets are CC0): ballast, `gravel_stones` ("Gravel Stones" by Amal Kumar, 2 × 2 m, grey stones) or `rocky_gravel`
+(Dario Barresi and Dimitrios Savva); sleeper, `rough_wood` ("Rough Wood" by Rob Tuytel, 0.5 × 0.5 m) or
+`weathered_planks` (Dario Barresi and Dimitrios Savva). The session picks one of each, writes the row from that
+asset's own info (name, authors, dimensions), and scales the downloaded colour map to the kit's size.
+
+- [ ] **Step 1:** add the two rows to `photos.json` first (as above) with no file. Run
   `pnpm --filter @automata/world-kit textures:check`. Expected: FAIL, the photo is missing.
-- [ ] **Step 2:** add the two CC0 photos (track ballast seen from above; a creosoted timber sleeper's face), the two
+- [ ] **Step 2:** add the two photos (track ballast seen from above; a dark timber sleeper's face), the two
   swatches with their `reads`, and run `pnpm --filter @automata/world-kit textures`. Run `textures:check` and
   `pnpm --filter @automata/world-kit test:unit`. Expected: PASS, and `git status` shows only new files and the three
   JSON files changed: no existing tile moved.
@@ -576,23 +654,29 @@ character a content file and makes Characters open, draw and edit it. The set's 
 game converts Ada and the nurse with the same kind, in its own plan.
 
 **What the kind must express.** The hardest case is the game's cast file on `origin/claude/last-light-ada`
-(`games/the-last-light/src/features/figures/cast.ts`), read for its field names only. A character file says:
+(`games/the-last-light/src/features/figures/cast.ts`, with `old-swatches.ts` and `old-gaits.ts`), read for its field
+names only. The kind is the painter's own types, not a list written by hand: `Sliders` and `HeadShape`
+(`extensions/figures/src/shared/body/genes.ts`), `Material` (`body/parts.ts`), the painter's `Gait`
+(`motion/motion-types.ts`) and `CharacterDef` (`figure/cast.ts`), as they stand on `main` when K1 starts. Checked at the
+plan audit against `origin/claude/last-light-ada` `45bef0c2e`: Ada and the night nurse use fields beyond the ones a
+first reading of the cast file shows (the rows below name them), and the kind loses none of them. A character file
+says:
 
 | Group | Fields | Notes |
 |---|---|---|
 | Who | `id`, `name` | |
-| Build | 18 sliders (`frame`, `height`, `muscle`, `fat`, `shoulders`, `hips`, `arms`, `head`, `chunk`, `legs`, `posture`, `age`, `headTilt`, `neck`, `neckLength`, `hands`, `feet`, `faceForward`) | each 0 to 1 but `height` (cm) and `headTilt` (degrees); ranges from the painter |
-| Face shape | 14 sliders under `face` (`width`, `jaw`, `chin`, `cheekHeight`, `cheekWidth`, `bridge`, `nose`, `lips`, `browArch`, `browWeight`, `browHeight`, `crease`, `hood`, `liner`) | eye shape is `crease`, `hood`, `liner` |
+| Build | every key of `Sliders`: 22 at the audit (`frame`, `height`, `muscle`, `fat`, `shoulders`, `hips`, `arms`, `head`, `chunk`, `legs`, `posture`, `age`, `headTilt`, `neck`, `neckLength`, `hands`, `feet`, `faceForward`, `hunch`, `bodyAsymmetry`, `bust`, `seat`), each optional | each 0 to 1 but `height` (cm) and `headTilt` (degrees); ranges from the painter. The slider `seat` is not the seat pose below: one sits under `sliders`, the other at the top |
+| Face shape | every key of `HeadShape` under `face`: 18 at the audit (`width`, `jaw`, `chin`, `cheekHeight`, `cheekWidth`, `bridge`, `nose`, `lips`, `browArch`, `browWeight`, `browHeight`, `crease`, `hood`, `liner`, `eyeSize`, `eyeSpacing`, `eyeTilt`, `asymmetry`) | eye shape is `crease`, `hood`, `liner`, `eyeSize`, `eyeSpacing`, `eyeTilt` |
 | Genes set directly | `genes` (for example `headPitch`) | for a figure meant to look wrong |
 | Skin | `skin`, a swatch name | |
 | Hair | a garment row: colour swatch and `style`; hair physics `stiff`, `damp`, `trail`, `bounce`, `sway`, `hang` | |
 | Face paint | a garment row: `eyes`, `lids`, `white`, `brows`, `lips`, each a swatch | lips and eyes are colours here, shape above |
 | Face on camera | `camera`, `turn`, `blink`, `drawn` | |
 | Outfits | named lists of garment rows, each the garment's name with its swatch and its own parameters (a waistcoat's `fit`, `length`, `armhole`, `open`, `buttons`; jeans' `taper`, `crop`, `turn`; a cap's `style`, `mark`); `default` names one | the same shape as `CharacterDef`'s, so nothing is translated |
-| Swatches of its own | by name: a ramp, a base, paint, tones; or the name of a `figure-swatches` file | the game's Ada has her own cloth and lips |
-| Gait | a preset's name (the kit's, or a `figure-gaits` file) and any of its numbers changed | the game spreads a whole gait in: a file names it |
+| Swatches of its own | by name, each a whole `Material`: `ramp`, `base`, `lift`, `flat`, `gloss`, `strands`, `sheen`, `streaks`, `paint`, `tones`, `mix`, `stain`, `holo`, `see`, `fabric` | Ada's and the nurse's use `ramp`, `base`, `lift`, `flat`, `gloss`, `strands`, `streaks`, `paint`, `tones`, `stain`. Not a `figure-swatches` file: that kind is `@automata/3d`'s mesh-figure `Swatch` (`{ ramp, step }`), another type. A shared painter swatch file, if wanted, is a new kind K1 names, not that one |
+| Gait | a painter preset's name (`brisk`, `strut`, `loose`, `bounce`, `still`) and `gaitOverrides`: any field of the painter's `Gait`, numbers and the boolean `shuffle`, the legacy fields `twitch`, `twitchEvery`, `idlePoses`, `idleLoop` included | the game's old gaits set every field of a gait as overrides (`old-gaits.ts`), and the file holds them all. Not a `figure-gaits` file: that kind is `@automata/3d`'s mesh-figure gait, another type |
 | Hand, item, stand, seat | `hand`, `item`, `stand`, `seat` | |
-| How it is painted (the hold options) | `[paint]`: `density` (1, 2 or `"auto"`), `holdSkinHue`, `dimmest`, `grid`, `crisp`, `lit` | a game's `look.toml` `[figure]` gives the defaults for all its people (F2); a file overrides them |
+| How it is painted (the hold options) | `[paint]`: `density` (the painter's `Density`: 1, 2, 4, 8 or `"auto"`), `maxDensity`, `holdSkinHue`, `dimmest`, `grid`, `crisp`, `lit` | the data fields of `PaintedFigureOptions` (`painted-view.ts`); `defFor`, `state` and `now` are functions and stay code. Ada's `PLAY_FIGURE` is `{ crisp, density: 2, holdSkinHue, dimmest: 1, grid }`, all here. A game's `look.toml` `[figure]` gives the defaults for all its people (F2); a file overrides them |
 
 **What Characters must show and edit:** the game's character files as cards; one painted figure at its own density,
 turned through the 8 directions, standing or walking, at 1× and enlarged at a whole scale, on a ground line with a
@@ -621,7 +705,10 @@ export function writeCharacter(file: CharacterFile, original: string): string //
 
 - [ ] **Step 1: the failing test.** (a) `plain.toml` parses and `paintedFromFile` paints the same cell, texel for
   texel, as `paintedFigure` given the same definition in TypeScript, in the 8 directions; (b) `every-field.toml`
-  parses, and `characterDefOf` returns a definition with every group set (one assertion a group); (c) a file naming
+  parses, and `characterDefOf` returns a definition with every group set (one assertion a group), and every key of
+  `Sliders`, `HeadShape`, `Material` and the painter's `Gait` that the fixture leaves out is a test failure that names
+  the key (the fixture is checked against the types' default objects, so a field the painter gains later fails here
+  until the fixture uses it); (c) a file naming
   the garment `cloak` is refused with `content/characters/plain.toml: outfits.default[1]: No garment called "cloak"
   is registered`, and the same shape of message for an unknown swatch, gait, hair style, cap style, item, stand and
   seat; (d) `[paint] density = 3` is refused at `paint.density`; (e) with no `[paint]`, the game's defaults apply, and
@@ -635,7 +722,9 @@ export function writeCharacter(file: CharacterFile, original: string): string //
   `feat(character-kit): a painted character is a content file`.
 
 **Done means:** the six cases pass; no golden moved; the game's lane can convert its cast with no new field (the
-coordinator checks `every-field.toml` against the table above).
+coordinator checks `every-field.toml` against the table above). A test, not a promise: the kit's test suite also
+round-trips a fixture written from the field names of Ada's and the nurse's definitions (made-up values, no number
+copied), so a conversion the game's lane makes later cannot need a field this kind lacks.
 
 ### Task K2: The wardrobe says what each thing takes
 
@@ -651,13 +740,14 @@ stand, seat, item and fabric gets a description beside it.
 export interface ParamSpec { readonly name: string; readonly kind: 'number' | 'choice' | 'swatch' | 'switch'; readonly min?: number; readonly max?: number; readonly choices?: readonly string[]; readonly default: unknown; readonly about: string }
 export function describeGarment(name: string): readonly ParamSpec[]
 export function wardrobe(): { readonly garments: readonly string[]; readonly hairStyles: readonly string[]; readonly capStyles: readonly string[]; readonly gaits: readonly string[]; readonly stands: readonly string[]; readonly seats: readonly string[]; readonly items: readonly string[]; readonly swatches: readonly string[] }
-export function describeSliders(): readonly ParamSpec[] // the 18 build and 14 face sliders, with ranges
+export function describeSliders(): readonly ParamSpec[] // every build and face slider, with ranges
 ```
 
 - [ ] **Step 1: the failing test.** Every name in `wardrobe().garments` has a description; for each garment, painting
   with each described parameter at its `min` and at its `max` gives two different cells (so no described parameter is
   dead), and every key that `every-field.toml` uses on a garment is described (so none is missing);
-  `describeSliders()` has 32 entries; every `about` is a sentence a person can read (no code names). Expected: FAIL,
+  `describeSliders()` has one entry for every key of `Sliders` and of `HeadShape` (read from the types' default
+  objects, not counted by hand: 40 at the plan audit); every `about` is a sentence a person can read (no code names). Expected: FAIL,
   `describeGarment` is not exported.
 - [ ] **Step 2:** the descriptions, as data beside each garment. PASS; goldens unmoved.
 - [ ] **Step 3:** build, api-report, api-index; gates; commit.
@@ -706,20 +796,28 @@ phone; the game's lane has what it needs to make Ada and the nurse files.
 
 ### Task C2: Two things to hold and a pose (`claude/example-set-holds`)
 
-Starts now: library data and one content file, needing nothing from the game's branches.
+Starts now: library data in the painter, needing nothing from the game's branches.
+
+**The pose is a painter's stand, not a `figure-poses` file** (fixed at the plan audit). `figure-poses` is
+`@automata/3d`'s kind for the mesh figures (`packages/3d/src/features/figures/content/figures.content.ts:73`); a painted
+figure's held poses are the painter's stands, `extensions/figures/src/shared/motion/library/poses.json`, where
+`handInPocket` and `handInJacketPocket` already are. A `figure-poses` file would never move the porter. `pullLever` is
+a stand there, for every game, as the spec asks of what a character needs.
 
 **Files:** `extensions/figures/src/shared/outfit/library/items.json` (`suitcase`, `handLamp`, in the shape of
-`torch`), `extensions/figures/tests/unit/outfit/items.test.ts`; after F1 has merged,
-`examples/set-3d/content/figure-poses/pull-lever.toml` and `examples/set-3d/tests/unit/cast/pose.test.ts`.
+`torch`), `extensions/figures/tests/unit/outfit/items.test.ts` (exists; extended);
+`extensions/figures/src/shared/motion/library/poses.json` (`pullLever`), `extensions/figures/tests/unit/motion/stand.test.ts`
+(extended). C2 lands before K2 adds descriptions to these two registries.
 
 - [ ] **Step 1: the failing test.** The item library parses with its schema and lists `torch`, `suitcase` and
   `handLamp`; a base figure holding `suitcase` has painted texels below its hand that the same figure with no item
   lacks, on the hand's side, in all 8 directions; `handLamp` the same, and its lamp part names a warm bulb swatch; an
-  unknown item is refused by name. Run `pnpm --filter @automata/figures test -- items`. Expected: FAIL, no item
-  called `suitcase`.
-- [ ] **Step 2:** the two items as library data. PASS; the painter's five goldens unmoved.
-- [ ] **Step 3 (after F1):** failing test: `pull-lever.toml` parses as a `figure-poses` file and, applied to the base
-  figure, puts the right hand forward of the chest and below the shoulder. Then the file. PASS.
+  unknown item is refused by name. Run `pnpm --filter @automata/figures test:unit -- items` (the package has no `test`
+  script). Expected: FAIL, no item called `suitcase`.
+- [ ] **Step 2:** the two items as library data. PASS; the painter's goldens (`tests/unit/golden/`) unmoved.
+- [ ] **Step 3:** failing test in `stand.test.ts`: the stand `pullLever` parses with the stands' schema and, on the
+  base figure, puts the right hand forward of the chest and below the shoulder, the left hanging. Then the entry, in
+  the shape of `handInPocket`. PASS; goldens unmoved.
 - [ ] **Step 4:** gates; commit.
 
 ### Task C3: The traveller (`claude/example-set-cast`, Opus)
@@ -728,8 +826,9 @@ Starts now: library data and one content file, needing nothing from the game's b
 `examples/set-3d/scripts/cast-sheet.ts` (front, three-quarter and back at density 2, at 1× and ×8, to `out/cast/`).
 
 - [ ] **Step 1: the failing test.** `charactersOf(content)` has `traveller`; it parses with K1's schema; the game's `[figure] density` is 2; its outfit uses
-  only registered garments; `readsAgainst(figure, room, camera)` passes against the platform and the waiting room by
-  day. Expected: FAIL, no such character.
+  only registered garments. Expected: FAIL, no such character. (Whether the figure reads against its room is a
+  measure of a drawn frame, `readsAgainst(figureReads(frame), level.reads)` in `@automata/world-kit`, so it is C5's,
+  in the browser, once F5 draws people in the place.)
 - [ ] **Step 2:** author the file from the place section's row (sliders, skin, hair, the coat's cloth and colour).
 - [ ] **Step 3: look,** the sheet. **Step 4:** gates; commit.
 
@@ -739,23 +838,25 @@ compare); is the skin warm, not grey; does anyone look like anyone in The Last L
 
 ### Task C4: The stationmaster and the porter (Opus)
 
-**Files:** `content/characters/stationmaster.toml`, `porter.toml`, `content/figure-poses/pull-lever.toml`,
-`cast.test.ts` (extended).
+**Files:** `content/characters/stationmaster.toml`, `porter.toml`, `cast.test.ts` (extended). (The porter's
+`pullLever` is C2's painter stand.)
 
 - [ ] **Step 1: failing test:** both characters exist and parse; the stationmaster's cap style is `peakedCap` and the
-  porter's `flat`; `pull-lever` parses as a `figure-poses` file; `SCENE_CAST` is the three ids. Expected: FAIL.
+  porter's `flat`; the porter's stands include `pullLever` and every stand, seat and item each file names is
+  registered; `SCENE_CAST` is the three ids. Expected: FAIL.
 - [ ] **Step 2:** author. **Step 3: look,** the sheet of all three side by side on one ground line.
   **Step 4:** gates; commit.
 
 ### Task C5: The cast in the place (Opus)
 
-Waits for L4 merged.
+Waits for L4 and F5 merged.
 
 **Files:** the level's `cast` block; `content/look.toml` `[figure]`; `cast.test.ts`.
 
 - [ ] **Step 1: failing test:** the level places the stationmaster in `ticketOffice` behind the `ticketWindow` and the
   porter on the platform's bench with seat `slump`; each `who` is a character file; in the browser project each of the
-  three, standing in each zone by day and by night, passes `readsAgainst`. Expected: FAIL, no cast.
+  three, standing in each zone by day and by night, drawn by F5's `scene()`, gives no problem from
+  `readsAgainst(figureReads(frame), level.reads)`. Expected: FAIL, no cast.
 - [ ] **Step 2:** place them; set `dimmest`, `holdSkinHue` and `grid` in `look.toml` `[figure]` (no character file needs its own `[paint]`).
 - [ ] **Step 3: look,** each person in each zone, day and night, portrait and landscape. **Step 4:** gates; commit.
 
@@ -780,7 +881,9 @@ lamp, is anyone hotter than the floor round their feet.
 3. **The file** `examples/3d/scene/scene-<name>.ts`: the header (`Shows` is the page's words below, word for word;
    `Controls` says what to press), then at most 40 code lines: `startGame(scene({ start, cast, extensions, on }))`.
 4. **Delete** the old files the table names, and their journey files, in the same commit: `git rm` by path. Do not
-   open them.
+   open them. Code outside `examples/3d` that reads a deleted file by path, or names a deleted package, changes in the
+   same commit, or `pnpm check` fails on the branch (E5 and E6 below name each; the plan audit found them with
+   `git grep` over the 21 ids).
 5. `pnpm examples:readme` (E1 adds it) rewrites the two README tables from the catalog.
 6. Gates; the journey passes in Chromium portrait and landscape; WebKit where the session has it, else pending.
 7. Commit `feat(examples): scene-<name> replaces <the old ids>`.
@@ -814,6 +917,30 @@ Content each task adds under `examples/set-3d/content`: E7 `nav/station.toml` an
 E10 `puzzles/signals.toml`; E11 `systems/porter.toml`; E7 also `hud/play.toml` (E12 and E14 read it); E12 `puzzles/store-room.toml`;
 E13 `audio/station.toml`, `feel/station.toml`. E7 lands before E11 and E12 on any branch that needs `nav`.
 
+**The level file among the examples is E7's alone** (fixed at the plan audit: E9, E10 and E12 need hotspots, and three
+branches would otherwise write one file). E7 adds every hotspot the table names: the clock and the newspaper (E7), the
+ticket window (E9), the three levers (E10), the key cabinet, the hand lamp and the store-room door (E12). E4's
+store-room `dress` word is the place's, written in L2; E4 only calls `dressLevel` on it. `examples/3d/package.json` and
+the lockfile are E1's: E1 adds every kit the thirteen import (`@automata/nav`, `interact`, `hud`, `narrative`,
+`puzzle`, `systems`, `sectors`, `audio-synth`, `feel`, beside the ones there), so E2 to E13 add none.
+
+**Beyond the recipe, for two retirements:**
+
+- **E5** (`characterkit-painted` goes): `extensions/character-kit/tests/unit/painted/painted-scale.test.ts:16` reads
+  `examples/3d/characterkit/characterkit-painted.ts` by path for its field size and camera distance, and is in
+  `pnpm check`; it is rewritten to read the same two numbers from the set (the platform's view in
+  `station.af-sector.json`, and F2's field at 390 × 844), keeping its claim (a texel is never minified). Its fixture
+  comment (`tests/fixtures/cameras.ts:58`) and the gate script (`scripts/gate.ts:40,75`, which serves
+  `/characterkit/painted/` from `examples/3d`) point at `/scene/scene-people/`.
+- **E6** (the `wardrobe` package goes): the root `package.json` names `@af-examples/wardrobe-3d` in five turbo filters
+  (`test:unit:2d`, `test:unit:3d`, `test:browser:2d`, `test:browser:3d`, `test:browser:affected`), and turbo stops on a
+  filter that names no package, positive or negated (run at the plan audit:
+  `turbo run test:unit --filter='!@af-examples/nonexistent-zz' --dry` prints
+  `x No package found with name '@af-examples/nonexistent-zz' in workspace`, exit 1). `test:browser:2d` runs on every
+  pull request. E6 removes the five filters, `examples/3d/wardrobe` from `pnpm-workspace.yaml`, runs `pnpm install` for
+  the lockfile, and changes the three comments in `packages/3d` that point at the package (`src/entries/figures-kit.ts:2`,
+  `src/testing/golden-outfits.ts:3`, `src/testing/golden-recorders.ts:2`), in its own commit.
+
 ### Task E1: `scene-camera`, and the journeys' harness (`claude/example-set-examples-a`)
 
 Beyond the recipe:
@@ -839,14 +966,18 @@ and the kits; `src/main.ts`, `src/app/game.ts` (`scene({ start: 'platform', time
 extensions: [every kit the examples use] })`), `src/features/story/` (the six beats as `storylets` and `puzzles`
 content in `examples/set-3d/content/beats/station.toml`, and at most one `.system.ts` that ends the game),
 `tests/unit/story/`, `tests/e2e/story.test.ts`. The old `content/`, `src/features/guard`, `room`, `wick` and
-`tests` are deleted in the same commit, and `tooling/examples-runner/tests/unit/ports.test.ts` points at the new
-`tests/e2e/origins.ts`.
+`tests` are deleted in the same commit but for `tests/e2e/origins.ts`, which stays as it is:
+`tooling/examples-runner/tests/unit/ports.test.ts:44` imports it for the story's game and editor ports (S5's harness
+uses the same two). `examples/3d-story/vite.config.ts` gains the content compiler over `examples/set-3d` as F1 gave
+`examples/3d`'s. `extensions/systems/README.md:75,85` describes the old guard story in `examples/3d-story`; its two
+lines are rewritten for the station's porter in the same commit.
 
 - [ ] **Step 1: failing unit test:** the narrative tools' dead-end check and the puzzle solver, run over the story's
   content, find a path from the first beat to the last and no state with no way on. Expected: FAIL, no beats.
 - [ ] **Step 2: failing journey:** a bot's input script (fixed seed) plays the six beats on a portrait phone and
-  reaches the end screen; the golden hash of the sim after the script is the same in Node and Chromium. Expected:
-  FAIL.
+  reaches the end screen; the golden hash of the sim after the script is the same in Node and Chromium (law 3 asks
+  every engine: WebKit and Firefox run where the session has them, else they are named pending for the GPU runner's
+  parity job). Expected: FAIL.
 - [ ] **Step 3:** the beats, the wiring, the end screen (the default screens). Both pass.
 - [ ] **Step 4:** gates; commit `feat(examples): the station played end to end replaces the old 3D story`.
 
@@ -858,12 +989,20 @@ story is moved to S5's journeys (its file is deleted here and named in the log).
 - [ ] **Step 1: the failing test,** `tooling/repo-hygiene/tests/unit/old-examples.test.ts`: `git grep` over tracked
   files outside `docs/archive`, `docs/superpowers` and `docs/refactor` finds none of the 21 old ids
   (`figures-walk`, …, written in the test as a list), nor `examples/3d/wardrobe`, nor the old module names in
-  `catalog.ts`'s lists. Expected: FAIL with the files the survey's section 3 lists.
-- [ ] **Step 2:** remove each mention: `catalog.ts` (the modules `render3d`, `figures`, `look`, `world`, `cutscenes`,
-  `characterkit`, `worldkit`, `lcdpanel`, `retrocrisp`), `pnpm-workspace.yaml`, `knip.jsonc`, root `package.json`
-  (`style`, `source-names`), the kits' READMEs (point at the new id), `packages/3d`'s six files, `games/base-3d`'s
-  one, `docs/guides/3d.md`, `docs/status.md`, `docs/provenance`; the two old Playwright projects in
-  `examples/3d/playwright.config.ts`; `examples/3d/tests/e2e/colours.ts` if nothing imports it.
+  `catalog.ts`'s lists. `spikes/` is left out with the docs folders: its shoot scripts are a record of one-off
+  measurements, not code that runs (the coordinator may rule otherwise). Expected: FAIL with the files below.
+- [ ] **Step 2:** remove each mention. At the plan audit, `git grep` over the 21 ids and the wardrobe's paths and name,
+  outside `examples/3d`, the docs folders and `spikes/`, found these (E5 and E6 have already changed the ones that
+  break a build): `catalog.ts` (the modules `render3d`, `figures`, `look`, `world`, `cutscenes`, `characterkit`,
+  `worldkit`, `lcdpanel`, `retrocrisp`); `examples/README.md` (regenerated, and its hand-written line on `3d/wardrobe`);
+  `extensions/lcd-panel/README.md:70`, `extensions/retro-crisp/README.md:100` (point at the new id);
+  `packages/3d/tests/browser/parity/shared/parity/lighting.test.ts:175`,
+  `tests/unit/camera/occluders/framing.test.ts:9`, `tests/unit/figures/content/figures-content.test.ts:343`,
+  `tests/unit/figures/motion/stands.test.ts:239` (comments); `site/tests/unit/playground/runtime/playground-catalog.test.ts:98`
+  and `playground-resources.test.ts:11,18` (a fixture id, renamed to `scene-camera`); `docs/provenance/sources.md:24`;
+  `pnpm-lock.yaml` (gone with E6's install). Then `docs/guides/3d.md` and `docs/status.md` where they name an old
+  example; the two old Playwright projects in `examples/3d/playwright.config.ts`; `examples/3d/tests/e2e/colours.ts`
+  if nothing imports it.
 - [ ] **Step 3:** `.github/workflows/3d.yml` is not edited: confirm its three names still exist
   (`examples/3d/**`, `@af-examples/examples-3d`, `@af-examples/3d-story`). Gates; commit.
 
@@ -887,9 +1026,11 @@ story is moved to S5's journeys (its file is deleted here and named in the log).
 
 ### Task S2: A whole number stays a whole number
 
-Stress row 11. **Files:** the TOML session's number writer in `packages/editor/src/shared/kit/documents/` (find it:
-`git grep -n "toFixed\|\\.0'" packages/editor/src/shared/kit/documents`), its unit test beside the existing
-`tests/unit/shared/kit/documents/`.
+Stress row 11. **Files:** the TOML session's number writer, `packages/editor/src/shared/kit/documents/toml/toml-scalar.ts`
+(on `main` at the plan audit, lines 41 to 50: "a float literal stays a float (`356.0` set to 357 is `357.0`)", so
+`t = 11` set to 10.5 becomes a float and back to 11 writes `11.0`; re-find it after v2 lands with
+`git grep -n "356.0" packages/editor/src/shared/kit/documents`), its unit test in
+`packages/editor/tests/unit/shared/kit/documents/toml/`.
 
 - [ ] **Step 1: failing test:** a document holding `t = 11` whose field is set to 10.5 and back to 11 writes `t = 11`;
   one holding `t = 11.0` writes `t = 11.0`; a new whole number in a field the schema types as a float writes with the
@@ -980,12 +1121,12 @@ What is asked of the Owner, in order:
 - Every path is either on `main` today, on a branch this plan waits for and checks for by command, or created by an
   earlier task: F1 creates `examples/set-3d` and `catalog.ts`'s rule before any task writes there; K1 creates the
   character kind before C3, C4, K3 and S1; K2 before K3; F2 before L4; E1's harness before E2 to E13; E7's `nav` file
-  before E11 and E12; F3's mechanism before F4.
+  before E11 and E12; F3's mechanism before F4; F1, F2, K1 and L1 before F5; F5 before C5 and O1.
 - No two parallel branches own one file (the table under "In parallel, by folder"). The level file is written by the
-  place branch, then C5, then E7, in that order, never at once. `items.json` is C2's alone; the other registries are
-  K2's.
-- Totals: 4 + 7 + 4 + 4 + 15 + 4 + 1 = 39 tasks; sessions 4 + 7 + 6 + 4 + 10.5 + 4.5 + 1 = 37 (Opus: L1 to L4 are 5,
-  C3 to C5 are 3, O1 is 1; Sonnet 28).
+  place branch, then C5, then E7, in that order, never at once. `items.json` and `poses.json` are C2's, then K2's;
+  the other registries are K2's. `examples/set-3d/src` is F1's, then F5's, then E1's (`scene-controls.ts`).
+- Totals: 5 + 7 + 4 + 4 + 15 + 4 + 1 = 40 tasks; sessions 6 + 7 + 6 + 4 + 10.5 + 4.5 + 1 = 39 (Opus: L1 to L4 are 5,
+  C3 to C5 are 3, O1 is 1; Sonnet 30). (Plan audit: F5 added, two Sonnet sessions.)
 - No task opens, judges or ports an old example: deletion is `git rm` by the paths in the list. Part K reads the
   game's cast file for its field names only and copies no value.
 
@@ -995,10 +1136,10 @@ Text for `docs/superpowers/progress.md`, not applied by this session:
 
 > **Workstream: one example set (3D).** Spec `specs/2026-11-13-one-example-set-design.md`; survey
 > `audits/2026-11-13-example-set-survey.md`; plan `plans/2026-11-13-one-example-set.md`. Stage 2 (plan) done
-> 2026-11-13 on `claude/example-set-plan`; stage 3 (plan audit, Opus) is next. 39 tasks, 0 done (0%), about 37 build
-> sessions (9 Opus). Thirteen examples and a story replace 21 examples, the wardrobe package and the old 3D story.
+> 2026-11-13 on `claude/example-set-plan`; stage 3 (plan audit) done 2026-11-13 on `claude/example-set-plan-audit`
+> (`audits/2026-11-13-example-set-plan/README.md`). 40 tasks, 0 done (0%), about 39 build sessions (9 Opus). Thirteen examples and a story replace 21 examples, the wardrobe package and the old 3D story.
 > Can start now, from `main`: F1 (the shape), F3 (the site's mechanism, on fixtures), W1 to W3 (seven prop generators,
-> a lamp preset, two CC0 photos), C2 (the items `suitcase` and `handLamp`, the pose `pullLever`). Waits on: the joined
+> a lamp preset, two CC0 photos), C2 (the items `suitcase` and `handLamp`, the stand `pullLever`). Waits on: the joined
 > prologue branch and the night fix on `main` (the field, Part K, the place, the cast); ship-3d B10 and the Owner's
 > yes on the sheets (every example); editors v2 tasks 2 to 4 and 6 (Characters, the editor fixes, the journeys).
 > Asked of the 3D ship plan: `@automata/interact` and `@automata/hud` join its Part B publish list.
@@ -1016,3 +1157,4 @@ Text for `docs/superpowers/progress.md`, not applied by this session:
 
 | Date | Session | Task | What happened | Commit |
 |---|---|---|---|---|
+| 2026-11-13 | plan audit (`claude/example-set-plan-audit`) | all | Audited at `73833f3ef` against `main` `7b6ce6ace`, the game's branches, the 3D ship plan, the editors v2 plan and the stress audit. Fixed in the plan: F5 added (`scene()` plays the place); F1 wires the content compiler, names its script `test:unit` and widens `EXTENSION_PACKAGES`; C2's `pullLever` is a painter stand; Part K's table is the painter's types (40 sliders, every `Material` and `Gait` field), not `figure-*` kinds; E5 and E6 change what reads the retired files; E7 owns every hotspot and E1 every dependency; E14 keeps `origins.ts`; E15's list measured; W1's photos are PNG with real Poly Haven candidates; S2's writer located. Rulings asked: the Owner's sheets at the end or before the examples; the joined branch's name; the 3D workflow's paths; `spikes/` in the sweep. See `audits/2026-11-13-example-set-plan/README.md` | this commit |
