@@ -114,6 +114,39 @@ swings behind the back plate, so from the front only its tip shows: right for a 
 lid's rounded back edge as small tabs: a flaw, harmless at the game's scale. *`lamp.platform`*: a thin dark pole with a
 lamp head on a short arm: reads as a platform lamp; the head is small.
 
+## Gates
+
+Run on the three commits, in this session, on Node 24.21 in a cloud container with Chromium only:
+
+| Gate | Result |
+|---|---|
+| `pnpm format` | run before every commit; no file left unformatted |
+| `TURBO_FORCE=true pnpm check` | exit 0 on W1 (`96d8df4ce`, 66 tasks, 13 min 7 s), on W2 (`2bdd7056b`, run in a separate worktree while W3 was written) and on W3 (`02ffb292c`): lint, typecheck, boundaries, style, knip, every unit test, `changeset status`, `check-changesets` |
+| `pnpm build` | exit 0 (16 tasks) on the W3 head |
+| the kit's unit suite | 22 files, 333 tests, pass (264 before W2) |
+| the kit's browser suite | Chromium only: 5 files, 30 tests, pass. `pnpm test:browser` as written stops at once: this container has no Firefox or WebKit (`browserType.launch: Executable doesn't exist at /opt/pw-browsers/firefox-1543/firefox/firefox`). WebKit and Firefox are pending for the GPU runner. None of the new props is in a browser test: the plan asks for unit tests only |
+| `pnpm api-report`, `pnpm api-index` | not run: no published package changed (the kit is private; no changeset) |
+| 3D journeys (`pnpm test:journeys:3d`) | not run: nothing outside `extensions/world-kit` and this folder changed |
+
+No existing tile, swatch, prop or golden moved: `git diff --stat origin/main` shows the 62 existing tile files, the
+existing props and every existing test untouched; the files changed that existed are `photos.json`, `swatches.json`
+(rows added at the end), `props.json` (presets added at the end), `register-props.ts` (one table added), `tile-files.ts`
+(two tiles listed, which a test demands) and the kit's `README.md`.
+
+The W2 and W3 sessions' order: W3 was started while W2's gate was still running in a worktree; W2's gate then passed
+before W3 was pushed as done, and W3 was gated on its own.
+
 ## For the tracker
 
-(Rows for `docs/superpowers/progress.md`, for the coordinator to copy. Filled in as the tasks finish.)
+Rows for `docs/superpowers/progress.md`, for the coordinator to copy:
+
+> **Workstream: one example set (3D), world kit (W1 to W3).** Done 2026-11-13 on `claude/example-set-world`
+> (`02ffb292c`, from `main` `28d72fb54`; no pull request): [audit folder](audits/2026-11-13-example-set-world/README.md).
+> W1 two CC0 Poly Haven photos (`gravel_stones` as `ballast`, `rough_wood` as `sleeper`), PNG, recorded in
+> `photos.json`, with swatches and tiles; W2 `rails`, `platformEdge`, `canopy`, `signal`; W3 `ticketWindow`,
+> `leverFrame`, `trunk` and the preset `lamp.platform`; all in `@automata/world-kit`, none with a station's name. Each has a
+> test written first and seen to fail. Gates: `pnpm check` uncached exit 0 on all three commits, `pnpm build` exit 0, kit
+> unit 333 tests, kit browser suite Chromium only (30 tests; WebKit and Firefox pending). Sheets
+> (`w1-tiles.png`, `w2-railway.png`, `w3-indoor.png`) are flat scratch renders for the coordinator to open; weak: the
+> canopy (two posts and a slab), the 16-texel sleeper tile that repeats every half metre, the trunk's strap tabs, the ticket
+> window's plain slab. No picture recorded; no existing golden, tile or hash moved. Unblocks L1 to L4 (the place).
