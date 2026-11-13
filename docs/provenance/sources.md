@@ -375,13 +375,16 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 
 ## The environment source
 
-Repository: `mcthaydt/environmentbuilder`. Commit read: `6d82a527bf0e6ae9c771b14f2cb5bfa487438ab0`. Licence: none
+Repository: `mcthaydt/environmentbuilder`. Commit read: `f7c535694fd7a53a8f94129b9e13b9ab3503a095`. Licence: none
 recorded (the Owner's private repository). Every file at that commit is listed in `builders-manifest.json`. Left out on
 purpose: its `vendor/FigureBuilder` submodule (its door, `src/lib/figure.ts`, becomes AF imports), `docs/reference/`,
 both `docs/superpowers/` folders and the review tooling.
 
-Pull again: clone the builder, `git diff 6d82a52..<new> -- <the rows' source paths>`, port each hunk (tests first), add
-a row for every new file, run `pnpm sources-md`, and record the new commit here and in the manifest.
+Pull again: clone the builder, `git diff f7c5356..<new> -- <the rows' source paths>`, port each hunk (tests first), add
+a row for every new file, and record the new commit here and in the manifest. Nothing writes the manifest: set its
+`environment.commit` to the new commit and its `environment.files` to `git -C <clone> ls-tree -r --name-only <new>`
+(the command that gives both the 214 files of `6d82a52` and the 282 of `f7c5356`). Then `pnpm sources-md --complete`,
+which only checks: every file has a row and every AF file a row names exists.
 
 | Source file | AF file | How |
 | --- | --- | --- |
@@ -411,7 +414,7 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `docs/dressing.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
 | `docs/environments-history.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
 | `docs/lighting.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
-| `docs/photos.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/photos.md` | `extensions/world-kit/docs/photos.md` | rewritten: the process (photograph, cut out, scale down, facet, index, clean up) and the record each photo needs, with the world kit's commands, paths and tests |
 | `docs/reference/the-last-light/README.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
 | `docs/reference/the-last-light/corridor-on.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
 | `docs/reference/the-last-light/hall-on.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
@@ -463,24 +466,24 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `scripts/golden.ts` | | left out: the builder's command line (render, board, tune, photos, textures, golden) drives its CPU renderer and photo tools, which core does not ship |
 | `scripts/lit.ts` | | left out: the builder's command line (render, board, tune, photos, textures, golden) drives its CPU renderer and photo tools, which core does not ship |
 | `scripts/map.ts` | | left out: the builder's command line (render, board, tune, photos, textures, golden) drives its CPU renderer and photo tools, which core does not ship |
-| `scripts/photos.ts` | | left out: the builder's command line (render, board, tune, photos, textures, golden) drives its CPU renderer and photo tools, which core does not ship |
+| `scripts/photos.ts` |  | left out: the importer of a photo (crop, scale, record); the world kit ships the photos and the record, and `docs/photos.md` says how to add one by hand |
 | `scripts/render.ts` | | left out: the builder's command line (render, board, tune, photos, textures, golden) drives its CPU renderer and photo tools, which core does not ship |
 | `scripts/save.ts` | | left out: the builder's command line (render, board, tune, photos, textures, golden) drives its CPU renderer and photo tools, which core does not ship |
 | `scripts/sheet.ts` | | left out: the builder's command line (render, board, tune, photos, textures, golden) drives its CPU renderer and photo tools, which core does not ship |
-| `scripts/textures.ts` | | left out: the builder's command line (render, board, tune, photos, textures, golden) drives its CPU renderer and photo tools, which core does not ship |
+| `scripts/textures.ts` | `extensions/world-kit/src/app/textures-cli.ts` and `extensions/world-kit/src/features/textures/textures-command.ts` | rewritten: `automata-world-textures` makes and checks the committed tiles and judges each declared `reads`; the sheet of tiles it also drew is not taken |
 | `scripts/tune-light.ts` | | left out: the builder's command line (render, board, tune, photos, textures, golden) drives its CPU renderer and photo tools, which core does not ship |
 | `scripts/tune.ts` | | left out: the builder's command line (render, board, tune, photos, textures, golden) drives its CPU renderer and photo tools, which core does not ship |
 | `tests/api.test.ts` | | left out: the builder's layer rule and public-surface test; AF's `pnpm boundaries` and `pnpm api-report` do that |
 | `tests/architecture.test.ts` | | left out: the builder's layer rule and public-surface test; AF's `pnpm boundaries` and `pnpm api-report` do that |
-| `tests/golden/base.json` | | left out: golden images of the CPU renderer and the photo tiles; core does not ship them |
-| `tests/golden/base.test.ts` | | left out: golden images of the CPU renderer and the photo tiles; core does not ship them |
-| `tests/golden/base.ts` | | left out: golden images of the CPU renderer and the photo tiles; core does not ship them |
-| `tests/golden/scenes.json` | | left out: golden images of the CPU renderer and the photo tiles; core does not ship them |
-| `tests/golden/scenes.test.ts` | | left out: golden images of the CPU renderer and the photo tiles; core does not ship them |
-| `tests/golden/scenes.ts` | | left out: golden images of the CPU renderer and the photo tiles; core does not ship them |
-| `tests/golden/tiles.json` | | left out: golden images of the CPU renderer and the photo tiles; core does not ship them |
-| `tests/golden/tiles.test.ts` | | left out: golden images of the CPU renderer and the photo tiles; core does not ship them |
-| `tests/golden/tiles.ts` | | left out: golden images of the CPU renderer and the photo tiles; core does not ship them |
+| `tests/golden/base.json` |  | left out: a golden of the CPU scene renderer, which does not come (the Owner, 2026-11-12: "A"); it stays in the archived repository |
+| `tests/golden/base.test.ts` |  | left out: a golden of the CPU scene renderer, which does not come (the Owner, 2026-11-12: "A"); it stays in the archived repository |
+| `tests/golden/base.ts` |  | left out: a golden of the CPU scene renderer, which does not come (the Owner, 2026-11-12: "A"); it stays in the archived repository |
+| `tests/golden/scenes.json` |  | left out: a golden of the CPU scene renderer, which does not come (the Owner, 2026-11-12: "A"); it stays in the archived repository |
+| `tests/golden/scenes.test.ts` |  | left out: a golden of the CPU scene renderer, which does not come (the Owner, 2026-11-12: "A"); it stays in the archived repository |
+| `tests/golden/scenes.ts` |  | left out: a golden of the CPU scene renderer, which does not come (the Owner, 2026-11-12: "A"); it stays in the archived repository |
+| `tests/golden/tiles.json` | `extensions/world-kit/tests/fixtures/builder-tiles.json` | ported: the file unchanged, 112 keys, the same md5s |
+| `tests/golden/tiles.test.ts` | `extensions/world-kit/tests/unit/textures/builder-tiles.test.ts` | rewritten: one test for each of the 112 keys, one for the key set in order, one that the file is the source's byte for byte, and the source's guard that only flat frames are shared (its six) |
+| `tests/golden/tiles.ts` | `extensions/world-kit/tests/unit/textures/builder-tiles.test.ts` | rewritten: the keys and the swatch rule restated over the kit's own photos and swatches |
 | `tsconfig.json` | | left out: the builder's package and build setup; AF's packages have their own |
 | `vendor/FigureBuilder` | | left out: the submodule that gives the builder its figures; AF imports its own figure code |
 | `vite.config.ts` | | left out: the builder's package and build setup; AF's packages have their own |
@@ -552,20 +555,20 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `src/features/view/fp.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
 | `src/features/view/render.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
 | `src/features/view/shots.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
-| `src/features/view/view-frame.ts` | `extensions/world-kit/src/features/reads/reads-against.ts` | rewritten: `readsAgainst(figure, room, camera)` and its thresholds (`MIN_READ` 1.1, `HOT` 1.1) are the source's; a room's `reads` may waive a figure by name; the diorama frame itself belongs to the editor |
+| `src/features/view/view-frame.ts` | `extensions/world-kit/src/features/reads/reads-against.ts` | rewritten: `readsAgainst(figure, room, camera)` and its thresholds (`MIN_READ` 1.1, `HOT` 1.1) are the source's; a room's `reads` may waive a figure by name; the diorama frame itself belongs to the editor. The source's later `Room.cpu` and `cpuFrame` serve its GPU harness and are not taken |
 | `src/features/view/readability.ts` | `extensions/world-kit/src/features/reads/figure-reads.ts` | rewritten: `figureReads(frame)` takes a drawn frame as plain pixels (no canvas); the measure is the source's |
 | `tests/features/view/readability.test.ts` | `extensions/world-kit/tests/unit/reads/reads.test.ts` | rewritten: the measure on the same kind of frames |
 | `tests/features/view/room.test.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
 | `tests/features/view/scene.test.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
 | `tests/features/view/shots.test.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
 | `tests/base/readability.test.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
-| `src/features/world/dress.ts` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
-| `src/features/world/decals.ts` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
-| `src/features/world/lettering.ts` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
-| `src/features/world/generate.ts` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
-| `src/features/world/library/glyphs.json` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
-| `src/features/world/library/kits.json` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
-| `src/features/world/library/maps.json` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
+| `src/features/world/dress.ts` | `extensions/world-kit/src/features/furnish/dress.ts` and `extensions/world-kit/src/features/furnish/clutter.ts` and `extensions/world-kit/src/features/furnish/fixtures.ts` and `extensions/world-kit/src/features/furnish/floor-plan.ts` and `extensions/world-kit/src/features/furnish/furniture.ts` and `extensions/world-kit/src/features/furnish/context.ts` and `extensions/world-kit/src/features/furnish/kit.schema.ts` and `extensions/world-kit/src/features/furnish/kit.content.ts` | rewritten: the dresser is the world kit's; the kits are data (`kit.schema.ts`, `kit.content.ts`) and the rng is the kit's own `mulberry.ts`; the second survey (2026-11-12) found each of its parts in these files |
+| `src/features/world/decals.ts` |  | left out: drawing wall decals, litter, grime steps and puddles is an open row of the builders' look work ("patterns and grime as ladders"); the level schema already carries the fields |
+| `src/features/world/lettering.ts` | `extensions/world-kit/src/shared/lettering/lettering.ts` | rewritten: the block-letter signs in the world kit, set from `library/glyphs.json` and `library/words.json` |
+| `src/features/world/generate.ts` | `extensions/world-kit/src/features/maps/generate-map.ts` and `extensions/world-kit/src/features/maps/apartment.ts` and `extensions/world-kit/src/features/maps/block.ts` | rewritten: `generateMap(name, seed)` makes `apartment` and `block` as `af-sector/2` levels in the world kit |
+| `src/features/world/library/glyphs.json` | `extensions/world-kit/library/glyphs.json` | ported: the glyphs (the same top-level key) |
+| `src/features/world/library/kits.json` | `extensions/world-kit/library/kits.json` | ported: the eight kits, all by name, as data the dresser reads |
+| `src/features/world/library/maps.json` | `extensions/world-kit/src/features/maps/convert-builder-map.ts` and `extensions/world-kit/tests/fixtures/builder-maps.json` and `extensions/world-kit/library/maps/bedroom.af-sector.json` | rewritten: the five maps converted once to `af-sector/2` into `library/maps/`; the fixture is this file at `6d82a52` with the bedroom's `reads` (the one change after it) |
 | `tests/features/world/dress.test.ts` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
 | `tests/features/world/signage.test.ts` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
 | `tests/base/checked-maps.test.ts` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
@@ -584,8 +587,8 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `src/features/stage/camera.ts` | `packages/3d/src/features/camera/angled-camera.ts` | rewritten: the camera is the angled 24 mm camera (`camera/`) a game drives; the source's shot cameras are the cutscenes extension's |
 | `src/features/stage/cast.ts` |  | left out: casting figures into a scene; the base scenes name the base pair (`BASE_SCENES`) and a game places its own figures |
 | `src/features/stage/runtime.ts` |  | left out: the stage's runtime state and timeline player; core keeps the pieces' state (`piece-states.ts`) and the one clip player |
-| `src/features/world/library/props.json` |  | left out: the prop library goes to `@automata/world-kit` (scope trim section 2); core keeps the five base props' generators |
-| `src/features/world/library/swatches.json` | `packages/3d/src/features/world/base/base-library.ts` | rewritten: only the swatches the base scenes name, as flat DUEL steps; the library goes to `@automata/world-kit` |
+| `src/features/world/library/props.json` | `extensions/world-kit/library/props.json` | ported: the prop presets in the world kit; the six of the source's it lacks are core's base props and prims |
+| `src/features/world/library/swatches.json` | `packages/3d/src/features/world/base/base-library.ts` and `extensions/world-kit/library/swatches.json` | rewritten: only the swatches the base scenes name, as flat DUEL steps, in core; the whole library (all 167 swatches, with the same textures, and three more) in the world kit |
 | `src/index.ts` |  | left out: the builder's public surface; AF's is `packages/3d/src/entries/` |
 | `src/lib/colour.ts` | `packages/3d/src/shared/math/colour.ts` | ported: see the figure source's row |
 | `src/lib/figure.ts` |  | left out: the door to the figure builder, which is AF's own `features/figures` now |
@@ -602,6 +605,74 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `tests/features/world/small-props.test.ts` | `packages/3d/tests/unit/world/props.test.ts` | rewritten: the props' cases over `buildWorld` and the registry |
 | `tests/features/world/surface-library.test.ts` |  | left out: the surface library goes to `@automata/world-kit` |
 | `tests/features/world/surface-structure.test.ts` |  | left out: the texture structure checks go with the photo library to `@automata/world-kit` |
+| `docs/gpu.md` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `docs/reference/the-last-light/source/docs/design/camera-rules.md` |  | left out: a copy of one of the reference game's source files; the reference game is being remade in the framework itself (workstream 2), from its own source, not these copies |
+| `docs/reference/the-last-light/source/src/feel/effects.ts` |  | left out: a copy of one of the reference game's source files; the reference game is being remade in the framework itself (workstream 2), from its own source, not these copies |
+| `docs/reference/the-last-light/source/src/render/camera-rig.ts` |  | left out: a copy of one of the reference game's source files; the reference game is being remade in the framework itself (workstream 2), from its own source, not these copies |
+| `docs/reference/the-last-light/source/src/render/play-framing.ts` |  | left out: a copy of one of the reference game's source files; the reference game is being remade in the framework itself (workstream 2), from its own source, not these copies |
+| `docs/reference/the-last-light/source/src/render/room-camera.ts` |  | left out: a copy of one of the reference game's source files; the reference game is being remade in the framework itself (workstream 2), from its own source, not these copies |
+| `docs/reference/the-last-light/source/src/scenes/clinic/level.ts` |  | left out: a copy of one of the reference game's source files; the reference game is being remade in the framework itself (workstream 2), from its own source, not these copies |
+| `docs/superpowers/audits/2026-11-06-c7-plan-audit.md` |  | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-10-c7-implementation-audit.md` |  | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-10-c8-implementation-audit.md` |  | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-10-c8-plan-audit.md` |  | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/plans/2026-11-10-pixi3d-harness.md` |  | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-10-pixi3d-look-design.md` |  | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-10-pixi3d-renderer-design.md` |  | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `scripts/check-worker.ts` |  | left out: the worker pool of the builder's check command, which does not come (each declared `reads` is a unit test or `checkReads` in the world kit, and `pnpm check` is the framework's one gate) |
+| `scripts/gpu-diff.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `scripts/gpu-parity.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `scripts/gpu-view.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `scripts/lit-rooms.ts` |  | left out: it searches the CPU painter's figure light; the framework's exposure is per figure (`extensions/character-kit/src/features/painted/room-light.ts`) |
+| `scripts/pool.ts` |  | left out: the worker pool of the builder's check command, which does not come (each declared `reads` is a unit test or `checkReads` in the world kit, and `pnpm check` is the framework's one gate) |
+| `src/features/gpu/browser.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `src/features/gpu/desc.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `src/features/gpu/diff.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `src/features/gpu/frame.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `src/features/gpu/gpu.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `src/features/gpu/page/glsl/cleanup.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `src/features/gpu/page/glsl/common.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `src/features/gpu/page/glsl/foliage.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `src/features/gpu/page/glsl/grime.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `src/features/gpu/page/glsl/grow.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `src/features/gpu/page/glsl/patterns.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `src/features/gpu/page/glsl/prepare.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `src/features/gpu/page/glsl/resolve.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `src/features/gpu/page/ids.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `src/features/gpu/page/index.html` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `src/features/gpu/page/lost.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `src/features/gpu/page/main.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `src/features/gpu/page/passes.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `src/features/gpu/page/snap.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `src/features/gpu/page/view.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `src/features/gpu/samples.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `src/features/gpu/tiles.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `src/features/paint/albedo.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `src/features/view/cpu-frame.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `src/features/view/expose.ts` | `extensions/character-kit/src/features/painted/room-light.ts` and `packages/3d/src/shared/render/light/scene-light.ts` | rewritten: a figure's exposure is the character kit's `Exposure`, found in whole light steps from probes at the chest and the floor, over core's `groundLuma` |
+| `tests/features/gpu/diff.test.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `tests/features/gpu/frame.test.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `tests/features/gpu/placement.test.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `tests/features/gpu/samples.test.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `tests/features/gpu/snap.test.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `tests/features/gpu/tiles.test.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `tests/features/paint/albedo.test.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `tests/features/view/cpu-frame.test.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `tests/features/view/expose.test.ts` |  | left out: the CPU exposure's search; the framework's exposure is held by the character kit's tests of `room-light.ts` |
+| `tests/gpu/albedo.test.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `tests/gpu/base.test.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `tests/gpu/gbuffer.test.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `tests/gpu/harness.test.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `tests/gpu/helpers.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `tests/gpu/setup.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `tests/gpu/view-server.test.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `tests/gpu/view.test.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
+| `tests/scripts/echo-worker.ts` |  | left out: the worker pool of the builder's check command, which does not come (each declared `reads` is a unit test or `checkReads` in the world kit, and `pnpm check` is the framework's one gate) |
+| `tests/scripts/lit-rooms.test.ts` |  | left out: it searches the CPU painter's figure light; the framework's exposure is per figure (`extensions/character-kit/src/features/painted/room-light.ts`) |
+| `tests/scripts/pool.test.ts` |  | left out: the worker pool of the builder's check command, which does not come (each declared `reads` is a unit test or `checkReads` in the world kit, and `pnpm check` is the framework's one gate) |
+| `vendor/LICENSE-pixi-3d.txt` |  | left out: the vendored `@pixi/3d` tarball and its licence; the framework takes `@pixi/3d` from its own lockfile |
+| `vendor/pixi-3d-0.1.0-beta.2.tgz` |  | left out: the vendored `@pixi/3d` tarball and its licence; the framework takes `@pixi/3d` from its own lockfile |
+| `vitest.gpu.config.ts` |  | left out: the GPU harness (a CPU frame measured against a GPU one, texel by texel), which does not come; the builder's own log ended it (`9c2df06`) and the framework measures its own frames with `packages/3d/tests/browser/parity/` |
 
 ## The figure builder as a submodule (2026-11-10)
 
