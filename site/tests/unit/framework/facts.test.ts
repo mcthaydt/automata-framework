@@ -1,7 +1,9 @@
 // @vitest-environment node
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { inflateRawSync } from 'node:zlib'
 import { DEFAULT_LOCALES } from '@automata/content/locale'
+import { decodeReplay } from '@automata/sim/replay'
 import { BROWSER_ENGINES } from '@automata/vitest-preset/engines'
 import { describe, expect, it } from 'vitest'
 import { playgroundExamples } from '#src/shared/framework/examples.ts'
@@ -30,6 +32,17 @@ describe('siteFacts', () => {
 
   it('counts the languages every new game ships', () => {
     expect(facts.languages).toBe(DEFAULT_LOCALES.length)
+  })
+
+  it('gives the golden the Checks table names: its ticks and the hash it ends at, read from the recorded replay', () => {
+    const file = join(repositoryRoot, 'examples/2d/__goldens__/shapes-rects.replay')
+    const replay = decodeReplay(new Uint8Array(inflateRawSync(readFileSync(file))))
+    expect(facts.golden).toEqual({
+      file: 'shapes-rects.replay',
+      ticks: replay.finalTick - replay.header.startTick,
+      hash: replay.finalHash,
+    })
+    expect(facts.golden.hash).toMatch(/^[0-9a-f]{16}$/)
   })
 
   it('reads the licence from the root package', () => {

@@ -50,6 +50,20 @@ describe('Home', () => {
     expect(region?.getAttribute('aria-label')).toBe("The example's code, whole")
   })
 
+  it("shows the golden's hash in the Checks table, for every engine, and claims no result it did not measure", () => {
+    const view = render(Home)
+    const table = view.container.querySelector('table')!
+    const rows = [...table.querySelectorAll('tbody tr')]
+    expect(rows.map((row) => row.querySelector('th')?.textContent)).toEqual(
+      facts.engines.map((engine) => engine.name),
+    )
+    for (const row of rows) expect(row.querySelector('td code')?.textContent).toBe(facts.golden.hash)
+    const section = table.closest('.show')!
+    expect(section.textContent).toContain(facts.golden.file)
+    expect(section.textContent).toContain(`${facts.golden.ticks} ticks`)
+    expect(section.textContent).not.toMatch(/same result/i)
+  })
+
   it('names the four places a game goes, each with a command automata ship accepts', () => {
     expect(TARGETS.map((target) => target.title)).toEqual(['The web', 'itch.io', 'A desktop app', 'Ruken'])
     for (const { command } of TARGETS) {

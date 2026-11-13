@@ -130,9 +130,8 @@ export const DETERMINISM = {
   kicker: 'Checks',
   title: "Your agent can't quietly break your game.",
   sub: 'Record a play once. It plays back exactly the same way every time, in every browser. So when a change breaks something that worked, the test fails, and your agent sees it before a player does.',
-  file: 'shapes-rects.replay',
-  note: 'checked on every change',
-  result: 'Same result',
+  /** The table's column heads. What the golden is called, its ticks and the hash it ends at are read from the file. */
+  columns: { engine: 'Engine', hash: 'Has to end at', where: 'Checked by' },
 } as const
 
 /** The editor section. */

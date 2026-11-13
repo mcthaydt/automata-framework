@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import facts from 'virtual:framework/facts'
 import example from 'virtual:framework/home-example'
 import { createSim } from '@automata/sim'
 import { describe, expect, it } from 'vitest'
@@ -58,6 +59,17 @@ describe("Home's shapes drawing against the example's real sim", () => {
       expect(Math.abs(drawn.angle - Number(real.spinner[0]!.angle)), `spinner at tick ${tick}`).toBeLessThan(
         0.01,
       )
+    }
+  })
+
+  it("ends where the Checks table says: the hash the real sim has after the golden's ticks", async () => {
+    const sim = await createSim({ seed: game.sim.seed, plugins: game.sim.plugins })
+    try {
+      game.sim.setup?.(sim)
+      for (let tick = 0; tick < facts.golden.ticks; tick++) sim.step([])
+      expect(sim.hash()).toBe(facts.golden.hash)
+    } finally {
+      sim.dispose()
     }
   })
 

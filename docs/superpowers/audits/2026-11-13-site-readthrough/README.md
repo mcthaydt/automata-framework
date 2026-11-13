@@ -147,3 +147,33 @@ to say three and requires Home to say "three languages"; the facts test pins `la
 
 **Tests:** `tests/unit/home/home-languages.test.ts` (new, failed first), `tests/unit/framework/facts.test.ts`,
 `tests/unit/home/home.test.ts`. Words on the page are unchanged ("Menus in six languages from the first run…").
+
+## Finding 5 (the coordinator's C4): the Checks table's "Same result" was not measured
+
+**Where:** Home, "Checks" ("Your agent can't quietly break your game.").
+
+**Cause.** Every engine row said "Same result" with a green tick, and the panel said "checked on every change". Only the
+engine list was read from the workspace; the outcome was a fixed phrase, true only while the last CI run was green, and on
+this page it is no run's.
+
+**What artifact exists.** `evidence.json` (`tooling/evidence`) is the file made for this: each golden's hash as Node, Chromium,
+WebKit and Firefox computed it. It is a GitHub Actions artifact made on pushes to `main` (90 days), not a committed file, and
+the step that makes it has failed on `main` since the scope rename (fixed in #670, not yet run on `main`). The site's build
+cannot read it without a workflow change, which this session may not make, so I did not use it and invented nothing.
+
+**What I chose.** The table now says plainly what it is: the rule, not a result. The committed golden
+`examples/2d/__goldens__/shapes-rects.replay` is read at build time (`goldenFact` in `shared/framework/facts.ts`: inflate,
+`decodeReplay`) for its name, its 120 ticks and its final hash `4b19e5aabfac26f3`. The table's columns are Engine, "Has to end
+at" (that hash, on every row) and "Checked by" (unit tests, parity job: the existing facts); the tick count replaces
+"checked on every change"; the ticks and "Same result" are gone. When the evidence artifact can be read at build time, the
+hash column can become each engine's own measured hash.
+
+**Tests (watched fail first):** `tests/unit/framework/facts.test.ts` (golden = the replay's ticks and final hash, decoded
+independently), `tests/unit/home/home.test.ts` (rows are the engines, each cell is the golden's hash, no "same result"),
+`tests/unit/home/shapes-parity.test.ts` (the real sim, stepped the golden's ticks, ends at exactly that hash: so the number on
+Home is the sim's own).
+
+**Pictures:** before `f5-before-{phone,desktop}.png`, after `f5-after-{phone,desktop}.png`. (Pre-existing, unchanged: the
+cells sit at the top of their 48 px rows, so Node's row looks taller.)
+
+Home's preloaded script: 46,597 bytes of 48,000.
