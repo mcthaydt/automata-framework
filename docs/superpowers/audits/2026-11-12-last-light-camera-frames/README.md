@@ -162,6 +162,86 @@ there first: read `test-results/playthrough-*/error-context.md` for the step, th
 world-view tests again at items b and c), base-3d's unit suite, The Last Light's unit suite (461), typecheck of both, and every pre-commit
 hook (the affected unit tests). No changeset: `@automata/3d` and the game are private. Chromium on software GL only.
 
+## Session 3, item (d): the prologue's cutscenes at the near scale
+
+**The rule the painter uses in a cutscene.** None of its own: the cutscene's actors are the play figures (`figureView`), painted with
+`PLAY_FIGURE` (`density: 2`, pinned, `crisp`), so `maxDensity` and an actor key's `density` are never read by the 3D stage, and
+`opening.toml`'s note that the close-up "is painted at density 8" was stale. Crisp, the kit places a cell at `max(1, round(zoom / 2))`
+whole field pixels a texel (`place.ts`), where `zoom` is field pixels a metre at her feet over 96/2.6 (`zoomOf`). So a texel is always whole;
+what a shot decides is how far the rounding stretches her against the room, and whether a push-in crosses a half and pops her a whole
+texel larger mid-shot. A shot under one (a far, wide shot) is never minified: it is drawn at one, too large.
+
+**The rule as a test** (`tests/unit/content/cutscene-scale.test.ts`, written first, failed on 17 shots): every frame (60 Hz) of every
+shot of every cutscene, every figure in the frame (feet to head, 1.62 m, in the 512 by 384 field), the drawn texel is within 3% of the true
+one (the play camera's tolerance); and every shot but the opening's noticeboard insert has a figure in it. Per figure: `found`'s first
+shot stands about wherever she was caught, so the figure that caught her is put out of sight there (her place is the play's).
+
+Field pixels a texel, every frame of each shot (true range, drawn, worst miss):
+
+| shot | figure | before | drawn | miss | after | drawn | miss | how |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| opening 1 (0-4.6 s) | Ada | 0.95 to 1.08 | 1 | 7.2% | 1.97 to 2.03 | 2 | 1.6% | re-aimed: down and in behind her, 27.9 to 28.8 mm (see below) |
+| opening 2 (4.6-11 s), close-up | Ada | 3.59 to 3.87 | 4 | 11.4% | 3.94 to 4.06 | **4** | 1.6% | lens 26-28 to 28.5-29.4 mm, same place |
+| opening 3 (11-13 s), noticeboard insert | nobody | | | | | | | unchanged |
+| opening 4 (13-15.9 s) | Ada | 1.34 to 1.44 | 1 | 30.7% | 1.97 to 2.03 | 2 | 1.5% | lens 25-27 to 36.9-38 mm |
+| opening 5 (15.9-17 s), into play | Ada | 0.58 to 0.72 | 1 | 73.5% | 2.00 to 2.03 | 2 | 1.6% | a crane onto the play camera (see below) |
+| found 1 (0-4.5 s) | Ada | 0.81 to 1.01 | 1 | 23.2% | 1.97 to 2.03 | 2 | 1.6% | lens 20-25 to 48.5-50.2 mm |
+| found 2 (4.5-7 s) | Ada | 1.11 to 1.22 | 1 | 18.1% | 1.97 to 2.03 | 2 | 1.6% | lens 21-23 to 37.1-38.2 mm |
+| keypad 1 (0-3 s), the cabinet's pad | nobody | (3.38 to 4.10) | | | | | | unchanged: an insert (see below) |
+| lightsOut 1 (0-3 s) | Ada | 0.78 to 0.81 | 1 | 28.4% | 1.97 to 2.03 | 2 | 1.5% | lens 22-23 to 55.7-57.4 mm |
+| lightsOut 2 (3-6.5 s) | Ada | 1.33 | 1 | 24.5% | 2.00 | 2 | 0.0% | lens 21 to 31.7 mm |
+| lightsOut 3 (6.5-7.6 s) | the figure | 1.36 to 1.38 | 1 | 27.8% | 1.99 to 2.03 | 2 | 1.4% | lens 40-41 to 58.3-60.1 mm |
+| lightsOut 4 (7.6-9.4 s) | Ada | 1.38 to 1.46 | 1 | 31.7% | 1.94 to 2.06 | 2 | 2.9% | 32.05 mm held (her step back is the 6%), the look 0.2 m lower |
+| lightsOut 5 (9.4-13.6 s) | the figure | 1.08 to 1.49 | 1 | 33.0% | 2.00 | 2 | 0.1% | 52.5 mm; the camera backs off as she comes (see below) |
+| lightsOut 6 (13.6-16 s) | Ada | 1.26 to 1.35 | 1 | 26.2% | 1.99 to 2.05 | 2 | 2.5% | lens 24-21 to 35.4-33.4 mm |
+| rest 1 (0-4.5 s) | Ada | 1.20 to 1.25 | 1 | 20.2% | 1.95 to 2.04 | 2 | 2.5% | lens 24 to 39 mm held |
+| rest 2 (4.5-9 s) | Ada | 1.22 | 1 | 18.0% | 2.00 | 2 | 0.0% | lens 20 to 32.8 mm |
+| rest 3 (9-13 s) | Ada | 1.07 to 1.11 | 1 | 9.9% | 1.96 to 2.04 | 2 | 2.0% | lens 22 to 40.4 mm held |
+| rest 4 (13-16 s) | Ada | 1.11 to 1.19 | 1 | 15.8% | 1.97 to 2.03 | 2 | 1.6% | lens 20-21 to 35.4-35.9 mm |
+
+**The choice.** Every figure at two field pixels a texel, as in play, and the opening's close-up at four: her head large and crisp. One was not chosen for any shot though it is nearer for most of the "before" column: at one a
+density-2 face is dots (session 16; the Owner, 2026-11-12, on the character). Each shot keeps its place, its look and its timing and changes its
+lens (a longer lens from the same place keeps what she stands in front of and where she stands in the frame), with a 3% creep where the shot
+had a push-in (a push of more than 6% cannot hold a whole texel). Four shots needed more than a lens:
+- **opening 1**: from its old place the lens that makes her two crops her into the bottom-right corner (looked at: only her head and
+  shoulders showed); the camera now stands 3 m behind her at 2.1 m and looks past her toward the desk.
+- **opening 5** hands over to play: it zoomed 40 to 50 mm onto the old play camera (16 m back), drawing her at 0.6 of a pixel, painted at one.
+  It is now a crane from 35 degrees down onto the hall's play camera at the spawn (79 mm, 8 m from a look 1.0 m over her feet, tilt 25, from
+  the south), which is where play starts.
+- **lightsOut 5**: the figure walks 0.7 m nearer while the lens pushed 28 to 34 mm; she grew 1.1 to 1.5 and popped a size. The camera now
+  backs off 0.7 m on her keys' times and ease, so she holds two as she comes.
+- **keypad** is an insert of the cabinet's pad: Ada stands beside it, out of the frame (a first version of the rule counted a sliver of her
+  sprite's side at the frame's edge as her; looked at, she is not there, so the rule now asks for her middle). Unchanged.
+- **lightsOut 4 and 5** first put her feet (and the figure's) on the frame's bottom edge under the caption (looked at); the look is 0.2 to
+  0.25 m lower and the lens re-solved.
+
+`content.hash` and `sim-content.hash` move: cutscenes are content (expected).
+
+**Found on the way: the noticeboard insert showed the dark behind the wall** (`s3-d-insert-before-wall-cut.png`; not a scale matter, the
+shot is unchanged). In a cutscene the occluder rule keeps a figure under the shot's look point in sight; the insert looks at the board, a
+centimetre in front of the hall's north wall, so the rule cut the board and walls and the frame showed the void (measured in Node: the
+board's three parts and eleven wall faces cut). **Fix, generic and opt-in (`@automata/3d`):** a `DrawingCamera` may name its `subject`, a
+figure's feet and head, or `null` for nobody (the rule's lines then run from the eye to itself and nothing is taken away); unset, it is the
+look point as before. The game names it (`src/app/shot-subject.ts`): of the figures the cutscene placed and has not faded out, the one in
+the frame whose middle is nearest its centre, or nobody. Tests first: `occluders.test.ts` (a shot naming nobody draws the room whole; one
+naming a figure keeps her in sight and leaves a pillar beside her), `shot-subject.test.ts` (the insert: nobody; the close-up: Ada; the
+corridor: the figure, Ada behind the camera; a faded figure is passed over).
+
+Frames (Chromium, software GL, 1024 by 768; every one looked at). The shots helper's seconds run about 1.3 s ahead of the director's
+(its clock starts before the scene does), so frames are named by the shot they show:
+- `s3-d-sheet-opening.png`: shot 1 over her shoulder, whole, the hall and the desk beyond (the title crosses her shoulder; it reads); the
+  close-up at four, her face large and crisp; the insert, the board, its notes, the clock and the coat whole (after the fix); shot 4 whole and
+  centred; then the hand-over: the frame with the HUD up and play's own spawn frame match tile for tile. The 1.1 s crane was not caught
+  mid-move.
+- `s3-d-sheet-lights-out.png`: the six shots: Ada whole at two in each of hers, the corridor empty before the figure fades in (6.85 s, as
+  scripted), the figure whole at two as she comes and the camera backs off, her feet clear of the caption.
+- `s3-d-sheet-rejected-and-before.png`: the first try at opening 1 (the lens alone: she is cropped into the corner, head and shoulders),
+  the insert before the fix (the dark behind the cut wall), the first lights-out 5 (feet on the frame's edge), the keypad (an insert; shot at
+  the pose this session first gave it, since put back).
+- **Not shot:** `rest` and `found`. The helper reaches them by playing the old solver's route (`LEAD` in `shots.test.ts` now names the step
+  for each); both waits timed out at 10 minutes, as both playthroughs did at the end of session 2 (a route step's wait, not bisected). Their
+  numbers above are computed by the test only.
+
 ## For the tracker
 
 This session's row (camera session 2) for `docs/superpowers/progress.md` (workstream 2), verbatim (done, not done, where to resume); the tracker itself is back at
