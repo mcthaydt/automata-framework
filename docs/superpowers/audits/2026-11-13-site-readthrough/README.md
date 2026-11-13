@@ -196,3 +196,17 @@ reader hears it too. The region is still keyboard- and touch-scrollable (unchang
 the desktop pictures is the capture, not the page.)
 
 Home's preloaded script: 46,821 bytes of 48,000.
+
+## Gates on `d9a120ed2` (Findings 1 to 6)
+
+- `TURBO_FORCE=true pnpm check`: exit 0 (lint, typecheck, boundaries, style, knip, every unit test, changeset checks).
+- `pnpm build`: exit 0 (turbo served it from cache: its inputs had not changed since the site's own build).
+- Site: svelte-check 0 errors; unit suite 533 passed; `pnpm --filter @automata/site build` then `check:site` pass.
+- Site Chromium e2e: `site.e2e.ts`, `visitor.e2e.ts`, `motion.e2e.ts`: 436 passed. WebKit and Firefox site e2e, the 3D suites,
+  Lighthouse (`pnpm --filter @automata/site lighthouse`) and the playground e2e were not run.
+- Home's preloaded script (the site's own budget, `MAX_PRELOADED_SCRIPT_BYTES` 48,000): 46,821 bytes.
+- No approved-screenshot set exists in the repository, and no golden or recorded picture was changed.
+
+## Open (waiting on the Owner's words)
+
+Finding 2 rows A1 to A9, B1 to B8 and C2 (the table above). Nothing in them has been changed.
