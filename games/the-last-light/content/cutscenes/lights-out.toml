@@ -48,15 +48,15 @@ ease = "linear"
 [[camera]]
 t = 7.6
 pos = [ -0.3684639018019329, 0.9, -1.5696530535568882 ]
-look = [ -2.9, 1.2, 0.7 ]
+look = [ -2.9, 1, 0.7 ]
 cut = true
-lens = 31.45
+lens = 32.05
 
 [[camera]]
 t = 9.4
 pos = [ -0.3684639018019329, 0.9, -1.5696530535568882 ]
-look = [ -2.9, 1.2, 0.7 ]
-lens = 31.45
+look = [ -2.9, 1, 0.7 ]
+lens = 32.05
 ease = "linear"
 
 # The figure comes up the corridor. A push-in (28 to 34 mm) while she walked 0.7 m nearer grew her from 1.1 to 1.5 field pixels a texel; a
@@ -65,27 +65,27 @@ ease = "linear"
 [[camera]]
 t = 9.4
 pos = [ 0, 1.75, -0.6 ]
-look = [ 0, 1.3, -5.8 ]
+look = [ 0, 1.05, -5.8 ]
 cut = true
-lens = 52
+lens = 52.5
 
 [[camera]]
 t = 10.6
 pos = [ 0, 1.75, -0.6 ]
-look = [ 0, 1.3, -5.8 ]
-lens = 52
+look = [ 0, 1.05, -5.8 ]
+lens = 52.5
 
 [[camera]]
 t = 12.8
 pos = [ 0, 1.75, 0.1 ]
-look = [ 0, 1.3, -5.1 ]
-lens = 52
+look = [ 0, 1.05, -5.1 ]
+lens = 52.5
 
 [[camera]]
 t = 13.6
 pos = [ 0, 1.75, 0.1 ]
-look = [ 0, 1.3, -5.1 ]
-lens = 52
+look = [ 0, 1.05, -5.1 ]
+lens = 52.5
 
 [[camera]]
 t = 13.6

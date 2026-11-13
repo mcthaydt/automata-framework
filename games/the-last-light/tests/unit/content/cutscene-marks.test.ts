@@ -68,16 +68,10 @@ describe('the prologue’s cutscenes', () => {
     expect(before.every((key) => key.at === 'player')).toBe(true)
   })
 
-  it('keypad is the fixture’s but for the lint allowance written by hand and the camera held at the near scale', () => {
-    const { lintAllow: allowed, camera, ...rest } = now.keypad as Script
-    const { lintAllow: _was, camera: wasCamera, ...before } = fixture.keypad as Script
+  it('keypad is the fixture’s but for the lint allowance written by hand', () => {
+    const { lintAllow: allowed, ...rest } = now.keypad as Script
+    const { lintAllow: _was, ...before } = fixture.keypad as Script
     expect(rest).toEqual(before)
     expect(allowed).toEqual([expect.objectContaining({ rule: 'camera' })])
-    // The insert keeps its times, its look and its ease; it stands where its move used to end, on a lens that holds her texel at 4
-    // field pixels (`cutscene-scale.test.ts`), rather than dollying in through a half texel.
-    const keep = (keys: Row[] | undefined) =>
-      (keys ?? []).map(({ t, look, ease, cut }) => ({ t, look, ease, cut }))
-    expect(keep(camera)).toEqual(keep(wasCamera))
-    expect(camera?.map((key) => key.pos)).toEqual([wasCamera?.[1]?.pos, wasCamera?.[1]?.pos])
   })
 })

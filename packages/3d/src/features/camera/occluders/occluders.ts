@@ -204,6 +204,12 @@ export function createOccluders(parent: Container3D): OccluderStage {
 export interface DrawingCamera {
   readonly eye: Vec3
   readonly look: Vec3
+  /**
+   * What the shot keeps in sight. Unset (the default): a figure standing under the look point. A figure's feet and head: that
+   * figure, wherever the shot looks. `null`: nobody, so nothing is taken away and the room is drawn whole (an insert of a thing on a
+   * wall, whose look point would otherwise stand for a figure inside the wall and cut the wall and the thing on it).
+   */
+  readonly subject?: { readonly feet: Vec3; readonly head: Vec3 } | null | undefined
 }
 
 export interface OccluderHookOptions {
@@ -258,12 +264,16 @@ export function occluderHooks(
       if ((shot !== undefined) !== wasDrawing || (shot === undefined && pose?.cut === true)) occluders.reset()
       wasDrawing = shot !== undefined
       if (shot !== undefined) {
-        subject.x = shot.look.x
-        subject.y = 0
-        subject.z = shot.look.z
-        head.x = shot.look.x
-        head.y = shot.look.y
-        head.z = shot.look.z
+        // Nobody to keep in sight: the rule's lines run from the eye to the eye, so nothing stands on them and all is drawn whole.
+        const nobody = shot.subject === null
+        const feet = nobody ? shot.eye : (shot.subject?.feet ?? { x: shot.look.x, y: 0, z: shot.look.z })
+        const top = nobody ? shot.eye : (shot.subject?.head ?? shot.look)
+        subject.x = feet.x
+        subject.y = feet.y
+        subject.z = feet.z
+        head.x = top.x
+        head.y = top.y
+        head.z = top.z
         frame.eye = shot.eye
         frame.look = shot.look
         frame.feet = subject

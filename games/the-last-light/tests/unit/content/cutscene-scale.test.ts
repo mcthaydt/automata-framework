@@ -85,9 +85,8 @@ function texelAt(
   const head = screen([at[0], at[1] + HEIGHT, at[2]])
   if (feet === undefined || head === undefined) return undefined
   const depth = dot(sub(at, camera.pos), fwd)
-  const halfWidth = (f / depth) * 0.25
-  const xs = [feet[0] - halfWidth, feet[0] + halfWidth, head[0]]
-  const inX = Math.max(...xs) > 0 && Math.min(...xs) < FIELD_WIDTH
+  // In the frame when her middle is: a sliver of her sprite's side at the frame's edge is not a figure the shot frames.
+  const inX = [feet[0], head[0]].some((x) => x >= 0 && x <= FIELD_WIDTH)
   const inY = Math.min(feet[1], head[1]) < FIELD_LINES && Math.max(feet[1], head[1]) > 0
   if (!inX || !inY) return undefined
   return { texel: f / depth / D1_TEXELS / PLAY_FIGURE.density, depth }
@@ -144,11 +143,12 @@ describe('the prologue’s cutscenes at the near scale', () => {
     expect(fovOf(50)).toBeCloseTo(26.99, 2)
   })
 
-  it('reads a figure in the frame in every shot but the one insert, so no figure leaves a shot that meant her', () => {
+  it('reads a figure in the frame in every shot but the two inserts, so no figure leaves a shot that meant her', () => {
     const shots = scripts.flatMap(shotsOf).map((s) => `${s.id} ${s.index + 1}`)
     const framed = new Set(scalesOf().map((s) => s.shot.split(' (')[0]))
-    // The opening's third shot is the noticeboard on its own, her note on it: nobody is in it.
-    expect(shots.filter((s) => !framed.has(s))).toEqual(['opening 3'])
+    // The opening's third shot is the noticeboard on its own, her note on it, and the keypad's is the cabinet's pad, Ada beside it out of
+    // the frame: nobody is in either.
+    expect(shots.filter((s) => !framed.has(s))).toEqual(['keypad 1', 'opening 3'])
   })
 
   it('holds each figure in frame within 3% of a whole number of field pixels a texel, every frame of every shot', () => {
