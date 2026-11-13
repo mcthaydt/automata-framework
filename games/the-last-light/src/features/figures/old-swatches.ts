@@ -19,6 +19,11 @@ export const ADA_SWATCHES: Swatches = {
     strands: true,
     paint: ['#885041', '#662b29', '#49251c', '#372423'],
   },
+  // The hair she wears in play: the auburn above has DUEL row 2's red step (#662b29) in its ramp, and the room darkens its base into row 2's
+  // #733d3b: her crown read as three patches (maroon, mauve, pink). Row 15 is DUEL's one brown row that stays brown as it darkens (52 to 66
+  // degrees of hue); shot in the hall beside auburn, auburn without its gloss and a lighter row 15, this ash brown alone reads as one head of
+  // hair with a lit band and a shadow (the ada frames folder, session 4, item 2b). No gloss: the plain finish.
+  ashBrown: { ramp: 15, base: 2, strands: true, paint: ['#7e6144', '#614a3c', '#453125', '#372423'] },
   eyeDark: { ramp: 28, base: 0, flat: true },
   fair: {
     ramp: 27,

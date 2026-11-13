@@ -24,7 +24,8 @@ export const PLAY_FIGURE = { crisp: true, density: 2, holdSkinHue: true, dimmest
 /**
  * Ada Voss, the staff nurse on her first night. The prologue puts her in her street clothes (the old character file's `story`:
  * `scenes.prologue = street`): an ivory shirt with a collar, its sleeves rolled to the elbow, under an oxblood waistcoat worn open, faded slim jeans
- * cropped above tan ankle boots, her auburn chin-length bob with a fringe that ends over the brow.
+ * cropped above tan ankle boots, her chin-length bob with a fringe
+ * that ends over the brow, in an ash brown in play (`ashBrown`: the auburn's red step broke her crown into patches).
  *
  * She is the painter's base woman with only what makes her Ada changed (the Owner, 2026-11-12: the characters look like the painter's
  * own faces at density 2): her skin, her hair, her clothes, and a bolder brow (weight .75) and fuller lips; her eyes are the base woman's own (crease, hood, liner). Her body sliders are the
@@ -115,7 +116,7 @@ export const ADA: CharacterDef = {
         waistband: 'denimBand',
       },
       { shoes: 'bootBrown', sole: 'bootSole', boots: true, shaft: 0.2, heel: 1, toe: 'bootToe' },
-      { hair: 'auburn', style: 'bobOpen' },
+      { hair: 'ashBrown', style: 'bobOpen' },
       // The painter's drawn face: eyes with their whites under a lid, brows, lips.
       { eyes: 'eyeBrown', lids: 'lidDeep', white: 'eyeWhite', brows: 'hairBlack', lips: 'lipsAda' },
     ],

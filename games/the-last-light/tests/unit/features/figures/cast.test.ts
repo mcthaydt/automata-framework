@@ -237,7 +237,7 @@ describe('Ada', () => {
     expect(street[1]).toMatchObject({ waistcoat: 'oxblood', open: 1, buttons: 'brass' })
     expect(street[2]).toMatchObject({ jeans: 'fadedDenim', crop: 0.3, turn: 'denimTurn', taper: 1 })
     expect(street[3]).toMatchObject({ shoes: 'bootBrown', boots: true, heel: 1, toe: 'bootToe' })
-    expect(street[4]).toEqual({ hair: 'auburn', style: 'bobOpen' })
+    expect(street[4]).toEqual({ hair: 'ashBrown', style: 'bobOpen' })
   })
 
   it('has the swatches of every cloth she wears: her shirt, boots, hair and skin, the look’s for the rest; her brows and lids are the painter’s own', () => {
@@ -245,7 +245,7 @@ describe('Ada', () => {
       'cream',
       'bootBrown',
       'bootSole',
-      'auburn',
+      'ashBrown',
       ADA.skin,
       'collarLinen',
       'cuffLinen',
@@ -403,6 +403,34 @@ describe('the painted frame shows what they wear', () => {
     const skin = (ADA.swatches?.[ADA.skin]?.paint ?? SWATCHES[ADA.skin]?.paint ?? [])[1] ?? ''
     expect(apart(lower, skin)).toBeGreaterThanOrEqual(0.06)
     expect((oklab(lower)[0] as number) - (oklab(upper)[0] as number)).toBeGreaterThanOrEqual(0.15)
+  })
+
+  // Her auburn's second tone #662b29 is DUEL row 2's red step (24 degrees of OKLab hue), and the room darkens its base #885041 into row 2's
+  // #733d3b (23): in the hall her crown read as three patches, a maroon band, a mauve patch and pink between, not one head of hair. Every
+  // tone of her hair with colour in it (chroma .035 or more: the near-black deepest has no hue to keep) is a brown, 30 degrees or more.
+  it('paints her hair in browns only: no red step in its ramp', () => {
+    const lin = (v: number) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)
+    const lch = (hex: string) => {
+      const [r, g, b] = [1, 3, 5].map((k) => lin(Number.parseInt(hex.slice(k, k + 2), 16) / 255)) as [
+        number,
+        number,
+        number,
+      ]
+      const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b)
+      const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b)
+      const q = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b)
+      const [a, bb] = [
+        1.9779984951 * l - 2.428592205 * m + 0.4505937099 * q,
+        0.0259040371 * l + 0.7827717662 * m - 0.808675766 * q,
+      ]
+      return { C: Math.hypot(a, bb), h: (Math.atan2(bb, a) * 180) / Math.PI }
+    }
+    const street = ADA.outfits.street ?? []
+    const hair = street.find((piece) => 'hair' in piece) as { hair: string }
+    const paint = (ADA.swatches?.[hair.hair]?.paint ?? []) as readonly string[]
+    expect(paint.length).toBe(4)
+    const red = paint.filter((c) => lch(c).C >= 0.035 && lch(c).h < 30)
+    expect(red).toEqual([])
   })
 
   it('puts no pale texel under the lower lip: the chin’s catch-light is never the texel right under the mouth (it read as a tongue)', () => {
