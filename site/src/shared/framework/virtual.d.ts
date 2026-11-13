@@ -36,3 +36,7 @@ declare module 'virtual:framework/home-example' {
   const example: import('./home-example.ts').HomeExample
   export default example
 }
+declare module 'virtual:framework/demo-urls' {
+  const urls: readonly string[]
+  export default urls
+}

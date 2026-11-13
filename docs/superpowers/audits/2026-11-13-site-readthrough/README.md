@@ -122,3 +122,13 @@ works", "Languages", "Extensions", "Publish to itch.io" and "Publish to Ruken" (
 | C4 | Home, Checks table | "Same result" for Node, Chromium, WebKit and Firefox, "checked on every change" | The engines are read from the workspace and the parity job runs on pull requests; "Same result" is a fixed phrase, not a measured outcome per engine. | No copy change needed; say if the Owner wants it to be measured. |
 
 Nothing in this table was fixed. Items marked "plain defect" (C3) wait for the Owner's go as their own finding.
+
+## Room in Home's script budget (a change the next findings need)
+
+Home's preloaded script had 9 bytes of room after Finding 1 (47,991 of 48,000). The next fixes add words, so room was made
+first, without touching the budget: `DemoRunner.svelte` only asks whether the address it was given is a demo's build, but it
+imported the whole demos catalogue, so each demo's header paragraph (about 700 bytes of prose) rode in the page script. It
+now imports `virtual:framework/demo-urls`, the addresses only. Preloaded script: 47,991 → 46,255 bytes (1,745 bytes of
+room). Test: `tests/unit/home/demos.test.ts` (the runner imports only the addresses). Demo journeys (`visitor.e2e.ts`, 6) pass.
+
+Gate record: `TURBO_FORCE=true pnpm check` passed on `31e23b4f0` (66 tasks, exit 0, 13 m 40 s).

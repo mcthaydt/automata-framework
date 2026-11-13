@@ -3,11 +3,12 @@
 // poster's place; playing, the bar offers Full screen and Stop. Stopping drops the frame, so a stopped demo costs
 // nothing. A press on Play it made before the page was hydrated is kept by the page's first-press script
 // (`data-play-pressed`, shared/html/hydration.ts) and starts the game as soon as this mounts.
+
+import demoUrls from 'virtual:framework/demo-urls'
 import { onMount } from 'svelte'
 import { previewSrcset } from '../../shared/previews'
 import './demo-runner.css'
 import { demoStatus } from './demo-status'
-import { getDemosCatalog } from './demos'
 import type { DemoBar } from './home-content'
 
 let {
@@ -34,7 +35,7 @@ let fullscreenMessage = $state('')
 let fullscreenPending = $state(false)
 let isFullscreen = $state(false)
 let fullscreenWord = $derived(isFullscreen ? bar.exitFullScreen : bar.fullScreen)
-let allowed = $derived(getDemosCatalog().some((d) => d.bundleUrl === src))
+let allowed = $derived(demoUrls.includes(src))
 let frameSrc = $derived(start === undefined ? src : `${src}?start=${encodeURIComponent(start)}`)
 // The frame's address is made after hydration, so the prerendered page never carries a stale one.
 onMount(() => {

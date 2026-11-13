@@ -17,6 +17,8 @@ const MODULES = {
   guides: () => readGuides(),
   examples: () => playgroundExamples(),
   demos: () => demoList(),
+  // Only where each demo is served: the runner checks an address against it and needs none of the headers' prose.
+  'demo-urls': () => demoList().map((demo) => demo.bundleUrl),
   facts: () => siteFacts(),
   'home-example': () => homeExample(),
   changelog: () => readChangelog(),
