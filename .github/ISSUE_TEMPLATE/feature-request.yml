@@ -1,0 +1,25 @@
+name: Feature request
+description: Something a game needs that AF does not do yet.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        AF adds code only when a game, an example or a journey uses it, so tell us about the game.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What your game needs
+      description: What you are trying to make, and where AF gets in the way today.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you would like
+      description: How it could work, from the game's side.
+  - type: textarea
+    id: workaround
+    attributes:
+      label: What you do now
+      description: Any workaround you use today.

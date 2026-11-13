@@ -40,3 +40,40 @@ it('the README links SECURITY.md and the runbook', () => {
   expect(readme).toContain('](SECURITY.md)')
   expect(readme).toContain('](docs/runbook.md)')
 })
+
+// The files GitHub shows to someone arriving from outside: how to contribute, how to behave, and forms that ask for
+// what a bug in a deterministic game needs. Blank issues are off so every report goes through a form.
+describe('community files', () => {
+  it('CONTRIBUTING.md says how to set up, check a change and open a pull request', () => {
+    const contributing = read('.github/CONTRIBUTING.md')
+    expect(contributing).toContain('pnpm install')
+    expect(contributing).toContain('pnpm check')
+    expect(contributing).toContain('](../AGENTS.md)')
+    expect(contributing).toContain('](../SECURITY.md)')
+  })
+
+  it('CODE_OF_CONDUCT.md names who to report to', () => {
+    expect(read('CODE_OF_CONDUCT.md')).toMatch(/[\w.+-]+@[\w-]+\.[\w.]+/)
+  })
+
+  it('the issue chooser has no blank issues and sends vulnerabilities to SECURITY.md', () => {
+    const config = read('.github/ISSUE_TEMPLATE/config.yml')
+    expect(config).toMatch(/^blank_issues_enabled: false$/m)
+    expect(config).toContain('/security/advisories/new')
+  })
+
+  it('the bug form asks for the version, the target, the browser and a seed', () => {
+    const bug = read('.github/ISSUE_TEMPLATE/bug-report.yml')
+    for (const id of ['version', 'target', 'browser', 'seed', 'steps']) expect(bug).toContain(`id: ${id}`)
+  })
+
+  it('there is a feature request form', () => {
+    expect(read('.github/ISSUE_TEMPLATE/feature-request.yml')).toMatch(/^name: /m)
+  })
+
+  it('the pull request template asks for a test first and a passing pnpm check', () => {
+    const template = read('.github/PULL_REQUEST_TEMPLATE.md')
+    expect(template).toMatch(/test/i)
+    expect(template).toContain('pnpm check')
+  })
+})

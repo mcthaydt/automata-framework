@@ -1,0 +1,62 @@
+name: Bug report
+description: Something in AF does not work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting. Please search the open and closed issues first; it may already be fixed on `main`.
+        Security problems go to the private advisory form, not here.
+  - type: input
+    id: version
+    attributes:
+      label: AF version
+      description: The `@automata/*` package version, or the commit if you build from source.
+      placeholder: 0.0.5
+    validations:
+      required: true
+  - type: dropdown
+    id: target
+    attributes:
+      label: Target
+      description: Where the game runs.
+      options:
+        - web
+        - itch
+        - Ruken
+        - desktop (Tauri)
+        - not a game (tooling, editor, docs)
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and system
+      placeholder: Chrome 142 on Windows 11, Safari on iPhone 15
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The smallest game, example or command that shows it, and what to do. A link to a repository helps most.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened
+      description: Include errors from the console or the terminal.
+    validations:
+      required: true
+  - type: input
+    id: seed
+    attributes:
+      label: Seed
+      description: If a run differs between runs, browsers or machines, the seed you used. The same seed must give the same game everywhere.
