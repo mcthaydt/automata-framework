@@ -1,5 +1,15 @@
 # Refactor progress
 
+## The 2D launch cut (2026-11-13)
+
+The order of work is [the cut list](2026-11-13-2d-launch-cut-list.md). The Owner's additions the same day: keep
+`tooling/codemods/` and run the `@automataframework` rename after step 4 and before step 5; cut the Ruken target as its
+own pull request after step 4, before the rename; and "lets not run any local checks when we can use gh runners".
+
+| Step | Status | What ran, what did not, what is open |
+|---|---|---|
+| 1. Things nothing uses | On a branch, in CI | Removed `tooling/dev-tools/`, the seven `move-map*.json`, `windows-trial.yml`, and their lockfile and provenance rows. `tooling/codemods/` kept for the rename; its module mover still defaults to the deleted `move-map.json`. Locally: lint, typecheck, `boundaries`, `style`, `source-names` and `knip` passed before the Owner's no-local-checks rule. The full unit run failed twice on `packages/content/tests/unit/vite/automata-content.test.ts` ("timed out waiting for the HMR update", the 10 s `waitFor`), and passed with the package run alone (532 of 532): load-dependent, not caused by this change, open |
+
 **Overall: 67% (16 of 24 stages done).**
 
 The Owner's order: finish one slice completely before starting the next. On 2026-11-05 it was core and 2D, then 3D, then

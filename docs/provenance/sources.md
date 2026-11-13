@@ -756,7 +756,6 @@ recorded an earlier source, the row says so; the adventure source's rows above d
 | `@automata/narrative` | `extensions/narrative` | `packages/narrative` | The adventure source (M6.8a, M6.8b rows) |
 | `@automata/cutscenes` | `extensions/cutscenes` | `packages/cutscenes` | The adventure source (M6.9a row) |
 | `@automata/pipelines` | `extensions/pipelines` | `tooling/pipelines` | The adventure source (M6.6b to M6.10b rows); the blockout stage is not ported |
-| `@automata/dev-tools` | `tooling/dev-tools` | `packages/dev-tools` | `FloorFifty`'s `tools/promote-evidence` and `tools/worktree-gc` |
 
 Not ported: `starters/party-racer` (the Owner cut it), Plus's own `tooling/{core,boundary,ci}`, its docs, workflows and
 the committed `.vitest` screenshots. The converted fixtures keep the headers their converter scripts wrote; the scripts
