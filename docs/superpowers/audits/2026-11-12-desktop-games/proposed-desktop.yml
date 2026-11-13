@@ -2,6 +2,7 @@ name: desktop
 
 # PROPOSED, NOT ACTIVE. A file under docs/, not .github/workflows/: a new workflow needs the Owner's yes (AGENTS.md).
 # To switch it on, copy it to .github/workflows/desktop.yml. The README beside it says what each job proves.
+# It runs by hand only (`workflow_dispatch`): no schedule, no pull requests (the Owner, 2026-11-13: "no nightly").
 #
 # Each job is the stranger's desktop journey (tooling/consumer-smoke/tests/install/stranger-desktop.test.ts) on one
 # OS: the published packages packed, a new game made with `create-game --targets tauri` in a folder outside the
@@ -22,10 +23,8 @@ name: desktop
 # docs/superpowers/, which the codemod keeps as written, so `--filter @automata/consumer-smoke` below would be stale.
 
 on:
+  # By hand only: a cold Rust build is minutes per OS, so no schedule and not on pull requests.
   workflow_dispatch:
-  # Nightly, beside release-checks.yml; not on pull requests (a cold Rust build is minutes per OS).
-  schedule:
-    - cron: "17 3 * * *"
 
 permissions:
   contents: read
@@ -72,7 +71,7 @@ jobs:
 
   macos:
     name: desktop app, macOS (build; signing when the secrets exist)
-    # A Mac that is not the release runner: AF_RELEASE_RUNNER is the Mac that publishes, and a nightly test build has
+    # A Mac that is not the release runner: AF_RELEASE_RUNNER is the Mac that publishes, and a test build has
     # no business there. AF_DESKTOP_MAC_RUNNER moves it, as the other jobs' variables do.
     runs-on: ${{ vars.AF_DESKTOP_MAC_RUNNER || 'af-mac' }}
     timeout-minutes: 45

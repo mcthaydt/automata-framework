@@ -142,7 +142,7 @@ Gaps, not fixed here:
 
 ## 5. CI, as a proposal
 
-[`proposed-desktop.yml`](proposed-desktop.yml): `workflow_dispatch` and nightly, three jobs, each the same journey.
+[`proposed-desktop.yml`](proposed-desktop.yml): `workflow_dispatch` only (by hand, no schedule), three jobs, each the same journey.
 
 | Job | Runner | Proves | Signing |
 |---|---|---|---|

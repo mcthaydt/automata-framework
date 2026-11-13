@@ -65,7 +65,7 @@ for the client.
 - The Windows job imports the certificate into `Cert:\CurrentUser\My` on the Owner's own PC and never removes it; the
   `.pfx` is left in `RUNNER_TEMP` if the import throws.
 - The macOS job runs on `vars.AF_RELEASE_RUNNER`, the variable for the Mac that publishes (`release-packages.yml:43`), so
-  a nightly test build would queue on the release machine.
+  a desktop test build would queue on the release machine.
 - It lives under `docs/superpowers/`, which the scope codemod keeps as written (`origin/claude/scope-rename`,
   `rename-scope.ts` `KEPT`): copied to `.github/workflows/` after the rename, its `--filter @automata/consumer-smoke`
   would be stale (the scope-hygiene test would then catch it, but the copy step should say so).
