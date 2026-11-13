@@ -45,6 +45,17 @@ export interface LineRecord {
   /** How the line is said: absent means plainly. A direction, a pace and pauses by sentence. */
   readonly delivery?: Delivery | undefined
 }
+/**
+ * A line's `words` as plain text, whichever schema read it. The sim's schema gives a string; the content kind's marks the
+ * words as translatable, so while the line is being checked `words` is a marker holding the text (the compiler puts the
+ * string back once the file is valid).
+ */
+function plainWords(words: unknown): string | undefined {
+  if (typeof words === 'string') return words
+  const text = (words as { readonly text?: unknown } | null | undefined)?.text
+  return typeof text === 'string' ? text : undefined
+}
+
 /** The line's shape; the content kind passes its own schema for `words` (translatable text), the sim plain text. */
 function lineShape(words: z.ZodType<string, string>): z.ZodType<LineRecord> {
   return z
@@ -61,7 +72,7 @@ function lineShape(words: z.ZodType<string, string>): z.ZodType<LineRecord> {
       delivery: deliverySchema.optional(),
     })
     .superRefine((line, context) => {
-      for (const message of deliveryProblems(line.id, line.delivery, line.words))
+      for (const message of deliveryProblems(line.id, line.delivery, plainWords(line.words)))
         context.addIssue({ code: 'custom', path: ['delivery', 'beats'], message })
     })
 }
