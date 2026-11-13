@@ -1,16 +1,20 @@
 // A game made the way a person makes one: `automata create-game` in an empty folder outside the repository. Installing
 // it from the packs is the stranger's journey (tooling/consumer-smoke); here the game borrows Emberwick's installed
 // packages instead, which are this checkout's own builds of the same framework, so a journey about the editor does not
-// spend minutes installing. Each package is linked one by one into the game's own node_modules, so the game's Vite keeps
-// its cache (`node_modules/.vite`) in the game: a cache shared with Emberwick's would make one dev server reload the
-// other's page.
+// spend minutes installing. Which packages is read from the game's own package.json (link-game-packages.ts), so what
+// `create-game` adds to a game is linked without anyone editing this file. Nothing else is prepared here: the game's
+// page needs its generated fonts, and `automata editor` makes them itself, as `pnpm dev` does.
 import { execFile } from 'node:child_process'
-import { mkdirSync, mkdtempSync, readdirSync, rmSync, symlinkSync } from 'node:fs'
+import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
+import { linkGamePackages } from './link-game-packages.ts'
 import { BIN } from './run-editor.ts'
 import type { TempGame } from './temp-game.ts'
+
+const WORKSPACE: string = fileURLToPath(new URL('../../../../../', import.meta.url))
 
 export async function newGame(
   installedFrom: string,
@@ -25,9 +29,6 @@ export async function newGame(
     { cwd: folder },
   )
   const dir = join(folder, name)
-  const installed = join(installedFrom, 'node_modules')
-  mkdirSync(join(dir, 'node_modules'))
-  for (const entry of readdirSync(installed))
-    if (entry !== '.vite') symlinkSync(join(installed, entry), join(dir, 'node_modules', entry), 'dir')
+  linkGamePackages(dir, installedFrom, WORKSPACE)
   return { dir, remove: () => rmSync(folder, { recursive: true, force: true }) }
 }

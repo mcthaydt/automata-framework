@@ -11,6 +11,9 @@ export interface RunningGame {
   readonly stop: () => Promise<void>
 }
 
+/** How much of the server's output is kept: the start of it, where the cause is. */
+const SAID_CHARS = 4_000
+
 export async function runGame(
   gameDir: string,
   contentRoot: string,
@@ -26,13 +29,26 @@ export async function runGame(
   const child = spawn(
     process.execPath,
     [vite, '--configLoader', 'runner', '--strictPort', '--host', 'localhost', '--port', String(port)],
-    { cwd: gameDir, env: { ...process.env, ...env, AF_E2E_CONTENT_ROOT: contentRoot }, stdio: 'ignore' },
+    {
+      cwd: gameDir,
+      env: { ...process.env, ...env, AF_E2E_CONTENT_ROOT: contentRoot },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    },
   )
+  // What the server says, kept so that a server that stops or never answers fails the journey with its own words (Vite
+  // prints the cause of a config that cannot load, such as a package it cannot find, before it exits).
+  let said = ''
+  for (const stream of [child.stdout, child.stderr])
+    stream.on('data', (chunk: Buffer) => {
+      said = (said + chunk.toString()).slice(0, SAID_CHARS)
+    })
+  const because = () => (said.trim() === '' ? '' : `:\n${said.trim()}`)
   const url = `http://localhost:${port}/`
   // Ready when the page answers; Vite prints its banner before it can serve, so the banner is not the signal.
   const deadline = Date.now() + 60_000
   for (;;) {
-    if (child.exitCode !== null) throw new Error(`the game's dev server exited with ${child.exitCode}`)
+    if (child.exitCode !== null)
+      throw new Error(`the game's dev server exited with ${child.exitCode}${because()}`)
     const answered = await fetch(url).then(
       (response) => response.ok,
       () => false,
@@ -40,7 +56,7 @@ export async function runGame(
     if (answered) return { url, stop: () => stopProcess(child) }
     if (Date.now() > deadline) {
       await stopProcess(child)
-      throw new Error(`the game's dev server did not answer on ${url} in 60 s`)
+      throw new Error(`the game's dev server did not answer on ${url} in 60 s${because()}`)
     }
     await new Promise((resolve) => setTimeout(resolve, 250))
   }
