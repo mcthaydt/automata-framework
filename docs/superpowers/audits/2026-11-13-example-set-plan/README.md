@@ -115,6 +115,20 @@ and write frames only to `test-results/`, and a small task after his yes that re
 if he rejects the station itself, the content and the examples' words are redone (the code of each example is a
 `scene()` call and does not change). The coordinator rules.
 
+## The coordinator's rulings (2026-11-13, written into the plan)
+
+- **M9: option (b).** One Owner's sheet, O1, at the very end; nothing waits on the Owner. The examples are built
+  meanwhile with no picture recorded; the coordinator opens every look frame himself and gates it against the
+  reference (figures only at density 2). O1 also carries Characters on a phone (K3, K4) and the site's 3D page (F3,
+  F4). A new small task, **O2** (half a Sonnet session), records the pictures after his yes. E1 now waits on F5, C5 and
+  B10. The plan is 41 tasks, 39.5 sessions (30.5 Sonnet, 9 Opus).
+- **S1:** the joined branch is `claude/last-light-prologue`, once `claude/last-light-camera` and
+  `claude/last-light-ada` are merged into it and it is on `main`; tasks start from `main` after that.
+- **S11:** no workflow change in this plan; a proposal for the Owner, below. Until then each task that changes the
+  set runs the 3D journeys in its session and reports them.
+- **S3:** `spikes/` stays out of the sweep.
+- **Q2's three conditions:** accepted; the coordinator carries them to the 3D ship plan.
+
 ## Should fix (fixed in the plan unless marked)
 
 **S1. "The joined prologue branch" names no branch.** No branch on `origin` holds both camera and ada:
@@ -229,14 +243,29 @@ K1's tests (the painter's types, every field); K2's slider count; the recipe's s
 list (E5, E6, E7, E1, E4); E14 (`origins.ts`, the content compiler, the systems README, every engine); E15 (the measured
 list, `spikes/`); S2 (the writer's place); totals, critical path, self-check, the tracker text, the log.
 
+## For the Owner
+
+A proposal for the end list (S11), not made by this plan. In `.github/workflows/3d.yml`, under `on.pull_request.paths`
+after the line `      - "examples/3d/**"`, add:
+
+```yaml
+      - "examples/set-3d/**"
+      - "examples/3d-story/**"
+```
+
+So a pull request that changes only the example set's place, people or story, or the 3D story, runs the 3D journeys
+(today it runs none: the workflow's paths name `examples/3d/**` but not these two folders). Cost: those pull requests
+take the 3D job's time: 19 min 16 s on 2026-11-10 on the shared runner (`3d.yml`'s own note, lines 47 and 48). Yes or no.
+
 ## For the tracker
 
 Rows for `docs/superpowers/progress.md`, for the coordinator to copy:
 
 > **Workstream: one example set (3D).** Stage 3 (plan audit, Opus) done 2026-11-13 on `claude/example-set-plan-audit`:
 > [audit](audits/2026-11-13-example-set-plan/README.md). 9 must fix (8 fixed in the plan; M9, when the Owner's sheets
-> come, needs a ruling), 13 should fix (all fixed; S1, S3, S11 also ask a ruling), notes. Plan now 40 tasks, about 39
-> build sessions (30 Sonnet, 9 Opus): F5 added (`scene()` plays the place). Can start now from `main`: F1, F3 (after
+> come, ruled: last), 13 should fix (all fixed; S1, S3, S11 ruled), notes. Plan now 41 tasks, about 39.5 build
+> sessions (30.5 Sonnet, 9 Opus): F5 added (`scene()` plays the place), O2 added (the pictures after the Owner's yes);
+> nothing waits on the Owner, whose sheets (O1) are the last task. Can start now from `main`: F1, F3 (after
 > F1), W1 to W3, C2. Next: stage 4, execution.
 >
 > **Workstream: a character is data (Part K).** Plan audit done with the set's: the kind is the painter's own types
@@ -247,6 +276,9 @@ Rows for `docs/superpowers/progress.md`, for the coordinator to copy:
 > `interact`'s published entries, `hud`'s `svelte` peer a caret range, 28 names); know that F1 adds the 3D packages to
 > the catalog's `EXTENSION_PACKAGES`, which A5 and B10 rebase on.
 >
-> **Rulings wanted:** M9 (the Owner's sheets at the end, or before the examples as planned); S1 (which branch is "the
-> joined prologue branch"); S11 (add `examples/set-3d/**` and `examples/3d-story/**` to `3d.yml`'s paths, a workflow
-> change); S3 (`spikes/` left out of the sweep).
+> **Ruled 2026-11-13:** M9 (b), O1 last with Characters and the site page, O2 records after the yes; S1 the joined
+> branch is `claude/last-light-prologue` with camera and ada merged; S11 no workflow change, a proposal on the Owner's
+> end list; S3 `spikes/` stays out.
+>
+> **On the Owner's end list:** add `examples/set-3d/**` and `examples/3d-story/**` to `3d.yml`'s pull-request paths
+> (the audit's "For the Owner").

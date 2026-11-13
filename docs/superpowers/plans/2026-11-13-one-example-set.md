@@ -46,7 +46,7 @@ Biome. Markdown is not formatted by a tool.
 | C3 The traveller | 2 | `claude/example-set-cast` | 1 | Opus | after K1, C2 | not started | 0% |
 | C4 The stationmaster and the porter | 2 | `claude/example-set-cast` | 1 | Opus | after C3 | not started | 0% |
 | C5 The cast in the place | 2 | `claude/example-set-cast` | 1 | Opus | after C4, L4, F5 | not started | 0% |
-| E1 `scene-camera`, and the journeys' harness | 3 | `claude/example-set-examples-a` | 1 | Sonnet | after the Owner's yes, ship-3d B10 | not started | 0% |
+| E1 `scene-camera`, and the journeys' harness | 3 | `claude/example-set-examples-a` | 1 | Sonnet | after F5, C5, ship-3d B10 | not started | 0% |
 | E2 `scene-light` | 3 | `claude/example-set-examples-a` | 0.5 | Sonnet | after E1 | not started | 0% |
 | E3 `scene-looks` | 3 | `claude/example-set-examples-a` | 0.5 | Sonnet | after E1 | not started | 0% |
 | E4 `scene-props` | 3 | `claude/example-set-examples-a` | 0.5 | Sonnet | after E1 | not started | 0% |
@@ -65,11 +65,12 @@ Biome. Markdown is not formatted by a tool.
 | S2 A whole number stays a whole number | 4 | `claude/example-set-editors` | 0.5 | Sonnet | after editors v2 tasks 2 to 4 | not started | 0% |
 | S3 A tap on a prop selects the prop | 4 | `claude/example-set-editors` | 1 | Sonnet | after editors v2 tasks 2 to 4, L2 | not started | 0% |
 | S5 A journey for each editor | 4 | `claude/example-set-editors` | 2 | Sonnet | after v2 task 6, S1 to S3, K4 | not started | 0% |
-| O1 The sheets for the Owner | Owner | `claude/example-set-sheets` | 1 | Opus | after L4, C5 | not started | 0% |
+| O1 The sheets for the Owner | Owner | `claude/example-set-sheets` | 1 | Opus | last: after E15, S5, K4, F4 | not started | 0% |
+| O2 The pictures, recorded after the Owner's yes | Owner | `claude/example-set-sheets` | 0.5 | Sonnet | after the Owner's yes on O1 | not started | 0% |
 
-Progress: 0 of 40 tasks (0%). Per part: 0 of 5 (Part 0), 0 of 7 (Part 1), 0 of 4 (Part K), 0 of 4 (Part 2), 0 of 15
-(Part 3), 0 of 4 (Part 4), 0 of 1 (the Owner's sheets). Part 5 (2D) has no tasks until the Owner says yes. Sessions:
-39 (30 Sonnet at high effort, 9 Opus at medium), before audits and fixes. (There is no task C1 or S4: they became
+Progress: 0 of 41 tasks (0%). Per part: 0 of 5 (Part 0), 0 of 7 (Part 1), 0 of 4 (Part K), 0 of 4 (Part 2), 0 of 15
+(Part 3), 0 of 4 (Part 4), 0 of 2 (the Owner's sheets and the pictures). Part 5 (2D) has no tasks until the Owner says yes. Sessions:
+39.5 (30.5 Sonnet at high effort, 9 Opus at medium), before audits and fixes. (There is no task C1 or S4: they became
 Part K, which is planned once for this set and for the game. F5 was added at the plan audit: nothing else made
 `scene()` walk a person, draw the cast or use the zone's view.)
 
@@ -82,8 +83,9 @@ the joined prologue branch on main ──► F2 (field, look file)
                                    ──► K1 ─► K2 ─► [v2 tasks 2-4] ─► K3 ─► K4        (Part K: also the game's)
                                    ──► L1 ─► L2 ─► [night fix] L3 ─► [F2] L4 ─┐
                           F1 + F2 + K1 + L1 ─► F5 (scene() plays the place) ───┤
-                                        K1 + C2 ─► C3 ─► C4 ───────────────────┴─► C5 ─► O1 ─► the Owner's yes
-the Owner's yes + ship-3d B10 (kits public, with interact and hud) ──► E1 ─► E2…E13 (three branches) ─► E14 ─► E15
+                                        K1 + C2 ─► C3 ─► C4 ───────────────────┴─► C5 ─┐
+C5 + ship-3d B10 (kits public, with interact and hud) ──► E1 ─► E2…E13 (three branches) ─► E14 ─► E15
+everything above, S5, K4, F4 ──► O1 (the Owner's sheets, last) ─► the Owner's yes ─► O2 (record the pictures)
 ship-3d B10 + pixi-3d-public + E1 ──► F4 (the site shows the set)
 editors v2 tasks 2-4 ──► S2, S3 ;  E14 + K3 ──► S1 ;  v2 task 6 + S1…S3 + K4 ──► S5
 ```
@@ -91,7 +93,9 @@ editors v2 tasks 2-4 ──► S2, S3 ;  E14 + K3 ──► S1 ;  v2 task 6 + S1
 **The base (the coordinator's ruling, 2026-11-13).** No task is built on `claude/last-light-camera` or
 `claude/last-light-ada` directly. "The joined prologue branch" is the branch that brings both to `main`; at the plan
 audit no branch on `origin` does (`claude/last-light-prologue` at `8d8202694` lacks 11 of camera's commits and 24 of
-ada's), so the coordinator names it, and the commands below are the test, not the name. Camera and ada have diverged
+ada's). The coordinator's ruling (2026-11-13): it is `claude/last-light-prologue`, once `claude/last-light-camera`
+and `claude/last-light-ada` are merged into it and it is on `main`; tasks start from `main` after that, and the
+commands below are the test. Camera and ada have diverged
 (11 and 24 commits the other lacks at the audit, 9 and 22 at writing; 59 and 61 changed
 files in `character-kit`, 58 and 42 in `packages/3d`), so a branch stacked on them would merge both itself and be
 rebuilt when they land, and every look frame taken before that would be taken again. Place and cast tasks start from
@@ -121,7 +125,10 @@ the above.
 
 - **F2, Part K, every Opus task:** the joined prologue branch on `main` (the table above); L3 also the night fix.
 - **Every example (E1 on):** ship-3d B10, so that it imports the kits as built packages a stranger can install, and
-  **the Owner's yes** on the sheets (O1), so that no journey or picture is made of a place he has not seen.
+  F5 and C5 (the place and the people drawn). **Nothing waits on the Owner** (the coordinator's ruling, 2026-11-13,
+  on the Owner's "Leave everything I have to do last"): examples are built with no picture recorded, the coordinator
+  opens every look frame himself and gates it against the reference (figures judged only at density 2), and O1 is
+  the plan's last task; O2 records pictures after his yes.
 - **F4:** B10 and `claude/pixi-3d-public` (the site may not show 3D before both), and E1.
 - **K3, K4, S2, S3:** the editors v2 landing's tasks 2 to 4 (v2 rewrites the editors' pages; a fix made before it is
   made twice). **S5:** v2's task 6, the one page that holds every editor.
@@ -170,10 +177,11 @@ and `textures:check`).
 `extensions/**` and others, not `examples/set-3d/**` or `examples/3d-story/**`; a pull request that changes only the
 set's content (L1 to L4, C3 to C5, F5) runs no 3D journey in CI. Workflow files are not edited here, so those tasks
 run `pnpm --filter @af-examples/examples-3d test:e2e` (once it has journeys) in the session and report it; adding the
-two paths to the workflow is the coordinator's call.
+two paths to the workflow is not done in this plan (the coordinator's ruling): it is a proposal on the Owner's end
+list, with the exact lines in the audit's "For the Owner".
 
-**The critical path:** the joined prologue branch on `main` → K1 → F5 and C3, C4 → C5 → O1 → the Owner's yes → E1 →
-E14 → S1 → S5. The longest waits this plan does not control are the joined prologue branch (gates K1 and the place) and
+**The critical path:** the joined prologue branch on `main` → K1 → F5 and C3, C4 → C5 → E1 → E14 → S1 → S5 → O1 →
+the Owner's yes → O2. The longest waits this plan does not control are the joined prologue branch (gates K1 and the place) and
 ship-3d B10 (gates E1).
 
 **The honest total:** 39 build sessions (9 of them Opus look sessions), plus the plan audit (1), implementation
@@ -278,7 +286,7 @@ morning train comes. Six beats, about five minutes.
   made by a service or bought. A new photo is CC0 with its source, licence and credit in `photos.json`.
 - **Nothing from The Last Light:** no file, model, swatch, line or number is copied from `games/the-last-light`.
 - **Pictures.** No picture is recorded (`screenshots-approved.json`, a golden, a site picture) before the Owner has
-  seen the sheets and said yes (O1). Until then a journey asserts state and measures, and writes frames only to
+  seen the sheets and said yes (O1, last); O2 records them. Until then a journey asserts state and measures, and writes frames only to
   `test-results/`.
 - **Look sessions (L1 to L4, C3 to C5, O1) run on Opus at medium effort** and obey one rule: the session opens every
   frame it reports, with the Read tool, and says what it saw; a frame it did not open is not reported.
@@ -1095,14 +1103,18 @@ for Levels 2D and the shared editors (2), the sweep (1): **about 15 sessions**. 
 
 ### Task O1: The sheets for the Owner (`claude/example-set-sheets`, Opus)
 
-After L4 and C5. **Files:** `docs/superpowers/audits/2026-11-13-example-set-sheets/` (PNG sheets and a `README.md`
-that says what each is and how it was made, with the command).
+The plan's last task (the coordinator's ruling on the Owner's "Leave everything I have to do last"): after E15, S5,
+K4 and F4. Every look frame before it has been opened by the session that made it and by the coordinator, gated
+against the reference, figures only at density 2. **Files:** `docs/superpowers/audits/2026-11-13-example-set-sheets/`
+(PNG sheets and a `README.md` that says what each is and how it was made, with the command).
 
 - [ ] The place: one sheet by day and one by night, each zone from its view, portrait and landscape.
 - [ ] The cast: each person front, three-quarter and back at density 2, at 1× and ×8; the three together; each in the
   place.
-- [ ] One frame per example at its moment (drawn from the content, before the examples exist: the zone, the cast and
-  the thing the table names).
+- [ ] One frame per example at its moment, taken from its journey's run (`test-results/`), portrait and landscape.
+- [ ] Characters on a phone (K3, K4): the cards, a painted figure turned through its directions at density 2, the
+  inspector's groups, portrait and rotated.
+- [ ] The site's 3D example page (F3, F4) at 390 × 844 and 1280 × 800, before and after Play.
 - [ ] The session opens every sheet and every frame and writes what it saw; the coordinator opens them again before
   the Owner does (rule 6).
 
@@ -1113,20 +1125,31 @@ What is asked of the Owner, in order:
 2. The place, day and night: yes or what to change.
 3. The cast, enlarged and in the place: yes or what to change.
 4. One frame per example: yes, or which to drop or merge.
+4a. Characters on a phone, and the site's 3D page: yes or what to change.
+4b. The proposal for `.github/workflows/3d.yml` (the audit's "For the Owner"): yes or no.
 5. His yes before any picture is recorded (journey goldens, `screenshots-approved.json`, the site's stills).
 6. Yes or no on Part 5: the 2D set from Emberwick.
+
+### Task O2: The pictures, recorded after the Owner's yes (Sonnet, half a session)
+
+After the Owner's yes on O1, on what he said yes to. **Files:** `examples/3d/screenshots-approved.json` and the
+pictures it names, the site's stills, any journey golden the examples hold back until now. Record with the commands
+the suites already have; open each recorded picture beside the sheet frame he approved and say they match; a picture he
+asked to change is not recorded. Gates; commit `test(examples): record the set's pictures the Owner approved`.
 
 ## Self-check (done at writing)
 
 - Every path is either on `main` today, on a branch this plan waits for and checks for by command, or created by an
   earlier task: F1 creates `examples/set-3d` and `catalog.ts`'s rule before any task writes there; K1 creates the
   character kind before C3, C4, K3 and S1; K2 before K3; F2 before L4; E1's harness before E2 to E13; E7's `nav` file
-  before E11 and E12; F3's mechanism before F4; F1, F2, K1 and L1 before F5; F5 before C5 and O1.
+  before E11 and E12; F3's mechanism before F4; F1, F2, K1 and L1 before F5; F5 before C5 and E1; everything before
+  O1; O1's yes before O2.
 - No two parallel branches own one file (the table under "In parallel, by folder"). The level file is written by the
   place branch, then C5, then E7, in that order, never at once. `items.json` and `poses.json` are C2's, then K2's;
   the other registries are K2's. `examples/set-3d/src` is F1's, then F5's, then E1's (`scene-controls.ts`).
-- Totals: 5 + 7 + 4 + 4 + 15 + 4 + 1 = 40 tasks; sessions 6 + 7 + 6 + 4 + 10.5 + 4.5 + 1 = 39 (Opus: L1 to L4 are 5,
-  C3 to C5 are 3, O1 is 1; Sonnet 30). (Plan audit: F5 added, two Sonnet sessions.)
+- Totals: 5 + 7 + 4 + 4 + 15 + 4 + 2 = 41 tasks; sessions 6 + 7 + 6 + 4 + 10.5 + 4.5 + 1.5 = 39.5 (Opus: L1 to L4
+  are 5, C3 to C5 are 3, O1 is 1; Sonnet 30.5). (Plan audit: F5 added, two Sonnet sessions; O2 added with the
+  coordinator's ruling on O1, half a Sonnet session.)
 - No task opens, judges or ports an old example: deletion is `git rm` by the paths in the list. Part K reads the
   game's cast file for its field names only and copies no value.
 
@@ -1137,11 +1160,13 @@ Text for `docs/superpowers/progress.md`, not applied by this session:
 > **Workstream: one example set (3D).** Spec `specs/2026-11-13-one-example-set-design.md`; survey
 > `audits/2026-11-13-example-set-survey.md`; plan `plans/2026-11-13-one-example-set.md`. Stage 2 (plan) done
 > 2026-11-13 on `claude/example-set-plan`; stage 3 (plan audit) done 2026-11-13 on `claude/example-set-plan-audit`
-> (`audits/2026-11-13-example-set-plan/README.md`). 40 tasks, 0 done (0%), about 39 build sessions (9 Opus). Thirteen examples and a story replace 21 examples, the wardrobe package and the old 3D story.
+> (`audits/2026-11-13-example-set-plan/README.md`). 41 tasks, 0 done (0%), about 39.5 build sessions (9 Opus). Thirteen examples and a story replace 21 examples, the wardrobe package and the old 3D story.
 > Can start now, from `main`: F1 (the shape), F3 (the site's mechanism, on fixtures), W1 to W3 (seven prop generators,
 > a lamp preset, two CC0 photos), C2 (the items `suitcase` and `handLamp`, the stand `pullLever`). Waits on: the joined
-> prologue branch and the night fix on `main` (the field, Part K, the place, the cast); ship-3d B10 and the Owner's
-> yes on the sheets (every example); editors v2 tasks 2 to 4 and 6 (Characters, the editor fixes, the journeys).
+> prologue branch (`claude/last-light-prologue` with camera and ada merged in) and the night fix on `main` (the field,
+> Part K, the place, the cast); ship-3d B10 (every example); editors v2 tasks 2 to 4 and 6 (Characters, the editor
+> fixes, the journeys). Nothing waits on the Owner: his sheets (O1) are the last task, and O2 records the pictures
+> after his yes.
 > Asked of the 3D ship plan: `@automata/interact` and `@automata/hud` join its Part B publish list.
 >
 > **Workstream: a character is data (Part K of the same plan; shared with The Last Light).** Four tasks, 6 sessions:
@@ -1158,3 +1183,4 @@ Text for `docs/superpowers/progress.md`, not applied by this session:
 | Date | Session | Task | What happened | Commit |
 |---|---|---|---|---|
 | 2026-11-13 | plan audit (`claude/example-set-plan-audit`) | all | Audited at `73833f3ef` against `main` `7b6ce6ace`, the game's branches, the 3D ship plan, the editors v2 plan and the stress audit. Fixed in the plan: F5 added (`scene()` plays the place); F1 wires the content compiler, names its script `test:unit` and widens `EXTENSION_PACKAGES`; C2's `pullLever` is a painter stand; Part K's table is the painter's types (40 sliders, every `Material` and `Gait` field), not `figure-*` kinds; E5 and E6 change what reads the retired files; E7 owns every hotspot and E1 every dependency; E14 keeps `origins.ts`; E15's list measured; W1's photos are PNG with real Poly Haven candidates; S2's writer located. Rulings asked: the Owner's sheets at the end or before the examples; the joined branch's name; the 3D workflow's paths; `spikes/` in the sweep. See `audits/2026-11-13-example-set-plan/README.md` | this commit |
+| 2026-11-13 | plan audit (`claude/example-set-plan-audit`) | O1, O2, base | The coordinator's rulings written in: O1 is the last task and nothing waits on the Owner, O1 also carries Characters and the site's 3D page, O2 added (record the pictures after his yes); the joined branch is `claude/last-light-prologue` with camera and ada merged; no workflow change (a proposal for the Owner); `spikes/` stays out of the sweep. 41 tasks, 39.5 sessions | this commit |
