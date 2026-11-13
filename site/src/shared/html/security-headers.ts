@@ -36,8 +36,8 @@ export const DEMO_POLICY = [
  */
 const PREVIEW_PAGE = /^\/(examples|playground\/examples)\/[^/]/
 
-/** The framework's own builds the site serves as they are: the demos and the try-it editor. */
-const FRAMEWORK_BUILD = /^\/(demos|editor\/app)\//
+/** The framework's own builds the site serves as they are: the demos, the 3D examples' frames and the try-it editor. */
+const FRAMEWORK_BUILD = /^\/(demos|scenes|editor\/app)\//
 
 export function securityHeaders(pathname: string): Record<string, string> {
   const delegated = PREVIEW_PAGE.test(pathname)

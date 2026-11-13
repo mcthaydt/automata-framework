@@ -25,6 +25,7 @@ export function headerRules(): HeaderRule[] {
     { pattern: '/*', headers: base },
     // The framework's own builds carry their whole policy; the example previews delegate full screen and the gamepad.
     narrower('/demos/*', '/demos/x', base),
+    narrower('/scenes/*', '/scenes/x', base),
     narrower('/editor/app/*', '/editor/app/', base),
     narrower('/examples/*', '/examples/x', base),
     narrower('/playground/examples/*', '/playground/examples/x', base),

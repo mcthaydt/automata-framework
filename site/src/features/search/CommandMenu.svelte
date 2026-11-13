@@ -4,7 +4,7 @@ import './search.css'
 import { EDITOR_URL, reloads } from '../../shared/editor-link'
 import type { ApiSearchRow } from '../../shared/framework/api'
 import { API_VERSION, loadApiSearch, searchApi } from '../../shared/framework/api-reference'
-import { getExamples } from '../../shared/framework/example-catalog'
+import { getExamples, getScenes } from '../../shared/framework/example-catalog'
 import type { SearchEntry } from './search-entry'
 
 // The guides belong to the docs feature, so the layout passes them in (a feature never imports another).
@@ -27,7 +27,7 @@ const PAGES: readonly SearchEntry[] = [
   { title: 'API reference', detail: 'Every export of every package', url: '/api' },
 ]
 // Example titles are sentences; the id stays searchable through the detail line.
-const EXAMPLES: readonly SearchEntry[] = getExamples().map((e) => ({
+const EXAMPLES: readonly SearchEntry[] = [...getExamples(), ...getScenes()].map((e) => ({
   title: e.title,
   detail: e.id + ' ' + e.shows,
   url: '/examples/' + e.id,

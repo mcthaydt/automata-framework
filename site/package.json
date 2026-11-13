@@ -20,6 +20,7 @@
     "deploy": "wrangler pages deploy build --project-name automataframework --branch main",
     "host:local": "wrangler pages dev build --ip 127.0.0.1",
     "test:e2e": "playwright test",
+    "test:e2e:scenes": "node scripts/build-scene-fixture.ts && playwright test -c playwright.scenes.config.ts",
     "e2e:playground": "node playground/feasibility-server.ts",
     "e2e:playground-frame": "vite build -c playground/vite.config.ts && node playground/frame-server.ts",
     "test:e2e:playground": "playwright test -c playground/playwright.config.ts",

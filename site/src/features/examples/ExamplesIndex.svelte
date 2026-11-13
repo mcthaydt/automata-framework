@@ -14,6 +14,7 @@ let { data }: { data: { index: ExampleGroup[] } } = $props()
   {#each data.index as group}
     <section>
       <h2>{moduleTitle(group.module)}</h2>
+      {#if group.module === 'scene'}<p class="group-note">These run in 3D. Press Play to start one; the code is there to read, not to change.</p>{/if}
       <ul>
         {#each group.examples as example}
           <li>
@@ -25,6 +26,7 @@ let { data }: { data: { index: ExampleGroup[] } } = $props()
   {/each}
 </PageShell>
 <style>
+  .group-note { margin: .5rem 0 0; color: var(--muted); }
   ul { display: grid; gap: 1rem; margin: 1.5rem 0 0; padding: 0; list-style: none; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); }
   li { border: 1px solid var(--line-strong); border-radius: var(--edge-lg); background: var(--paper); }
   li a { display: flex; flex-direction: column; gap: .35rem; min-height: 44px; padding: 1.1rem 1.25rem; text-decoration: none; }

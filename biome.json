@@ -17,6 +17,8 @@
       "!site/build",
       "!site/static/demos",
       "!site/static/playground",
+      "!site/static/scenes",
+      "!site/build-scenes",
       "!extensions/figures/tests/fixtures/golden/*.json"
     ]
   },

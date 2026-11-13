@@ -1,11 +1,13 @@
 import { execFileSync } from 'node:child_process'
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { compileExample } from '../src/features/playground/compile.ts'
 import { demoList } from '../src/shared/framework/demos.ts'
+import { sceneExamples } from '../src/shared/framework/examples.ts'
 import { repositoryRoot } from '../src/shared/framework/root.ts'
 import { SITE_ORIGIN } from '../src/shared/site.js'
+import { arrangeScenes } from './scenes.ts'
 import { writeApiIndex } from './write-api-index.ts'
 
 // `node scripts/build-demos.ts`: the built games the site serves, written into static/ (git ignores both folders),
@@ -15,6 +17,8 @@ import { writeApiIndex } from './write-api-index.ts'
 //   named relative to its page, so it runs at that address unchanged);
 // - static/playground/: the playground's runtime, frame pages, resources and goldens (playground/build.ts), with
 //   every example precompiled (compiled/<id>.js), so an example's first run needs no compiler.
+// - static/scenes/: the 3D examples the site shows (`sceneExamples`), built for the web adapter by the 3D examples
+//   package's own runner, pruned to those examples (scripts/scenes.ts). None until the kits they import are public.
 // - tooling/api-index/dist/: the API index (`pnpm api-index`), which the API pages and the agents' text files read.
 // It builds what it needs through turbo, so a fresh checkout needs no other command, and a cached build costs little.
 
@@ -137,14 +141,55 @@ function buildPlayground(): number {
   return catalog.length
 }
 
+/**
+ * Builds the 3D examples the site shows into static/scenes/: one `vite build` of the examples folder (the runner builds
+ * every example in it, into its `dist/`), for the web adapter because a frame on the site has no Ruken host, then `arrangeScenes` takes
+ * out every example the site does not show. With none to show (every example today), the folder is only removed and no
+ * build runs.
+ */
+export function buildScenes(): number {
+  const target = join(staticDir, 'scenes')
+  rmSync(target, { recursive: true, force: true })
+  const scenes = sceneExamples()
+  if (scenes.length === 0) return 0
+  // `AF_SITE_SCENES_DIR` names another folder for the one build that proves the pages on fixtures (sceneExamples).
+  const examples = resolve(repositoryRoot, process.env.AF_SITE_SCENES_DIR ?? 'examples/3d')
+  // Run from the site, whose Vite it is, with the folder's own config: the fixture folder is not a workspace package.
+  execFileSync(
+    'pnpm',
+    [
+      'exec',
+      'vite',
+      'build',
+      '--config',
+      join(examples, 'vite.config.ts'),
+      '--configLoader',
+      'runner',
+      '--logLevel',
+      'warn',
+    ],
+    { cwd: siteRoot, stdio: 'inherit', env: { ...process.env, AF_EXAMPLES_TARGET: 'web' } },
+  )
+  // The runner's config names its own output folder, `dist/`, as the demos' packages do: copy it, then prune the copy.
+  cpSync(join(examples, 'dist'), target, { recursive: true })
+  arrangeScenes(target, examples, scenes)
+  return scenes.length
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  if (process.argv.includes('--scenes-only')) {
+    // The fixture build (tests/e2e/scene-examples.e2e.ts) adds these to a site `pnpm build` has already made.
+    console.log(`build-demos: ${buildScenes()} 3D examples in static/scenes.`)
+    process.exit(0)
+  }
   buildPackages()
   buildWebDemos()
   writeApiIndex()
   const demos = copyDemos()
   copyEditor()
   const examples = buildPlayground()
+  const scenes = buildScenes()
   console.log(
-    `build-demos: ${demos} demos in static/demos, the 2D editor in static/editor/app, ${examples} examples in static/playground.`,
+    `build-demos: ${demos} demos in static/demos, the 2D editor in static/editor/app, ${examples} examples in static/playground, ${scenes} 3D examples in static/scenes.`,
   )
 }

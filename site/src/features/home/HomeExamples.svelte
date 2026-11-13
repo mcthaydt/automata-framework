@@ -1,13 +1,15 @@
 <script lang="ts">
 // "Examples": six runnable examples as cards, each with its picture, its title, what it shows and its file. A card
-// opens the example in the playground (never a template). The count is read from the catalogue.
+// opens the example in the playground (never a template), or a 3D example on its own page with its Play button. The
+// count is read from the catalogue.
 import examples from 'virtual:framework/examples'
 import facts from 'virtual:framework/facts'
+import scenes from 'virtual:framework/scenes'
 import Icon from '../../shared/components/Icon.svelte'
 import { HOME_EXAMPLES } from './home-content'
 
 const cards = HOME_EXAMPLES.map((id) => {
-  const found = examples.find((example) => example.id === id)
+  const found = [...examples, ...scenes].find((example) => example.id === id)
   if (found === undefined)
     throw new Error(`Home shows the example "${id}", which the catalogue does not have.`)
   return found

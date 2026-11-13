@@ -25,6 +25,7 @@ function build(): string {
     '404.html',
     '.well-known/security.txt',
     'demos/emberwick/index.html',
+    'scenes/lamp/index.html',
     'editor/app/index.html',
     'examples.html',
     'examples/shapes-rects.html',
@@ -101,6 +102,12 @@ describe('headerProblems', () => {
     const file = writeHeaders(build())
     expect(matchHeaders(file, '/demos/emberwick/')['Content-Security-Policy']).toEqual([DEMO_POLICY])
     expect(matchHeaders(file, '/docs')['Content-Security-Policy']).toEqual(["frame-ancestors 'self'"])
+  })
+
+  // A 3D example's frame is a build the framework wrote, served as it is, so it carries a whole policy like a demo.
+  it('gives a 3D example’s frame the demos’ whole policy', () => {
+    const file = writeHeaders(build())
+    expect(matchHeaders(file, '/scenes/lamp/index.html')['Content-Security-Policy']).toEqual([DEMO_POLICY])
   })
 
   it('gives the playground’s frames their cross-origin headers, hashed runtime files for good', () => {

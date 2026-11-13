@@ -26,6 +26,9 @@ describe('securityHeaders', () => {
     expect(DEMO_POLICY).toContain("frame-ancestors 'self'")
     expect(DEMO_POLICY).not.toMatch(/'unsafe-inline'[^;]*;?\s*$|script-src[^;]*'unsafe-(inline|eval)'/)
     expect(securityHeaders('/demosx/')['Content-Security-Policy']).toBe("frame-ancestors 'self'")
+    // A 3D example's frame is the framework's build too.
+    expect(securityHeaders('/scenes/lamp/index.html')['Content-Security-Policy']).toBe(DEMO_POLICY)
+    expect(securityHeaders('/scenesx/')['Content-Security-Policy']).toBe("frame-ancestors 'self'")
   })
 
   // an example page's preview is a sandboxed frame with an opaque origin, which `(self)` never matches, so

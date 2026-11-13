@@ -13,4 +13,7 @@ release-manifest.json
 /static/demos/
 /static/playground/
 /static/editor/
+/static/scenes/
+# The one site build that proves the 3D example pages on fixtures (tests/e2e/scene-examples.e2e.ts).
+/build-scenes/
 /playground/dist/

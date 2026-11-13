@@ -7,8 +7,9 @@ const config = {
   preprocess: vitePreprocess(),
   kit: {
     adapter: adapter({
-      pages: 'build',
-      assets: 'build',
+      // `AF_SITE_OUT` is set only by the build that proves the 3D example pages on fixtures (scripts/build-scene-fixture.ts).
+      pages: process.env.AF_SITE_OUT ?? 'build',
+      assets: process.env.AF_SITE_OUT ?? 'build',
       precompress: true,
       strict: true,
     }),

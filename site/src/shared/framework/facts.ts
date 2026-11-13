@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { BROWSER_ENGINES } from '@automata/vitest-preset/engines'
-import { playgroundExamples } from './examples.ts'
+import { playgroundExamples, sceneExamples } from './examples.ts'
 import { repositoryRoot } from './root.ts'
 
 // The plain facts Home states as numbers, read from the workspace so a page cannot say one the repository does not
@@ -29,7 +29,7 @@ export function siteFacts(root: string = repositoryRoot): SiteFacts {
   const ids = ['node', ...BROWSER_ENGINES] as const
   return {
     engines: ids.map((id) => ({ id, name: NAMES[id], where: id === 'node' ? 'unit tests' : 'parity job' })),
-    examples: playgroundExamples(root).length,
+    examples: playgroundExamples(root).length + sceneExamples(root).length,
     licence: license,
   }
 }

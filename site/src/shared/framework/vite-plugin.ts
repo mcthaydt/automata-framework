@@ -2,7 +2,7 @@ import type { Plugin } from 'vite'
 import { readApiIndex } from './api.ts'
 import { readChangelog } from './changelog.ts'
 import { demoList } from './demos.ts'
-import { playgroundExamples } from './examples.ts'
+import { playgroundExamples, sceneExamples } from './examples.ts'
 import { siteFacts } from './facts.ts'
 import { readGuides } from './guides.ts'
 import { repositoryRoot } from './root.ts'
@@ -15,6 +15,7 @@ import { repositoryRoot } from './root.ts'
 const MODULES = {
   guides: () => readGuides(),
   examples: () => playgroundExamples(),
+  scenes: () => sceneExamples(),
   demos: () => demoList(),
   facts: () => siteFacts(),
   changelog: () => readChangelog(),

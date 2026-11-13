@@ -15,7 +15,7 @@ describe('the scene examples reader', () => {
       id: 'scene-lamp',
       title: 'a fixture scene example that imports only public names',
       controls: 'Tap or press any key; Escape leaves the frame.',
-      frameUrl: '/scenes/lamp/index.html',
+      frameUrl: '/scenes/scene/lamp/index.html',
     })
     expect(found[0]?.shows).toContain("the site's 3D example page on a fixture")
     expect(found[0]?.source).toContain("import { defineGame } from '@automata/framework'")

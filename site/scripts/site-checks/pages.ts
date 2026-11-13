@@ -2,8 +2,8 @@
 import { readdirSync } from 'node:fs'
 import { SITE_ORIGIN } from '../../src/shared/site.js'
 
-/** Folders the site copies in from the framework as built: the demo bundles and the playground (frame pages, runtime). */
-const FRAMEWORK_TREES = ['demos/', 'playground/', 'editor/app/']
+/** Folders the site copies in from the framework as built: the demo bundles, the 3D examples' frames and the playground (frame pages, runtime). */
+const FRAMEWORK_TREES = ['demos/', 'scenes/', 'playground/', 'editor/app/']
 export const fromFramework = (path: string) => FRAMEWORK_TREES.some((tree) => path.startsWith(tree))
 
 /** The prerendered pages of a build: every HTML file except the framework's trees and the 404 page. */

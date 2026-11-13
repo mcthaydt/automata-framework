@@ -11,6 +11,8 @@ export const FIXTURE_PORT: number = ports['site-fixtures']
 export default defineConfig({
   testDir: 'tests/e2e',
   testMatch: '**/*.e2e.ts',
+  // The 3D example page needs a build of its own (playwright.scenes.config.ts).
+  testIgnore: '**/scene-examples.e2e.ts',
   fullyParallel: true,
   forbidOnly: true,
   retries: 0,

@@ -59,7 +59,10 @@ export interface SceneExample {
   /** The file as written, header included. */
   readonly source: string
   readonly codeLines: number
-  /** The page the runner builds for it, as the site serves it (`buildScenes` in scripts/build-demos.ts). */
+  /**
+   * The page the runner builds for it, as the site serves it (`buildScenes` in scripts/build-demos.ts): under its module,
+   * where the runner writes it, because the page names its files relative to itself.
+   */
   readonly frameUrl: string
   /** The Owner-approved still the page shows before Play, when there is one (`screenshots-approved.json`). */
   readonly still?: string
@@ -68,9 +71,13 @@ export interface SceneExample {
 /**
  * The `scene` examples of the 3D examples folder (`dir`, from the repository root; absolute paths are kept) that the
  * site may show: valid ones that import no unpublished extension, the rule `playgroundCatalog` keeps for the 2D pages.
- * While the 3D kits are private the real folder gives none, so the site gains no page.
+ * While the 3D kits are private the real folder gives none, so the site gains no page. `AF_SITE_SCENES_DIR` names
+ * another folder, for the one build that proves the pages on fixtures (tests/e2e/scene-examples.e2e.ts); nothing else reads it.
  */
-export function sceneExamples(root: string = repositoryRoot, dir = 'examples/3d'): SceneExample[] {
+export function sceneExamples(
+  root: string = repositoryRoot,
+  dir: string = process.env.AF_SITE_SCENES_DIR ?? 'examples/3d',
+): SceneExample[] {
   return readCatalog(resolve(root, dir))
     .filter((entry) => entry.module === SET_MODULE)
     .filter((entry) => entry.header !== undefined && entry.problems.length === 0)
@@ -90,7 +97,7 @@ export function sceneExamples(root: string = repositoryRoot, dir = 'examples/3d'
         path: entry.path,
         source: readFileSync(entry.file, 'utf8'),
         codeLines: entry.codeLines,
-        frameUrl: `/scenes/${entry.name}/index.html`,
+        frameUrl: `/scenes/${entry.module}/${entry.name}/index.html`,
         ...(entry.screenshot === undefined ? {} : { still: `/scenes/stills/${entry.id}.png` }),
       }
     })

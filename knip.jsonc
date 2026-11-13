@@ -62,6 +62,7 @@
         "scripts/*.ts",
         "playground/*.ts",
         "playwright.config.ts",
+        "playwright.scenes.config.ts",
         "lighthouserc.cjs",
         "tests/e2e/*.ts",
         "tests/playground/e2e/*.test.ts"
