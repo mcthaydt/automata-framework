@@ -79,3 +79,33 @@ game's name and ties, and committed with the source commits named in its body.
 ## For the tracker
 
 (Filled in as the work lands; the rows are the Owner's to paste.)
+
+## Where the work stands (resume point)
+
+Steps 1 to 3 are done and pushed: the map, the carry (every group above, one or more commits each) and the ties cut.
+
+**One carried change was not opt-in and is changed here.** In the source the painted figure's `density` defaulted to `'auto'`, which
+moves every figure's cell. Here a figure that names no density is painted at 2, as on main, and `'auto'` is asked for. The kit's
+Chromium and webgpu browser suites are otherwise unchanged (only `painted-density.test.ts`, which asked for the default, now asks for
+`'auto'`, and has a test of the default).
+
+**Not yet run (step 5 and the trial merges' last part):** `TURBO_FORCE=true pnpm check` was started and its result is in the final
+report; after it: `pnpm build`, `pnpm api-report --update` and `pnpm api-index --write` (commit what they write), then the
+packages/3d unit, Chromium browser and webgpu-software suites, the figures Chromium goldens, the world-kit and lcd-panel Chromium
+suites, the base-3d and examples-3d e2e in Chromium. A resuming session starts with those, in that order.
+
+## Trial merges (not pushed, in a scratch worktree)
+
+Against `origin/claude/pixi-3d-public`: 5 conflicts.
+
+| File | The conflict |
+|---|---|
+| `extensions/lcd-panel/package.json` | Peers: this branch adds `@automata/framework` (for the screen filter); that branch moves `@pixi/3d` to beta.3 and `pixi.js` to 8.23.0. Keep both. |
+| `extensions/lcd-panel/vitest.config.ts` | Both rewrite the project list and the header comment (this branch's one `browser` project over `.`, with the screen filter's WebGL2 and WebGPU cases; that branch splits `pass` and `webgpu` folders). Needs the test files laid out one way. |
+| `packages/3d/src/app/world-view.ts` | Imports only: this branch adds `FlatMaterial`, `ModelInvalid`, `toSrgb` and the model library types; that branch adds `UnlitMaterial`. Keep both and check the model mesh uses the unlit material. |
+| `packages/3d/src/features/look/duel-snap-filter.ts` | The constructor: this branch adds the dither's `lumaWeight` and `shadowTaper` options; that branch adds `{ stage: 'afterToneMapping' }` to `super()`. Both apply. |
+| `packages/3d/src/shared/render/light/vertex-bake.ts` | Top of the bake: this branch adds the contact darkening's `lampShare` and `lampOpen`; that branch adds `engineColour(extras)`. Both apply. |
+
+Against `origin/claude/3d-night-regression`: 1 conflict, `packages/3d/src/app/create-renderer.ts` (this branch passes `width` and
+`drawing` to `occluderHooks`; that branch adds `hazeFocusHooks` after it; both apply). Merged after `pixi-3d-public` the same file
+still conflicts and nothing else does. Either order works; the only file both touch is `create-renderer.ts`.
