@@ -7,8 +7,13 @@
 //     the older content on disk.
 //   - Content is published only after a build succeeded, so a bad save reports its diagnostics, keeps the
 //     last good files and module, and leaves the watcher alive for the fix.
+//   - The dev server never serves a build older than the sources on disk. The watcher is the fast path, but on a
+//     busy machine it reports a save seconds late; a page that asked for the module in that window was handed the
+//     build before the save, and the HMR update that followed reached it while it was still loading, so it kept
+//     the old content until a reload (the editor's Play right after a Tuner edit). So every request for the
+//     module first compares the sources with the ones the last build read, and builds again when they differ.
 
-import { readdir, readFile } from 'node:fs/promises'
+import { readdir, readFile, stat } from 'node:fs/promises'
 import { dirname, join, posix, sep } from 'node:path'
 import { Effect, Either } from 'effect'
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
@@ -26,6 +31,8 @@ import { formatDiagnostic } from '../../shared/diagnostics/diagnostic.ts'
 /** The import path of the compiled content: `content`, `contentHash`, `simContent` and `simContentHash`. */
 export const VIRTUAL_MODULE_ID = 'virtual:automata/content'
 const RESOLVED_ID = `\0${VIRTUAL_MODULE_ID}`
+/** How a page asks for the module: Vite's URL for an id that is not a path (`\0` written as `__x00__`). */
+const MODULE_URL = `/@id/__x00__${VIRTUAL_MODULE_ID}`
 
 /** Long enough to collapse an editor's write burst, short enough to feel live. */
 const DEBOUNCE_MS = 50
@@ -108,11 +115,20 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
   // The last build's outcome. `publish` sends an event only when it changes, so the several `change` events a
   // single save can fire (macOS) — or the watcher's startup noise — never send a second, identical event.
   let lastOutcome: BuildOutcome | undefined
+  let server: ViteDevServer | undefined
+  // What the last finished build read (`sourcesStamp`), so a request can tell the sources changed since.
+  let builtFrom: string | undefined
+  // The build a request started because the sources changed, shared by the requests that arrive meanwhile.
+  let catchingUp: Promise<void> | undefined
 
   const enqueue = (): Promise<BuildOutcome> => {
     started = true
     const next = chain.then(async () => {
+      // Taken before the build reads anything, so a save during the build leaves the stamp behind the disk and
+      // the next request builds again.
+      const stamp = await sourcesStamp()
       const outcome = await runBuild(options as ContentOptions)
+      builtFrom = stamp
       if (outcome.ok) {
         for (const warning of outcome.content.warnings) logWarning(formatDiagnostic(warning))
         latest = outcome.content
@@ -133,6 +149,32 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
     if (!path.startsWith(contentDir + sep) || path.startsWith(outDir + sep)) return false
     if (path.endsWith('.toml')) return true
     return path.endsWith('.json') && dirname(path) === join(contentDir, TRANSLATIONS_FOLDER)
+  }
+
+  /**
+   * Every watched source with its modification time and size. It changes when a source is saved, added, deleted
+   * or renamed, which a newest-mtime check alone would miss for the last two.
+   */
+  const sourcesStamp = async (): Promise<string> => {
+    if (options === undefined) return ''
+    const found = await readdir(join(options.root, 'content'), {
+      recursive: true,
+      withFileTypes: true,
+    }).catch(() => [])
+    const paths = found
+      .filter((entry) => entry.isFile())
+      .map((entry) => join(entry.parentPath, entry.name))
+      .filter(isWatchedSource)
+      .sort()
+    const lines = await Promise.all(
+      paths.map((path) =>
+        stat(path).then(
+          ({ mtimeMs, size }) => `${path}\0${mtimeMs}\0${size}`,
+          () => `${path}\0gone`,
+        ),
+      ),
+    )
+    return lines.join('\n')
   }
 
   const publish = (server: ViteDevServer, outcome: BuildOutcome): void => {
@@ -157,6 +199,29 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
       void environment.reloadModule(module)
     }
     server.ws.send({ type: 'custom', event: 'automata:content', data: { hash: outcome.content.hash } })
+  }
+
+  /** Publishes a build's outcome unless the clients already have one they cannot tell from it. */
+  const report = (outcome: BuildOutcome): void => {
+    if (sameOutcome(lastOutcome, outcome)) return
+    lastOutcome = outcome
+    if (server !== undefined) publish(server, outcome)
+  }
+
+  /**
+   * Waits for the builds in flight, then builds again if the sources on disk differ from what the last build
+   * read, without waiting for the watcher. The outcome is published like a watched save, so pages that loaded the
+   * module earlier update; the watcher's own build for the same save then finds nothing new to publish.
+   */
+  const catchUp = async (): Promise<void> => {
+    await chain
+    if (server === undefined || (await sourcesStamp()) === builtFrom) return
+    catchingUp ??= enqueue()
+      .then(report)
+      .finally(() => {
+        catchingUp = undefined
+      })
+    await catchingUp
   }
 
   const settle = async (): Promise<void> => {
@@ -199,21 +264,25 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
       logError(outcome.lines.join('\n'))
     },
 
-    configureServer(server) {
+    configureServer(devServer) {
+      server = devServer
+      // A page's request for the module is answered from Vite's cache, without calling `load`, until the module is
+      // invalidated. So the check runs before Vite's own middlewares; a rebuild publishes, which invalidates the
+      // module, and Vite then calls `load` for this request.
+      devServer.middlewares.use((request, _response, next) => {
+        if (!request.url?.includes(MODULE_URL)) return next()
+        catchUp().then(() => next(), next)
+      })
       // Vite watches its own root. Content kept elsewhere (a game served from its checkout with its content in
       // another folder, as a journey's temp copy is) is added, so a save there still rebuilds; adding a folder
       // already inside the root changes nothing. `configResolved` has always run by now.
-      if (options !== undefined) server.watcher.add(join(options.root, 'content'))
-      server.watcher.on('all', (_event, path) => {
+      if (options !== undefined) devServer.watcher.add(join(options.root, 'content'))
+      devServer.watcher.on('all', (_event, path) => {
         if (!isWatchedSource(path)) return
         if (timer !== undefined) clearTimeout(timer)
         timer = setTimeout(() => {
           timer = undefined
-          void enqueue().then((outcome) => {
-            if (sameOutcome(lastOutcome, outcome)) return
-            lastOutcome = outcome
-            publish(server, outcome)
-          })
+          void enqueue().then(report)
         }, DEBOUNCE_MS)
       })
     },
@@ -228,6 +297,8 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
       if (id.split('?')[0] !== RESOLVED_ID) return undefined
       // A dev server may be asked for the module before `buildStart` ran.
       if (!started) lastOutcome = await enqueue()
+      // A module Vite loads ahead of the page (the imports of a module it just served) or for SSR.
+      await catchUp()
       await chain
       if (latest === undefined) throw new Error(`content has errors:\n${latestErrors.join('\n')}`)
       return moduleCode(latest)
